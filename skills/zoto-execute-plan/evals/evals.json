@@ -1,0 +1,48 @@
+{
+  "skill_name": "zoto-execute-plan",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Execute the plan at plans/20260401-api-migration/. It has 4 subtasks across 3 phases. The plan status is Ready for Review.",
+      "expected_output": "Phased execution of all subtasks with adversarial verification after each, followed by final verification (tests, linter, quality audit) and an execution report written to the plan directory.",
+      "files": [],
+      "assertions": [
+        "The plan index is loaded and the Subtask Manifest is validated before execution begins",
+        "User confirmation is requested before execution starts",
+        "Subtasks are executed in phase order, not out of order",
+        "Each completed subtask receives adversarial verification from a zoto-spec-judge subagent",
+        "The index manifest Status column is updated after each subtask verification",
+        "An execution report is written as execution-report-[feature-name]-[yyyymmdd].md",
+        "The execution report includes Subtask Results, Verification Results, and Files Modified sections",
+        "The plan index status is updated to Completed after user approval"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Resume executing plans/20260403-dark-mode/ — it was interrupted after subtask 02 completed. Subtasks 01 and 02 are Done, 03-05 are pending.",
+      "expected_output": "Execution resumes from subtask 03 without re-executing completed subtasks. Completed subtask deliverables are verified to still hold before continuing.",
+      "files": [],
+      "assertions": [
+        "Completed subtasks (01 and 02) are not re-executed",
+        "Existing deliverables from completed subtasks are verified to still exist",
+        "Execution resumes from the next incomplete subtask based on dependency order",
+        "Adversarial verification is performed on newly completed subtasks",
+        "The final execution report reflects the full execution including resumed work"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run /zoto-execute on plans/20260402-test-infra/. This plan has 6 subtasks, phase 1 has 4 parallel subtasks, and the config sets parallelLimit to 2.",
+      "expected_output": "Phase 1 subtasks are batched into groups of 2 (respecting parallelLimit), not all 4 at once. Each batch completes before the next starts.",
+      "files": [],
+      "assertions": [
+        "The parallelLimit from config is read and respected",
+        "Phase 1 subtasks are batched into groups no larger than the parallelLimit",
+        "Each batch within a phase completes before the next batch starts",
+        "Dependencies are never violated — no subtask starts before its dependencies complete",
+        "Failed subtasks prevent dependent subtasks from starting",
+        "The execution report accurately reflects batching and parallel execution"
+      ]
+    }
+  ]
+}

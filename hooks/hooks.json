@@ -1,0 +1,13 @@
+{
+  "$schema": "https://cursor.sh/hooks-schema.json",
+  "version": 1,
+  "description": "Spec System hooks — session start nudge for unprocessed specs",
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "python3 hooks/zoto-session-start.py",
+        "description": "Spec System: Check for unprocessed specs and nudge user"
+      }
+    ]
+  }
+}

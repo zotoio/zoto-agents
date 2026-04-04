@@ -1,0 +1,21 @@
+{
+  "name": "zoto-spec-system",
+  "displayName": "Spec System",
+  "version": "0.3.0",
+  "description": "Structured spec workflow: plan, judge, and execute engineering initiatives with adversarial verification.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/spec-system",
+  "repository": "https://github.com/zotoio/spec-system",
+  "license": "MIT",
+  "keywords": ["planning", "execution", "specs", "engineering", "adversarial-verification"],
+  "category": "developer-tools",
+  "tags": ["planning", "execution", "workflow"],
+  "agents": "./agents/",
+  "skills": "./skills/",
+  "commands": "./commands/",
+  "rules": "./rules/",
+  "hooks": "./hooks/hooks.json"
+}

@@ -1,0 +1,37 @@
+---
+description: Spec System integration rule — teaches agents about available commands and workflow
+alwaysApply: true
+---
+
+# Spec System
+
+This repository uses the Spec System plugin for structured engineering workflows.
+
+## Available Commands
+
+- `/zoto-plan` — Create a structured engineering plan for a complex initiative
+- `/zoto-judge` — Independently assess the repository or a specific plan
+- `/zoto-execute` — Execute a plan with subagent coordination and adversarial verification
+
+## When to Suggest Planning
+
+Suggest `/zoto-plan` when:
+- The user describes a multi-step initiative (3+ distinct changes)
+- A task touches multiple files, systems, or components
+- Requirements are ambiguous and need structured decomposition
+- The user explicitly asks for a plan
+
+## Configuration
+
+The spec system is configured via `.spec-system/config.json`. Key settings:
+- `unitOfWork` — term for work items (default: "spec")
+- `plansDir` — where plans are stored (default: "plans")
+
+## Discovering Existing Plans
+
+Check the configured `plansDir` directory for existing plan directories. Each follows the `[yyyymmdd]-[feature-name]/` convention.
+
+## Extensions
+
+The spec system supports optional extensions:
+- **Memory system**: When `extensions.memory.enabled` is true in config, the memory plugin provides learning extraction and recall across sessions
