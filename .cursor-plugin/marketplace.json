@@ -1,0 +1,19 @@
+{
+  "name": "zoto-cursor-plugins",
+  "owner": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "metadata": {
+    "description": "Cursor plugins for structured engineering workflows by zotoio",
+    "version": "0.5.0",
+    "pluginRoot": "plugins"
+  },
+  "plugins": [
+    {
+      "name": "zoto-spec-system",
+      "source": "plugins/zoto-spec-system",
+      "description": "Structured spec workflow: plan, judge, and execute engineering initiatives with adversarial verification"
+    }
+  ]
+}

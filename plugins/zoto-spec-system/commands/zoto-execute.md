@@ -1,3 +1,8 @@
+---
+name: zoto-execute
+description: Execute an engineering plan with guided subagent coordination, progress tracking, and completion verification.
+---
+
 # zoto-execute
 
 Execute an engineering plan with guided subagent coordination, progress tracking, and completion verification.

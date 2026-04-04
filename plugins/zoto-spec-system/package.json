@@ -1,0 +1,21 @@
+{
+  "name": "@zoto-cursor-plugins/zoto-spec-system",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Structured spec workflow: plan, judge, and execute engineering initiatives with adversarial verification.",
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "validate": "tsx scripts/validate-plugin.ts",
+    "install-local": "tsx scripts/install-local.ts",
+    "uninstall-local": "tsx scripts/uninstall-local.ts"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0"
+  }
+}

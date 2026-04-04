@@ -1,3 +1,8 @@
+---
+name: zoto-judge
+description: Independently assess the repository or a specific engineering plan for quality, feasibility, and completeness.
+---
+
 # zoto-judge
 
 Independently assess the repository or a specific engineering plan for quality, feasibility, and completeness.

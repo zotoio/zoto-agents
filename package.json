@@ -1,0 +1,12 @@
+{
+  "name": "zoto-cursor-plugins",
+  "private": true,
+  "description": "Monorepo for Cursor plugins by zotoio",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "validate": "pnpm -r validate",
+    "validate-template": "node scripts/validate-template.mjs"
+  },
+  "packageManager": "pnpm@10.8.0"
+}

@@ -1,3 +1,8 @@
+---
+name: zoto-plan
+description: Generate structured engineering plans for complex features and multi-step initiatives.
+---
+
 # zoto-plan
 
 Generate structured engineering plans for complex features and multi-step initiatives.

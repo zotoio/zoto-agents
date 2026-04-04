@@ -5,7 +5,7 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": "python3 hooks/zoto-session-start.py",
+        "command": "node hooks/zoto-session-start.mjs",
         "description": "Spec System: Check for unprocessed specs and nudge user"
       }
     ]
