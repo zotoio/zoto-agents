@@ -1,0 +1,52 @@
+{
+  "skill_name": "zoto-create-plugin",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a new Cursor plugin called zoto-code-review that has an agent for reviewing pull requests, a skill for guided code review workflows, and a /zoto-review command. It should have a rule that teaches agents when to suggest code reviews.",
+      "expected_output": "A fully scaffolded plugin under plugins/zoto-code-review/ with plugin.json manifest, agent definition, skill with SKILL.md and evals, command definition, rule file, package.json, README, LICENSE, CHANGELOG, and marketplace.json entry. All validation passes.",
+      "assertions": [
+        "plugins/zoto-code-review/.cursor-plugin/plugin.json exists and contains valid JSON with name, displayName, version, description, author, and license fields",
+        "plugins/zoto-code-review/agents/ contains at least one .md file with name and description in YAML frontmatter",
+        "plugins/zoto-code-review/skills/ contains at least one directory with a SKILL.md file that has name and description frontmatter",
+        "Each skill directory has an evals/evals.json with at least 2 test cases",
+        "plugins/zoto-code-review/commands/ contains at least one .md file with name and description frontmatter",
+        "plugins/zoto-code-review/rules/ contains at least one .mdc file with description frontmatter",
+        "plugins/zoto-code-review/README.md exists and has more than 50 lines",
+        "plugins/zoto-code-review/LICENSE exists",
+        ".cursor-plugin/marketplace.json contains an entry for zoto-code-review",
+        "node scripts/validate-template.mjs passes without errors"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need a minimal plugin called zoto-db-migrate that just has a single skill for database migration workflows. No agents, no commands, no rules. Keep it simple.",
+      "expected_output": "A minimal plugin under plugins/zoto-db-migrate/ with only the required files: plugin.json, one skill with SKILL.md and evals, package.json, README, LICENSE, CHANGELOG, and marketplace.json entry.",
+      "assertions": [
+        "plugins/zoto-db-migrate/.cursor-plugin/plugin.json exists with valid JSON and all required fields",
+        "plugins/zoto-db-migrate/skills/ contains exactly one directory with a SKILL.md file",
+        "The SKILL.md has valid frontmatter with name matching the directory name",
+        "The skill has evals/evals.json with at least 2 test cases with assertions",
+        "plugins/zoto-db-migrate/agents/ directory does not exist or is empty",
+        "plugins/zoto-db-migrate/commands/ directory does not exist or is empty",
+        "plugin.json only references skills path, not agents or commands",
+        ".cursor-plugin/marketplace.json contains an entry for zoto-db-migrate",
+        "plugins/zoto-db-migrate/README.md exists"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Create a plugin called zoto-test-runner with hooks that run on session start to check test coverage, an MCP server definition, two skills (one for writing tests, one for analyzing coverage), and corresponding commands.",
+      "expected_output": "A plugin with hooks/hooks.json, mcp.json, two skills each with evals, two commands, and all supporting files. Cross-references between commands, skills, and hooks are consistent.",
+      "assertions": [
+        "plugins/zoto-test-runner/hooks/hooks.json exists and defines at least one sessionStart hook",
+        "plugins/zoto-test-runner/skills/ contains two subdirectories each with SKILL.md and evals/evals.json",
+        "Each evals.json has at least 2 test cases with assertions",
+        "plugins/zoto-test-runner/commands/ contains two .md files with valid frontmatter",
+        "plugins/zoto-test-runner/.cursor-plugin/plugin.json references hooks path",
+        "All skill names in frontmatter match their directory names",
+        ".cursor-plugin/marketplace.json contains an entry for zoto-test-runner"
+      ]
+    }
+  ]
+}

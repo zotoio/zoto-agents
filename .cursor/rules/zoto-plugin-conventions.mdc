@@ -1,0 +1,46 @@
+---
+description: Plugin development conventions — teaches agents about the monorepo structure, naming rules, validation pipeline, and how to create or modify Cursor plugins correctly
+alwaysApply: true
+---
+
+# Plugin Development Conventions
+
+This monorepo hosts Cursor plugins under `plugins/`. Each plugin is a self-contained package.
+
+## Creating or Modifying Plugins
+
+Use `/zoto-create-plugin` to scaffold a new plugin. For modifications to existing plugins, follow these conventions.
+
+## Required Structure
+
+Every plugin must have:
+- `.cursor-plugin/plugin.json` — manifest with `name`, `displayName`, `version`, `description`, `author`, `license`
+- Entry in `.cursor-plugin/marketplace.json` at the repo root
+- `README.md` (>50 lines), `LICENSE`, `CHANGELOG.md`
+
+## Component Frontmatter
+
+| Component | File pattern | Required frontmatter |
+|-----------|-------------|---------------------|
+| Agent | `agents/*.md` | `name`, `description` |
+| Skill | `skills/*/SKILL.md` | `name`, `description` |
+| Command | `commands/*.md` | `name`, `description` |
+| Rule | `rules/*.mdc` | `description` |
+
+## Skill Requirements
+
+- Skill directory name must match `name` in frontmatter
+- Each skill must have `evals/evals.json` with >= 2 test cases and assertions
+- Keep `SKILL.md` under 500 lines
+
+## Naming
+
+- Plugin names: lowercase kebab-case (`zoto-<domain>`)
+- All identifiers: kebab-case, no leading/trailing hyphens, no consecutive hyphens
+
+## Validation
+
+Before submitting changes, run:
+1. `node scripts/validate-template.mjs`
+2. `node scripts/validate-skills.mjs`
+3. `pnpm test`

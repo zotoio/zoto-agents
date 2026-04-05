@@ -33,3 +33,9 @@ plugins/*/skills/*/evals/workspace/
 
 # Cursor local install artifacts
 .cursor/plugins/
+
+# X-Fidelity analysis results
+.xfiResults/
+
+# Python virtual environment (skills-ref)
+.venv/

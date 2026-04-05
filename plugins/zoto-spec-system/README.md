@@ -1,6 +1,6 @@
 # Spec System
 
-Structured engineering workflows for complex initiatives: turn ideas into plans, get an independent quality gate, then execute with adversarial verification.
+Structured engineering workflows for complex initiatives: turn ideas into specs, get an independent quality gate, then execute with adversarial verification.
 
 ## Installation
 
@@ -16,10 +16,10 @@ Copy this plugin folder into your project's Cursor plugins directory (for exampl
 
 ## Quick start
 
-1. At the repository root, create `.spec-system/config.json` with a minimal configuration (see below).
-2. Open the command palette or chat and run **`/zoto-plan`**.
+1. At the repository root, create `.zoto-spec-system/config.json` with a minimal configuration (see below).
+2. Open the command palette or chat and run **`/zoto-spec-create`**.
 3. Follow the guided flow or pass a design doc path or short description as arguments.
-4. Optionally run **`/zoto-judge`** on the new plan, then **`/zoto-execute`** when you are ready to implement.
+4. Optionally run **`/zoto-spec-judge`** on the new spec, then **`/zoto-spec-execute`** when you are ready to implement.
 
 ## Configuration
 
@@ -30,7 +30,7 @@ Full field reference, defaults, and path rules are in [`docs/config-schema.md`](
 ```json
 {
   "unitOfWork": "spec",
-  "plansDir": "plans",
+  "specsDir": "specs",
   "workDir": "specs/current"
 }
 ```
@@ -40,79 +40,89 @@ Full field reference, defaults, and path rules are in [`docs/config-schema.md`](
 | Field | Purpose |
 |-------|---------|
 | **`unitOfWork`** | Word used in prompts and hooks for a single work item (for example `spec`, `story`, `task`). Keeps messaging consistent with how your team talks about work. |
-| **`plansDir`** | Root directory for plan folders, relative to the repo root. All plan indexes, subtasks, assessments, and execution reports live under here (unless you change it). |
+| **`specsDir`** | Root directory for spec folders, relative to the repo root. All spec indexes, subtasks, assessments, and execution reports live under here (unless you change it). |
 | **`workDir`** | Directory the session-start hook watches for unprocessed items, relative to the repo root. Used for optional nudges when the backlog grows. |
 
 An empty `{}` is valid: every setting has a documented default in the schema.
 
 ## Commands
 
-### `/zoto-plan`
+### `/zoto-spec-create`
 
-Create a structured engineering plan.
+Create a structured engineering spec.
 
-- **No arguments** — Interactive guided planning (clarifying questions, then file output).
-- **`@path/to/design.md`** — Plan from one or more design or spec documents.
-- **`"short description"`** — Plan from a free-text description.
+- **No arguments** — Interactive guided spec creation (clarifying questions, then file output).
+- **`@path/to/design.md`** — Spec from one or more design or spec documents.
+- **`"short description"`** — Spec from a free-text description.
 
-Output is written under `{plansDir}/[yyyymmdd]-[feature-name]/` with a plan index and subtask files.
+Output is written under `{specsDir}/[yyyymmdd]-[feature-name]/` with a spec index and subtask files.
 
-### `/zoto-judge`
+### `/zoto-spec-judge`
 
-Independent assessment of the whole repository or of a specific plan.
+Independent assessment of the whole repository or of a specific spec.
 
-- **No arguments** — Repository health assessment; report under `{plansDir}/assessment-repo-[yyyymmdd].md`.
-- **Plan path** — Plan-focused assessment; report as `assessment-[feature-name]-[yyyymmdd].md` inside that plan directory.
+- **No arguments** — Repository health assessment; report under `{specsDir}/assessment-repo-[yyyymmdd].md`.
+- **Spec path** — Spec-focused assessment; report as `assessment-[feature-name]-[yyyymmdd].md` inside that spec directory.
 
 **Verdicts** (from the assessment rubric):
 
 | Verdict | Typical meaning |
 |---------|------------------|
-| **Approve** | Ready to proceed (for a plan: suitable for `/zoto-execute`). |
-| **Conditional** | Address listed findings before relying on the plan or repo state. |
+| **Approve** | Ready to proceed (for a spec: suitable for `/zoto-spec-execute`). |
+| **Conditional** | Address listed findings before relying on the spec or repo state. |
 | **Reject** | Rework required; major gaps or risks. |
 
-### `/zoto-execute`
+### `/zoto-spec-execute`
 
-Runs the plan with phased subagent work, progress tracking, and **adversarial verification** (the dedicated `zoto-spec-judge` agent independently checks each subtask's deliverables). Supports targeting the latest plan, a plan directory, an index file path, and **`--resume`** after an interruption.
+Runs the spec with phased subagent work, progress tracking, and **adversarial verification** (the dedicated `zoto-spec-judge` agent independently checks each subtask's deliverables). Supports targeting the latest spec, a spec directory, an index file path, and **`--resume`** after an interruption.
 
-Produces `execution-report-[feature-name]-[yyyymmdd].md` in the plan directory.
+Produces `execution-report-[feature-name]-[yyyymmdd].md` in the spec directory.
+
+## Agents
+
+The plugin provides three specialized agents:
+
+| Agent | Role |
+|-------|------|
+| **`zoto-spec-generator`** | Creates structured engineering specs from requirements, design docs, or free-text descriptions. |
+| **`zoto-spec-executor`** | Executes specs by spawning subagents for each subtask, tracking progress, and coordinating adversarial verification. |
+| **`zoto-spec-judge`** | Independent quality gate that performs adversarial verification and produces structured assessments. |
 
 ## Workflow overview
 
 Typical lifecycle:
 
-1. **Plan** — Decompose work, dependencies, and phases; write durable markdown under `{plansDir}`.
+1. **Spec** — Decompose work, dependencies, and phases; write durable markdown under `{specsDir}`.
 2. **Judge** — Get a second opinion on feasibility, risks, and completeness.
 3. **Execute** — Run subtasks in order with verification and a final execution report.
 
 ```mermaid
 flowchart LR
-  A["/zoto-plan"] --> B["/zoto-judge"]
-  B --> C["/zoto-execute"]
+  A["/zoto-spec-create"] --> B["/zoto-spec-judge"]
+  B --> C["/zoto-spec-execute"]
   C --> D["Execution report"]
 ```
 
-You can loop back: a **Conditional** or **Reject** verdict usually means revising the plan or codebase before executing.
+You can loop back: a **Conditional** or **Reject** verdict usually means revising the spec or codebase before executing.
 
-## Plan file structure
+## Spec file structure
 
-Plans are ordinary markdown in your repo. A feature plan directory usually looks like this:
+Specs are ordinary markdown in your repo. A feature spec directory usually looks like this:
 
 ```text
-{plansDir}/
+{specsDir}/
 └── 20260403-feature-name/
-    ├── plan-feature-name-20260403.md          # Index: phases, dependencies, definition of done
+    ├── spec-feature-name-20260403.md          # Index: phases, dependencies, definition of done
     ├── subtask-01-feature-name-setup-20260403.md
     ├── subtask-02-feature-name-impl-20260403.md
-    ├── assessment-feature-name-20260403.md    # After /zoto-judge (plan mode)
-    └── execution-report-feature-name-20260403.md   # After /zoto-execute
+    ├── assessment-feature-name-20260403.md    # After /zoto-spec-judge (spec mode)
+    └── execution-report-feature-name-20260403.md   # After /zoto-spec-execute
 ```
 
-Repository-wide assessments (no plan path) are stored next to plan folders:
+Repository-wide assessments (no spec path) are stored next to spec folders:
 
 ```text
-{plansDir}/
+{specsDir}/
 └── assessment-repo-20260403.md
 ```
 
@@ -122,7 +132,7 @@ Naming patterns may vary slightly by date and feature slug; the commands and ski
 
 ### Memory system (optional)
 
-The core Spec System plugin is **plan -> judge -> execute** only. An optional **memory** extension adds long-lived, structured facts extracted from completed work and recall in later sessions.
+The core Spec System plugin is **spec -> judge -> execute** only. An optional **memory** extension adds long-lived, structured facts extracted from completed work and recall in later sessions.
 
 See **[Memory extension guide](docs/memory-extension-guide.md)** for concepts (`dream`, REM sleep, mindreader), suggested commands, and how to enable it via `extensions.memory` in config. The memory capability is delivered by a **separate plugin**, not bundled here.
 
@@ -163,8 +173,8 @@ pnpm install-local
 ## Uninstall and cleanup
 
 1. **Remove the plugin** — Uninstall via Cursor's plugin UI, or delete the plugin folder from `.cursor/plugins/` if you installed manually.
-2. **Remove local configuration** — Delete the `.spec-system/` directory at your repo root if you no longer want Spec System settings (including any `config.json`).
-3. **Plan data** — Directories under your configured `plansDir` (default `plans/`) are **your content**: keep them for history, archive them, or delete them as you prefer. Uninstalling the plugin does not remove them.
+2. **Remove local configuration** — Delete the `.zoto-spec-system/` directory at your repo root if you no longer want Spec System settings (including any `config.json`).
+3. **Spec data** — Directories under your configured `specsDir` (default `specs/`) are **your content**: keep them for history, archive them, or delete them as you prefer. Uninstalling the plugin does not remove them.
 
 ## License
 

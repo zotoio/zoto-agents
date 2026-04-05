@@ -1,8 +1,8 @@
 {
   "name": "@zoto-cursor-plugins/zoto-spec-system",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
-  "description": "Structured spec workflow: plan, judge, and execute engineering initiatives with adversarial verification.",
+  "description": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification.",
   "type": "module",
   "scripts": {
     "build": "tsup",

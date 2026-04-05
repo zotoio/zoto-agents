@@ -111,10 +111,10 @@ describe("Config Schema", () => {
     const c = loadJson(join(PLUGIN_DIR, "docs", "example-config.json"));
     const required = [
       "unitOfWork",
-      "plansDir",
+      "specsDir",
       "workDir",
       "hooks",
-      "plan",
+      "spec",
       "extensions",
     ];
     const missing = required.filter((f) => !(f in c));
@@ -187,9 +187,15 @@ describe("Naming Convention", () => {
     }
   });
 
-  it("planner agent exists", () => {
+  it("generator agent exists", () => {
     expect(
-      isFile(join(PLUGIN_DIR, "agents", "zoto-spec-planner.md")),
+      isFile(join(PLUGIN_DIR, "agents", "zoto-spec-generator.md")),
+    ).toBe(true);
+  });
+
+  it("executor agent exists", () => {
+    expect(
+      isFile(join(PLUGIN_DIR, "agents", "zoto-spec-executor.md")),
     ).toBe(true);
   });
 
@@ -211,63 +217,60 @@ describe("Naming Convention", () => {
 // ---------------------------------------------------------------------------
 
 describe("Cross-References", () => {
-  it("commands reference planner or judge", () => {
+  it("commands reference an agent", () => {
     const cmdDir = join(PLUGIN_DIR, "commands");
     for (const f of readdirSync(cmdDir).filter((n) => n.startsWith("zoto-"))) {
       const text = readText(join(cmdDir, f));
       expect(
-        text.includes("zoto-spec-planner") || text.includes("zoto-spec-judge"),
+        text.includes("zoto-spec-generator") || text.includes("zoto-spec-executor") || text.includes("zoto-spec-judge"),
         `${f} references neither agent`,
       ).toBe(true);
     }
   });
 
   it("judge command references judge agent", () => {
-    const text = readText(join(PLUGIN_DIR, "commands", "zoto-judge.md"));
+    const text = readText(join(PLUGIN_DIR, "commands", "zoto-spec-judge.md"));
     expect(text).toContain("zoto-spec-judge");
   });
 
-  it("execute command references judge agent", () => {
-    const text = readText(join(PLUGIN_DIR, "commands", "zoto-execute.md"));
-    expect(text).toContain("zoto-spec-judge");
+  it("execute command references executor agent", () => {
+    const text = readText(join(PLUGIN_DIR, "commands", "zoto-spec-execute.md"));
+    expect(text).toContain("zoto-spec-executor");
   });
 
   it("judge agent references judge skill", () => {
     const text = readText(join(PLUGIN_DIR, "agents", "zoto-spec-judge.md"));
-    expect(text).toContain("zoto-judge-plan");
+    expect(text).toContain("zoto-judge-spec");
   });
 
-  it("planner agent references judge", () => {
-    const text = readText(join(PLUGIN_DIR, "agents", "zoto-spec-planner.md"));
+  it("generator agent references judge", () => {
+    const text = readText(join(PLUGIN_DIR, "agents", "zoto-spec-generator.md"));
     expect(text).toContain("zoto-spec-judge");
   });
 
-  it("plan command references create skill", () => {
-    const text = readText(join(PLUGIN_DIR, "commands", "zoto-plan.md"));
-    expect(text).toContain("zoto-create-plan");
+  it("create command references create skill", () => {
+    const text = readText(join(PLUGIN_DIR, "commands", "zoto-spec-create.md"));
+    expect(text).toContain("zoto-create-spec");
   });
 
   it("judge command references judge skill", () => {
-    const text = readText(join(PLUGIN_DIR, "commands", "zoto-judge.md"));
-    expect(text).toContain("zoto-judge-plan");
+    const text = readText(join(PLUGIN_DIR, "commands", "zoto-spec-judge.md"));
+    expect(text).toContain("zoto-judge-spec");
   });
 
   it("execute command references execute skill", () => {
-    const text = readText(join(PLUGIN_DIR, "commands", "zoto-execute.md"));
-    expect(text).toContain("zoto-execute-plan");
+    const text = readText(join(PLUGIN_DIR, "commands", "zoto-spec-execute.md"));
+    expect(text).toContain("zoto-execute-spec");
   });
 
-  it("planner agent references all skills", () => {
-    const text = readText(join(PLUGIN_DIR, "agents", "zoto-spec-planner.md"));
-    for (const skill of [
-      "zoto-create-plan",
-      "zoto-judge-plan",
-      "zoto-execute-plan",
-    ]) {
-      expect(text, `planner agent missing reference to ${skill}`).toContain(
-        skill,
-      );
-    }
+  it("generator agent references create skill", () => {
+    const text = readText(join(PLUGIN_DIR, "agents", "zoto-spec-generator.md"));
+    expect(text).toContain("zoto-create-spec");
+  });
+
+  it("executor agent references execute skill", () => {
+    const text = readText(join(PLUGIN_DIR, "agents", "zoto-spec-executor.md"));
+    expect(text).toContain("zoto-execute-spec");
   });
 
   it("hooks.json references existing script", () => {

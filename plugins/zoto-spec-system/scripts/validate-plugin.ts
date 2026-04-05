@@ -11,6 +11,7 @@
  *   pnpm validate -- --verbose # show passing checks too
  */
 
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   readFileSync,
@@ -161,7 +162,7 @@ function checkCrossReferences(): CheckResult[] {
   if (isDir(cmdDir) && isDir(agentsDir)) {
     for (const f of readdirSync(cmdDir).filter((n) => n.startsWith("zoto-"))) {
       const text = readText(join(cmdDir, f));
-      const refsAgent = text.includes("zoto-spec-planner") || text.includes("zoto-spec-judge");
+      const refsAgent = text.includes("zoto-spec-generator") || text.includes("zoto-spec-executor") || text.includes("zoto-spec-judge");
       results.push({
         name: `xref_cmd_${f.replace(".md", "")}`,
         passed: refsAgent,
@@ -171,7 +172,7 @@ function checkCrossReferences(): CheckResult[] {
 
     for (const agentFile of readdirSync(agentsDir).filter((n) => n.endsWith(".md"))) {
       const text = readText(join(agentsDir, agentFile));
-      const refsSkill = ["zoto-create-plan", "zoto-judge-plan", "zoto-execute-plan"].some((s) => text.includes(s));
+      const refsSkill = ["zoto-create-spec", "zoto-judge-spec", "zoto-execute-spec"].some((s) => text.includes(s));
       results.push({
         name: `xref_agent_${agentFile.replace(".md", "")}`,
         passed: refsSkill,
@@ -299,6 +300,61 @@ function checkEvalFiles(): CheckResult[] {
   return results;
 }
 
+function checkSkillsRef(): CheckResult[] {
+  const results: CheckResult[] = [];
+  const skillsDir = join(REPO_ROOT, "skills");
+  if (!isDir(skillsDir)) return results;
+
+  const monorepoRoot = resolve(REPO_ROOT, "..", "..");
+  const venvBin = join(monorepoRoot, ".venv", "bin", "skills-ref");
+
+  let bin: string | null = null;
+  if (isFile(venvBin)) {
+    bin = venvBin;
+  } else {
+    try {
+      execFileSync("skills-ref", ["--version"], { stdio: "pipe" });
+      bin = "skills-ref";
+    } catch {
+      /* not available */
+    }
+  }
+
+  if (!bin) {
+    results.push({
+      name: "skills_ref_available",
+      passed: false,
+      detail: "skills-ref not installed — run: python3 -m venv .venv && .venv/bin/pip install \"git+https://github.com/agentskills/agentskills.git#subdirectory=skills-ref\"",
+    });
+    return results;
+  }
+  results.push({ name: "skills_ref_available", passed: true, detail: bin });
+
+  for (const skillDir of readdirSync(skillsDir)) {
+    const fullPath = join(skillsDir, skillDir);
+    if (!isDir(fullPath)) continue;
+    if (!isFile(join(fullPath, "SKILL.md"))) continue;
+
+    try {
+      execFileSync(bin, ["validate", fullPath], { stdio: "pipe" });
+      results.push({
+        name: `skills_ref_${skillDir}`,
+        passed: true,
+        detail: `${skillDir} passes skills-ref validation`,
+      });
+    } catch (e: unknown) {
+      const stderr = (e as { stderr?: Buffer }).stderr?.toString().trim() ?? String(e);
+      results.push({
+        name: `skills_ref_${skillDir}`,
+        passed: false,
+        detail: `${skillDir}: ${stderr}`,
+      });
+    }
+  }
+
+  return results;
+}
+
 const sections: Array<[string, () => CheckResult[]]> = [
   ["Plugin manifest", checkManifest],
   ["Directory structure", checkDirectories],
@@ -307,6 +363,7 @@ const sections: Array<[string, () => CheckResult[]]> = [
   ["Cross-references", checkCrossReferences],
   ["Content integrity", checkContentIntegrity],
   ["Skill evaluations", checkEvalFiles],
+  ["Skills spec validation (skills-ref)", checkSkillsRef],
 ];
 
 let allChecks: CheckResult[] = [];

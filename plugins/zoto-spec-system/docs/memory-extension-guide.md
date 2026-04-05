@@ -20,15 +20,15 @@ When a memory plugin is installed and integrated, you will typically get chat co
 
 | Command | Role |
 |---------|------|
-| **`/zoto-dream`** | Extract candidate memories from completed specs (or other configured units of work) and merge them into the memory store with proper validation. |
-| **`/zoto-mindreader`** | Search or rank memories by the current context (task description, open files, plan title, etc.) and surface the most relevant items to the agent. |
+| **`/crux-dream`** | Extract candidate memories from completed specs (or other configured units of work) and merge them into the memory store with proper validation. |
+| **`/crux-mindreader`** | Search or rank memories by the current context (task description, open files, plan title, etc.) and surface the most relevant items to the agent. |
 
 Command names and behaviour are defined by the memory plugin; this guide describes the intended shape of the workflow.
 
 ## How to enable
 
 1. Install the **memory plugin** separately (it is not shipped inside the Spec System plugin package).
-2. In `.spec-system/config.json`, set:
+2. In `.zoto-spec-system/config.json`, set:
 
 ```json
 {
@@ -50,12 +50,12 @@ See [`config-schema.md`](config-schema.md) for defaults and related settings.
 
 A typical flow with memory enabled:
 
-1. **`/zoto-plan`** → **`/zoto-judge`** → **`/zoto-execute`** as usual.
-2. After **`/zoto-execute`** completes successfully, the system (or integration rule) **suggests running `/zoto-dream`** so learnings from the execution report and outcomes are captured.
+1. **`/zoto-spec-create`** → **`/zoto-spec-judge`** → **`/zoto-spec-execute`** as usual.
+2. After **`/zoto-spec-execute`** completes successfully, the system (or integration rule) **suggests running `/crux-dream`** so learnings from the execution report and outcomes are captured.
 3. **REM sleep** runs on a schedule or when you trigger a maintenance command, depending on the memory plugin — it keeps the memory corpus tidy over time.
-4. **`/zoto-mindreader`** (or automatic recall hooks, if provided) runs when starting new work so relevant memories appear in context.
+4. **`/crux-mindreader`** (or automatic recall hooks, if provided) runs when starting new work so relevant memories appear in context.
 
-Until `extensions.memory.enabled` is `true`, Spec System behaves as **plan / judge / execute only**; no memory commands are required.
+Until `extensions.memory.enabled` is `true`, Spec System behaves as **spec / judge / execute only**; no memory commands are required.
 
 ## Note on the memory plugin source
 

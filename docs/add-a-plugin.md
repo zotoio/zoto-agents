@@ -2,7 +2,25 @@
 
 Add a new plugin under `plugins/` and register it in `.cursor-plugin/marketplace.json`.
 
-## 1. Create plugin directory
+## Quick start with `/zoto-create-plugin`
+
+The fastest way to add a plugin is the `/zoto-create-plugin` slash command. It walks you through requirements, scaffolds the full directory structure, generates all component files, registers the plugin in the marketplace manifest, and runs validation — all in one guided workflow.
+
+```text
+/zoto-create-plugin                          # Interactive — the agent asks clarifying questions
+/zoto-create-plugin "analytics dashboard"    # From a short description
+/zoto-create-plugin @docs/design.md          # From a design document
+```
+
+The command produces a ready-to-use plugin under `plugins/<plugin-name>/` with manifest, agents, skills (including evals), commands, rules, hooks, supporting files (README, LICENSE, CHANGELOG, package.json), and a marketplace registration entry. Any validation errors are fixed automatically before the workflow completes.
+
+If you prefer to scaffold manually, follow the steps below.
+
+---
+
+## Manual setup
+
+### 1. Create plugin directory
 
 Create a new folder:
 
@@ -32,7 +50,7 @@ Example manifest:
 }
 ```
 
-## 2. Add plugin components
+### 2. Add plugin components
 
 Add only the components you need:
 
@@ -44,7 +62,7 @@ Add only the components you need:
 - `mcp.json` for MCP server definitions
 - `assets/logo.svg` for marketplace display
 
-## 3. Add skill evaluations
+### 3. Add skill evaluations
 
 Each skill should have an `evals/evals.json` file with at least 2 test cases:
 
@@ -64,7 +82,7 @@ Each skill should have an `evals/evals.json` file with at least 2 test cases:
 
 See [agentskills.io/skill-creation/evaluating-skills](https://agentskills.io/skill-creation/evaluating-skills) for the full eval format.
 
-## 4. Add TypeScript tooling
+### 4. Add TypeScript tooling
 
 Create a `package.json` in the plugin directory with dev scripts:
 
@@ -90,7 +108,7 @@ Create a `package.json` in the plugin directory with dev scripts:
 
 Then run `pnpm install` from the repo root to wire up the workspace.
 
-## 5. Register in marketplace manifest
+### 5. Register in marketplace manifest
 
 Edit `.cursor-plugin/marketplace.json` and append a new entry:
 
@@ -104,7 +122,7 @@ Edit `.cursor-plugin/marketplace.json` and append a new entry:
 
 `source` is the relative path from the repository root to the plugin folder.
 
-## 6. Validate
+### 6. Validate
 
 ```bash
 node scripts/validate-template.mjs
@@ -114,7 +132,7 @@ pnpm validate
 
 Fix all reported errors before committing.
 
-## 7. Common pitfalls
+### 7. Common pitfalls
 
 - Plugin `name` not kebab-case.
 - `source` path in marketplace manifest does not match folder name.

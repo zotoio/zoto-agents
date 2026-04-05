@@ -6,7 +6,7 @@ Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 
 | Plugin | Description |
 |--------|-------------|
-| [zoto-spec-system](plugins/zoto-spec-system/) | Structured spec workflow: plan, judge, and execute engineering initiatives with adversarial verification. |
+| [zoto-spec-system](plugins/zoto-spec-system/) | Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification. |
 
 ## Getting Started
 

@@ -1,0 +1,53 @@
+{
+  "skill_name": "zoto-create-spec",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to plan a migration from REST to GraphQL for our API layer. The endpoints are in src/api/ and we have about 15 routes. We want to keep backward compatibility during the transition.",
+      "expected_output": "A spec directory under {specsDir}/ with an index file containing phases, a subtask manifest with dependency ordering, and individual subtask files. The spec should address backward compatibility, phased migration, and testing strategy.",
+      "files": [],
+      "assertions": [
+        "A spec directory was created under the configured specsDir with YYYYMMDD-feature-name format",
+        "An index file exists with the naming pattern spec-[feature-name]-[yyyymmdd].md",
+        "The index contains a Subtask Manifest table with columns: ID, File, Subagent, Dependencies, Phase",
+        "At least one subtask file exists for each row in the manifest table",
+        "Subtask IDs are zero-padded two-digit numbers",
+        "No subtask depends on a higher-numbered subtask ID",
+        "A mermaid dependency graph is included in the index",
+        "The spec status is set to Draft or Ready for Review",
+        "Each subtask file includes a Deliverables Checklist section",
+        "Backward compatibility is addressed in the spec requirements or key decisions",
+        "An automatic judge review is triggered after user approval"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "hey can you plan out adding dark mode support to our Next.js app? the components are in src/components/ and we use tailwind. nothing fancy, just a toggle and persistent preference",
+      "expected_output": "A structured spec with subtasks covering theme provider setup, toggle component, Tailwind dark mode config, persistence (localStorage or similar), and updating existing components. Should be a small spec with 3-5 subtasks.",
+      "files": [],
+      "assertions": [
+        "A spec directory was created following the YYYYMMDD-feature-name convention",
+        "The spec has between 2 and 8 subtasks (scoped appropriately for the request)",
+        "Each subtask has an assigned subagent from the allowed set (generalPurpose, explore, shell)",
+        "Phase assignments are consistent with dependencies",
+        "The index file contains a Definition of Done checklist",
+        "Subtask files follow the naming pattern subtask-[NN]-[feature]-[name]-[yyyymmdd].md"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Plan a comprehensive test infrastructure overhaul. We currently have no tests at all. The project is a Python FastAPI backend in src/ with 20+ endpoints, database models in src/models/, and business logic in src/services/. We need unit tests, integration tests, and CI setup.",
+      "expected_output": "A multi-phase spec with clear dependency ordering: test framework setup before test writing, unit tests before integration tests, CI setup after test infrastructure. Should include explore subagents for codebase analysis and generalPurpose for implementation.",
+      "files": [],
+      "assertions": [
+        "The spec has at least 3 phases reflecting logical sequencing",
+        "An explore subagent is assigned for codebase analysis tasks",
+        "Test infrastructure setup subtasks come before test-writing subtasks in dependency order",
+        "The spec addresses unit tests, integration tests, and CI as separate concerns",
+        "The dependency graph has no circular dependencies",
+        "The index file overview mentions the current state (no existing tests)",
+        "Key decisions are presented covering test framework choice"
+      ]
+    }
+  ]
+}

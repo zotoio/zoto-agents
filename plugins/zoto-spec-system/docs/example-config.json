@@ -1,15 +1,15 @@
 {
   "unitOfWork": "spec",
-  "plansDir": "plans",
+  "specsDir": "specs",
   "workDir": "specs/current",
   "hooks": {
     "sessionStartNudge": {
       "enabled": true,
       "threshold": 20,
-      "message": "You have ${count} unprocessed ${unitOfWork}s. Consider running /zoto-plan to organize."
+      "message": "You have ${count} unprocessed ${unitOfWork}s. Consider running /zoto-spec-create to organize."
     }
   },
-  "plan": {
+  "spec": {
     "maxSubtasks": 99,
     "parallelLimit": 4,
     "adversarialVerification": true

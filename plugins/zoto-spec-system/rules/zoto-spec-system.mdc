@@ -9,13 +9,13 @@ This repository uses the Spec System plugin for structured engineering workflows
 
 ## Available Commands
 
-- `/zoto-plan` — Create a structured engineering plan for a complex initiative
-- `/zoto-judge` — Independently assess the repository or a specific plan
-- `/zoto-execute` — Execute a plan with subagent coordination and adversarial verification
+- `/zoto-spec-create` — Create a structured engineering spec for a complex initiative
+- `/zoto-spec-judge` — Independently assess the repository or a specific spec
+- `/zoto-spec-execute` — Execute a spec with subagent coordination and adversarial verification
 
 ## When to Suggest Planning
 
-Suggest `/zoto-plan` when:
+Suggest `/zoto-spec-create` when:
 - The user describes a multi-step initiative (3+ distinct changes)
 - A task touches multiple files, systems, or components
 - Requirements are ambiguous and need structured decomposition
@@ -23,13 +23,13 @@ Suggest `/zoto-plan` when:
 
 ## Configuration
 
-The spec system is configured via `.spec-system/config.json`. Key settings:
+The spec system is configured via `.zoto-spec-system/config.json`. Key settings:
 - `unitOfWork` — term for work items (default: "spec")
-- `plansDir` — where plans are stored (default: "plans")
+- `specsDir` — where specs are stored (default: "specs")
 
-## Discovering Existing Plans
+## Discovering Existing Specs
 
-Check the configured `plansDir` directory for existing plan directories. Each follows the `[yyyymmdd]-[feature-name]/` convention.
+Check the configured `specsDir` directory for existing spec directories. Each follows the `[yyyymmdd]-[feature-name]/` convention.
 
 ## Extensions
 

@@ -6,7 +6,8 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "validate": "pnpm -r validate",
-    "validate-template": "node scripts/validate-template.mjs"
+    "validate-template": "node scripts/validate-template.mjs",
+    "validate-skills": "node scripts/validate-skills.mjs"
   },
   "packageManager": "pnpm@10.8.0"
 }

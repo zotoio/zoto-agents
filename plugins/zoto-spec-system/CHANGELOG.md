@@ -2,6 +2,19 @@
 
 All notable changes to the Spec System plugin will be documented in this file.
 
+## [0.6.0] - 2026-04-05
+
+### Changed
+- Renamed all "plan" identifiers to "spec" terminology throughout the plugin
+  - Skills: `zoto-create-plan` → `zoto-create-spec`, `zoto-execute-plan` → `zoto-execute-spec`, `zoto-judge-plan` → `zoto-judge-spec`
+  - Commands: `/zoto-plan` → `/zoto-spec-create`, `/zoto-execute` → `/zoto-spec-execute`, `/zoto-judge` → `/zoto-spec-judge`
+  - Agent: `zoto-spec-planner` → `zoto-spec-generator`
+  - Config: `plansDir` → `specsDir`, default directory `plans` → `specs`
+  - Artifact pattern: `plan-[feature]-[date].md` → `spec-[feature]-[date].md`
+
+### Added
+- `zoto-spec-executor` agent — dedicated execution coordinator that spawns subagents for each subtask, tracks progress through dependency phases, coordinates adversarial verification, and produces execution reports
+
 ## [0.5.0] - 2026-04-04
 
 ### Changed

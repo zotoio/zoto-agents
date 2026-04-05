@@ -13,7 +13,7 @@
     {
       "name": "zoto-spec-system",
       "source": "plugins/zoto-spec-system",
-      "description": "Structured spec workflow: plan, judge, and execute engineering initiatives with adversarial verification"
+      "description": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification"
     }
   ]
 }

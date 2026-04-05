@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node .cursor/hooks/sync-plugins.mjs --full",
+        "description": "Sync all plugins to ~/.cursor/plugins/local/"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "node .cursor/hooks/sync-plugins.mjs --incremental",
+        "description": "Sync edited plugin file to ~/.cursor/plugins/local/"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node .cursor/hooks/sync-plugins.mjs --full",
+        "description": "Sync all plugins to ~/.cursor/plugins/local/"
+      }
+    ]
+  }
+}

@@ -6,7 +6,7 @@ import { join, resolve } from "path";
 var DEFAULT_UNIT = "spec";
 var DEFAULT_WORK_DIR = "specs/current";
 var DEFAULT_THRESHOLD = 20;
-var DEFAULT_MESSAGE = "You have ${count} unprocessed ${unitOfWork}s. Consider running /zoto-plan to organize.";
+var DEFAULT_MESSAGE = "You have ${count} unprocessed ${unitOfWork}s. Consider running /zoto-spec-create to organize.";
 function emitEmpty() {
   process.stdout.write("{}\n");
 }
@@ -36,7 +36,7 @@ function main() {
   } catch {
   }
   const root = process.cwd();
-  const configPath = join(root, ".spec-system", "config.json");
+  const configPath = join(root, ".zoto-spec-system", "config.json");
   const cfg = loadJson(configPath);
   if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) {
     emitEmpty();
