@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" width="960" height="640" font-family="system-ui, -apple-system, sans-serif">
+  <title>Spec System Agent Architecture — Commands, Agents, Skills, and supporting components</title>
+  <defs>
+    <marker id="arrow-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#58a6ff"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#8b949e"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#3fb950"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="640" fill="#0d1117" rx="8"/>
+
+  <!-- Title -->
+  <text x="480" y="36" text-anchor="middle" fill="#e6edf3" font-size="18" font-weight="600">Spec System Architecture</text>
+  <text x="480" y="54" text-anchor="middle" fill="#8b949e" font-size="11">Commands → Agents → Skills — with supporting hooks, rules, and config</text>
+
+  <!-- === ROW 1: COMMANDS === -->
+  <text x="40" y="100" fill="#8b949e" font-size="12" font-weight="600" text-transform="uppercase" letter-spacing="1.5">COMMANDS</text>
+
+  <rect x="140" y="80" width="220" height="50" rx="6" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="250" y="102" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="600">/zoto-spec-create</text>
+  <text x="250" y="120" text-anchor="middle" fill="#8b949e" font-size="10">Generate engineering specs</text>
+
+  <rect x="380" y="80" width="220" height="50" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.5"/>
+  <text x="490" y="102" text-anchor="middle" fill="#d29922" font-size="13" font-weight="600">/zoto-spec-judge</text>
+  <text x="490" y="120" text-anchor="middle" fill="#8b949e" font-size="10">Assess quality &amp; feasibility</text>
+
+  <rect x="620" y="80" width="220" height="50" rx="6" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="730" y="102" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="600">/zoto-spec-execute</text>
+  <text x="730" y="120" text-anchor="middle" fill="#8b949e" font-size="10">Execute with coordination</text>
+
+  <!-- Arrows: Commands → Agents -->
+  <line x1="250" y1="130" x2="250" y2="190" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <line x1="490" y1="130" x2="490" y2="190" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <line x1="730" y1="130" x2="730" y2="190" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+
+  <text x="252" y="164" fill="#8b949e" font-size="9">spawns</text>
+  <text x="492" y="164" fill="#8b949e" font-size="9">spawns</text>
+  <text x="732" y="164" fill="#8b949e" font-size="9">spawns</text>
+
+  <!-- === ROW 2: AGENTS === -->
+  <text x="40" y="220" fill="#8b949e" font-size="12" font-weight="600" text-transform="uppercase" letter-spacing="1.5">AGENTS</text>
+
+  <rect x="140" y="196" width="220" height="60" rx="6" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="250" y="220" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">zoto-spec-generator</text>
+  <text x="250" y="238" text-anchor="middle" fill="#8b949e" font-size="10">Config-driven spec creation</text>
+  <text x="250" y="250" text-anchor="middle" fill="#8b949e" font-size="9">specialist</text>
+
+  <rect x="380" y="196" width="220" height="60" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.5"/>
+  <text x="490" y="220" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">zoto-spec-judge</text>
+  <text x="490" y="238" text-anchor="middle" fill="#8b949e" font-size="10">Independent quality gate &amp;</text>
+  <text x="490" y="250" text-anchor="middle" fill="#8b949e" font-size="9">adversarial verifier</text>
+
+  <rect x="620" y="196" width="220" height="60" rx="6" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="730" y="220" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">zoto-spec-executor</text>
+  <text x="730" y="238" text-anchor="middle" fill="#8b949e" font-size="10">Execution coordination</text>
+  <text x="730" y="250" text-anchor="middle" fill="#8b949e" font-size="9">specialist</text>
+
+  <!-- Arrows: Agents → Skills -->
+  <line x1="250" y1="256" x2="250" y2="320" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <line x1="490" y1="256" x2="490" y2="320" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <line x1="730" y1="256" x2="730" y2="320" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+
+  <text x="252" y="292" fill="#8b949e" font-size="9">uses</text>
+  <text x="492" y="292" fill="#8b949e" font-size="9">uses</text>
+  <text x="732" y="292" fill="#8b949e" font-size="9">uses</text>
+
+  <!-- === ROW 3: SKILLS === -->
+  <text x="40" y="350" fill="#8b949e" font-size="12" font-weight="600" text-transform="uppercase" letter-spacing="1.5">SKILLS</text>
+
+  <rect x="140" y="326" width="220" height="60" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="250" y="350" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="500">zoto-create-spec</text>
+  <text x="250" y="368" text-anchor="middle" fill="#8b949e" font-size="10">Guided workflow: requirements,</text>
+  <text x="250" y="380" text-anchor="middle" fill="#8b949e" font-size="9">explore, confirm, create files</text>
+
+  <rect x="380" y="326" width="220" height="60" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="490" y="350" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="500">zoto-judge-spec</text>
+  <text x="490" y="368" text-anchor="middle" fill="#8b949e" font-size="10">Assessment methodology,</text>
+  <text x="490" y="380" text-anchor="middle" fill="#8b949e" font-size="9">6-dimension scoring rubric</text>
+
+  <rect x="620" y="326" width="220" height="60" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="730" y="350" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="500">zoto-execute-spec</text>
+  <text x="730" y="368" text-anchor="middle" fill="#8b949e" font-size="10">Execution workflow, dependency</text>
+  <text x="730" y="380" text-anchor="middle" fill="#8b949e" font-size="9">management, verification steps</text>
+
+  <!-- Cross-reference: executor spawns judge -->
+  <path d="M 730 256 Q 730 278 610 278 Q 490 278 490 320" fill="none" stroke="#d29922" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-gray)"/>
+  <text x="610" y="272" fill="#d29922" font-size="8">adversarial verify</text>
+
+  <!-- Cross-reference: generator auto-invokes judge -->
+  <path d="M 360 230 L 375 230" fill="none" stroke="#d29922" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-gray)"/>
+  <text x="310" y="220" fill="#d29922" font-size="8">auto-judge</text>
+
+  <!-- === ROW 4: SUPPORTING COMPONENTS === -->
+  <line x1="40" y1="420" x2="920" y2="420" stroke="#30363d" stroke-width="1"/>
+  <text x="40" y="448" fill="#8b949e" font-size="12" font-weight="600" text-transform="uppercase" letter-spacing="1.5">SUPPORTING COMPONENTS</text>
+
+  <!-- Hook -->
+  <rect x="60" y="466" width="240" height="60" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="60" y="466" width="60" height="20" rx="4" fill="#58a6ff"/>
+  <text x="90" y="480" text-anchor="middle" fill="#0d1117" font-size="9" font-weight="700">HOOK</text>
+  <text x="180" y="500" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">zoto-session-start</text>
+  <text x="180" y="516" text-anchor="middle" fill="#8b949e" font-size="10">Check for unprocessed specs on startup</text>
+
+  <!-- Rule -->
+  <rect x="320" y="466" width="240" height="60" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="320" y="466" width="50" height="20" rx="4" fill="#d29922"/>
+  <text x="345" y="480" text-anchor="middle" fill="#0d1117" font-size="9" font-weight="700">RULE</text>
+  <text x="440" y="500" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">zoto-spec-system.mdc</text>
+  <text x="440" y="516" text-anchor="middle" fill="#8b949e" font-size="10">Integration rule for agent awareness</text>
+
+  <!-- Config -->
+  <rect x="580" y="466" width="300" height="60" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="580" y="466" width="60" height="20" rx="4" fill="#3fb950"/>
+  <text x="610" y="480" text-anchor="middle" fill="#0d1117" font-size="9" font-weight="700">CONFIG</text>
+  <text x="730" y="500" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">.zoto-spec-system/config.json</text>
+  <text x="730" y="516" text-anchor="middle" fill="#8b949e" font-size="10">specsDir, parallelLimit, adversarialVerification</text>
+
+  <!-- Config feeds into all -->
+  <line x1="730" y1="466" x2="730" y2="392" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="490" y1="466" x2="490" y2="392" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="250" y1="466" x2="250" y2="392" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Legend -->
+  <text x="40" y="570" fill="#8b949e" font-size="10" font-weight="600">LEGEND</text>
+  <line x1="40" y1="582" x2="70" y2="582" stroke="#58a6ff" stroke-width="2"/>
+  <text x="78" y="586" fill="#8b949e" font-size="10">Invocation flow</text>
+
+  <line x1="160" y1="582" x2="190" y2="582" stroke="#d29922" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="198" y="586" fill="#8b949e" font-size="10">Cross-reference</text>
+
+  <line x1="310" y1="582" x2="340" y2="582" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="348" y="586" fill="#8b949e" font-size="10">Config dependency</text>
+
+  <!-- Footer -->
+  <text x="480" y="624" text-anchor="middle" fill="#8b949e" font-size="10">zoto-spec-system v0.6.0</text>
+</svg>

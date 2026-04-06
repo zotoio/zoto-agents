@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 500" width="820" height="500" font-family="system-ui, -apple-system, sans-serif">
+  <title>Spec Directory Layout — file structure of a spec directory with annotations</title>
+
+  <!-- Background -->
+  <rect width="820" height="500" fill="#0d1117" rx="8"/>
+
+  <!-- Title -->
+  <text x="410" y="34" text-anchor="middle" fill="#e6edf3" font-size="18" font-weight="600">Spec Directory Layout</text>
+  <text x="410" y="52" text-anchor="middle" fill="#8b949e" font-size="11">Each initiative gets a dated directory under the configured specsDir</text>
+
+  <!-- Tree structure area -->
+  <rect x="30" y="70" width="360" height="400" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+
+  <!-- Tree: root -->
+  <text x="50" y="100" fill="#58a6ff" font-size="14" font-weight="600">specs/</text>
+  <text x="66" y="100" fill="#8b949e" font-size="14"> </text>
+
+  <!-- Tree: directory -->
+  <text x="60" y="126" fill="#8b949e" font-size="13">└── </text>
+  <text x="96" y="126" fill="#58a6ff" font-size="13" font-weight="500">20260403-feature-name/</text>
+
+  <!-- Tree: index file -->
+  <text x="90" y="162" fill="#8b949e" font-size="13">├── </text>
+  <text x="126" y="162" fill="#e6edf3" font-size="13">spec-feature-name-20260403.md</text>
+
+  <!-- Tree: subtask 01 -->
+  <text x="90" y="198" fill="#8b949e" font-size="13">├── </text>
+  <text x="126" y="198" fill="#e6edf3" font-size="13">subtask-01-feature-scaffold-20260403.md</text>
+
+  <!-- Tree: subtask 02 -->
+  <text x="90" y="234" fill="#8b949e" font-size="13">├── </text>
+  <text x="126" y="234" fill="#e6edf3" font-size="13">subtask-02-feature-core-20260403.md</text>
+
+  <!-- Tree: subtask N -->
+  <text x="90" y="270" fill="#8b949e" font-size="13">├── </text>
+  <text x="126" y="270" fill="#8b949e" font-size="13" font-style="italic">subtask-NN-feature-name-20260403.md</text>
+
+  <!-- Tree: assessment -->
+  <text x="90" y="316" fill="#8b949e" font-size="13">├── </text>
+  <text x="126" y="316" fill="#d29922" font-size="13">assessment-feature-name-20260403.md</text>
+
+  <!-- Tree: judge assessment -->
+  <text x="90" y="352" fill="#8b949e" font-size="13">├── </text>
+  <text x="126" y="352" fill="#d29922" font-size="13">zoto-judge-assessment-*-20260403.md</text>
+
+  <!-- Tree: execution report -->
+  <text x="90" y="398" fill="#8b949e" font-size="13">└── </text>
+  <text x="126" y="398" fill="#3fb950" font-size="13">execution-report-feature-name-20260403.md</text>
+
+  <!-- === ANNOTATIONS === -->
+
+  <!-- specsDir annotation -->
+  <line x1="108" y1="94" x2="410" y2="94" stroke="#30363d" stroke-width="1" stroke-dasharray="3,3"/>
+  <rect x="418" y="78" width="380" height="36" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="430" y="95" fill="#58a6ff" font-size="11" font-weight="600">Configurable root</text>
+  <text x="430" y="108" fill="#8b949e" font-size="10">Set via specsDir in config.json (default: specs)</text>
+
+  <!-- Directory annotation -->
+  <line x1="310" y1="120" x2="410" y2="120" stroke="#30363d" stroke-width="1" stroke-dasharray="3,3"/>
+  <rect x="418" y="108" width="380" height="26" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="430" y="126" fill="#8b949e" font-size="10">Date-prefixed directory: [yyyymmdd]-[feature-name]</text>
+
+  <!-- Index file annotation -->
+  <line x1="390" y1="156" x2="410" y2="156" stroke="#30363d" stroke-width="1" stroke-dasharray="3,3"/>
+  <rect x="418" y="142" width="380" height="36" rx="4" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="430" y="159" fill="#e6edf3" font-size="11" font-weight="600">Index File</text>
+  <text x="430" y="172" fill="#8b949e" font-size="10">Coordination doc: manifest, dependencies, phases, status</text>
+
+  <!-- Subtask annotation -->
+  <line x1="390" y1="230" x2="410" y2="230" stroke="#30363d" stroke-width="1" stroke-dasharray="3,3"/>
+  <rect x="418" y="196" width="380" height="56" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="430" y="213" fill="#e6edf3" font-size="11" font-weight="600">Subtask Files</text>
+  <text x="430" y="228" fill="#8b949e" font-size="10">One per subtask: objective, deliverables checklist,</text>
+  <text x="430" y="242" fill="#8b949e" font-size="10">agent assignment, definition of done, execution notes</text>
+
+  <!-- Assessment annotation -->
+  <line x1="390" y1="330" x2="410" y2="330" stroke="#30363d" stroke-width="1" stroke-dasharray="3,3"/>
+  <rect x="418" y="298" width="380" height="56" rx="4" fill="#161b22" stroke="#d29922" stroke-width="1.5"/>
+  <text x="430" y="315" fill="#d29922" font-size="11" font-weight="600">Assessment Files</text>
+  <text x="430" y="330" fill="#8b949e" font-size="10">Written by zoto-spec-judge: 6-dimension scoring,</text>
+  <text x="430" y="344" fill="#8b949e" font-size="10">risk analysis, verdict (Approve/Conditional/Reject)</text>
+
+  <!-- Execution report annotation -->
+  <line x1="390" y1="392" x2="410" y2="392" stroke="#30363d" stroke-width="1" stroke-dasharray="3,3"/>
+  <rect x="418" y="370" width="380" height="56" rx="4" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="430" y="387" fill="#3fb950" font-size="11" font-weight="600">Execution Report</text>
+  <text x="430" y="402" fill="#8b949e" font-size="10">Written by zoto-spec-executor: per-subtask results,</text>
+  <text x="430" y="416" fill="#8b949e" font-size="10">verification outcomes, test/lint status, files modified</text>
+
+  <!-- Ephemeral note -->
+  <rect x="418" y="440" width="380" height="28" rx="4" fill="#161b22" stroke="#8b949e" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="608" y="459" text-anchor="middle" fill="#8b949e" font-size="10" font-style="italic">Specs are ephemeral coordination artifacts — audit trail only</text>
+
+  <!-- Footer -->
+  <text x="410" y="490" text-anchor="middle" fill="#8b949e" font-size="10">zoto-spec-system v0.6.0</text>
+</svg>

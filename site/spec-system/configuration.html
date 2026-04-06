@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuration — Spec System — Zoto Agents</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- Prism.js for syntax highlighting (Tomorrow Night theme) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 420'><rect width='420' height='420' fill='%23e8e8e8'/><rect x='30' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='165' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='300' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='30' y='240' width='360' height='150' fill='%238ec0d6'/><rect x='150' y='300' width='120' height='90' fill='%23e8e8e8'/></svg>">
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="index.html" class="active">Spec System</a></li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Page layout wrapper -->
+  <div class="page-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <h3 class="sidebar-heading">Spec System</h3>
+        <ul class="sidebar-list">
+          <li><a href="index.html" class="sidebar-link">Overview</a></li>
+          <li><a href="quickstart.html" class="sidebar-link">Quickstart</a></li>
+          <li><a href="design.html" class="sidebar-link">Design</a></li>
+          <li><a href="configuration.html" class="sidebar-link active">Configuration</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="index.html">Spec System</a></li>
+          <li>Configuration</li>
+        </ul>
+
+        <h1>Configuration Reference</h1>
+
+        <p>
+          The Spec System is configured via a <code>config.json</code> file placed in
+          the <code>.zoto-spec-system/</code> directory at your repository root. This file
+          controls naming conventions, directory paths, execution limits, and optional
+          extensions.
+        </p>
+
+        <div class="callout">
+          <div class="callout-title">Configuration is optional</div>
+          <p class="mb-0">
+            A minimal <code>{}</code> config is perfectly valid &mdash; all fields have
+            sensible defaults. You only need a config file when you want to customize
+            behaviour.
+          </p>
+        </div>
+
+        <!-- ============================================================== -->
+        <h2 id="installation">Creating the Config File</h2>
+
+        <p>
+          To configure the Spec System in your repository, create the directory and file:
+        </p>
+
+        <pre><code class="language-bash">mkdir -p .zoto-spec-system
+touch .zoto-spec-system/config.json</code></pre>
+
+        <p>
+          Start with the template shipped with the plugin, then customize as needed:
+        </p>
+
+        <pre><code class="language-json">{
+  "unitOfWork": "spec",
+  "specsDir": "specs",
+  "workDir": "specs/current"
+}</code></pre>
+
+        <p>
+          All path fields (<code>specsDir</code>, <code>workDir</code>) are relative to the
+          repository root.
+        </p>
+
+        <!-- ============================================================== -->
+        <h2 id="defaults">Default Behaviour</h2>
+
+        <p>
+          When no <code>.zoto-spec-system/config.json</code> file exists, the Spec System
+          operates with its built-in defaults:
+        </p>
+
+        <ul>
+          <li>Work items are called <strong>"specs"</strong></li>
+          <li>Spec directories are created under <code>specs/</code></li>
+          <li>The session hook watches <code>specs/current/</code> for unprocessed items</li>
+          <li>Up to <strong>4</strong> subagents run concurrently during execution</li>
+          <li>Adversarial verification is <strong>enabled</strong></li>
+          <li>The memory extension is <strong>disabled</strong></li>
+        </ul>
+
+        <p>
+          This means you can start using the Spec System immediately without any
+          configuration &mdash; just install the plugin and go.
+        </p>
+
+        <!-- ============================================================== -->
+        <h2 id="reference">Configuration Keys</h2>
+
+        <p>
+          The table below lists every configuration key, its type, default value, and what
+          it controls.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>unitOfWork</code></td>
+              <td>string</td>
+              <td><code>"spec"</code></td>
+              <td>The term used for work items in user-facing messages. Examples: <code>"spec"</code>, <code>"prp"</code>, <code>"task"</code>, <code>"story"</code>.</td>
+            </tr>
+            <tr>
+              <td><code>specsDir</code></td>
+              <td>string</td>
+              <td><code>"specs"</code></td>
+              <td>Directory where spec directories are created. Relative to the repository root.</td>
+            </tr>
+            <tr>
+              <td><code>workDir</code></td>
+              <td>string</td>
+              <td><code>"specs/current"</code></td>
+              <td>Directory monitored by the session hook for unprocessed items. Relative to the repository root.</td>
+            </tr>
+            <tr>
+              <td><code>hooks.sessionStartNudge.enabled</code></td>
+              <td>boolean</td>
+              <td><code>true</code></td>
+              <td>Whether the session-start hook checks for unprocessed items in <code>workDir</code>.</td>
+            </tr>
+            <tr>
+              <td><code>hooks.sessionStartNudge.threshold</code></td>
+              <td>number</td>
+              <td><code>20</code></td>
+              <td>Number of items in <code>workDir</code> before the nudge triggers.</td>
+            </tr>
+            <tr>
+              <td><code>hooks.sessionStartNudge.message</code></td>
+              <td>string</td>
+              <td><code>"You have ${count} unprocessed ${unitOfWork}s..."</code></td>
+              <td>Nudge message template. Supports <code>${count}</code> and <code>${unitOfWork}</code> interpolation variables.</td>
+            </tr>
+            <tr>
+              <td><code>spec.maxSubtasks</code></td>
+              <td>number</td>
+              <td><code>99</code></td>
+              <td>Maximum number of subtasks allowed per spec.</td>
+            </tr>
+            <tr>
+              <td><code>spec.parallelLimit</code></td>
+              <td>number</td>
+              <td><code>4</code></td>
+              <td>Maximum number of concurrent subagents during spec execution.</td>
+            </tr>
+            <tr>
+              <td><code>spec.adversarialVerification</code></td>
+              <td>boolean</td>
+              <td><code>true</code></td>
+              <td>Whether adversarial verification is mandatory after subtask completion.</td>
+            </tr>
+            <tr>
+              <td><code>extensions.memory.enabled</code></td>
+              <td>boolean</td>
+              <td><code>false</code></td>
+              <td>Whether the memory extension is active.</td>
+            </tr>
+            <tr>
+              <td><code>extensions.memory.plugin</code></td>
+              <td>string | null</td>
+              <td><code>null</code></td>
+              <td>Name of the memory plugin to use. Only relevant when <code>extensions.memory.enabled</code> is <code>true</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ============================================================== -->
+        <h2 id="examples">Example Configurations</h2>
+
+        <h3 id="example-minimal">Minimal</h3>
+
+        <p>
+          An empty object is valid. All defaults apply &mdash; specs are stored in
+          <code>specs/</code>, the session hook is active, and adversarial verification
+          is enabled.
+        </p>
+
+        <pre><code class="language-json">{}</code></pre>
+
+        <p>
+          Or, if you only want to rename the unit of work:
+        </p>
+
+        <pre><code class="language-json">{
+  "unitOfWork": "task"
+}</code></pre>
+
+        <h3 id="example-team">Team Setup</h3>
+
+        <p>
+          A team that uses "story" as their work-item term and stores specs in a custom
+          directory. The nudge threshold is raised since the team processes items in
+          batches.
+        </p>
+
+        <pre><code class="language-json">{
+  "unitOfWork": "story",
+  "specsDir": "docs/stories",
+  "workDir": "docs/stories/inbox",
+  "hooks": {
+    "sessionStartNudge": {
+      "threshold": 50,
+      "message": "You have ${count} unprocessed ${unitOfWork}s in the inbox."
+    }
+  }
+}</code></pre>
+
+        <h3 id="example-full">Full Configuration</h3>
+
+        <p>
+          Every option set explicitly. Use this as a starting point if you want full
+          control.
+        </p>
+
+        <pre><code class="language-json">{
+  "unitOfWork": "spec",
+  "specsDir": "specs",
+  "workDir": "specs/current",
+  "hooks": {
+    "sessionStartNudge": {
+      "enabled": true,
+      "threshold": 20,
+      "message": "You have ${count} unprocessed ${unitOfWork}s in the working directory."
+    }
+  },
+  "spec": {
+    "maxSubtasks": 99,
+    "parallelLimit": 4,
+    "adversarialVerification": true
+  },
+  "extensions": {
+    "memory": {
+      "enabled": false,
+      "plugin": null
+    }
+  }
+}</code></pre>
+
+        <!-- ============================================================== -->
+        <h2 id="key-groups">Key Groups</h2>
+
+        <h3>Top-level Keys</h3>
+
+        <p>
+          <code>unitOfWork</code>, <code>specsDir</code>, and <code>workDir</code> are
+          the most commonly customized options. They control naming and file layout
+          without changing system behaviour.
+        </p>
+
+        <h3>Hooks (<code>hooks.*</code>)</h3>
+
+        <p>
+          The <code>hooks.sessionStartNudge</code> group controls the automatic reminder
+          that fires when you start a new Cursor session and there are pending items in
+          <code>workDir</code>. Set <code>enabled</code> to <code>false</code> to disable
+          it entirely, or raise the <code>threshold</code> if you prefer fewer reminders.
+        </p>
+
+        <h3>Spec Execution (<code>spec.*</code>)</h3>
+
+        <p>
+          These options govern how specs are executed:
+        </p>
+        <ul>
+          <li>
+            <strong>maxSubtasks</strong> &mdash; guards against overly complex specs.
+            Lower this if you want to enforce smaller, more focused specs.
+          </li>
+          <li>
+            <strong>parallelLimit</strong> &mdash; controls how many subagents run at
+            once. Reduce this on resource-constrained machines.
+          </li>
+          <li>
+            <strong>adversarialVerification</strong> &mdash; when enabled, each completed
+            subtask is independently verified before the spec is marked done. Disable
+            only if you have external review processes.
+          </li>
+        </ul>
+
+        <h3>Extensions (<code>extensions.*</code>)</h3>
+
+        <p>
+          The <code>extensions.memory</code> group enables an optional memory layer that
+          persists context across sessions. Set <code>enabled</code> to <code>true</code>
+          and provide the <code>plugin</code> name to activate it.
+        </p>
+
+        <!-- ============================================================== -->
+
+        <nav class="page-nav" aria-label="Page navigation">
+          <a href="design.html" class="page-nav-link page-nav-prev">
+            <span class="page-nav-label">Previous</span>
+            <span class="page-nav-title">&larr; Design</span>
+          </a>
+          <span></span>
+        </nav>
+
+        <footer class="site-footer">
+          zoto-agents &mdash; Cursor Plugin Monorepo
+        </footer>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>

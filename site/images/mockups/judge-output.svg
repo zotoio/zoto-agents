@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 550" width="900" height="550">
+  <defs>
+    <style>
+      .bg { fill: #0d1117; }
+      .surface { fill: #161b22; }
+      .border { fill: #30363d; }
+      .title-bar { fill: #1c2128; }
+      .tab-active { fill: #0d1117; }
+      .tab-inactive { fill: #161b22; }
+      .text-primary { fill: #e6edf3; font-family: -apple-system, 'Segoe UI', sans-serif; }
+      .text-secondary { fill: #8b949e; font-family: -apple-system, 'Segoe UI', sans-serif; }
+      .text-mono { fill: #e6edf3; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+      .text-mono-dim { fill: #8b949e; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+      .accent { fill: #58a6ff; }
+      .success { fill: #3fb950; }
+      .warning { fill: #d29922; }
+      .keyword { fill: #ff7b72; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+      .string { fill: #a5d6ff; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+      .comment { fill: #8b949e; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+      .folder-icon { fill: #d29922; }
+      .file-icon { fill: #8b949e; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="550" class="bg" rx="8" ry="8"/>
+
+  <!-- Title Bar -->
+  <rect width="900" height="30" class="title-bar" rx="8" ry="8"/>
+  <rect y="22" width="900" height="10" class="title-bar"/>
+  <circle cx="18" cy="15" r="5.5" fill="#ff5f57"/>
+  <circle cx="36" cy="15" r="5.5" fill="#febc2e"/>
+  <circle cx="54" cy="15" r="5.5" fill="#28c840"/>
+  <text x="450" y="19" text-anchor="middle" font-size="12" class="text-secondary">zoto-agents — Cursor</text>
+
+  <!-- Tab Bar -->
+  <rect y="30" width="900" height="30" class="surface"/>
+  <rect x="200" y="30" width="700" height="1" class="border"/>
+  <rect x="200" y="30" width="210" height="30" class="tab-active"/>
+  <rect x="200" y="30" width="210" height="1" fill="#58a6ff"/>
+  <text x="215" y="50" font-size="11" class="text-primary">assessment-auth-20260406.md</text>
+  <rect x="410" y="30" width="160" height="30" class="tab-inactive"/>
+  <text x="425" y="50" font-size="11" class="text-secondary">spec-auth-2026&amp;</text>
+  <rect x="200" y="59" width="700" height="1" class="border"/>
+
+  <!-- Sidebar -->
+  <rect y="30" width="200" height="500" class="surface"/>
+  <rect x="199" y="30" width="1" height="500" class="border"/>
+  <text x="14" y="50" font-size="10" font-weight="600" letter-spacing="0.5" class="text-secondary">EXPLORER</text>
+
+  <text x="12" y="76" font-size="11" class="text-secondary"> </text>
+  <text x="24" y="76" font-size="11" class="folder-icon"> </text>
+  <text x="36" y="76" font-size="11" font-weight="600" class="text-primary">zoto-agents</text>
+
+  <text x="22" y="94" font-size="11" class="text-secondary"> </text>
+  <text x="34" y="94" font-size="11" class="folder-icon"> </text>
+  <text x="46" y="94" font-size="11" class="text-secondary">plugins</text>
+
+  <text x="22" y="112" font-size="11" class="text-secondary"> </text>
+  <text x="34" y="112" font-size="11" class="folder-icon"> </text>
+  <text x="46" y="112" font-size="11" class="text-primary">specs</text>
+
+  <text x="38" y="130" font-size="11" class="text-secondary"> </text>
+  <text x="50" y="130" font-size="11" class="folder-icon"> </text>
+  <text x="62" y="130" font-size="11" class="text-primary">20260406-auth</text>
+
+  <text x="54" y="148" font-size="11" class="file-icon"> </text>
+  <text x="66" y="148" font-size="11" class="text-secondary">spec-auth-2026&amp;</text>
+
+  <rect x="0" y="152" width="200" height="18" fill="#58a6ff" opacity="0.08"/>
+  <text x="54" y="166" font-size="11" class="file-icon"> </text>
+  <text x="66" y="166" font-size="11" class="accent">assessment-auth&amp;</text>
+
+  <text x="54" y="184" font-size="11" class="file-icon"> </text>
+  <text x="66" y="184" font-size="11" class="text-secondary">subtask-01-auth&amp;</text>
+
+  <text x="54" y="202" font-size="11" class="file-icon"> </text>
+  <text x="66" y="202" font-size="11" class="text-secondary">subtask-02-auth&amp;</text>
+
+  <text x="54" y="220" font-size="11" class="file-icon"> </text>
+  <text x="66" y="220" font-size="11" class="text-secondary">subtask-03-auth&amp;</text>
+
+  <text x="54" y="238" font-size="11" class="file-icon"> </text>
+  <text x="66" y="238" font-size="11" class="text-secondary">subtask-04-auth&amp;</text>
+
+  <!-- Editor Pane - Assessment file being written -->
+  <rect x="200" y="60" width="370" height="470" class="bg"/>
+  <rect x="569" y="60" width="1" height="470" class="border"/>
+
+  <text x="216" y="82" font-size="11" class="comment"># Spec Assessment: User Auth</text>
+  <text x="216" y="100" font-size="11" class="text-mono-dim"></text>
+  <text x="216" y="118" font-size="11" class="keyword">**Verdict**</text><text x="266" y="118" font-size="11" class="success">: Approve</text>
+  <text x="216" y="136" font-size="11" class="keyword">**Overall**</text><text x="266" y="136" font-size="11" class="text-mono">: 4.3/5</text>
+  <text x="216" y="154" font-size="11" class="keyword">**Assessed**</text><text x="272" y="154" font-size="11" class="text-mono">: 2026-04-06</text>
+  <text x="216" y="172" font-size="11" class="text-mono-dim"></text>
+  <text x="216" y="190" font-size="11" class="comment">## Scores</text>
+  <text x="216" y="208" font-size="11" class="text-mono-dim"></text>
+  <text x="216" y="226" font-size="11" class="text-mono">| Dimension       | Score |</text>
+  <text x="216" y="244" font-size="11" class="text-mono">|-----------------|-------|</text>
+  <text x="216" y="262" font-size="11" class="text-mono">| Completeness    | 4.5/5 |</text>
+  <text x="216" y="280" font-size="11" class="text-mono">| Feasibility     | 4.2/5 |</text>
+  <text x="216" y="298" font-size="11" class="text-mono">| Structure       | 4.5/5 |</text>
+  <text x="216" y="316" font-size="11" class="text-mono">| Specificity     | 4.0/5 |</text>
+  <text x="216" y="334" font-size="11" class="text-mono">| Risk Awareness  | 4.2/5 |</text>
+  <text x="216" y="352" font-size="11" class="text-mono">| Conventions     | 4.5/5 |</text>
+  <text x="216" y="370" font-size="11" class="text-mono-dim"></text>
+  <text x="216" y="388" font-size="11" class="comment">## Strengths</text>
+  <text x="216" y="406" font-size="11" class="text-mono-dim"></text>
+  <text x="216" y="424" font-size="11" class="text-mono">- Well-structured dependency graph</text>
+  <text x="216" y="442" font-size="11" class="text-mono">- Clear phase ordering with no</text>
+  <text x="216" y="460" font-size="11" class="text-mono">  circular dependencies</text>
+
+  <!-- Line numbers -->
+  <text x="204" y="82" font-size="10" text-anchor="end" class="text-mono-dim">1</text>
+  <text x="204" y="100" font-size="10" text-anchor="end" class="text-mono-dim">2</text>
+  <text x="204" y="118" font-size="10" text-anchor="end" class="text-mono-dim">3</text>
+  <text x="204" y="136" font-size="10" text-anchor="end" class="text-mono-dim">4</text>
+  <text x="204" y="154" font-size="10" text-anchor="end" class="text-mono-dim">5</text>
+  <text x="204" y="172" font-size="10" text-anchor="end" class="text-mono-dim">6</text>
+  <text x="204" y="190" font-size="10" text-anchor="end" class="text-mono-dim">7</text>
+  <text x="204" y="208" font-size="10" text-anchor="end" class="text-mono-dim">8</text>
+  <text x="204" y="226" font-size="10" text-anchor="end" class="text-mono-dim">9</text>
+  <text x="204" y="244" font-size="10" text-anchor="end" class="text-mono-dim">10</text>
+  <text x="204" y="262" font-size="10" text-anchor="end" class="text-mono-dim">11</text>
+  <text x="204" y="280" font-size="10" text-anchor="end" class="text-mono-dim">12</text>
+  <text x="204" y="298" font-size="10" text-anchor="end" class="text-mono-dim">13</text>
+  <text x="204" y="316" font-size="10" text-anchor="end" class="text-mono-dim">14</text>
+  <text x="204" y="334" font-size="10" text-anchor="end" class="text-mono-dim">15</text>
+  <text x="204" y="352" font-size="10" text-anchor="end" class="text-mono-dim">16</text>
+  <text x="204" y="370" font-size="10" text-anchor="end" class="text-mono-dim">17</text>
+  <text x="204" y="388" font-size="10" text-anchor="end" class="text-mono-dim">18</text>
+  <text x="204" y="406" font-size="10" text-anchor="end" class="text-mono-dim">19</text>
+  <text x="204" y="424" font-size="10" text-anchor="end" class="text-mono-dim">20</text>
+  <text x="204" y="442" font-size="10" text-anchor="end" class="text-mono-dim">21</text>
+  <text x="204" y="460" font-size="10" text-anchor="end" class="text-mono-dim">22</text>
+
+  <!-- Chat/AI Pane -->
+  <rect x="570" y="60" width="330" height="470" class="surface"/>
+  <rect x="570" y="60" width="330" height="28" fill="#1c2128"/>
+  <rect x="570" y="87" width="330" height="1" class="border"/>
+  <text x="585" y="79" font-size="11" font-weight="600" class="text-primary">Agent</text>
+  <text x="623" y="79" font-size="10" class="text-secondary">  zoto-spec-judge</text>
+
+  <!-- User message -->
+  <rect x="590" y="100" width="290" height="36" rx="8" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+  <text x="602" y="114" font-size="10" class="accent">You</text>
+  <text x="602" y="128" font-size="11" class="text-mono">/zoto-spec-judge specs/20260406-auth</text>
+
+  <!-- Agent response - scoring output -->
+  <rect x="590" y="148" width="290" height="340" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="602" y="164" font-size="10" class="accent">Spec Judge</text>
+
+  <text x="602" y="184" font-size="11" font-weight="600" class="text-primary">Assessment Complete</text>
+
+  <!-- Score bars -->
+  <text x="602" y="206" font-size="10" class="text-secondary">Completeness</text>
+  <rect x="700" y="196" width="60" height="8" rx="4" fill="#30363d"/>
+  <rect x="700" y="196" width="54" height="8" rx="4" fill="#3fb950"/>
+  <text x="768" y="206" font-size="10" class="text-primary">4.5</text>
+
+  <text x="602" y="224" font-size="10" class="text-secondary">Feasibility</text>
+  <rect x="700" y="214" width="60" height="8" rx="4" fill="#30363d"/>
+  <rect x="700" y="214" width="50" height="8" rx="4" fill="#3fb950"/>
+  <text x="768" y="224" font-size="10" class="text-primary">4.2</text>
+
+  <text x="602" y="242" font-size="10" class="text-secondary">Structure</text>
+  <rect x="700" y="232" width="60" height="8" rx="4" fill="#30363d"/>
+  <rect x="700" y="232" width="54" height="8" rx="4" fill="#3fb950"/>
+  <text x="768" y="242" font-size="10" class="text-primary">4.5</text>
+
+  <text x="602" y="260" font-size="10" class="text-secondary">Specificity</text>
+  <rect x="700" y="250" width="60" height="8" rx="4" fill="#30363d"/>
+  <rect x="700" y="250" width="48" height="8" rx="4" fill="#3fb950"/>
+  <text x="768" y="260" font-size="10" class="text-primary">4.0</text>
+
+  <text x="602" y="278" font-size="10" class="text-secondary">Risk Awareness</text>
+  <rect x="700" y="268" width="60" height="8" rx="4" fill="#30363d"/>
+  <rect x="700" y="268" width="50" height="8" rx="4" fill="#3fb950"/>
+  <text x="768" y="278" font-size="10" class="text-primary">4.2</text>
+
+  <text x="602" y="296" font-size="10" class="text-secondary">Conventions</text>
+  <rect x="700" y="286" width="60" height="8" rx="4" fill="#30363d"/>
+  <rect x="700" y="286" width="54" height="8" rx="4" fill="#3fb950"/>
+  <text x="768" y="296" font-size="10" class="text-primary">4.5</text>
+
+  <!-- Divider -->
+  <rect x="602" y="310" width="260" height="1" fill="#30363d"/>
+
+  <!-- Overall score -->
+  <text x="602" y="330" font-size="12" font-weight="600" class="text-primary">Overall Score</text>
+  <text x="700" y="330" font-size="14" font-weight="700" class="success">4.3/5</text>
+
+  <!-- Verdict badge -->
+  <rect x="602" y="342" width="76" height="22" rx="6" fill="#238636"/>
+  <text x="640" y="357" text-anchor="middle" font-size="11" font-weight="600" fill="#ffffff">Approve</text>
+
+  <text x="602" y="388" font-size="11" class="text-primary">Spec is ready for execution.</text>
+  <text x="602" y="406" font-size="11" class="text-primary">1 minor issue found:</text>
+  <text x="602" y="424" font-size="11" class="text-secondary">- Subtask 03 could specify</text>
+  <text x="615" y="440" font-size="11" class="text-secondary">which test files to create</text>
+
+  <text x="602" y="464" font-size="11" class="accent">Assessment written to:</text>
+  <text x="602" y="480" font-size="10" class="text-mono-dim">assessment-auth-20260406.md</text>
+
+  <!-- Status Bar -->
+  <rect y="530" width="900" height="20" fill="#161b22"/>
+  <rect y="530" width="900" height="1" class="border"/>
+  <text x="14" y="544" font-size="10" class="accent">  main</text>
+  <text x="80" y="544" font-size="10" class="text-secondary">Markdown</text>
+  <text x="800" y="544" font-size="10" class="text-secondary">UTF-8  LF</text>
+</svg>

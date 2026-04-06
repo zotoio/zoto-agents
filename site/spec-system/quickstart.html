@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quickstart — Spec System — Zoto Agents</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- Prism.js for syntax highlighting (Tomorrow Night theme) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 420'><rect width='420' height='420' fill='%23e8e8e8'/><rect x='30' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='165' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='300' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='30' y='240' width='360' height='150' fill='%238ec0d6'/><rect x='150' y='300' width='120' height='90' fill='%23e8e8e8'/></svg>">
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="index.html" class="active">Spec System</a></li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Page layout wrapper -->
+  <div class="page-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <h3 class="sidebar-heading">Spec System</h3>
+        <ul class="sidebar-list">
+          <li><a href="index.html" class="sidebar-link">Overview</a></li>
+          <li><a href="quickstart.html" class="sidebar-link active">Quickstart</a></li>
+          <li><a href="design.html" class="sidebar-link">Design</a></li>
+          <li><a href="configuration.html" class="sidebar-link">Configuration</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="index.html">Spec System</a></li>
+          <li>Quickstart</li>
+        </ul>
+
+        <h1>Quickstart Walkthrough</h1>
+
+        <p>
+          This guide walks you through the complete Spec System lifecycle &mdash; from
+          creating your first spec to shipping verified code. By the end, you'll have used
+          all three commands and understand how they fit together.
+        </p>
+
+        <figure>
+          <img src="../images/diagrams/workflow-overview.svg"
+               alt="Spec System workflow: Create, Judge, Execute, Verify">
+          <figcaption>The four stages of the Spec System lifecycle</figcaption>
+        </figure>
+
+        <!-- ============================================================== -->
+        <h2 id="scenario">Example Scenario</h2>
+
+        <p>
+          Throughout this guide we'll follow a realistic example: <strong>adding a Redis
+          caching layer to an API</strong>. The commands you'll run are:
+        </p>
+
+        <pre><code class="language-bash"># Step 1 — Create the spec
+/zoto-spec-create Add a Redis caching layer to our API endpoints
+
+# Step 2 — Judge the spec
+/zoto-spec-judge specs/20260406-redis-caching/spec-redis-caching-20260406.md
+
+# Step 3 — Execute the spec
+/zoto-spec-execute specs/20260406-redis-caching/
+
+# Step 4 — Review and ship (manual)</code></pre>
+
+        <!-- ============================================================== -->
+        <h2 id="prerequisites">Prerequisites</h2>
+
+        <p>Before you start, make sure you have:</p>
+
+        <ul>
+          <li><strong>Cursor IDE</strong> installed and running</li>
+          <li>The <strong>zoto-spec-system</strong> plugin installed in your workspace
+            (see the <a href="index.html">Overview</a> for installation instructions)</li>
+          <li>A <strong>project</strong> open in Cursor that you want to add a feature to</li>
+        </ul>
+
+        <!-- ============================================================== -->
+        <h2 id="step-0">Step 0: Configure <span class="badge">Optional</span></h2>
+
+        <p>
+          The Spec System works out of the box with sensible defaults. If you want to
+          customize directory paths or naming, create a config file:
+        </p>
+
+        <pre><code class="language-bash">mkdir -p .zoto-spec-system
+touch .zoto-spec-system/config.json</code></pre>
+
+        <p>A minimal configuration looks like this:</p>
+
+        <pre><code class="language-json">{
+  "specsDir": "specs",
+  "unitOfWork": "spec"
+}</code></pre>
+
+        <div class="callout callout-success">
+          <div class="callout-title">Skip this step</div>
+          <p class="mb-0">
+            You can skip configuration entirely. Specs will be stored in <code>specs/</code>,
+            work items are called "specs", and all other defaults apply. See the
+            <a href="configuration.html">Configuration Reference</a> for the full list of options.
+          </p>
+        </div>
+
+        <!-- ============================================================== -->
+        <h2 id="step-1">Step 1: Create a Spec</h2>
+
+        <p>
+          Open the Cursor chat and type the <code>/zoto-spec-create</code> command followed
+          by a description of what you want to build:
+        </p>
+
+        <pre><code class="language-bash">/zoto-spec-create Add a Redis caching layer to our API endpoints</code></pre>
+
+        <h3>What happens</h3>
+
+        <p>
+          The Spec System spawns a generator agent that follows an 8-step workflow:
+        </p>
+
+        <ol>
+          <li><strong>Gathers requirements</strong> &mdash; asks you clarifying questions about scope, constraints, and goals</li>
+          <li><strong>Explores your codebase</strong> &mdash; scans files and patterns to understand existing architecture</li>
+          <li><strong>Proposes key decisions</strong> &mdash; presents architectural choices for your approval</li>
+          <li><strong>Builds the dependency graph</strong> &mdash; determines which subtasks depend on which</li>
+          <li><strong>Assigns agents</strong> &mdash; picks the right subagent type for each subtask</li>
+          <li><strong>Creates the spec files</strong> &mdash; writes the index and subtask files to disk</li>
+          <li><strong>Reviews with you</strong> &mdash; presents the full spec for your approval</li>
+          <li><strong>Runs an automatic judge</strong> &mdash; assesses quality before finalizing</li>
+        </ol>
+
+        <h3>What you'll see in Cursor</h3>
+
+        <figure>
+          <img src="../images/mockups/create-spec.svg"
+               alt="Cursor IDE showing the /zoto-spec-create command in the chat panel with the agent asking clarifying questions">
+          <figcaption>The generator agent asks clarifying questions to understand your feature</figcaption>
+        </figure>
+
+        <h3>What gets created</h3>
+
+        <p>
+          After you approve, the system creates a spec directory with an index file and
+          individual subtask files:
+        </p>
+
+        <figure>
+          <img src="../images/mockups/spec-files.svg"
+               alt="File explorer showing the generated spec directory structure with index and subtask files">
+          <figcaption>Generated spec directory with index and subtask files</figcaption>
+        </figure>
+
+        <pre><code class="language-bash">specs/20260406-redis-caching/
+├── spec-redis-caching-20260406.md            # Coordination index
+├── subtask-01-redis-caching-setup-20260406.md
+├── subtask-02-redis-caching-client-20260406.md
+├── subtask-03-redis-caching-middleware-20260406.md
+├── subtask-04-redis-caching-invalidation-20260406.md
+└── subtask-05-redis-caching-tests-20260406.md</code></pre>
+
+        <p>The spec index contains the subtask manifest &mdash; the source of truth for the entire lifecycle:</p>
+
+        <pre><code class="language-markdown"># Spec: Redis Caching Layer
+
+**Feature**: redis-caching
+**Created**: 2026-04-06
+**Status**: Ready for Review
+
+## Overview
+
+Add a Redis caching layer to API endpoints to reduce database load
+and improve response times for frequently accessed resources.
+
+## Subtask Manifest
+
+| ID | File | Subagent | Dependencies | Phase |
+|----|------|----------|-------------|-------|
+| 01 | subtask-01-redis-caching-setup-20260406.md | generalPurpose | — | 1 |
+| 02 | subtask-02-redis-caching-client-20260406.md | generalPurpose | 01 | 2 |
+| 03 | subtask-03-redis-caching-middleware-20260406.md | generalPurpose | 02 | 3 |
+| 04 | subtask-04-redis-caching-invalidation-20260406.md | generalPurpose | 02 | 3 |
+| 05 | subtask-05-redis-caching-tests-20260406.md | generalPurpose | 03, 04 | 4 |
+
+## Definition of Done
+
+- [ ] Redis client configured and connecting
+- [ ] Cache middleware intercepts API responses
+- [ ] Invalidation strategy implemented
+- [ ] Integration tests passing
+- [ ] No linter errors introduced</code></pre>
+
+        <div class="callout">
+          <div class="callout-title">What to expect</div>
+          <p class="mb-0">
+            The creation process takes a few minutes. The agent will ask you 2&ndash;5
+            questions, then generate the spec files. You'll approve the spec before it's
+            finalized. The automatic judge review runs immediately after your approval.
+          </p>
+        </div>
+
+        <!-- ============================================================== -->
+        <h2 id="step-2">Step 2: Judge the Spec</h2>
+
+        <p>
+          The judge runs automatically after spec creation, but you can also run it
+          manually at any time. Pass the path to your spec index:
+        </p>
+
+        <pre><code class="language-bash">/zoto-spec-judge specs/20260406-redis-caching/spec-redis-caching-20260406.md</code></pre>
+
+        <h3>What happens</h3>
+
+        <p>
+          A fresh, independent judge agent assesses your spec across six dimensions. It has
+          no knowledge of the creation process, ensuring an unbiased evaluation.
+        </p>
+
+        <ol>
+          <li>Loads the spec index and all subtask files</li>
+          <li>Explores the codebase to verify assumptions</li>
+          <li>Scores each of six quality dimensions (1&ndash;5)</li>
+          <li>Validates the subtask manifest and dependency graph</li>
+          <li>Checks each subtask for quality and completeness</li>
+          <li>Writes an assessment report to the spec directory</li>
+          <li><strong>Offers to apply fixes</strong> &mdash; presents actionable findings and asks whether to apply them directly to the spec files</li>
+        </ol>
+
+        <h3>What you'll see</h3>
+
+        <figure>
+          <img src="../images/mockups/judge-output.svg"
+               alt="Cursor IDE showing the judge assessment output with dimension scores and a verdict table">
+          <figcaption>The judge scores your spec across six quality dimensions</figcaption>
+        </figure>
+
+        <h3>Understanding the verdict</h3>
+
+        <p>The overall score is a weighted average of all six dimensions:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Weight</th>
+              <th>What It Measures</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Completeness</td>
+              <td>25%</td>
+              <td>All requirements covered, no gaps in deliverables</td>
+            </tr>
+            <tr>
+              <td>Feasibility</td>
+              <td>20%</td>
+              <td>Subtasks are achievable, scope is realistic</td>
+            </tr>
+            <tr>
+              <td>Structure</td>
+              <td>20%</td>
+              <td>Dependencies are correct, phases are logical</td>
+            </tr>
+            <tr>
+              <td>Specificity</td>
+              <td>15%</td>
+              <td>Clear objectives, concrete deliverables</td>
+            </tr>
+            <tr>
+              <td>Risk Awareness</td>
+              <td>10%</td>
+              <td>Edge cases considered, blockers identified</td>
+            </tr>
+            <tr>
+              <td>Convention Compliance</td>
+              <td>10%</td>
+              <td>Matches your repository's patterns and tooling</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>The verdict determines what happens next:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Verdict</th>
+              <th>Score</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-success">Approve</span></td>
+              <td>4.0+</td>
+              <td>Spec is ready for <code>/zoto-spec-execute</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-warning">Conditional</span></td>
+              <td>3.0&ndash;3.9</td>
+              <td>Address the listed findings before executing</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-danger">Reject</span></td>
+              <td>&lt; 3.0</td>
+              <td>Significant issues &mdash; rework with <code>/zoto-spec-create</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">Low score?</div>
+          <p class="mb-0">
+            If the judge returns a Conditional or Reject verdict, it will present the
+            actionable findings and offer to apply fixes directly to your spec files
+            (dependencies, deliverables, missing sections, etc.). Accept to have the issues
+            resolved automatically, or decline to address them manually. You can re-run
+            <code>/zoto-spec-judge</code> after fixes until you reach an Approve verdict.
+          </p>
+        </div>
+
+        <!-- ============================================================== -->
+        <h2 id="step-3">Step 3: Execute the Spec</h2>
+
+        <p>
+          Once your spec is approved, run the execute command to have the system implement
+          it:
+        </p>
+
+        <pre><code class="language-bash">/zoto-spec-execute specs/20260406-redis-caching/</code></pre>
+
+        <h3>What happens</h3>
+
+        <p>
+          The executor agent coordinates the entire implementation through a structured
+          pipeline:
+        </p>
+
+        <ol>
+          <li><strong>Validates the manifest</strong> &mdash; confirms all files exist and dependencies are consistent</li>
+          <li><strong>Confirms with you</strong> &mdash; presents an execution summary and waits for your approval</li>
+          <li><strong>Executes phase by phase</strong> &mdash; spawns subagents for each subtask, respecting dependency order</li>
+          <li><strong>Verifies adversarially</strong> &mdash; after each subtask, a fresh judge agent independently confirms deliverables</li>
+          <li><strong>Runs final checks</strong> &mdash; full test suite, linter, and quality audit</li>
+          <li><strong>Writes the execution report</strong> &mdash; a persistent record of what was done</li>
+        </ol>
+
+        <h3>What you'll see</h3>
+
+        <figure>
+          <img src="../images/mockups/execute-progress.svg"
+               alt="Cursor IDE showing execution progress with phase indicators and subtask status updates">
+          <figcaption>Execution progress showing phases completing and subtasks being verified</figcaption>
+        </figure>
+
+        <h3>Phase execution model</h3>
+
+        <p>
+          Subtasks run in <strong>phases</strong>. Within a phase, independent subtasks run
+          in parallel (up to 4 at a time by default). The next phase doesn't start until
+          all subtasks in the current phase are complete and verified.
+        </p>
+
+        <p>For our Redis caching example:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>Subtasks</th>
+              <th>What happens</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>01 (Setup)</td>
+              <td>Redis dependencies and configuration added</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>02 (Client)</td>
+              <td>Redis client module created</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>03 (Middleware), 04 (Invalidation)</td>
+              <td>Run in parallel &mdash; both depend on the client</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>05 (Tests)</td>
+              <td>Integration tests covering all components</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Adversarial verification</h3>
+
+        <p>
+          After each subtask completes, a <strong>fresh judge agent</strong> (not the one
+          that did the work) independently verifies every deliverable. The judge:
+        </p>
+
+        <ul>
+          <li>Confirms files exist and have expected content</li>
+          <li>Checks that code builds and passes linting</li>
+          <li>Validates that tests exist and are syntactically correct</li>
+          <li>Sets the authoritative checklist state &mdash; unticking anything it can't confirm</li>
+        </ul>
+
+        <p>
+          Each subtask receives a verdict: <strong>Verified</strong>,
+          <strong>Partial</strong>, or <strong>Failed</strong>. If a subtask fails
+          verification, execution pauses and you're asked how to proceed.
+        </p>
+
+        <div class="callout">
+          <div class="callout-title">What to expect</div>
+          <p class="mb-0">
+            Execution time depends on spec complexity. A 5-subtask spec typically takes
+            5&ndash;15 minutes. You'll see progress updates between phases, and the system
+            will stop to ask you if anything fails verification.
+          </p>
+        </div>
+
+        <!-- ============================================================== -->
+        <h2 id="step-4">Step 4: Verify &amp; Ship</h2>
+
+        <p>
+          After execution completes, the system writes an execution report and presents it
+          for your review:
+        </p>
+
+        <pre><code class="language-bash">specs/20260406-redis-caching/
+├── spec-redis-caching-20260406.md
+├── subtask-01-redis-caching-setup-20260406.md
+├── ...
+└── execution-report-redis-caching-20260406.md   # &lt;-- New</code></pre>
+
+        <h3>Reading the execution report</h3>
+
+        <p>The report contains a complete record of the execution:</p>
+
+        <pre><code class="language-markdown"># Execution Report: Redis Caching Layer
+
+**Spec**: spec-redis-caching-20260406.md
+**Started**: 2026-04-06 14:23:01 UTC
+**Completed**: 2026-04-06 14:35:42 UTC
+**Duration**: 12m 41s
+**Status**: Completed
+
+## Subtask Results
+
+| ID | Subtask | Subagent | Verification | Files Modified |
+|----|---------|----------|-------------|----------------|
+| 01 | Setup | generalPurpose | Verified | 3 |
+| 02 | Client | generalPurpose | Verified | 2 |
+| 03 | Middleware | generalPurpose | Verified | 4 |
+| 04 | Invalidation | generalPurpose | Verified | 2 |
+| 05 | Tests | generalPurpose | Verified | 3 |
+
+## Verification Results
+
+### Test Suite
+- Status: PASS
+- Tests run: 24
+
+### Linter
+- Status: CLEAN</code></pre>
+
+        <h3>Reviewing the changes</h3>
+
+        <p>Before approving, review the work:</p>
+
+        <ol>
+          <li><strong>Read the execution report</strong> &mdash; check that all subtasks are Verified and tests pass</li>
+          <li><strong>Review modified files</strong> &mdash; the report lists every file that was created or changed</li>
+          <li><strong>Run the application</strong> &mdash; verify the feature works as expected in your local environment</li>
+          <li><strong>Check edge cases</strong> &mdash; test the scenarios from the spec's risk analysis</li>
+        </ol>
+
+        <p>
+          Once you're satisfied, approve the spec in the chat. The system marks it as
+          <strong>Completed</strong> and the lifecycle is done.
+        </p>
+
+        <div class="callout callout-success">
+          <div class="callout-title">Ship it</div>
+          <p class="mb-0">
+            After approval, your changes are ready to commit and push. The spec directory
+            serves as a permanent record of what was planned, assessed, and executed &mdash;
+            useful for code reviews and future reference.
+          </p>
+        </div>
+
+        <!-- ============================================================== -->
+        <h2 id="whats-next">What's Next</h2>
+
+        <p>Now that you've completed the full lifecycle, explore these resources:</p>
+
+        <div class="grid grid-2">
+          <a href="design.html" class="card" style="text-decoration: none;">
+            <div class="card-title">Design Deep-Dive</div>
+            <p class="card-description">
+              Understand the architecture behind the Spec System &mdash; agent roles,
+              the trust model, and why adversarial verification matters.
+            </p>
+          </a>
+          <a href="configuration.html" class="card" style="text-decoration: none;">
+            <div class="card-title">Configuration Reference</div>
+            <p class="card-description">
+              Customize directory paths, execution limits, session hooks, and extensions
+              to fit your team's workflow.
+            </p>
+          </a>
+        </div>
+
+        <nav class="page-nav" aria-label="Page navigation">
+          <a href="index.html" class="page-nav-link page-nav-prev">
+            <span class="page-nav-label">Previous</span>
+            <span class="page-nav-title">&larr; Overview</span>
+          </a>
+          <a href="design.html" class="page-nav-link page-nav-next">
+            <span class="page-nav-label">Next</span>
+            <span class="page-nav-title">Design &rarr;</span>
+          </a>
+        </nav>
+
+        <footer class="site-footer">
+          zoto-agents &mdash; Cursor Plugin Monorepo
+        </footer>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>

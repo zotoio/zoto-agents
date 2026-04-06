@@ -2,6 +2,14 @@
 
 Structured engineering workflows for complex initiatives: turn ideas into specs, get an independent quality gate, then execute with adversarial verification.
 
+## When to use this vs Plan mode
+
+Cursor's built-in **Plan mode** works well for focused, single-session tasks. The Spec System is for work that's too complex for a single session — when you need **durable spec files** you can review in PRs, share with teammates, and iterate on before execution. The judge provides an independent quality gate, and adversarial verification ensures every deliverable is checked by an agent that didn't write the code.
+
+Spec files are designed to be **committed alongside the feature code they describe** — the spec directory (index, subtasks, assessment, execution report) becomes a permanent record of *why* something was built, not just what changed. With the optional [CRUX Memories](https://github.com/zotoio/CRUX-Compress) integration, learnings from completed specs are extracted and surfaced in future sessions, so your project builds institutional knowledge over time.
+
+If the task can be described in a sentence and done in one pass, use Plan mode. If it needs a design discussion, has dependencies between subtasks, or would benefit from a second opinion — create a spec.
+
 ## Installation
 
 **From the Cursor plugin marketplace (recommended)**
@@ -72,6 +80,8 @@ Independent assessment of the whole repository or of a specific spec.
 | **Conditional** | Address listed findings before relying on the spec or repo state. |
 | **Reject** | Rework required; major gaps or risks. |
 
+After producing a spec assessment, the judge **offers to apply recommended fixes** directly to the spec files (index, subtasks, dependency graph). Accept to have issues resolved automatically, or decline to address them manually.
+
 ### `/zoto-spec-execute`
 
 Runs the spec with phased subagent work, progress tracking, and **adversarial verification** (the dedicated `zoto-spec-judge` agent independently checks each subtask's deliverables). Supports targeting the latest spec, a spec directory, an index file path, and **`--resume`** after an interruption.
@@ -86,14 +96,14 @@ The plugin provides three specialized agents:
 |-------|------|
 | **`zoto-spec-generator`** | Creates structured engineering specs from requirements, design docs, or free-text descriptions. |
 | **`zoto-spec-executor`** | Executes specs by spawning subagents for each subtask, tracking progress, and coordinating adversarial verification. |
-| **`zoto-spec-judge`** | Independent quality gate that performs adversarial verification and produces structured assessments. |
+| **`zoto-spec-judge`** | Independent quality gate that performs adversarial verification, produces structured assessments, and offers to apply recommended fixes to spec files. |
 
 ## Workflow overview
 
 Typical lifecycle:
 
 1. **Spec** — Decompose work, dependencies, and phases; write durable markdown under `{specsDir}`.
-2. **Judge** — Get a second opinion on feasibility, risks, and completeness.
+2. **Judge** — Get a second opinion on feasibility, risks, and completeness. Optionally apply fixes.
 3. **Execute** — Run subtasks in order with verification and a final execution report.
 
 ```mermaid

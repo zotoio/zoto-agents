@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overview — Spec System — Zoto Agents</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- Prism.js for syntax highlighting (Tomorrow Night theme) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 420'><rect width='420' height='420' fill='%23e8e8e8'/><rect x='30' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='165' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='300' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='30' y='240' width='360' height='150' fill='%238ec0d6'/><rect x='150' y='300' width='120' height='90' fill='%23e8e8e8'/></svg>">
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="index.html" class="active">Spec System</a></li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Page layout wrapper -->
+  <div class="page-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <h3 class="sidebar-heading">Spec System</h3>
+        <ul class="sidebar-list">
+          <li><a href="index.html" class="sidebar-link active">Overview</a></li>
+          <li><a href="quickstart.html" class="sidebar-link">Quickstart</a></li>
+          <li><a href="design.html" class="sidebar-link">Design</a></li>
+          <li><a href="configuration.html" class="sidebar-link">Configuration</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="index.html">Spec System</a></li>
+          <li>Overview</li>
+        </ul>
+
+        <h1>Spec System</h1>
+
+        <p class="text-lg">
+          A Cursor plugin that brings structured engineering specs to AI-assisted
+          development. Decompose complex work into subtasks, get independent quality
+          assessment, and execute with adversarial verification &mdash; all inside
+          your editor.
+        </p>
+
+        <!-- ============================================================== -->
+        <h2 id="when-to-use">When to Use the Spec System</h2>
+
+        <p>
+          Cursor already has a built-in <strong>Plan mode</strong> that works well for
+          straightforward tasks: the agent thinks through an approach, you approve it,
+          and it executes &mdash; all in one session. <em>That&rsquo;s often all you need.</em>
+        </p>
+
+        <p>
+          The Spec System is for the tasks that Plan mode isn&rsquo;t designed for &mdash;
+          <strong>complex, multi-session initiatives</strong> where you need:
+        </p>
+
+        <ul>
+          <li>
+            <strong>A durable artifact to review and share</strong> &mdash; Specs are
+            ordinary markdown files committed to your repo. Share them with teammates
+            in a PR, discuss trade-offs in comments, and iterate before anyone writes
+            code. Plan mode plans are ephemeral &mdash; they exist only in the chat.
+          </li>
+          <li>
+            <strong>Collaborative refinement before execution</strong> &mdash; The
+            judge independently assesses the spec and offers to apply fixes. You can
+            re-judge, edit the spec files directly, and loop until the plan is solid.
+            Execution doesn&rsquo;t start until you&rsquo;re ready.
+          </li>
+          <li>
+            <strong>Structured decomposition with dependencies</strong> &mdash;
+            Subtasks have explicit dependency graphs, phased execution order, and
+            parallel limits. The system won&rsquo;t start a task before its
+            dependencies are verified complete.
+          </li>
+          <li>
+            <strong>Independent verification at every step</strong> &mdash; A
+            fresh agent that didn&rsquo;t write the code checks every deliverable.
+            Plan mode has no adversarial verification &mdash; the same agent plans
+            and executes.
+          </li>
+        </ul>
+
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Cursor Plan Mode</th>
+              <th>Spec System</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Best for</strong></td>
+              <td>Focused, single-session tasks</td>
+              <td>Complex, multi-step initiatives</td>
+            </tr>
+            <tr>
+              <td><strong>Plan artifact</strong></td>
+              <td>Ephemeral (lives in chat)</td>
+              <td>Durable markdown files in your repo</td>
+            </tr>
+            <tr>
+              <td><strong>Review &amp; collaboration</strong></td>
+              <td>Approve/reject in chat</td>
+              <td>Share in PRs, iterate with judge, edit spec files directly</td>
+            </tr>
+            <tr>
+              <td><strong>Dependency management</strong></td>
+              <td>None</td>
+              <td>Explicit dependency graph with phased execution</td>
+            </tr>
+            <tr>
+              <td><strong>Quality gate</strong></td>
+              <td>None</td>
+              <td>Independent judge scores 6 dimensions, offers fixes</td>
+            </tr>
+            <tr>
+              <td><strong>Verification</strong></td>
+              <td>Same agent plans and executes</td>
+              <td>Adversarial: fresh agent verifies each deliverable</td>
+            </tr>
+            <tr>
+              <td><strong>Resumability</strong></td>
+              <td>Lost if session ends</td>
+              <td>Resume from any point &mdash; progress is in the spec files</td>
+            </tr>
+            <tr>
+              <td><strong>Committed to repo</strong></td>
+              <td>No &mdash; ephemeral</td>
+              <td>Yes &mdash; specs ship with feature code as permanent history</td>
+            </tr>
+            <tr>
+              <td><strong>Long-term learning</strong></td>
+              <td>None</td>
+              <td>Optional CRUX Memories extracts learnings for future sessions</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <div class="callout-title">Rule of thumb</div>
+          <p class="mb-0">
+            If the task can be described in a sentence and done in one session, use Plan mode.
+            If it needs a design discussion, has multiple moving parts, or would benefit from
+            a second opinion before execution &mdash; create a spec.
+          </p>
+        </div>
+
+        <h3>Specs live with your code</h3>
+        <p>
+          Spec files are designed to be <strong>committed alongside the feature code
+          they describe</strong>. The spec directory &mdash; index, subtasks, assessment,
+          and execution report &mdash; is part of your repository history. This gives
+          you a permanent record of <em>why</em> something was built, not just <em>what</em>
+          changed. Reviewers can read the spec in the same PR as the implementation,
+          future contributors can trace architectural decisions back to their origin,
+          and the execution report documents exactly what was verified and when.
+        </p>
+
+        <h3>Long-term value with CRUX Memories</h3>
+        <p>
+          Specs become even more valuable over time when paired with the optional
+          <a href="https://github.com/zotoio/CRUX-Compress" target="_blank" rel="noopener noreferrer">CRUX Memories</a>
+          integration. After a spec is executed, the <code>/crux-dream</code> command
+          extracts structured learnings &mdash; patterns discovered, risks encountered,
+          conventions established &mdash; and stores them as persistent memories. On
+          future initiatives, <code>/crux-mindreader</code> surfaces relevant memories
+          so agents don&rsquo;t rediscover the same facts. Over time, your project
+          builds an institutional knowledge base derived from real execution history,
+          not just documentation.
+        </p>
+        <p>
+          Enable it by installing the CRUX Memories plugin and setting
+          <code>extensions.memory.enabled: true</code> in your
+          <a href="configuration.html">configuration</a>. The Spec System works
+          fully without it &mdash; memory is an optional layer for teams that want
+          compounding returns from their specs.
+        </p>
+
+        <!-- ============================================================== -->
+        <h2 id="the-problem">The Problem with Unstructured Sessions</h2>
+
+        <p>
+          Even with a plan, complex initiatives routinely fail in unstructured
+          AI-assisted sessions:
+        </p>
+
+        <ul>
+          <li>
+            <strong>Context loss</strong> &mdash; Long conversations drift. The
+            agent forgets earlier decisions, repeats work, or contradicts itself.
+          </li>
+          <li>
+            <strong>No dependency management</strong> &mdash; Without structure,
+            tasks run in the wrong order. Code is written before the interfaces it
+            depends on exist.
+          </li>
+          <li>
+            <strong>Inconsistency</strong> &mdash; Different parts of the
+            codebase are modified with conflicting assumptions because there is no
+            single source of truth for what was decided.
+          </li>
+          <li>
+            <strong>No verification</strong> &mdash; The agent that wrote the
+            code also checks the code. Mistakes pass unchallenged because there is
+            no independent review.
+          </li>
+        </ul>
+
+        <p>
+          The result: wasted iterations, subtle bugs, and a codebase that needs
+          manual cleanup after every large AI-assisted session.
+        </p>
+
+        <!-- ============================================================== -->
+        <h2 id="the-solution">The Solution</h2>
+
+        <p>
+          The Spec System replaces ad-hoc prompting with a disciplined
+          three-phase workflow: <strong>Create</strong> a structured spec,
+          <strong>Judge</strong> it independently, then <strong>Execute</strong>
+          with guardrails and adversarial verification.
+        </p>
+
+        <div class="grid grid-3">
+          <div class="card">
+            <div class="card-title text-accent">1. Create</div>
+            <p class="card-description">
+              Break the initiative into subtasks with explicit dependencies,
+              phases, and a definition of done. The spec is a durable markdown
+              artifact that survives context boundaries.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title" style="color: var(--color-warning);">2. Judge</div>
+            <p class="card-description">
+              A fresh agent &mdash; with no context from the planning session
+              &mdash; scores the spec across six dimensions and issues a verdict.
+              Then offers to apply recommended fixes directly to the spec files.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title text-success">3. Execute</div>
+            <p class="card-description">
+              Subtasks run in dependency order with configurable parallelism.
+              After each subtask, an independent judge verifies deliverables
+              before the next phase begins.
+            </p>
+          </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <h2 id="key-features">Key Features</h2>
+
+        <h3>Structured spec creation</h3>
+        <p>
+          Specs are broken into subtasks with explicit dependency graphs.
+          Subtasks are grouped into execution phases &mdash; tasks within a
+          phase run in parallel, and a phase only starts after all prior phases
+          complete. The result is an index file plus individual subtask files,
+          all ordinary markdown in your repository.
+        </p>
+
+        <h3>Independent quality assessment</h3>
+        <p>
+          The judge agent scores specs (and repositories) across six dimensions:
+          Completeness, Feasibility, Structure, Specificity, Risk Awareness, and
+          Convention Compliance. Scores produce a clear verdict &mdash;
+          <span class="badge badge-success">Approve</span> (4.0+),
+          <span class="badge badge-warning">Conditional</span> (3.0&ndash;3.9), or
+          <span class="badge badge-danger">Reject</span> (&lt;&nbsp;3.0) &mdash;
+          with actionable findings for each dimension.
+        </p>
+
+        <h3>Phased parallel execution</h3>
+        <p>
+          The executor follows the dependency graph to determine which subtasks
+          can run concurrently. A configurable parallel limit (default: 4)
+          prevents resource exhaustion. Progress is tracked in the spec index
+          file, and interrupted executions can be resumed.
+        </p>
+
+        <h3>Adversarial verification</h3>
+        <p>
+          After each subtask completes, a <em>fresh</em> judge agent &mdash;
+          with no context from the executing agent &mdash; independently
+          verifies every deliverable and definition-of-done item. The judge's
+          checklist state is authoritative: it can untick items the executor
+          claimed were done. This eliminates the "grading your own homework"
+          problem.
+        </p>
+
+        <h3>Configurable terminology and structure</h3>
+        <p>
+          Rename "spec" to "story", "task", or any term your team uses. Change
+          the directory layout. Adjust parallel limits, toggle the session-start
+          nudge, or disable adversarial verification entirely. All via a single
+          <code>config.json</code> file. See the
+          <a href="configuration.html">Configuration</a> reference for details.
+        </p>
+
+        <!-- ============================================================== -->
+        <h2 id="workflow-overview">Workflow Overview</h2>
+
+        <p>
+          The diagram below shows the full lifecycle of a spec, from
+          requirements gathering through execution and final verification.
+        </p>
+
+        <figure>
+          <img src="../images/diagrams/workflow-overview.svg" alt="Spec System workflow: three phases — Create (gather requirements, explore codebase, confirm, create files), Judge (independent assessment, score 6 dimensions, produce verdict), Execute (phased execution, adversarial verification, final checks, user review)">
+          <figcaption>The three-phase spec lifecycle: Create, Judge, Execute</figcaption>
+        </figure>
+
+        <h3>Phase 1: Create</h3>
+        <p>
+          Run <code>/zoto-spec-create</code> to start a guided workflow. The
+          generator agent asks clarifying questions, explores your codebase to
+          understand existing patterns, then produces a spec index and subtask
+          files under your configured specs directory. You confirm key decisions
+          before any files are written.
+        </p>
+
+        <h3>Phase 2: Judge</h3>
+        <p>
+          Run <code>/zoto-spec-judge</code> on the spec (or skip straight to
+          execution if you prefer). A fresh judge agent &mdash; deliberately
+          isolated from the planning context &mdash; reads the spec, explores
+          your codebase, and produces a structured assessment with scores across
+          six quality dimensions and a final verdict. It then offers to apply
+          recommended fixes directly to the spec files &mdash; fixing dependencies,
+          clarifying deliverables, or splitting oversized subtasks &mdash; so you
+          can iterate quickly.
+        </p>
+
+        <h3>Phase 3: Execute</h3>
+        <p>
+          Run <code>/zoto-spec-execute</code> to begin implementation. The
+          executor spawns subagents for each subtask, respects the dependency
+          graph, and coordinates adversarial verification after each subtask
+          completes. A final verification step runs your project's test suite
+          and lint checks before presenting an execution report for your review.
+        </p>
+
+        <!-- ============================================================== -->
+        <h2 id="components">Components</h2>
+
+        <p>
+          The Spec System is composed of three commands, three agents, three
+          skills, and supporting infrastructure (hooks, rules, configuration).
+        </p>
+
+        <figure>
+          <img src="../images/diagrams/agent-architecture.svg" alt="Spec System architecture: three commands (/zoto-spec-create, /zoto-spec-judge, /zoto-spec-execute) spawn three agents (zoto-spec-generator, zoto-spec-judge, zoto-spec-executor) which use three skills (zoto-create-spec, zoto-judge-spec, zoto-execute-spec), supported by a session-start hook, integration rule, and config file">
+          <figcaption>Commands, agents, skills, and supporting components</figcaption>
+        </figure>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>Component</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Command</td>
+              <td><code>/zoto-spec-create</code></td>
+              <td>Entry point for creating a new spec</td>
+            </tr>
+            <tr>
+              <td>Command</td>
+              <td><code>/zoto-spec-judge</code></td>
+              <td>Entry point for quality assessment</td>
+            </tr>
+            <tr>
+              <td>Command</td>
+              <td><code>/zoto-spec-execute</code></td>
+              <td>Entry point for spec execution</td>
+            </tr>
+            <tr>
+              <td>Agent</td>
+              <td><code>zoto-spec-generator</code></td>
+              <td>Config-driven spec creation specialist</td>
+            </tr>
+            <tr>
+              <td>Agent</td>
+              <td><code>zoto-spec-judge</code></td>
+              <td>Independent quality gate and adversarial verifier</td>
+            </tr>
+            <tr>
+              <td>Agent</td>
+              <td><code>zoto-spec-executor</code></td>
+              <td>Execution coordination specialist</td>
+            </tr>
+            <tr>
+              <td>Skill</td>
+              <td><code>zoto-create-spec</code></td>
+              <td>Guided workflow for requirements, exploration, and file creation</td>
+            </tr>
+            <tr>
+              <td>Skill</td>
+              <td><code>zoto-judge-spec</code></td>
+              <td>Assessment methodology with six-dimension scoring rubric</td>
+            </tr>
+            <tr>
+              <td>Skill</td>
+              <td><code>zoto-execute-spec</code></td>
+              <td>Execution workflow with dependency management and verification</td>
+            </tr>
+            <tr>
+              <td>Hook</td>
+              <td><code>zoto-session-start</code></td>
+              <td>Checks for unprocessed specs on Cursor startup</td>
+            </tr>
+            <tr>
+              <td>Rule</td>
+              <td><code>zoto-spec-system.mdc</code></td>
+              <td>Integration rule that teaches agents about available commands</td>
+            </tr>
+            <tr>
+              <td>Config</td>
+              <td><code>config.json</code></td>
+              <td>Terminology, directories, execution limits, extensions</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ============================================================== -->
+        <h2 id="getting-started">Getting Started</h2>
+
+        <p>
+          Ready to use the Spec System? Here is where to go next:
+        </p>
+
+        <div class="grid grid-3">
+          <a href="quickstart.html" class="card" style="text-decoration: none;">
+            <div class="card-title">Quickstart</div>
+            <p class="card-description">
+              Install the plugin and create your first spec in under five
+              minutes.
+            </p>
+          </a>
+          <a href="design.html" class="card" style="text-decoration: none;">
+            <div class="card-title">Design</div>
+            <p class="card-description">
+              Understand the architecture decisions behind the three-phase
+              workflow and adversarial verification.
+            </p>
+          </a>
+          <a href="configuration.html" class="card" style="text-decoration: none;">
+            <div class="card-title">Configuration</div>
+            <p class="card-description">
+              Customize terminology, directories, parallel limits, and
+              extensions for your team's workflow.
+            </p>
+          </a>
+        </div>
+
+        <nav class="page-nav" aria-label="Page navigation">
+          <span></span>
+          <a href="quickstart.html" class="page-nav-link page-nav-next">
+            <span class="page-nav-label">Next</span>
+            <span class="page-nav-title">Quickstart &rarr;</span>
+          </a>
+        </nav>
+
+        <footer class="site-footer">
+          zoto-agents &mdash; Cursor Plugin Monorepo
+        </footer>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>

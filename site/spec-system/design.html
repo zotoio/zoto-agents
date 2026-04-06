@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Deep-Dive — Spec System — Zoto Agents</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- Prism.js for syntax highlighting (Tomorrow Night theme) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 420'><rect width='420' height='420' fill='%23e8e8e8'/><rect x='30' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='165' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='300' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='30' y='240' width='360' height='150' fill='%238ec0d6'/><rect x='150' y='300' width='120' height='90' fill='%23e8e8e8'/></svg>">
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="index.html" class="active">Spec System</a></li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Page layout wrapper -->
+  <div class="page-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <h3 class="sidebar-heading">Spec System</h3>
+        <ul class="sidebar-list">
+          <li><a href="index.html" class="sidebar-link">Overview</a></li>
+          <li><a href="quickstart.html" class="sidebar-link">Quickstart</a></li>
+          <li><a href="design.html" class="sidebar-link active">Design</a></li>
+          <li><a href="configuration.html" class="sidebar-link">Configuration</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="index.html">Spec System</a></li>
+          <li>Design</li>
+        </ul>
+
+        <h1>Design Deep-Dive</h1>
+
+        <p>
+          This page provides a comprehensive technical reference for the Spec System&rsquo;s
+          architecture, components, and internal workflows. It covers every agent, skill,
+          command, hook, and rule that make up the plugin, along with the spec file formats
+          and execution model.
+        </p>
+
+        <!-- ============================================================== -->
+        <h2 id="toc">Table of Contents</h2>
+
+        <ol>
+          <li><a href="#architecture">Architecture Overview</a></li>
+          <li><a href="#agents">Agents</a>
+            <ul>
+              <li><a href="#agent-generator">zoto-spec-generator</a></li>
+              <li><a href="#agent-executor">zoto-spec-executor</a></li>
+              <li><a href="#agent-judge">zoto-spec-judge</a></li>
+              <li><a href="#agent-comparison">Agent Comparison</a></li>
+            </ul>
+          </li>
+          <li><a href="#skills">Skills</a>
+            <ul>
+              <li><a href="#skill-create-spec">zoto-create-spec</a></li>
+              <li><a href="#skill-judge-spec">zoto-judge-spec</a></li>
+              <li><a href="#skill-execute-spec">zoto-execute-spec</a></li>
+              <li><a href="#skill-agent-mapping">Skills &harr; Agents</a></li>
+            </ul>
+          </li>
+          <li><a href="#commands">Commands</a>
+            <ul>
+              <li><a href="#cmd-create">/zoto-spec-create</a></li>
+              <li><a href="#cmd-judge">/zoto-spec-judge</a></li>
+              <li><a href="#cmd-execute">/zoto-spec-execute</a></li>
+            </ul>
+          </li>
+          <li><a href="#hooks-rules">Hooks &amp; Rules</a></li>
+          <li><a href="#configuration">Configuration System</a></li>
+          <li><a href="#file-format">Spec File Format</a>
+            <ul>
+              <li><a href="#format-index">Index File</a></li>
+              <li><a href="#format-subtask">Subtask File</a></li>
+              <li><a href="#format-assessment">Assessment File</a></li>
+              <li><a href="#format-execution-report">Execution Report</a></li>
+            </ul>
+          </li>
+          <li><a href="#execution-model">Execution Model</a></li>
+          <li><a href="#extension-points">Extension Points</a></li>
+        </ol>
+
+        <!-- ============================================================== -->
+        <h2 id="architecture">1. Architecture Overview</h2>
+
+        <p>
+          The Spec System is built around a three-agent architecture: one agent creates
+          specs, one executes them, and one independently verifies the work. Each agent
+          is paired with a dedicated skill that defines its workflow, and each skill is
+          exposed to users through a slash command.
+        </p>
+
+        <figure>
+          <img src="../images/diagrams/agent-architecture.svg"
+               alt="Spec System agent architecture diagram showing the three agents (generator, executor, judge), their skills, commands, and how they interact through spec files">
+          <figcaption>Agent architecture &mdash; three specialized agents collaborate through spec files</figcaption>
+        </figure>
+
+        <p>The system follows a layered design:</p>
+
+        <ul>
+          <li><strong>Commands</strong> are the user-facing entry points (<code>/zoto-spec-create</code>, <code>/zoto-spec-judge</code>, <code>/zoto-spec-execute</code>)</li>
+          <li><strong>Agents</strong> are the execution contexts with domain expertise and model configuration</li>
+          <li><strong>Skills</strong> define the step-by-step workflows each agent follows</li>
+          <li><strong>Spec files</strong> are the coordination artifacts that pass state between agents</li>
+          <li><strong>Configuration</strong> controls naming, paths, limits, and optional extensions</li>
+        </ul>
+
+        <p>
+          Data flows in one direction: commands invoke agents, agents follow skills,
+          skills produce spec files, and spec files are consumed by downstream agents.
+          The judge agent is deliberately isolated &mdash; it always runs in a fresh
+          context with no carryover from prior sessions, ensuring unbiased verification.
+        </p>
+
+        <!-- ============================================================== -->
+        <h2 id="agents">2. Agents</h2>
+
+        <p>
+          Each agent is defined in a Markdown file under
+          <code>plugins/zoto-spec-system/agents/</code> with YAML frontmatter specifying
+          <code>name</code>, <code>model</code>, and <code>description</code>. Agents are
+          specialist personas &mdash; they carry domain expertise, critical rules, and
+          references to the skills they use.
+        </p>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="agent-generator">zoto-spec-generator</h3>
+
+        <div class="callout">
+          <div class="callout-title">Config-driven spec creation specialist</div>
+          <p class="mb-0">
+            Breaks down complex features into well-defined subtasks with clear
+            deliverables, dependency graphs, and execution phases.
+          </p>
+        </div>
+
+        <p><strong>When invoked:</strong> Spawned by the <code>/zoto-spec-create</code> command. The user triggers it when they want to plan a new feature, refactor, or multi-step initiative.</p>
+
+        <p><strong>Capabilities:</strong></p>
+        <ul>
+          <li>Gathers requirements through interactive clarifying questions (up to 10)</li>
+          <li>Spawns <code>explore</code> subagents to understand the existing codebase</li>
+          <li>Constructs dependency graphs and assigns subtasks to execution phases</li>
+          <li>Creates the spec index file and all subtask files</li>
+          <li>Automatically invokes the judge as a final quality gate before finalizing</li>
+        </ul>
+
+        <p><strong>Skills used:</strong></p>
+        <ul>
+          <li><strong>zoto-create-spec</strong> &mdash; the 8-step guided creation workflow</li>
+          <li><strong>zoto-judge-spec</strong> &mdash; invoked automatically as the final creation step</li>
+        </ul>
+
+        <p><strong>Critical rules:</strong></p>
+        <ul>
+          <li>Never edits code files &mdash; only creates spec Markdown files in <code>{specsDir}/</code></li>
+          <li>Always stops for user confirmation at key decision points</li>
+          <li>Respects <code>spec.maxSubtasks</code> from configuration</li>
+          <li>Always invokes judge review before presenting the spec to the user</li>
+        </ul>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="agent-executor">zoto-spec-executor</h3>
+
+        <div class="callout">
+          <div class="callout-title">Execution coordination specialist</div>
+          <p class="mb-0">
+            Executes engineering specs by spawning subagents for each subtask, tracking
+            progress through dependency phases, coordinating adversarial verification,
+            and producing execution reports.
+          </p>
+        </div>
+
+        <p><strong>When invoked:</strong> Spawned by the <code>/zoto-spec-execute</code> command when a spec exists with status <em>Ready for Review</em> or by explicit user request.</p>
+
+        <p><strong>Capabilities:</strong></p>
+        <ul>
+          <li>Loads and validates the spec manifest (file existence, agent assignments, dependency ordering)</li>
+          <li>Presents execution summaries and gates on user approval</li>
+          <li>Spawns the exact subagent listed in the manifest for each subtask &mdash; never overrides assignments</li>
+          <li>Manages phased execution respecting <code>spec.parallelLimit</code> (default 4 concurrent subagents)</li>
+          <li>Coordinates adversarial verification by spawning fresh <code>zoto-spec-judge</code> instances</li>
+          <li>Runs the project&rsquo;s full test suite and linter during final verification</li>
+          <li>Writes a durable execution report to the spec directory</li>
+        </ul>
+
+        <p><strong>Available subagents for dispatch:</strong></p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Subagent</th>
+              <th>Type</th>
+              <th>Use For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>generalPurpose</code></td>
+              <td>Task</td>
+              <td>Implementation, coding, multi-step work</td>
+            </tr>
+            <tr>
+              <td><code>zoto-spec-judge</code></td>
+              <td>Task</td>
+              <td>Adversarial verification, spec/repo assessment</td>
+            </tr>
+            <tr>
+              <td><code>explore</code></td>
+              <td>Task</td>
+              <td>Codebase exploration, file discovery, search</td>
+            </tr>
+            <tr>
+              <td><code>shell</code></td>
+              <td>Task</td>
+              <td>Command execution, git operations, test running</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><strong>Critical rules:</strong></p>
+        <ul>
+          <li>Follows the dependency graph strictly &mdash; never starts a subtask before its dependencies are complete</li>
+          <li>Updates the index file with progress after each subtask completes</li>
+          <li>Runs the full test suite only in the final verification phase, not during parallel execution</li>
+          <li>Stops for user review before marking a spec as Completed</li>
+        </ul>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="agent-judge">zoto-spec-judge</h3>
+
+        <div class="callout">
+          <div class="callout-title">Independent quality gate</div>
+          <p class="mb-0">
+            Performs adversarial verification of subtask deliverables and produces
+            structured assessments of repositories and specs. Always runs in a fresh
+            context to avoid bias.
+          </p>
+        </div>
+
+        <p>The judge operates in three distinct modes:</p>
+
+        <h4>Mode 1: Adversarial Verification</h4>
+        <p>
+          Spawned by the executor after each subtask completes. The judge reads the
+          subtask file, inspects every Deliverables Checklist and Definition of Done
+          item against the actual file system, and sets the authoritative checklist
+          state. Its tick marks override the executing agent&rsquo;s.
+        </p>
+        <p>Verdicts: <span class="badge badge-success">Verified</span> <span class="badge badge-warning">Partial</span> <span class="badge badge-danger">Failed</span></p>
+
+        <h4>Mode 2: Repository Assessment</h4>
+        <p>
+          Invoked via <code>/zoto-spec-judge</code> with no arguments. Performs a
+          comprehensive repository-level audit: explores codebase structure, runs
+          read-only quality checks, and scores six dimensions.
+        </p>
+
+        <h4>Mode 3: Spec Assessment</h4>
+        <p>
+          Invoked via <code>/zoto-spec-judge</code> with a spec path. Loads the spec
+          index and all subtask files, verifies codebase assumptions, validates the
+          Subtask Manifest, audits the dependency graph, and performs risk analysis.
+          After producing the assessment report, <strong>offers to apply recommended
+          fixes</strong> directly to the spec files (index, subtasks, dependency graph)
+          with user approval.
+        </p>
+
+        <p><strong>Scoring rubric (Modes 2 &amp; 3):</strong></p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Verdict</th>
+              <th>Score</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-success">Approve</span></td>
+              <td>4.0+</td>
+              <td>Ready for execution or healthy repository</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-warning">Conditional</span></td>
+              <td>3.0&ndash;3.9</td>
+              <td>Address findings before proceeding</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-danger">Reject</span></td>
+              <td>&lt; 3.0</td>
+              <td>Significant rework needed</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><strong>Critical rules:</strong></p>
+        <ul>
+          <li>Never modifies spec files <em>before</em> presenting the assessment &mdash; the assessment must be unbiased</li>
+          <li>Never applies fixes without explicit user approval</li>
+          <li>Only modifies spec files (index, subtasks, dependency graph) &mdash; never application source code</li>
+          <li>In Modes 1 and 2, remains read-only &mdash; fix application is only available in Mode 3</li>
+          <li>Never rubber-stamps &mdash; provides genuine critical analysis</li>
+          <li>Always runs in a fresh context with no carryover from executing agents</li>
+          <li>Always checks the file system directly &mdash; does not trust agent reports</li>
+        </ul>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="agent-comparison">Agent Comparison</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>zoto-spec-generator</th>
+              <th>zoto-spec-executor</th>
+              <th>zoto-spec-judge</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Purpose</strong></td>
+              <td>Create specs</td>
+              <td>Execute specs</td>
+              <td>Verify &amp; assess</td>
+            </tr>
+            <tr>
+              <td><strong>Triggered by</strong></td>
+              <td><code>/zoto-spec-create</code></td>
+              <td><code>/zoto-spec-execute</code></td>
+              <td><code>/zoto-spec-judge</code>, or spawned by other agents</td>
+            </tr>
+            <tr>
+              <td><strong>Primary skill</strong></td>
+              <td>zoto-create-spec</td>
+              <td>zoto-execute-spec</td>
+              <td>zoto-judge-spec</td>
+            </tr>
+            <tr>
+              <td><strong>Writes files?</strong></td>
+              <td>Spec files only</td>
+              <td>Index updates, execution report</td>
+              <td>Assessment reports, checklist updates</td>
+            </tr>
+            <tr>
+              <td><strong>Modifies code?</strong></td>
+              <td>Never</td>
+              <td>Via subagents</td>
+              <td>Never</td>
+            </tr>
+            <tr>
+              <td><strong>User interaction</strong></td>
+              <td>Questions, confirmations</td>
+              <td>Approval gates</td>
+              <td>None (background)</td>
+            </tr>
+            <tr>
+              <td><strong>Runs in fresh context?</strong></td>
+              <td>No</td>
+              <td>No</td>
+              <td>Always</td>
+            </tr>
+            <tr>
+              <td><strong>Background capable?</strong></td>
+              <td>No</td>
+              <td>No</td>
+              <td>Yes (<code>is_background: true</code>)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ============================================================== -->
+        <h2 id="skills">3. Skills</h2>
+
+        <p>
+          Skills define the step-by-step workflows that agents follow. Each skill is a
+          <code>SKILL.md</code> file under <code>plugins/zoto-spec-system/skills/</code>
+          with YAML frontmatter (<code>name</code>, <code>description</code>) and detailed
+          procedural instructions.
+        </p>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="skill-create-spec">zoto-create-spec</h3>
+
+        <p>
+          Guided workflow for creating structured engineering specs. The skill defines
+          an 8-step process from requirements gathering through automatic judge review.
+        </p>
+
+        <h4>The 8-Step Workflow</h4>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Name</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Gather Requirements</td>
+              <td>Ask clarifying questions one at a time (up to 10) to understand scope</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Explore Codebase</td>
+              <td>Spawn an <code>explore</code> subagent to identify relevant files, patterns, and conventions</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Propose Key Decisions</td>
+              <td>Present architectural decisions for user confirmation</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Determine Dependencies</td>
+              <td>Build the dependency graph: identify inputs/outputs, map dependencies, assign IDs in dependency order, group into phases, validate for cycles</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Assign Subagents</td>
+              <td>Match each subtask to the appropriate subagent type based on work type</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Create Spec Files</td>
+              <td>Create the spec directory, write the index file and all subtask files</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Review &amp; Finalize</td>
+              <td>Present the complete spec summary to the user for review and approval</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Automatic Judge Review</td>
+              <td>Spawn a fresh <code>zoto-spec-judge</code> to assess the spec; set status based on verdict</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4>Dependency Graph Construction (Step 4)</h4>
+
+        <p>The dependency graph is built using a five-part algorithm:</p>
+
+        <ol>
+          <li><strong>Identify subtasks</strong> and their inputs/outputs</li>
+          <li><strong>Map dependencies</strong>: if subtask B requires output from subtask A, B depends on A</li>
+          <li><strong>Assign IDs in dependency order</strong>: lower IDs never depend on higher IDs</li>
+          <li><strong>Group into phases</strong>: subtasks with no unresolved dependencies form a phase; within a phase, tasks can run in parallel; a new phase starts when all prior-phase tasks are complete</li>
+          <li><strong>Validate</strong>: no circular dependencies, every dependency target exists, no subtask depends on a higher-numbered ID</li>
+        </ol>
+
+        <h4>File Naming Conventions</h4>
+
+        <ul>
+          <li>Directory: <code>{specsDir}/[yyyymmdd]-[feature-name]/</code></li>
+          <li>Index: <code>spec-[feature-name]-[yyyymmdd].md</code></li>
+          <li>Subtask: <code>subtask-[NN]-[feature]-[subtask-name]-[yyyymmdd].md</code></li>
+          <li>Assessment: <code>zoto-judge-assessment-[feature-name]-[yyyymmdd].md</code></li>
+          <li>Execution report: <code>zoto-execute-report-[feature-name]-[yyyymmdd].md</code></li>
+          <li>Dates use <code>YYYYMMDD</code> format; IDs are zero-padded two-digit</li>
+        </ul>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="skill-judge-spec">zoto-judge-spec</h3>
+
+        <p>
+          Independent assessment workflow for repositories or individual engineering specs.
+          Provides a structured review with scores, findings, and actionable recommendations.
+          For spec assessments, offers to <strong>apply recommended fixes</strong> directly
+          to spec files after producing the report.
+        </p>
+
+        <h4>6 Scoring Dimensions</h4>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Weight</th>
+              <th>What It Measures</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Completeness</strong></td>
+              <td>25%</td>
+              <td>All requirements covered, no gaps in deliverables, thorough definition of done</td>
+            </tr>
+            <tr>
+              <td><strong>Feasibility</strong></td>
+              <td>20%</td>
+              <td>Subtasks are achievable, scope is realistic, no impossible demands</td>
+            </tr>
+            <tr>
+              <td><strong>Structure</strong></td>
+              <td>20%</td>
+              <td>Dependencies are correct, phases are logical, no circular dependencies</td>
+            </tr>
+            <tr>
+              <td><strong>Specificity</strong></td>
+              <td>15%</td>
+              <td>Clear objectives, concrete and verifiable deliverables</td>
+            </tr>
+            <tr>
+              <td><strong>Risk Awareness</strong></td>
+              <td>10%</td>
+              <td>Edge cases considered, potential blockers identified, rollback possible</td>
+            </tr>
+            <tr>
+              <td><strong>Convention Compliance</strong></td>
+              <td>10%</td>
+              <td>Aligns with the repository&rsquo;s own established patterns</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>Each dimension is scored 1&ndash;5:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Score</th>
+              <th>Label</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>5</td>
+              <td>Excellent</td>
+              <td>No issues found</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Good</td>
+              <td>Minor improvements possible</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Adequate</td>
+              <td>Some gaps but executable</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Needs Work</td>
+              <td>Significant issues &mdash; revise before executing</td>
+            </tr>
+            <tr>
+              <td>1</td>
+              <td>Deficient</td>
+              <td>Major problems &mdash; spec should be reworked</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          The <strong>overall verdict</strong> is the weighted average of all six dimensions:
+          <span class="badge badge-success">Approve</span> at 4.0+,
+          <span class="badge badge-warning">Conditional</span> at 3.0&ndash;3.9,
+          <span class="badge badge-danger">Reject</span> below 3.0.
+        </p>
+
+        <h4>Report Format</h4>
+
+        <p>Assessment reports follow a structured template:</p>
+
+        <pre><code class="language-markdown"># Spec Assessment: [Feature Name]
+
+**Target**: `specs/[directory]/spec-[name]-[yyyymmdd].md`
+**Assessed**: [YYYY-MM-DD]
+**Verdict**: Approve | Conditional | Reject
+
+## Scores
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Completeness | X/5 | [brief note] |
+| Feasibility | X/5 | [brief note] |
+| Structure | X/5 | [brief note] |
+| Specificity | X/5 | [brief note] |
+| Risk Awareness | X/5 | [brief note] |
+| Convention Compliance | X/5 | [brief note] |
+| **Overall** | **X.X/5** | **[verdict]** |
+
+## Findings
+
+### Strengths
+- [What the spec does well]
+
+### Issues
+| # | Severity | Subtask | Finding | Recommendation |
+|---|----------|---------|---------|----------------|
+| 1 | HIGH | 03 | Missing dependency | Add dependency |
+
+### Risk Summary
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| [risk] | Low/Med/High | Low/Med/High | [suggestion] |
+
+## Recommendation
+[Overall assessment and next steps]</code></pre>
+
+        <h4>Applying Fixes</h4>
+
+        <p>
+          After producing a spec assessment, the judge presents actionable findings and
+          <strong>offers to apply recommended fixes</strong> directly to the spec files.
+          This is an interactive step &mdash; the user must explicitly approve before any
+          changes are made.
+        </p>
+
+        <p>Types of fixes the judge can apply:</p>
+        <ul>
+          <li><strong>Dependency fixes</strong> &mdash; add missing dependencies in the manifest, subtask metadata, and Mermaid graph; recompute phase assignments</li>
+          <li><strong>Deliverable fixes</strong> &mdash; replace vague deliverables with specific, concrete items</li>
+          <li><strong>Missing content</strong> &mdash; add rollback plans, testing strategies, or implementation notes</li>
+          <li><strong>Subtask scope</strong> &mdash; split oversized subtasks into multiple files and update the manifest</li>
+          <li><strong>Manifest/metadata consistency</strong> &mdash; fix mismatches between the index manifest and subtask file metadata</li>
+          <li><strong>Graph corrections</strong> &mdash; update the Mermaid dependency graph to match the corrected manifest</li>
+        </ul>
+
+        <p>
+          The judge only modifies spec files (index, subtask files, dependency graph) &mdash;
+          never application source code, configuration, or test files. The assessment report
+          is updated to note which fixes were applied.
+        </p>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="skill-execute-spec">zoto-execute-spec</h3>
+
+        <p>
+          Executes an existing engineering spec by coordinating subagents, tracking progress,
+          and verifying completion. The workflow has eight steps with built-in safeguards at
+          each stage.
+        </p>
+
+        <h4>Manifest Loading (Step 1)</h4>
+        <p>
+          The executor reads the spec index file and parses the Subtask Manifest table.
+          For each row, it verifies the subtask file exists, confirms metadata matches
+          the manifest (subagent, dependencies), and checks that no subtask depends on a
+          higher-numbered ID. If any inconsistency is found, execution stops before it
+          begins.
+        </p>
+
+        <h4>Phase Execution (Step 3)</h4>
+        <p>
+          Subtasks are executed phase-by-phase. Within a phase, all subtasks have no
+          dependencies on each other and can run in parallel, up to
+          <code>spec.parallelLimit</code> (default 4) concurrent subagents. If a phase
+          has more subtasks than the limit, they are batched. The executor spawns the
+          exact subagent listed in the manifest &mdash; agent assignments are never
+          overridden.
+        </p>
+
+        <p>Each executing agent must:</p>
+        <ul>
+          <li>Tick each Deliverables Checklist item as it completes the deliverable</li>
+          <li>Tick each Definition of Done item as the quality gate is satisfied</li>
+          <li>Record files modified and blockers in the Execution Notes section</li>
+          <li>Run only targeted tests on files it modified (no global test suite)</li>
+        </ul>
+
+        <h4>Adversarial Verification (Step 4)</h4>
+        <p>
+          After each subtask completes, a <strong>fresh <code>zoto-spec-judge</code>
+          instance</strong> independently verifies the work. The judge runs as a
+          background subagent and its checklist state is authoritative &mdash; it can
+          untick items the executing agent marked done if it cannot confirm them.
+        </p>
+        <p>Verification updates the index manifest status:</p>
+        <ul>
+          <li><strong>Verified</strong> &rarr; status set to <code>Done</code></li>
+          <li><strong>Partial</strong> &rarr; status set to <code>Partial</code>, user asked to decide</li>
+          <li><strong>Failed</strong> &rarr; status set to <code>Failed</code>, dependent subtasks blocked</li>
+        </ul>
+
+        <h4>Resume Semantics</h4>
+        <p>
+          If execution is interrupted (e.g., session ends), the executor can resume by:
+        </p>
+        <ol>
+          <li>Reading the spec index to determine which subtasks are already complete</li>
+          <li>Identifying the next incomplete subtask from the dependency graph</li>
+          <li>Resuming from that point without re-executing completed subtasks</li>
+          <li>Verifying completed subtask deliverables still hold (files exist, no regressions)</li>
+        </ol>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="skill-agent-mapping">Skills &harr; Agents</h3>
+
+        <p>
+          Each agent has a primary skill, but agents also reference other skills for
+          cross-linking. The relationship is not one-to-one &mdash; the generator
+          invokes the judge skill as its final step, and the executor invokes the judge
+          for adversarial verification.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Skill</th>
+              <th>Primary Agent</th>
+              <th>Also Used By</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>zoto-create-spec</td>
+              <td>zoto-spec-generator</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>zoto-judge-spec</td>
+              <td>zoto-spec-judge</td>
+              <td>zoto-spec-generator (final review step)</td>
+            </tr>
+            <tr>
+              <td>zoto-execute-spec</td>
+              <td>zoto-spec-executor</td>
+              <td>&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ============================================================== -->
+        <h2 id="commands">4. Commands</h2>
+
+        <p>
+          Commands are the user-facing entry points for the Spec System. Each command
+          is defined in a Markdown file under <code>plugins/zoto-spec-system/commands/</code>
+          with YAML frontmatter (<code>name</code>, <code>description</code>).
+        </p>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="cmd-create">/zoto-spec-create</h3>
+
+        <p>Generate structured engineering specs for complex features and multi-step initiatives.</p>
+
+        <pre><code class="language-bash">/zoto-spec-create                      # Interactive guided mode
+/zoto-spec-create @docs/design.md      # Create from a design doc
+/zoto-spec-create "add feature X"      # Create from a description</code></pre>
+
+        <p><strong>Argument handling:</strong></p>
+        <ul>
+          <li><strong>No arguments</strong>: Start the interactive workflow &mdash; the generator asks clarifying questions</li>
+          <li><strong>File reference(s)</strong>: The generator reads the files as design docs or requirements; may still ask questions</li>
+          <li><strong>Text description</strong>: The generator uses the description as the feature scope</li>
+        </ul>
+
+        <p><strong>What happens:</strong></p>
+        <ol>
+          <li>Spawns a <code>zoto-spec-generator</code> subagent</li>
+          <li>The generator gathers requirements, explores the codebase, proposes decisions</li>
+          <li>Creates spec files in <code>{specsDir}/[yyyymmdd]-[feature-name]/</code></li>
+          <li>Presents the spec summary for user review</li>
+          <li>After approval, spawns <code>zoto-spec-judge</code> for automatic quality assessment</li>
+          <li>Sets spec status to <em>Ready for Review</em></li>
+        </ol>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="cmd-judge">/zoto-spec-judge</h3>
+
+        <p>Independently assess the repository or a specific engineering spec.</p>
+
+        <pre><code class="language-bash">/zoto-spec-judge                                  # Assess the entire repository
+/zoto-spec-judge specs/20260403-feature-name      # Assess a spec by directory
+/zoto-spec-judge specs/.../spec-name-20260403.md   # Assess by index file path</code></pre>
+
+        <p><strong>Argument handling:</strong></p>
+        <ul>
+          <li><strong>No arguments</strong>: Repository assessment &mdash; audits codebase health, structure, test coverage, documentation, and convention compliance. Report written to <code>{specsDir}/assessment-repo-[yyyymmdd].md</code></li>
+          <li><strong>Directory path</strong>: Spec assessment &mdash; finds the <code>spec-*.md</code> index automatically. Report written to the spec&rsquo;s directory</li>
+          <li><strong>File path</strong>: Spec assessment using the specified index file directly</li>
+        </ul>
+
+        <p>Always spawns a <strong>fresh <code>zoto-spec-judge</code> subagent</strong> in a new context to avoid bias from prior sessions.</p>
+
+        <p>
+          For spec assessments, the judge <strong>offers to apply recommended fixes</strong>
+          after producing the report. If the user accepts, it modifies spec files (index,
+          subtask files, dependency graph) to address the identified issues and updates the
+          assessment report to note which fixes were applied.
+        </p>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="cmd-execute">/zoto-spec-execute</h3>
+
+        <p>Execute an engineering spec with guided subagent coordination, progress tracking, and completion verification.</p>
+
+        <pre><code class="language-bash">/zoto-spec-execute                                  # Execute the most recent spec
+/zoto-spec-execute specs/20260403-feature-name      # Execute a specific spec
+/zoto-spec-execute specs/.../spec-name-20260403.md   # Execute by index file path
+/zoto-spec-execute --resume                          # Resume interrupted execution</code></pre>
+
+        <p><strong>Spec discovery:</strong></p>
+        <ul>
+          <li><strong>No arguments</strong>: finds the most recently modified spec directory under <code>{specsDir}/</code></li>
+          <li><strong>Directory or file path</strong>: uses the specified spec directly</li>
+          <li><strong><code>--resume</code></strong>: reads the spec index to determine completed subtasks and continues from the next incomplete one</li>
+        </ul>
+
+        <p><strong>Execution safeguards:</strong></p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Safeguard</th>
+              <th>Behaviour</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Manifest-driven dispatch</td>
+              <td>Subagent for each subtask comes from the manifest &mdash; never overridden</td>
+            </tr>
+            <tr>
+              <td>Adversarial verification</td>
+              <td>Each subtask verified by a fresh <code>zoto-spec-judge</code> agent</td>
+            </tr>
+            <tr>
+              <td>Dependency enforcement</td>
+              <td>No subtask starts before its dependencies are complete</td>
+            </tr>
+            <tr>
+              <td>Failure handling</td>
+              <td>On failure, stop and ask: retry, skip, or abort</td>
+            </tr>
+            <tr>
+              <td>Parallel limit</td>
+              <td>Maximum 4 concurrent subagents per batch (configurable)</td>
+            </tr>
+            <tr>
+              <td>No global tests mid-execution</td>
+              <td>Full test suite deferred to final verification</td>
+            </tr>
+            <tr>
+              <td>Progress persistence</td>
+              <td>Index updated after each subtask &mdash; supports <code>--resume</code></td>
+            </tr>
+            <tr>
+              <td>User gates</td>
+              <td>Approval required before starting and before marking complete</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ============================================================== -->
+        <h2 id="hooks-rules">5. Hooks &amp; Rules</h2>
+
+        <h3>Session Start Hook</h3>
+
+        <p>
+          The Spec System registers a <code>sessionStart</code> hook via
+          <code>hooks/hooks.json</code>. When a new Cursor session begins, the hook
+          script (<code>hooks/zoto-session-start.mjs</code>) runs automatically and
+          checks for unprocessed items.
+        </p>
+
+        <p><strong>When it fires:</strong> At the start of every Cursor session, before any user interaction.</p>
+
+        <p><strong>What it checks:</strong></p>
+        <ol>
+          <li>Loads <code>.zoto-spec-system/config.json</code> from the repository root</li>
+          <li>Reads <code>hooks.sessionStartNudge.enabled</code> &mdash; if <code>false</code>, exits silently</li>
+          <li>Resolves <code>workDir</code> (default <code>specs/current</code>) and counts subdirectories</li>
+          <li>If the count exceeds <code>threshold</code> (default 20), emits a nudge message</li>
+        </ol>
+
+        <p><strong>Nudge behavior:</strong></p>
+        <p>
+          The nudge message is interpolated from the configured template using
+          <code>${count}</code> and <code>${unitOfWork}</code> variables. The default
+          message is:
+        </p>
+
+        <pre><code class="language-json">{
+  "additional_context": "You have 25 unprocessed specs. Consider running /zoto-spec-create to organize."
+}</code></pre>
+
+        <p>
+          The hook communicates via stdout JSON &mdash; emitting <code>{}</code> when there
+          is nothing to report, or <code>{"additional_context": "..."}</code> when the
+          nudge triggers.
+        </p>
+
+        <p><strong>Hook registration</strong> (<code>hooks/hooks.json</code>):</p>
+
+        <pre><code class="language-json">{
+  "$schema": "https://cursor.sh/hooks-schema.json",
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node hooks/zoto-session-start.mjs",
+        "description": "Spec System: Check for unprocessed specs and nudge user"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h3>Integration Rule</h3>
+
+        <p>
+          The integration rule (<code>rules/zoto-spec-system.mdc</code>) is an
+          <strong>always-applied</strong> workspace rule that teaches agents about the
+          Spec System. It has <code>alwaysApply: true</code> in its frontmatter, meaning
+          it is injected into every agent&rsquo;s context automatically.
+        </p>
+
+        <p><strong>What it teaches agents:</strong></p>
+        <ul>
+          <li>The three available commands and their purposes</li>
+          <li>When to suggest <code>/zoto-spec-create</code> (multi-step initiatives, cross-component changes, ambiguous requirements)</li>
+          <li>How configuration works (<code>.zoto-spec-system/config.json</code> with <code>unitOfWork</code> and <code>specsDir</code>)</li>
+          <li>How to discover existing specs in the configured <code>specsDir</code> directory</li>
+          <li>Available extensions (memory system)</li>
+        </ul>
+
+        <!-- ============================================================== -->
+        <h2 id="configuration">6. Configuration System</h2>
+
+        <p>
+          The Spec System is configured via <code>.zoto-spec-system/config.json</code>
+          at the repository root. An empty <code>{}</code> is valid &mdash; all fields
+          have sensible defaults.
+        </p>
+
+        <p>
+          Every agent and skill reads this file at startup. Configuration values flow
+          through to:
+        </p>
+
+        <ul>
+          <li><strong>File paths</strong>: <code>specsDir</code> controls where spec directories are created; <code>workDir</code> controls what the session hook monitors</li>
+          <li><strong>Naming</strong>: <code>unitOfWork</code> controls the term used in user-facing messages</li>
+          <li><strong>Execution limits</strong>: <code>spec.parallelLimit</code> controls concurrent subagents; <code>spec.maxSubtasks</code> guards against overly complex specs</li>
+          <li><strong>Verification</strong>: <code>spec.adversarialVerification</code> controls whether the judge is mandatory</li>
+          <li><strong>Hooks</strong>: <code>hooks.sessionStartNudge.*</code> controls the session start nudge behavior</li>
+          <li><strong>Extensions</strong>: <code>extensions.memory.*</code> enables the optional memory layer</li>
+        </ul>
+
+        <pre><code class="language-json">{
+  "unitOfWork": "spec",
+  "specsDir": "specs",
+  "workDir": "specs/current",
+  "hooks": {
+    "sessionStartNudge": {
+      "enabled": true,
+      "threshold": 20,
+      "message": "You have ${count} unprocessed ${unitOfWork}s in the working directory."
+    }
+  },
+  "spec": {
+    "maxSubtasks": 99,
+    "parallelLimit": 4,
+    "adversarialVerification": true
+  },
+  "extensions": {
+    "memory": {
+      "enabled": false,
+      "plugin": null
+    }
+  }
+}</code></pre>
+
+        <div class="callout">
+          <div class="callout-title">Full reference</div>
+          <p class="mb-0">
+            See the <a href="configuration.html">Configuration Reference</a> page for
+            complete documentation of every key, including examples for minimal, team,
+            and full configurations.
+          </p>
+        </div>
+
+        <!-- ============================================================== -->
+        <h2 id="file-format">7. Spec File Format</h2>
+
+        <p>
+          A spec is a directory containing Markdown files that serve as coordination
+          artifacts. Specs are ephemeral &mdash; they exist to track work in progress
+          and provide an audit trail after completion. They are not runtime knowledge
+          and are not referenced by agents, rules, or skills outside the Spec System.
+        </p>
+
+        <h3>Directory Layout</h3>
+
+        <pre><code class="language-bash">specs/
+└── 20260403-zoto-spec-system/
+    ├── spec-zoto-spec-system-20260403.md          # Index file
+    ├── subtask-01-spec-system-scaffold-20260403.md
+    ├── subtask-02-spec-system-config-20260403.md
+    ├── subtask-03-spec-system-agent-20260403.md
+    ├── ...
+    ├── assessment-zoto-spec-system-20260403.md     # Judge assessment
+    └── execution-report-zoto-spec-system-20260403.md  # Execution report</code></pre>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="format-index">Index File</h3>
+
+        <p>
+          The index file (<code>spec-[feature-name]-[yyyymmdd].md</code>) is the primary
+          coordination document. It contains the status, overview, key decisions,
+          requirements, and most importantly the Subtask Manifest &mdash; the single
+          source of truth for agent assignments, dependencies, and phase ordering.
+        </p>
+
+        <pre><code class="language-markdown"># Spec: [Feature Name]
+
+## Status
+Draft | Ready for Review | In Progress | Completed
+
+## Overview
+[High-level description of the initiative]
+
+## Key Decisions
+- Decision 1: [What was decided and why]
+- Decision 2: [What was decided and why]
+
+## Requirements
+1. [Requirement 1]
+2. [Requirement 2]
+
+## Subtask Manifest
+
+| ID | File | Subagent | Dependencies | Phase | Status |
+|----|------|----------|-------------|-------|--------|
+| 01 | `subtask-01-...-yyyymmdd.md` | generalPurpose | — | 1 | Pending |
+| 02 | `subtask-02-...-yyyymmdd.md` | generalPurpose | — | 1 | Pending |
+| 03 | `subtask-03-...-yyyymmdd.md` | generalPurpose | 01, 02 | 2 | Pending |
+
+## Subtask Dependency Graph
+
+```mermaid
+graph TD
+    A[subtask-01] --> C[subtask-03]
+    B[subtask-02] --> C
+```
+
+## Execution Order
+
+### Phase 1 (Parallel)
+| ID | Subagent | Description |
+|----|----------|-------------|
+| 01 | generalPurpose | [Description] |
+| 02 | generalPurpose | [Description] |
+
+### Phase 2 (after Phase 1)
+| ID | Subagent | Description |
+|----|----------|-------------|
+| 03 | generalPurpose | [Description] |
+
+## Definition of Done
+- [ ] All subtasks completed
+- [ ] All tests passing
+- [ ] No linter errors in modified files
+- [ ] Documentation updated as needed
+
+## Execution Notes
+[Filled in during/after execution]</code></pre>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="format-subtask">Subtask File</h3>
+
+        <p>
+          Each subtask file (<code>subtask-[NN]-[feature]-[name]-[yyyymmdd].md</code>)
+          contains metadata, objectives, a deliverables checklist, and an execution notes
+          section that agents fill in during execution.
+        </p>
+
+        <pre><code class="language-markdown"># Subtask: [Subtask Name]
+
+## Metadata
+- **Subtask ID**: 01
+- **Feature**: [Feature Name]
+- **Assigned Subagent**: generalPurpose
+- **Dependencies**: None | [List of subtask IDs]
+- **Created**: [YYYYMMDD]
+
+## Objective
+[Clear description of what this subtask accomplishes]
+
+## Deliverables Checklist
+- [ ] Deliverable 1
+- [ ] Deliverable 2
+- [ ] Deliverable 3
+
+## Definition of Done
+- [ ] Code implemented
+- [ ] Tests added for new functionality
+- [ ] No linter errors in modified files
+
+## Implementation Notes
+[Guidance for the executing agent]
+
+## Testing Strategy
+Do NOT trigger global test suites during parallel execution.
+Run tests only on directly affected files.
+
+## Execution Notes
+[Filled by executing agent and verified by judge]
+
+### Agent Session Info
+- Agent: [Not yet assigned]
+- Started: [Not yet started]
+- Completed: [Not yet completed]
+
+### Work Log
+[Agent adds notes during execution]
+
+### Blockers Encountered
+[Any blockers or issues]
+
+### Files Modified
+[List of files changed]</code></pre>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="format-assessment">Assessment File</h3>
+
+        <p>
+          Assessment files are produced by the judge in Modes 2 and 3. They follow the
+          structured report format documented in the
+          <a href="#skill-judge-spec">zoto-judge-spec skill section</a>, with scores for
+          all six dimensions, an issues table, risk summary, and a final recommendation.
+        </p>
+
+        <p>Assessment file locations:</p>
+        <ul>
+          <li><strong>Repository assessment</strong>: <code>{specsDir}/assessment-repo-[yyyymmdd].md</code></li>
+          <li><strong>Spec assessment</strong>: <code>{specsDir}/[spec-directory]/assessment-[feature-name]-[yyyymmdd].md</code></li>
+        </ul>
+
+        <!-- ---------------------------------------- -->
+        <h3 id="format-execution-report">Execution Report</h3>
+
+        <p>
+          The execution report is a durable record written by the executor at the end
+          of a spec execution. It lives in the spec directory as
+          <code>execution-report-[feature-name]-[yyyymmdd].md</code>.
+        </p>
+
+        <pre><code class="language-markdown"># Execution Report: [Feature Name]
+
+**Spec**: `spec-[feature-name]-[yyyymmdd].md`
+**Started**: [YYYY-MM-DD HH:MM:SS UTC]
+**Completed**: [YYYY-MM-DD HH:MM:SS UTC]
+**Duration**: [Xm Ys]
+**Status**: Completed | Completed with exceptions
+
+## Summary
+[1-3 sentence overview of what was accomplished]
+
+## Subtask Results
+| ID | Subtask | Subagent | Verification | Files Modified | Notes |
+|----|---------|----------|-------------|----------------|-------|
+| 01 | [name] | generalPurpose | Verified | [count] | [note] |
+
+## Verification Results
+
+### Adversarial Verification
+- Subtasks verified: [N/N]
+- Issues found: [count]
+- Issues resolved: [count]
+
+### Test Suite
+- Status: PASS | FAIL
+- Tests run: [count]
+
+### Linter
+- Status: CLEAN | N errors
+
+### Quality Audit
+- Status: PASS | WARN | FAIL
+
+### Documentation
+- Status: Updated | No changes needed | Skipped
+
+## Files Modified (all subtasks combined)
+[Deduplicated list of all files]
+
+## Outstanding Items
+- [Any items requiring manual follow-up]
+
+## Lessons Learned
+[Optional: blockers, unexpected issues, process improvements]</code></pre>
+
+        <!-- ============================================================== -->
+        <h2 id="execution-model">8. Execution Model</h2>
+
+        <p>
+          The execution model is the core runtime behavior of the Spec System. It
+          governs how subtasks are ordered, parallelized, verified, and how failures
+          are handled.
+        </p>
+
+        <figure>
+          <img src="../images/diagrams/phase-execution.svg"
+               alt="Phase execution diagram showing dependency graph computation, parallel execution within phases, and adversarial verification flow">
+          <figcaption>Phase execution &mdash; dependency-driven parallel execution with adversarial verification</figcaption>
+        </figure>
+
+        <h3>Dependency Graphs and Phase Computation</h3>
+
+        <p>
+          The dependency graph is the foundation of execution ordering. It is computed
+          during spec creation (Step 4 of <code>zoto-create-spec</code>) and validated
+          during execution loading (Step 1 of <code>zoto-execute-spec</code>).
+        </p>
+
+        <p><strong>Invariants:</strong></p>
+        <ul>
+          <li>Lower IDs never depend on higher IDs</li>
+          <li>No circular dependencies</li>
+          <li>Every dependency target exists in the manifest</li>
+          <li>Phase assignments are consistent with dependencies (a subtask&rsquo;s phase is always greater than all its dependencies&rsquo; phases)</li>
+        </ul>
+
+        <p><strong>Phase computation:</strong></p>
+        <ol>
+          <li>Subtasks with no dependencies are assigned to Phase 1</li>
+          <li>Subtasks whose dependencies are all in earlier phases are assigned to the next phase</li>
+          <li>This continues until all subtasks are assigned</li>
+          <li>Within a phase, subtasks have no dependencies on each other and can run in parallel</li>
+        </ol>
+
+        <h3>Parallel Execution</h3>
+
+        <p>
+          The executor spawns subagents for each subtask in a phase concurrently, up to
+          <code>spec.parallelLimit</code> (default <strong>4</strong>). If a phase has
+          more subtasks than the limit, they are batched: the first N subtasks run, and
+          when those complete, the next batch begins.
+        </p>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">No global tests during parallel execution</div>
+          <p class="mb-0">
+            Individual subtasks should only run targeted tests on files they modify.
+            The full project test suite runs only during the final verification phase
+            (Step 5) to avoid interference from concurrent file modifications.
+          </p>
+        </div>
+
+        <h3>Adversarial Verification</h3>
+
+        <p>
+          Adversarial verification is the Spec System&rsquo;s primary quality assurance
+          mechanism. It ensures that every subtask&rsquo;s deliverables are independently
+          confirmed by an agent that did not perform the work.
+        </p>
+
+        <p><strong>Why fresh agents?</strong> The verifying judge always runs in a fresh
+          context with no carryover from the executing agent&rsquo;s session. This prevents
+          confirmation bias &mdash; the judge cannot assume something works because it
+          saw the agent write it.
+        </p>
+
+        <p><strong>What the judge checks:</strong></p>
+        <ol>
+          <li>Reads the subtask file&rsquo;s Deliverables Checklist and Definition of Done</li>
+          <li>For each deliverable: verifies files exist, content is correct, code typechecks, tests are valid</li>
+          <li>For each DoD item: confirms the quality gate is genuinely satisfied</li>
+          <li>Sets the authoritative checklist state &mdash; can untick items the executor marked done</li>
+          <li>Reports a verdict: Verified, Partial, or Failed</li>
+        </ol>
+
+        <p><strong>Failure handling:</strong></p>
+        <ul>
+          <li><strong>Verified</strong>: subtask marked as <code>Done</code>, execution continues</li>
+          <li><strong>Partial</strong>: reported to user who decides to fix and re-verify or accept</li>
+          <li><strong>Failed</strong>: subtask marked as <code>Failed</code>, all dependent subtasks are blocked, user is asked how to proceed (retry, skip, or abort)</li>
+        </ul>
+
+        <!-- ============================================================== -->
+        <h2 id="extension-points">9. Extension Points</h2>
+
+        <p>
+          The Spec System is designed to be extended without modifying the core plugin.
+          Extension points allow consuming repositories to customize behavior through
+          configuration.
+        </p>
+
+        <h3>Memory System</h3>
+
+        <p>
+          The memory extension provides cross-session learning extraction and recall.
+          When enabled, the executor suggests running the memory plugin&rsquo;s
+          dream/extract workflow after spec execution completes, and the generator
+          mentions that the memory plugin can capture learnings.
+        </p>
+
+        <pre><code class="language-json">{
+  "extensions": {
+    "memory": {
+      "enabled": true,
+      "plugin": "zoto-memory"
+    }
+  }
+}</code></pre>
+
+        <p>
+          Memory operations are handled entirely by the named plugin &mdash; the Spec
+          System agents do not manage memories directly. When the extension is disabled
+          (the default), all memory-related operations are skipped silently.
+        </p>
+
+        <h3>Custom <code>unitOfWork</code></h3>
+
+        <p>
+          The <code>unitOfWork</code> configuration key lets teams use their own
+          vocabulary for work items. All user-facing messages from agents, skills, and
+          hooks will use the configured term:
+        </p>
+
+        <ul>
+          <li><code>"spec"</code> (default) &mdash; &ldquo;This spec has 5 subtasks&rdquo;</li>
+          <li><code>"task"</code> &mdash; &ldquo;This task has 5 subtasks&rdquo;</li>
+          <li><code>"story"</code> &mdash; &ldquo;This story has 5 subtasks&rdquo;</li>
+          <li><code>"prp"</code> &mdash; &ldquo;This prp has 5 subtasks&rdquo;</li>
+        </ul>
+
+        <p>
+          The spec files themselves always use standard terminology internally. Only
+          user-facing messages reflect the configured term.
+        </p>
+
+        <h3>Custom <code>specsDir</code></h3>
+
+        <p>
+          By default, specs are stored under <code>specs/</code> at the repository root.
+          Teams can change this to any path relative to the repository root:
+        </p>
+
+        <pre><code class="language-json">{
+  "specsDir": "docs/engineering/specs",
+  "workDir": "docs/engineering/specs/inbox"
+}</code></pre>
+
+        <p>
+          All agents, skills, commands, and hooks resolve <code>{specsDir}</code> from
+          this configuration value. The <code>workDir</code> should typically be a
+          subdirectory of <code>specsDir</code> but is not required to be.
+        </p>
+
+        <!-- ============================================================== -->
+
+        <nav class="page-nav" aria-label="Page navigation">
+          <a href="quickstart.html" class="page-nav-link page-nav-prev">
+            <span class="page-nav-label">Previous</span>
+            <span class="page-nav-title">&larr; Quickstart</span>
+          </a>
+          <a href="configuration.html" class="page-nav-link page-nav-next">
+            <span class="page-nav-label">Next</span>
+            <span class="page-nav-title">Configuration &rarr;</span>
+          </a>
+        </nav>
+
+        <footer class="site-footer">
+          zoto-agents &mdash; Cursor Plugin Monorepo
+        </footer>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>

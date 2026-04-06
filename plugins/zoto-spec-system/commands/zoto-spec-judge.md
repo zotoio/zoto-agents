@@ -1,11 +1,11 @@
 ---
 name: zoto-spec-judge
-description: Independently assess the repository or a specific engineering spec for quality, feasibility, and completeness.
+description: Independently assess the repository or a specific engineering spec for quality, feasibility, and completeness. For spec assessments, offers to apply recommended fixes directly to spec files.
 ---
 
 # zoto-spec-judge
 
-Independently assess the repository or a specific engineering spec for quality, feasibility, and completeness.
+Independently assess the repository or a specific engineering spec for quality, feasibility, and completeness. For spec assessments, offers to apply recommended fixes directly to the spec files after producing the assessment.
 
 ## Usage
 
@@ -48,14 +48,17 @@ When this command is invoked, spawn a **fresh `zoto-spec-judge` subagent** to pe
 5. Checks each subtask for quality (objectives, deliverables, agent assignments)
 6. Performs risk analysis
 7. Produces a report in the spec's directory as `assessment-[feature-name]-[yyyymmdd].md`
+8. **Offers to apply fixes** — presents actionable findings and asks the user whether to apply the recommended changes directly to the spec files (index, subtasks, dependency graph). Only modifies spec files, never application source code.
 
-### Verdicts
+### Verdicts and follow-up
 
 | Verdict | Score | Action |
 |---------|-------|--------|
 | **Approve** | 4.0+ | Repo is healthy / spec is ready for `/zoto-spec-execute` |
 | **Conditional** | 3.0–3.9 | Address the listed findings before proceeding |
 | **Reject** | < 3.0 | Significant issues — needs rework |
+
+After producing a **spec assessment**, the judge presents actionable findings and offers to apply fixes. If accepted, it modifies spec files (index, subtask files, dependency graph) to address the identified issues — fixing dependencies, clarifying vague deliverables, adding missing sections, or splitting oversized subtasks. The assessment report is updated to note which fixes were applied.
 
 ## Assessment report locations
 

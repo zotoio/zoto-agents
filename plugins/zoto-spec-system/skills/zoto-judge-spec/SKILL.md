@@ -1,11 +1,11 @@
 ---
 name: zoto-judge-spec
-description: Independent assessment of a repository or Spec System engineering specs. Reviews quality, feasibility, completeness, risk, and structure without executing work. Use to audit a codebase or to assess a spec before running zoto-execute-spec.
+description: Independent assessment of a repository or Spec System engineering specs. Reviews quality, feasibility, completeness, risk, and structure. After producing a spec assessment, offers to apply recommended fixes directly to the spec files. Use to audit a codebase or to assess and improve a spec before running zoto-execute-spec.
 ---
 
 # Spec System Judge Spec
 
-Independent assessment workflow for the repository or individual engineering specs managed by the Spec System. Provides a structured review with scores, findings, and actionable recommendations. The judge should ideally run in a **fresh agent context** to avoid bias from prior sessions.
+Independent assessment workflow for the repository or individual engineering specs managed by the Spec System. Provides a structured review with scores, findings, and actionable recommendations. For spec assessments, offers to apply fixes directly to the spec files after producing the report. The judge should ideally run in a **fresh agent context** to avoid bias from prior sessions.
 
 **Paths**: Resolve `{specsDir}` from `.zoto-spec-system/config.json` in the repository root (default `specs`). All report paths below are relative to the repository root unless noted.
 
@@ -151,6 +151,60 @@ Identify:
 
 Write `assessment-[feature-name]-[yyyymmdd].md` into the spec's directory (under `{specsDir}/`).
 
+### Step 9: Offer to Apply Fixes
+
+After generating the assessment report, present a summary of the verdict and actionable findings to the user, then **offer to apply the recommended fixes** directly to the spec files.
+
+#### What to present
+
+```
+## Assessment Complete
+
+**Verdict**: [Approve | Conditional | Reject] ([X.X/5])
+
+### Actionable Findings ([N] issues)
+
+| # | Severity | Subtask | Fix |
+|---|----------|---------|-----|
+| 1 | HIGH | 03 | Add missing dependency on subtask 01 |
+| 2 | MEDIUM | 05 | Replace vague deliverable with specific test files |
+| 3 | LOW | — | Add rollback plan to spec index |
+
+Apply these fixes to the spec files? [Yes / No]
+```
+
+#### If user accepts — apply fixes
+
+Work through each actionable finding and modify the spec files directly:
+
+1. **Dependency fixes**: Update the Subtask Manifest table in the spec index (add/remove dependency columns), update the corresponding subtask file's Metadata dependencies, update the Mermaid dependency graph, and recompute phase assignments if dependencies changed
+2. **Deliverable fixes**: Update vague deliverable items in subtask files with the specific, concrete versions from the recommendation
+3. **Missing content**: Add missing sections (rollback plans, testing strategies, implementation notes) to the appropriate files
+4. **Subtask scope fixes**: If a subtask is flagged as too large, split it into multiple subtask files — create new files, update the manifest, and adjust the dependency graph
+5. **Manifest/metadata consistency**: Fix any mismatches between the spec index manifest and subtask file metadata
+6. **Graph corrections**: Fix the Mermaid dependency graph to match the corrected manifest
+
+After applying all fixes:
+
+1. Update the assessment report to note which fixes were applied
+2. Report a summary of changes to the user:
+   ```
+   Applied [N] fixes:
+   - [spec-index.md]: Added dependency 01→03, updated phase assignments
+   - [subtask-05.md]: Replaced vague deliverable with specific test file list
+   - [spec-index.md]: Added rollback plan section
+
+   The spec is now ready for /zoto-spec-execute.
+   ```
+
+#### If user declines
+
+No changes are made. The assessment report stands as-is for the user to address manually.
+
+#### Scope of fixes
+
+The judge may modify **spec files only** (index, subtask files, dependency graph) — never application source code, configuration, or test files. Fixes are limited to what the assessment identified; the judge does not add new requirements or expand scope.
+
 ## Report Format
 
 ### Report Location
@@ -209,8 +263,10 @@ Write `assessment-[feature-name]-[yyyymmdd].md` into the spec's directory (under
 
 ## What NOT to Do
 
-- Do not modify spec files — the judge is read-only
-- Do not execute any subtasks — assessment only
-- Do not modify application or configuration source files under assessment
+- Do not modify spec files **before** presenting the assessment — the assessment itself must be unbiased
+- Do not apply fixes without explicit user approval
+- Do not execute any subtasks — assessment and spec-level fixes only
+- Do not modify application source code, configuration, or test files — only spec files (index, subtasks, dependency graph)
 - Do not skip dimensions — score all six even if they appear fine
 - Do not rubber-stamp — provide genuine critical analysis
+- Do not expand scope when applying fixes — only address what the assessment identified

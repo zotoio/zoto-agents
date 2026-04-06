@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" font-family="system-ui, -apple-system, sans-serif">
+  <title>Spec System Workflow Overview \u2014 Create, Judge, Execute lifecycle</title>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#58a6ff"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="520" fill="#0d1117" rx="8"/>
+
+  <!-- Title -->
+  <text x="480" y="36" text-anchor="middle" fill="#e6edf3" font-size="18" font-weight="600">Spec System Workflow</text>
+
+  <!-- === STAGE 1: CREATE === -->
+  <rect x="20" y="56" width="300" height="440" rx="8" fill="none" stroke="#30363d" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="170" y="80" text-anchor="middle" fill="#58a6ff" font-size="14" font-weight="600">1. Create</text>
+  <text x="170" y="96" text-anchor="middle" fill="#8b949e" font-size="11">/zoto-spec-create</text>
+
+  <!-- Create steps -->
+  <rect x="45" y="114" width="250" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="170" y="134" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">Gather Requirements</text>
+  <text x="170" y="150" text-anchor="middle" fill="#8b949e" font-size="10">Clarifying questions, scope definition</text>
+
+  <line x1="170" y1="158" x2="170" y2="172" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+  <rect x="45" y="176" width="250" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="170" y="196" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">Explore Codebase</text>
+  <text x="170" y="212" text-anchor="middle" fill="#8b949e" font-size="10">Understand patterns, find conflicts</text>
+
+  <line x1="170" y1="220" x2="170" y2="234" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+  <rect x="45" y="238" width="250" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="170" y="258" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">User Confirmation</text>
+  <text x="170" y="274" text-anchor="middle" fill="#8b949e" font-size="10">Key decisions &amp; spec structure</text>
+
+  <line x1="170" y1="282" x2="170" y2="296" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+  <rect x="45" y="300" width="250" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="170" y="320" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">Create Spec Files</text>
+  <text x="170" y="336" text-anchor="middle" fill="#8b949e" font-size="10">Index + subtask files in specs/</text>
+
+  <!-- Artifact -->
+  <rect x="60" y="364" width="220" height="38" rx="6" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="170" y="382" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="600">Artifact: spec-*.md + subtask-*.md</text>
+  <text x="170" y="394" text-anchor="middle" fill="#8b949e" font-size="9">Coordination index &amp; subtask definitions</text>
+
+  <line x1="170" y1="344" x2="170" y2="358" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+  <!-- Agent label -->
+  <rect x="60" y="420" width="220" height="26" rx="4" fill="#161b22" stroke="#58a6ff" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="170" y="438" text-anchor="middle" fill="#58a6ff" font-size="10">Agent: zoto-spec-generator</text>
+
+  <!-- === Arrow from Create to Judge === -->
+  <line x1="320" y1="280" x2="340" y2="280" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- === STAGE 2: JUDGE === -->
+  <rect x="340" y="56" width="280" height="440" rx="8" fill="none" stroke="#30363d" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="480" y="80" text-anchor="middle" fill="#d29922" font-size="14" font-weight="600">2. Judge</text>
+  <text x="480" y="96" text-anchor="middle" fill="#8b949e" font-size="11">/zoto-spec-judge</text>
+
+  <!-- Judge steps -->
+  <rect x="365" y="114" width="230" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="480" y="134" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">Independent Assessment</text>
+  <text x="480" y="150" text-anchor="middle" fill="#8b949e" font-size="10">Fresh context, no bias</text>
+
+  <line x1="480" y1="158" x2="480" y2="172" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+  <rect x="365" y="176" width="230" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="480" y="196" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">Score 6 Dimensions</text>
+  <text x="480" y="212" text-anchor="middle" fill="#8b949e" font-size="10">Completeness, feasibility, risk...</text>
+
+  <line x1="480" y1="220" x2="480" y2="234" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+  <rect x="365" y="238" width="230" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="480" y="258" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">Produce Verdict</text>
+  <text x="480" y="274" text-anchor="middle" fill="#8b949e" font-size="10">Approve / Conditional / Reject</text>
+
+  <!-- Verdict color boxes -->
+  <rect x="375" y="296" width="70" height="24" rx="4" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="410" y="312" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="600">4.0+≥</text>
+
+  <rect x="455" y="296" width="70" height="24" rx="4" fill="#161b22" stroke="#d29922" stroke-width="1.5"/>
+  <text x="490" y="312" text-anchor="middle" fill="#d29922" font-size="10" font-weight="600">3.0–3.9</text>
+
+  <rect x="535" y="296" width="70" height="24" rx="4" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+  <text x="570" y="312" text-anchor="middle" fill="#f85149" font-size="10" font-weight="600">&lt; 3.0 ≤</text>
+
+  <!-- Artifact -->
+  <rect x="375" y="340" width="210" height="38" rx="6" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="480" y="358" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="600">Artifact: assessment-*.md</text>
+  <text x="480" y="370" text-anchor="middle" fill="#8b949e" font-size="9">Structured scoring &amp; findings</text>
+
+  <!-- Agent label -->
+  <rect x="380" y="420" width="200" height="26" rx="4" fill="#161b22" stroke="#d29922" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="480" y="438" text-anchor="middle" fill="#d29922" font-size="10">Agent: zoto-spec-judge</text>
+
+  <!-- === Arrow from Judge to Execute === -->
+  <line x1="620" y1="280" x2="640" y2="280" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- === STAGE 3: EXECUTE === -->
+  <rect x="640" y="56" width="300" height="440" rx="8" fill="none" stroke="#30363d" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="790" y="80" text-anchor="middle" fill="#3fb950" font-size="14" font-weight="600">3. Execute</text>
+  <text x="790" y="96" text-anchor="middle" fill="#8b949e" font-size="11">/zoto-spec-execute</text>
+
+  <!-- Execute steps -->
+  <rect x="665" y="114" width="250" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="790" y="134" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">Phased Execution</text>
+  <text x="790" y="150" text-anchor="middle" fill="#8b949e" font-size="10">Parallel subtasks per phase</text>
+
+  <line x1="790" y1="158" x2="790" y2="172" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+  <rect x="665" y="176" width="250" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="790" y="196" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">Adversarial Verification</text>
+  <text x="790" y="212" text-anchor="middle" fill="#8b949e" font-size="10">Judge verifies each subtask</text>
+
+  <line x1="790" y1="220" x2="790" y2="234" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+  <rect x="665" y="238" width="250" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="790" y="258" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">Final Verification</text>
+  <text x="790" y="274" text-anchor="middle" fill="#8b949e" font-size="10">Test suite + lint checks</text>
+
+  <line x1="790" y1="282" x2="790" y2="296" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+  <rect x="665" y="300" width="250" height="44" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="790" y="320" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="500">User Review &amp; Complete</text>
+  <text x="790" y="336" text-anchor="middle" fill="#8b949e" font-size="10">Approval gate before marking done</text>
+
+  <!-- Artifact -->
+  <rect x="680" y="364" width="220" height="38" rx="6" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="790" y="382" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="600">Artifact: execution-report-*.md</text>
+  <text x="790" y="394" text-anchor="middle" fill="#8b949e" font-size="9">Per-subtask results &amp; audit trail</text>
+
+  <line x1="790" y1="344" x2="790" y2="358" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+  <!-- Agent label -->
+  <rect x="680" y="420" width="220" height="26" rx="4" fill="#161b22" stroke="#3fb950" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="790" y="438" text-anchor="middle" fill="#3fb950" font-size="10">Agent: zoto-spec-executor</text>
+
+  <!-- Footer -->
+  <text x="480" y="510" text-anchor="middle" fill="#8b949e" font-size="10">Spec System v0.6.0 — Ephemeral coordination artifacts for engineering initiatives</text>
+</svg>
