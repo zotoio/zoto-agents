@@ -5,7 +5,7 @@ description: Guided workflow for scaffolding a new Cursor plugin in this monorep
 
 # Create Plugin
 
-Guided workflow for creating a new Cursor plugin in the `zoto-cursor-plugins` monorepo.
+Guided workflow for creating a new Cursor plugin in the `zoto-agents` monorepo.
 
 ## When to Use
 
@@ -100,8 +100,8 @@ Create `.cursor-plugin/plugin.json` with all required fields:
     "name": "zotoio",
     "email": "plugins@zotoio.com"
   },
-  "homepage": "https://github.com/zotoio/zoto-cursor-plugins",
-  "repository": "https://github.com/zotoio/zoto-cursor-plugins",
+  "homepage": "https://github.com/zotoio/zoto-agents",
+  "repository": "https://github.com/zotoio/zoto-agents",
   "license": "MIT",
   "keywords": [...],
   "category": "developer-tools",

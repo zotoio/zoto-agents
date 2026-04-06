@@ -18,7 +18,7 @@ All notable changes to the Spec System plugin will be documented in this file.
 ## [0.5.0] - 2026-04-04
 
 ### Changed
-- Migrated to TypeScript pnpm monorepo (`zoto-cursor-plugins`)
+- Migrated to TypeScript pnpm monorepo (`zoto-agents`)
 - Converted all Python scripts and tests to TypeScript
 - Test suite now uses vitest instead of pytest
 - Hook script (`zoto-session-start`) rewritten in TypeScript, compiled to ESM JS via tsup

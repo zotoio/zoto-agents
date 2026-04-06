@@ -1,5 +1,5 @@
 {
-  "name": "zoto-cursor-plugins",
+  "name": "zoto-agents",
   "private": true,
   "description": "Monorepo for Cursor plugins by zotoio",
   "scripts": {

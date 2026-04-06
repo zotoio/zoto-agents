@@ -1,4 +1,4 @@
-# zoto-cursor-plugins
+# zoto-agents
 
 Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 
@@ -83,7 +83,7 @@ Both scripts support `--dry-run` to preview changes without writing.
 Based on the [cursor/plugin-template](https://github.com/cursor/plugin-template) conventions.
 
 ```
-zoto-cursor-plugins/
+zoto-agents/
 ├── .cursor-plugin/
 │   └── marketplace.json      # Marketplace manifest (registers all plugins)
 ├── .cursor/

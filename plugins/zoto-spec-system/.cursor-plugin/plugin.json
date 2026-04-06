@@ -7,8 +7,8 @@
     "name": "zotoio",
     "email": "plugins@zotoio.com"
   },
-  "homepage": "https://github.com/zotoio/zoto-cursor-plugins",
-  "repository": "https://github.com/zotoio/zoto-cursor-plugins",
+  "homepage": "https://github.com/zotoio/zoto-agents",
+  "repository": "https://github.com/zotoio/zoto-agents",
   "license": "MIT",
   "keywords": ["spec-creation", "execution", "specs", "engineering", "adversarial-verification"],
   "category": "developer-tools",

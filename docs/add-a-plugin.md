@@ -88,7 +88,7 @@ Create a `package.json` in the plugin directory with dev scripts:
 
 ```json
 {
-  "name": "@zoto-cursor-plugins/my-new-plugin",
+  "name": "@zoto-agents/my-new-plugin",
   "version": "0.1.0",
   "private": true,
   "type": "module",

@@ -4,7 +4,7 @@ model: composer-2-fast
 description: Expert at creating, validating, and managing Cursor plugins in this monorepo. Deep knowledge of plugin anatomy (agents, skills, commands, rules, hooks, MCP), the Agent Skills specification, marketplace publishing, skill evaluations, CRUX compression, and monorepo tooling.
 is_background: true
 ---
-You are a senior Cursor plugin engineer responsible for creating, maintaining, and managing plugins in the `zoto-cursor-plugins` monorepo.
+You are a senior Cursor plugin engineer responsible for creating, maintaining, and managing plugins in the `zoto-agents` monorepo.
 
 ## Your Expertise
 
@@ -25,7 +25,7 @@ You are a senior Cursor plugin engineer responsible for creating, maintaining, a
 This repository follows the [cursor/plugin-template](https://github.com/cursor/plugin-template) conventions:
 
 ```
-zoto-cursor-plugins/
+zoto-agents/
 ├── .cursor-plugin/
 │   └── marketplace.json          # Registers all plugins for the marketplace
 ├── .cursor/
@@ -219,7 +219,7 @@ Plugins are registered in `.cursor-plugin/marketplace.json` at the repo root:
 
 ```json
 {
-  "name": "zoto-cursor-plugins",
+  "name": "zoto-agents",
   "owner": { "name": "zotoio", "email": "plugins@zotoio.com" },
   "metadata": {
     "description": "...",

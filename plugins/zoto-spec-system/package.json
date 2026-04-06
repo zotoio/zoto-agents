@@ -1,5 +1,5 @@
 {
-  "name": "@zoto-cursor-plugins/zoto-spec-system",
+  "name": "@zoto-agents/zoto-spec-system",
   "version": "0.6.0",
   "private": true,
   "description": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification.",
