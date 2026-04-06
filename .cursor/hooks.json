@@ -5,12 +5,20 @@
       {
         "command": "node .cursor/hooks/sync-plugins.mjs --full",
         "description": "Sync all plugins to ~/.cursor/plugins/local/"
+      },
+      {
+        "command": "python3 .cursor/hooks/crux-session-start.py",
+        "description": "CRUX: Display pending compressions and memory nudges at session start"
       }
     ],
     "afterFileEdit": [
       {
         "command": "node .cursor/hooks/sync-plugins.mjs --incremental",
         "description": "Sync edited plugin file to ~/.cursor/plugins/local/"
+      },
+      {
+        "command": "python3 .cursor/hooks/crux-detect-changes.py",
+        "description": "CRUX: Queue modified source files (with crux: true) for CRUX compression"
       }
     ],
     "stop": [
