@@ -47,3 +47,29 @@ When building or executing engineering specs in this repository, **always use th
 | Documentation sync after source changes | `docs-sync-agent` |
 
 **Do not default to `generalPurpose`** — every subtask in a spec should map to the most appropriate CRUX agent above.
+
+## Cursor Cloud specific instructions
+
+### Prerequisites
+
+The VM must have Node.js >= 18, pnpm >= 10.8.0, and Python 3 installed. The update script handles `corepack enable`, `pnpm install`, and the Python venv for `skills-ref`.
+
+### Key commands
+
+All standard commands are in the root `package.json` and documented in the project `README.md`:
+
+| Action | Command |
+|--------|---------|
+| Install deps | `pnpm install` |
+| Build all plugins | `pnpm build` |
+| Run tests | `pnpm test` |
+| Template validation | `pnpm validate-template` |
+| Per-plugin validation | `pnpm validate` |
+| Skill eval validation | `node scripts/validate-skills.mjs` |
+
+### Non-obvious notes
+
+- **`skills-ref` requires PATH**: For `pnpm validate` and `node scripts/validate-skills.mjs` to pass the skills-ref checks, the `.venv/bin` directory must be on PATH: `export PATH="/workspace/.venv/bin:$PATH"`.
+- **Pre-existing test failure**: The test `Content Integrity > no crux references in content files` fails because `plugins/zoto-spec-system/README.md` contains a CRUX reference. This is a known issue in the repo — do not treat it as a regression from your changes.
+- **No runtime services**: This is a Cursor plugin monorepo with no databases, Docker containers, or backend services. Build/test is entirely local via Node.js + pnpm. Python (stdlib only) is used by CRUX hook scripts.
+- **User preference**: Use `yarn` instead of `npm` when adding individual packages per user rules, but the monorepo itself uses pnpm as its package manager (specified in `packageManager` field).
