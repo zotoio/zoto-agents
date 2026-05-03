@@ -1,0 +1,21 @@
+{
+  "name": "zoto-eval-system",
+  "displayName": "Eval System",
+  "version": "0.1.0",
+  "description": "Generate, run, and keep static (pytest) + LLM (@cursor/sdk) evals in sync with code changes. askQuestion-driven config, YAML+JSONSchema results, surgical update on git diff, /canvas-rendered cross-run compare.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/zoto-agents",
+  "repository": "https://github.com/zotoio/zoto-agents",
+  "license": "MIT",
+  "keywords": ["evals", "testing", "llm", "pytest", "cursor-sdk", "evaluation"],
+  "category": "developer-tools",
+  "logo": "assets/logo.png",
+  "agents": "./agents/",
+  "skills": "./skills/",
+  "commands": "./commands/",
+  "rules": "./rules/",
+  "hooks": "./hooks/hooks.json"
+}

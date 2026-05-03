@@ -1,0 +1,23 @@
+{
+  "name": "@zoto-agents/zoto-eval-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generate, run, and keep static (pytest) + LLM (@cursor/sdk) evals in sync with code changes.",
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "validate": "tsx scripts/validate-plugin.ts",
+    "install-local": "tsx scripts/install-local.ts",
+    "uninstall-local": "tsx scripts/uninstall-local.ts"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0",
+    "yaml": "^2.6.1"
+  }
+}
