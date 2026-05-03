@@ -1,0 +1,31 @@
+{
+  "evalsDir": "evals",
+  "skillsRoots": [".cursor/skills", "skills", "plugins/*/skills"],
+  "discoveryTargets": ["skill", "command", "agent", "hook"],
+  "llm": {
+    "runtime": "tsx",
+    "model": {
+      "id": "composer-2"
+    }
+  },
+  "judgeModel": "opus-4.6",
+  "manualChecklists": {
+    "enabled": false
+  },
+  "additionalAutomation": [],
+  "update": {
+    "criticalChangeRules": {
+      "addedTargetWithoutCoverage": true,
+      "removedTargetWithActiveCases": true,
+      "skillFrontmatterChange": true,
+      "publicSurfaceChange": true,
+      "promptTemplateChange": true
+    },
+    "preserveUserAuthoredCases": true,
+    "writeMetaMarker": true,
+    "manifestPath": ".zoto-eval-system/manifest.yml",
+    "historyPath": ".zoto-eval-system/manifest.history.yml",
+    "rediscoverWithSameDefaults": true,
+    "checkExitCodeOnCriticalDrift": 2
+  }
+}
