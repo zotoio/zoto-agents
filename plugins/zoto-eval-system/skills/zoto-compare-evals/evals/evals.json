@@ -1,0 +1,29 @@
+{
+  "skill_name": "zoto-compare-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/zoto-eval-compare run-a run-b where both runs have 10 cases and run-b used opus-4.6 vs run-a using composer-2.",
+      "expected_output": "A JSON payload is emitted containing tool: \"/canvas\", instructions from templates/canvas/compare-prompt.md.tmpl, and a flat dataset of 20 rows. No charts are rendered in chat.",
+      "files": [],
+      "assertions": [
+        "The emitted JSON has a tool field equal to \"/canvas\"",
+        "The dataset field has exactly 20 rows (10 cases × 2 runs)",
+        "Each row has run_id, model, case_id, status, tokens, duration_ms, verbosity, accuracy, confidence, and log_path fields",
+        "The skill produces no markdown chart or ASCII art",
+        "The host agent is instructed to invoke /canvas"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/zoto-eval-compare run-a where run-a is ambiguous (matches both evals/_runs/20260501_a and evals/_runs/20260502_a).",
+      "expected_output": "askQuestion is used to disambiguate before loading. No dataset is emitted until the user picks one.",
+      "files": [],
+      "assertions": [
+        "askQuestion was used to ask which run directory to use",
+        "No dataset was emitted before disambiguation",
+        "After disambiguation, the emitted dataset only covers the chosen run"
+      ]
+    }
+  ]
+}
