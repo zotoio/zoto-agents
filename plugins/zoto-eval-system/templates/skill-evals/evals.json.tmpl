@@ -1,0 +1,37 @@
+{
+  "skill_name": "{{SKILL_NAME}}",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "{{PROMPT_A}}",
+      "expected_output": "{{EXPECTED_A}}",
+      "files": [],
+      "assertions": [
+        "The skill produced output consistent with its SKILL.md description",
+        "No files were created outside the skill's documented output paths"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "{{SOURCE_HASH}}",
+        "last_updated": "{{LAST_UPDATED}}",
+        "generated_by": "zoto-create-evals"
+      }
+    },
+    {
+      "id": 2,
+      "prompt": "{{PROMPT_B}}",
+      "expected_output": "{{EXPECTED_B}}",
+      "files": [],
+      "assertions": [
+        "Interactive prompts routed through the askQuestion tool",
+        "No destructive file mutations occurred without explicit confirmation"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "{{SOURCE_HASH}}",
+        "last_updated": "{{LAST_UPDATED}}",
+        "generated_by": "zoto-create-evals"
+      }
+    }
+  ]
+}
