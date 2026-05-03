@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/config.schema.json",
+  "title": "Zoto Eval System Config",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "evalsDir": { "type": "string", "minLength": 1, "default": "evals" },
+    "skillsRoots": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "default": [".cursor/skills", "skills", "plugins/*/skills"]
+    },
+    "discoveryTargets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["skill", "command", "agent", "hook", "cli", "lib"]
+      },
+      "default": ["skill", "command", "agent", "hook"]
+    },
+    "llm": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "runtime": { "type": "string", "enum": ["tsx", "node"], "default": "tsx" },
+        "model": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "enum": ["composer-2", "opus-4.6", "sonnet"], "default": "composer-2" }
+          },
+          "required": ["id"]
+        }
+      }
+    },
+    "judgeModel": { "type": "string", "enum": ["composer-2", "opus-4.6", "sonnet"], "default": "opus-4.6" },
+    "manualChecklists": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false }
+      }
+    },
+    "additionalAutomation": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["vitest", "jest", "bats"] },
+      "default": []
+    },
+    "update": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "criticalChangeRules": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "addedTargetWithoutCoverage": { "type": "boolean", "default": true },
+            "removedTargetWithActiveCases": { "type": "boolean", "default": true },
+            "skillFrontmatterChange": { "type": "boolean", "default": true },
+            "publicSurfaceChange": { "type": "boolean", "default": true },
+            "promptTemplateChange": { "type": "boolean", "default": true }
+          }
+        },
+        "preserveUserAuthoredCases": {
+          "type": "boolean",
+          "const": true,
+          "default": true,
+          "description": "Hard-coded contract — user-authored cases are never mutated."
+        },
+        "writeMetaMarker": {
+          "type": "boolean",
+          "const": true,
+          "default": true,
+          "description": "Hard-coded contract — every generated case gets a _meta marker."
+        },
+        "manifestPath": { "type": "string", "default": ".zoto-eval-system/manifest.yml" },
+        "historyPath": { "type": "string", "default": ".zoto-eval-system/manifest.history.yml" },
+        "rediscoverWithSameDefaults": { "type": "boolean", "default": true },
+        "checkExitCodeOnCriticalDrift": { "type": "integer", "default": 2, "minimum": 1, "maximum": 255 }
+      }
+    }
+  }
+}

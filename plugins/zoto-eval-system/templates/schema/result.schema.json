@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/result.schema.json",
+  "title": "Zoto Eval System Result",
+  "type": "object",
+  "required": ["schema_version", "run_id", "started_at", "ended_at", "totals", "cases"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "started_at": { "type": "string", "format": "date-time" },
+    "ended_at": { "type": "string", "format": "date-time" },
+    "backend": { "type": "string", "enum": ["static", "llm", "mixed"] },
+    "model": { "type": "string" },
+    "totals": {
+      "type": "object",
+      "required": ["cases", "passed", "failed"],
+      "properties": {
+        "cases": { "type": "integer", "minimum": 0 },
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "skipped": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "aggregates": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "tokens_total": { "type": "integer", "minimum": 0 },
+        "duration_ms_total": { "type": "integer", "minimum": 0 },
+        "verbosity_avg": { "type": "number" },
+        "accuracy_avg": { "type": "number" },
+        "confidence_avg": { "type": "number" }
+      }
+    },
+    "drift": {
+      "type": "object",
+      "description": "Populated by eval:update --check after the run.",
+      "properties": {
+        "status": { "type": "string", "enum": ["clean", "critical", "non-critical", "unknown"] },
+        "exit_code": { "type": "integer" },
+        "message": { "type": "string" }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string", "enum": ["passed", "failed", "skipped", "errored"] },
+          "tokens": { "type": "integer", "minimum": 0 },
+          "duration_ms": { "type": "integer", "minimum": 0 },
+          "verbosity": { "type": "number" },
+          "accuracy": { "type": "number" },
+          "confidence": { "type": "number" },
+          "grader_reports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "grader": { "type": "string" },
+                "verdict": { "type": "string", "enum": ["pass", "fail", "warn"] },
+                "detail": { "type": "string" }
+              }
+            }
+          },
+          "log_path": { "type": "string" }
+        }
+      }
+    }
+  }
+}

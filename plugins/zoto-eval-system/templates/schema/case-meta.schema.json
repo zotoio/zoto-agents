@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/case-meta.schema.json",
+  "title": "Zoto Eval Case Meta Block",
+  "description": "Every generated eval case carries a _meta block. Cases without _meta or with _meta.generated=false are user-authored and are never touched by the updater.",
+  "type": "object",
+  "required": ["generated"],
+  "additionalProperties": true,
+  "properties": {
+    "generated": { "type": "boolean" },
+    "source_hash": {
+      "oneOf": [
+        { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        { "type": "null" }
+      ]
+    },
+    "last_updated": {
+      "oneOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ]
+    },
+    "generated_by": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "null" }
+      ]
+    }
+  }
+}
