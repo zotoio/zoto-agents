@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "eval": "python3 scripts/test.py",
+    "eval:full": "python3 scripts/test.py && tsx evals/_llm/runner.ts --full",
+    "eval:static": "python3 scripts/test.py",
+    "eval:llm": "tsx evals/_llm/runner.ts --full",
+    "eval:list": "tsx evals/_llm/runner.ts --list",
+    "eval:manual": "python3 scripts/test.py --mode manual",
+    "eval:judge": "tsx evals/_llm/runner.ts --judge-only",
+    "eval:update": "tsx evals/_llm/update.ts",
+    "eval:update:check": "tsx evals/_llm/update.ts --check",
+    "eval:compare": "tsx evals/_llm/compare.ts"
+  },
+  "devDependencies": {
+    "@cursor/sdk": "^1.0.12",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "yaml": "^2.6.0",
+    "ajv": "^8.17.0"
+  }
+}

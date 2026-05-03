@@ -1,0 +1,133 @@
+# {{PROJECT_NAME}} — User Evaluation Checklists
+
+Manual testing scenarios for the system under evaluation. Each scenario is self-contained and can be followed without prior knowledge of the internals.
+
+---
+
+## General Prerequisites
+
+These apply to every scenario below unless a scenario overrides them.
+
+1. You are working in a clean clone of the repository.
+2. `.zoto-eval-system/config.json` exists (run `/zoto-eval-configure` otherwise).
+3. `.zoto-eval-system/manifest.yml` exists (run `/zoto-eval-create` otherwise).
+4. Python 3.10+ is installed and on PATH.
+5. `pnpm`, `tsx`, and the dev dependencies are installed.
+
+---
+
+## A. Discovery & Creation
+
+### A1. Cold start — empty repository
+
+**Prerequisites**
+- No `evals/` directory.
+- No `.zoto-eval-system/` directory.
+
+**Steps**
+1. Run `/zoto-eval-configure`.
+2. Answer every prompt (each must route through `askQuestion`).
+3. Run `/zoto-eval-create`.
+4. Inspect `{evalsDir}/` and `.zoto-eval-system/manifest.yml`.
+
+**Expected Outcomes**
+
+| Step | Expected | Pass Criteria |
+|------|----------|---------------|
+| 1 | `askQuestion` is used for each option | No free-text fallback |
+| 2 | `config.json` is written and validates against `config.schema.json` | Validator prints `PASS` |
+| 3 | Static pytest backend stamped at `{evalsDir}/` | `conftest.py` + `requirements.txt` exist |
+| 3 | LLM backend stamped at `{evalsDir}/_llm/` | `runner.ts`, `update.ts`, `compare.ts` exist |
+| 3 | Every discovered skill has `evals.json` with ≥ 2 generated cases | Each case has `_meta.generated: true` |
+| 4 | `manifest.yml` present and `manifest.history.yml` has one entry | `git_ref` matches `HEAD` |
+
+---
+
+## B. Update & Drift
+
+### B1. No drift after create
+
+**Steps**
+1. Immediately after `/zoto-eval-create`, run `pnpm run eval:update --check`.
+
+**Expected**
+- Exit code `0`.
+- Stdout: `no drift`.
+
+---
+
+### B2. Targeted update preserves user cases
+
+**Prerequisites**
+- An `evals.json` where one case has `_meta.generated: true` and another has no `_meta` (user-authored).
+
+**Steps**
+1. Modify the covered target (e.g. rewrite a skill's body).
+2. Run `/zoto-eval-update <target-path> --apply` and accept every prompt.
+
+**Expected**
+- The generated case has a new `source_hash` and `last_updated`.
+- The user-authored case is byte-for-byte identical.
+- Case order is preserved.
+
+---
+
+### B3. Removed target marks cases orphaned
+
+**Steps**
+1. Delete a covered target file.
+2. Run `pnpm run eval:update --check`.
+3. Run `/zoto-eval-update --apply` and accept the deletion.
+
+**Expected**
+- Step 2 exits `2` with `removed-with-active-cases`.
+- Step 3 removes the covering case and appends a manifest history entry.
+
+---
+
+## C. Execution
+
+### C1. Static only
+
+**Steps**
+1. Run `/zoto-eval-execute`.
+
+**Expected**
+- `pytest` runs.
+- A `results.yml` is written under `{evalsDir}/_runs/<ts>/`.
+- A `drift:` field is populated from `eval:update --check`.
+
+### C2. LLM with model override
+
+**Steps**
+1. Run `/zoto-eval-execute --full --model opus-4.6`.
+2. Inspect `results.yml` for `model: opus-4.6`.
+
+---
+
+## D. Judge
+
+### D1. Weak grader detection
+
+**Steps**
+1. Edit a `contains` grader to match a short, ambiguous string.
+2. Run `/zoto-eval-judge`.
+
+**Expected**
+- Judge flags the grader as weak.
+- Via `askQuestion`, judge offers to run `/zoto-eval-update` on the affected skill.
+
+---
+
+## E. Compare
+
+### E1. Two runs, one model change
+
+**Steps**
+1. Produce two runs with different `--model` values.
+2. Run `/zoto-eval-compare <r1> <r2>`.
+
+**Expected**
+- The skill emits the canvas hand-off prompt from `templates/canvas/compare-prompt.md.tmpl`.
+- The host agent invokes `/canvas` to render.
+- Clicking a data point opens `evals/_runs/<run>/logs/<case>.log`.
