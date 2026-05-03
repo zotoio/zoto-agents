@@ -1,0 +1,97 @@
+#!/usr/bin/env tsx
+/**
+ * Cross-run comparison.
+ *
+ * This script produces a flat dataset (runs × cases × dimensions) and emits
+ * the hand-off prompt from templates/canvas/compare-prompt.md.tmpl. The
+ * host agent is expected to invoke Cursor's built-in /canvas tool to
+ * render. THIS SCRIPT INTENTIONALLY DOES NOT RENDER ANY CHARTS.
+ */
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import YAML from "yaml";
+
+interface ResultsDoc {
+  run_id: string;
+  model?: string;
+  totals?: { cases?: number; passed?: number; failed?: number };
+  cases?: Array<{
+    id: string;
+    status: string;
+    tokens?: number;
+    duration_ms?: number;
+    verbosity?: number;
+    accuracy?: number;
+    confidence?: number;
+    log_path?: string;
+  }>;
+}
+
+interface DatasetRow {
+  run_id: string;
+  model?: string;
+  case_id: string;
+  status: string;
+  tokens: number;
+  duration_ms: number;
+  verbosity: number;
+  accuracy: number;
+  confidence: number;
+  log_path: string;
+}
+
+function loadResults(path: string): ResultsDoc {
+  const abs = resolve(process.cwd(), path);
+  if (!existsSync(abs)) {
+    throw new Error(`missing results file: ${abs}`);
+  }
+  return YAML.parse(readFileSync(abs, "utf-8")) as ResultsDoc;
+}
+
+function flatten(docs: ResultsDoc[]): DatasetRow[] {
+  const rows: DatasetRow[] = [];
+  for (const d of docs) {
+    for (const c of d.cases ?? []) {
+      rows.push({
+        run_id: d.run_id,
+        model: d.model,
+        case_id: c.id,
+        status: c.status,
+        tokens: c.tokens ?? 0,
+        duration_ms: c.duration_ms ?? 0,
+        verbosity: c.verbosity ?? 0,
+        accuracy: c.accuracy ?? 0,
+        confidence: c.confidence ?? 0,
+        log_path: c.log_path ?? "",
+      });
+    }
+  }
+  return rows;
+}
+
+function main(): number {
+  const args = process.argv.slice(2);
+  if (args.length < 2) {
+    console.error("Usage: tsx evals/_llm/compare.ts <run-1> <run-2> [<run-N>]");
+    return 1;
+  }
+
+  const docs = args.map(loadResults);
+  const dataset = flatten(docs);
+
+  const handoff = {
+    tool: "/canvas",
+    instructions: [
+      "Render a grouped-bar chart comparing runs by dimension.",
+      "Allow the user to pivot between dimensions: tokens, duration_ms, verbosity, accuracy, confidence.",
+      "Drilldown: clicking a data point opens the referenced log_path.",
+    ],
+    dataset,
+  };
+
+  console.log(JSON.stringify(handoff, null, 2));
+  return 0;
+}
+
+process.exit(main());
