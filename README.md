@@ -7,6 +7,7 @@ Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 | Plugin | Description |
 |--------|-------------|
 | [zoto-spec-system](plugins/zoto-spec-system/) | Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification. |
+| [zoto-eval-system](plugins/zoto-eval-system/) | Generate, run, and keep static (pytest) + LLM (@cursor/sdk) evals in sync with code changes. askQuestion-driven config, YAML+JSONSchema results, surgical update on git diff, /canvas-rendered cross-run compare. |
 
 ## Getting Started
 

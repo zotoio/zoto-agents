@@ -14,6 +14,11 @@
       "name": "zoto-spec-system",
       "source": "plugins/zoto-spec-system",
       "description": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification"
+    },
+    {
+      "name": "zoto-eval-system",
+      "source": "plugins/zoto-eval-system",
+      "description": "Generate, run, and keep static (pytest) + LLM (@cursor/sdk) evals in sync with code changes. askQuestion-driven config, YAML+JSONSchema results, surgical update on git diff, /canvas-rendered cross-run compare."
     }
   ]
 }
