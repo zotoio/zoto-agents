@@ -1,0 +1,47 @@
+---
+description: Eval System integration rule — teaches agents about available commands and routes help-intent to the help skill before answering from inferred knowledge.
+alwaysApply: true
+---
+
+# Eval System
+
+This repository uses the Eval System plugin to generate, run, and keep static (pytest) + LLM (@cursor/sdk) eval suites in sync with code changes.
+
+## Available Commands
+
+- `/zoto-eval-configure` — askQuestion-driven config writer.
+- `/zoto-eval-create` — scaffold both eval backends and the manifest.
+- `/zoto-eval-update [<file-or-glob>] [--apply] [--check]` — diff-aware refresh.
+- `/zoto-eval-execute [--full] [--model <id>]` — run the suite.
+- `/zoto-eval-judge` — adversarial coverage and soft-metric review.
+- `/zoto-eval-compare <r1> <r2> [<rN>]` — cross-run analysis via `/canvas`.
+- `/zoto-eval-help [<topic>]` — README-backed canonical help.
+
+## Help-Intent Routing
+
+Before answering ANY question about how to configure, create, update, execute, judge, or compare evals — or any question about `.zoto-eval-system/`, `evals/`, `results.yml`, the `_meta.generated` contract, or `manifest.history.yml` — the agent MUST invoke `/zoto-eval-help` so the answer is backed by the plugin's shipped README. Do not answer from inferred knowledge.
+
+## askQuestion Contract
+
+Every interactive prompt surfaced by this plugin routes through the `askQuestion` tool. If you are implementing or extending a skill, do not add free-form text prompts — use `askQuestion`.
+
+## _meta.generated Contract
+
+Generated eval cases carry `_meta.generated: true`. The updater NEVER touches:
+- cases without `_meta`, or
+- cases with `_meta.generated === false`.
+
+The plugin validator rejects any code path that violates this contract. Don't try.
+
+## Configuration
+
+`.zoto-eval-system/config.json` is the single source of truth. Validated against `templates/schema/config.schema.json`.
+
+Two fields are hard-coded:
+- `update.preserveUserAuthoredCases: true`
+- `update.writeMetaMarker: true`
+
+## Manifest
+
+- `.zoto-eval-system/manifest.yml` — current state (validated against `manifest.schema.json`).
+- `.zoto-eval-system/manifest.history.yml` — append-only full-snapshot history.
