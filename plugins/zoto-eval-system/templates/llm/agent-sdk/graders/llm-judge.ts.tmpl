@@ -1,0 +1,49 @@
+import type { GraderReport } from "./common.js";
+
+export interface LlmJudgeGraderConfig {
+  type: "llm-judge";
+  rubric: string;
+  passThreshold?: number;
+  judgeModel?: string;
+}
+
+export interface LlmJudgeContext {
+  judge: (args: { prompt: string; model?: string }) => Promise<{
+    score: number;
+    detail: string;
+  }>;
+}
+
+export async function llmJudge(
+  config: LlmJudgeGraderConfig,
+  response: string,
+  ctx: LlmJudgeContext,
+): Promise<GraderReport> {
+  const threshold = config.passThreshold ?? 0.6;
+  const prompt = [
+    "You are an adversarial judge. Score how well the response satisfies the rubric.",
+    "Return only a JSON object like {\"score\": <0..1>, \"detail\": \"<reason>\"}.",
+    "",
+    "RUBRIC:",
+    config.rubric,
+    "",
+    "RESPONSE:",
+    response,
+  ].join("\n");
+
+  try {
+    const out = await ctx.judge({ prompt, model: config.judgeModel });
+    const ok = out.score >= threshold;
+    return {
+      grader: "llm-judge",
+      verdict: ok ? "pass" : "fail",
+      detail: `score=${out.score.toFixed(2)} threshold=${threshold} — ${out.detail}`,
+    };
+  } catch (err) {
+    return {
+      grader: "llm-judge",
+      verdict: "warn",
+      detail: `judge unavailable: ${(err as Error).message}`,
+    };
+  }
+}
