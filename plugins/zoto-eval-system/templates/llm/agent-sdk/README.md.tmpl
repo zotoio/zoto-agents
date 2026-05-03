@@ -1,0 +1,56 @@
+# LLM eval backend (@cursor/sdk)
+
+Scaffolded by `zoto-eval-system`. This directory is stamped into your repo
+at `{evalsDir}/_llm/`. Everything here is yours — feel free to edit, but
+the diff-aware updater (`/zoto-eval-update`) will regenerate generated eval
+cases (those with `_meta.generated: true`) when covered targets drift.
+
+## Layout
+
+- `runner.ts` — discovers cases, runs them, writes `results.yml` + per-case logs.
+- `update.ts` — surgical diff engine. Mirrors `scripts/eval-update.ts` inside the plugin.
+- `compare.ts` — emits the `/canvas` hand-off dataset for cross-run analysis.
+- `case.ts` — typed eval-case loader.
+- `graders/` — `contains`, `regex`, `tool-called`, `llm-judge`.
+- `metrics.ts` — tokens, duration, verbosity, accuracy, confidence.
+- `writer.ts` — schema-valid YAML + per-case logs.
+- `result.schema.json` — JSON Schema for `results.yml` (copied from plugin templates).
+
+## Running
+
+```bash
+pnpm run eval:list                   # list discovered cases
+pnpm run eval:full                   # static + LLM, gated on CURSOR_API_KEY
+pnpm run eval:llm                    # LLM only (still gated)
+pnpm run eval:update                 # rediscovery dry-run
+pnpm run eval:update:check           # CI gate (exit 2 on critical drift)
+pnpm run eval:compare run-a run-b    # /canvas hand-off
+```
+
+## Two-gate startup
+
+The runner refuses to start without both:
+
+1. `--full` passed on the CLI.
+2. `CURSOR_API_KEY` in the environment.
+
+This keeps local runs and CI explicit; the static backend is never blocked.
+
+## Model precedence
+
+1. `--model <id>` flag.
+2. `ZOTO_EVAL_MODEL` env var.
+3. `config.llm.model.id` from `.zoto-eval-system/config.json`.
+
+Allowed ids: `composer-2`, `opus-4.6`, `sonnet`.
+
+## Per-case logs
+
+Each case writes `{evalsDir}/_runs/<run-id>/logs/<case>.log` containing:
+
+- The final prompt.
+- The raw response.
+- All grader reports.
+- Soft metrics (tokens, duration, verbosity, accuracy, confidence).
+
+`/zoto-eval-compare` drill-down links to these log files.

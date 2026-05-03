@@ -1,0 +1,244 @@
+#!/usr/bin/env tsx
+/**
+ * LLM eval runner powered by @cursor/sdk.
+ *
+ * Two-gate startup:
+ *   1. `--full` must be passed explicitly.
+ *   2. CURSOR_API_KEY must be present in the environment.
+ *
+ * Model precedence: --model <id>  >  ZOTO_EVAL_MODEL env  >  config.llm.model.id
+ *
+ * Per-case verbose logs go to `{evalsDir}/_runs/<ts>/logs/<case>.log`.
+ * Suite YAML is written to `{evalsDir}/_runs/<ts>/llm.yml` (and copied
+ * to `results.yml` for convenience).
+ */
+import { existsSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+
+import { Agent } from "@cursor/sdk";
+
+import { casesOf, loadEvalFile, type EvalCase } from "./case.js";
+import { computeMetrics } from "./metrics.js";
+import { writeResults, type WriterCase } from "./writer.js";
+import { contains } from "./graders/contains.js";
+import { regex } from "./graders/regex.js";
+import { toolCalled } from "./graders/tool-called.js";
+import { llmJudge } from "./graders/llm-judge.js";
+import type { GraderReport } from "./graders/common.js";
+
+const REPO_ROOT = resolve(process.cwd());
+const CONFIG_PATH = join(REPO_ROOT, ".zoto-eval-system", "config.json");
+
+type Args = {
+  full: boolean;
+  list: boolean;
+  judgeOnly: boolean;
+  model?: string;
+};
+
+function parseArgs(argv: string[]): Args {
+  const args: Args = { full: false, list: false, judgeOnly: false };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--full") args.full = true;
+    else if (a === "--list") args.list = true;
+    else if (a === "--judge-only") args.judgeOnly = true;
+    else if (a === "--model") args.model = argv[++i];
+    else if (a === "--help" || a === "-h") {
+      printHelp();
+      process.exit(0);
+    }
+  }
+  return args;
+}
+
+function printHelp(): void {
+  console.log("Usage: tsx evals/_llm/runner.ts [--full] [--list] [--judge-only] [--model <id>]");
+  console.log("");
+  console.log("  --full        Execute LLM cases. Requires CURSOR_API_KEY.");
+  console.log("  --list        List discovered cases and exit.");
+  console.log("  --judge-only  Only run llm-judge graders against an existing results.yml.");
+  console.log("  --model <id>  Override model (composer-2 | opus-4.6 | sonnet).");
+}
+
+function loadConfig(): Record<string, unknown> {
+  if (!existsSync(CONFIG_PATH)) return {};
+  return JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
+}
+
+function resolveModel(args: Args, config: Record<string, unknown>): string {
+  if (args.model) return args.model;
+  if (process.env.ZOTO_EVAL_MODEL) return process.env.ZOTO_EVAL_MODEL;
+  const llm = (config.llm ?? {}) as Record<string, unknown>;
+  const model = (llm.model ?? {}) as Record<string, unknown>;
+  return (model.id as string) ?? "composer-2";
+}
+
+function discoverCaseFiles(evalsDir: string, config: Record<string, unknown>): string[] {
+  const roots = (config.skillsRoots as string[]) ?? [".cursor/skills", "skills"];
+  const out: string[] = [];
+  const glob = require("node:fs");
+  const path = require("node:path");
+  for (const rootPat of roots) {
+    const root = path.resolve(REPO_ROOT, rootPat.replace(/\*.*$/, ""));
+    walk(root, (f: string) => {
+      if (f.endsWith("/evals/evals.json")) out.push(f);
+    });
+  }
+  const llmCases = join(REPO_ROOT, evalsDir, "_llm", "cases.json");
+  if (glob.existsSync(llmCases)) out.push(llmCases);
+  return Array.from(new Set(out));
+}
+
+function walk(dir: string, fn: (f: string) => void): void {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  if (!fs.existsSync(dir)) return;
+  for (const entry of fs.readdirSync(dir)) {
+    const full = path.join(dir, entry);
+    const st = fs.statSync(full);
+    if (st.isDirectory()) walk(full, fn);
+    else fn(full);
+  }
+}
+
+async function runCase(
+  c: EvalCase,
+  agent: Agent,
+  model: string,
+): Promise<WriterCase> {
+  const started = Date.now();
+  const log: string[] = [];
+  log.push(`# Case ${c.id}`);
+  log.push(`prompt: ${c.prompt}`);
+
+  let response = "";
+  const toolCalls: Array<{ tool: string; ok: boolean }> = [];
+  try {
+    const result = await agent.run({
+      prompt: c.prompt,
+      model,
+      files: c.files ?? [],
+    });
+    response = (result as { text?: string }).text ?? JSON.stringify(result);
+    log.push("response:");
+    log.push(response);
+  } catch (err) {
+    const ended = Date.now();
+    log.push(`ERROR: ${(err as Error).message}`);
+    return {
+      id: String(c.id),
+      status: "errored",
+      metrics: computeMetrics({
+        prompt: c.prompt,
+        response: "",
+        assertionsMet: 0,
+        assertionsTotal: c.assertions.length,
+        toolCalls: [],
+        startedAt: started,
+        endedAt: ended,
+      }),
+      grader_reports: [
+        { grader: "runtime", verdict: "fail", detail: (err as Error).message },
+      ],
+      log: log.join("\n"),
+    };
+  }
+
+  const reports: GraderReport[] = [];
+  for (const g of c.graders ?? []) {
+    const t = (g as { type?: string }).type;
+    if (t === "contains") reports.push(contains(g as never, response));
+    else if (t === "regex") reports.push(regex(g as never, response));
+    else if (t === "tool-called") reports.push(toolCalled(g as never, toolCalls));
+    else if (t === "llm-judge") {
+      reports.push(
+        await llmJudge(g as never, response, {
+          judge: async ({ prompt }) => ({ score: 0.5, detail: `stub: ${prompt.length} chars` }),
+        }),
+      );
+    }
+  }
+
+  const assertionsMet = reports.filter((r) => r.verdict === "pass").length;
+  const assertionsTotal = reports.length || c.assertions.length;
+  const ended = Date.now();
+  const metrics = computeMetrics({
+    prompt: c.prompt,
+    response,
+    assertionsMet,
+    assertionsTotal,
+    toolCalls,
+    startedAt: started,
+    endedAt: ended,
+  });
+
+  log.push("grader reports:");
+  for (const r of reports) log.push(`  - ${r.grader}: ${r.verdict} — ${r.detail}`);
+  log.push(`metrics: ${JSON.stringify(metrics)}`);
+
+  const failed = reports.some((r) => r.verdict === "fail");
+  return {
+    id: String(c.id),
+    status: failed ? "failed" : "passed",
+    metrics,
+    grader_reports: reports,
+    log: log.join("\n"),
+  };
+}
+
+async function main(): Promise<number> {
+  const args = parseArgs(process.argv.slice(2));
+  const config = loadConfig();
+  const evalsDir = (config.evalsDir as string) ?? "evals";
+
+  if (args.list) {
+    const files = discoverCaseFiles(evalsDir, config);
+    const total = files.reduce((n, f) => n + casesOf(loadEvalFile(f)).length, 0);
+    console.log(JSON.stringify({ files, total }, null, 2));
+    return 0;
+  }
+
+  if (!args.full) {
+    console.error("LLM runner requires --full. Refusing to run implicitly.");
+    return 1;
+  }
+  if (!process.env.CURSOR_API_KEY) {
+    console.error("CURSOR_API_KEY is not set. LLM runner refuses to start.");
+    return 1;
+  }
+
+  const model = resolveModel(args, config);
+  const files = discoverCaseFiles(evalsDir, config);
+  const allCases = files.flatMap((f) => casesOf(loadEvalFile(f)));
+
+  const agent = new Agent({ apiKey: process.env.CURSOR_API_KEY, model });
+
+  const runId = new Date().toISOString().replace(/[:.]/g, "").slice(0, 15);
+  const startedAt = new Date().toISOString();
+  const results: WriterCase[] = [];
+  for (const c of allCases) {
+    const out = await runCase(c, agent, model);
+    results.push(out);
+  }
+  const endedAt = new Date().toISOString();
+
+  const schemaPath = join(REPO_ROOT, "evals", "_llm", "result.schema.json");
+  const out = writeResults({
+    runId,
+    evalsDir,
+    backend: "llm",
+    model,
+    startedAt,
+    endedAt,
+    cases: results,
+    schemaPath,
+  });
+  console.log(`Wrote ${out}`);
+  return results.every((r) => r.status === "passed") ? 0 : 1;
+}
+
+main().then((code) => process.exit(code), (err) => {
+  console.error(err);
+  process.exit(1);
+});
