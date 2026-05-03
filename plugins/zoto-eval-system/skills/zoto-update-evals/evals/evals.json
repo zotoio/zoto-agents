@@ -1,0 +1,43 @@
+{
+  "skill_name": "zoto-update-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "A skill's SKILL.md description was edited. Run /zoto-eval-update --apply and accept every proposed change.",
+      "expected_output": "Only generated cases for that skill are regenerated; the source_hash and last_updated are refreshed; user-authored cases in the same evals.json are untouched; manifest.history.yml has one new appended snapshot.",
+      "files": [],
+      "assertions": [
+        "Only cases with _meta.generated === true on the affected target are modified",
+        "User-authored cases (no _meta, or _meta.generated === false) are byte-for-byte identical after the apply",
+        "Every regenerated case has a fresh _meta.source_hash matching the current target content_hash",
+        "Every regenerated case has a fresh _meta.last_updated in ISO-8601 format",
+        "manifest.yml updated_at is newer than its created_at",
+        "manifest.history.yml has exactly one new snapshot appended",
+        "Every accept/reject choice was presented via askQuestion"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run /zoto-eval-update --check on a repo where a covered target has been deleted.",
+      "expected_output": "Exit code 2 (critical drift), stderr contains a JSON-line delta with kind=removed and critical=true. No file writes.",
+      "files": [],
+      "assertions": [
+        "Process exits with code 2",
+        "Stdout includes a 'removed' count in the summary line",
+        "Stderr includes at least one JSON-line delta with \"kind\":\"removed\" and \"critical\":true",
+        "No files were written (manifest.yml and evals.json files are unchanged)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Edit discoveryTargets in config.json to add 'lib', then run /zoto-eval-update --check.",
+      "expected_output": "Exit code 0. The check does not report drift attributable to the config edit — rediscovery uses manifest.discovery_config.",
+      "files": [],
+      "assertions": [
+        "Process exits with code 0",
+        "The summary does not attribute drift to the config change",
+        "manifest.discovery_config is unchanged after the check"
+      ]
+    }
+  ]
+}

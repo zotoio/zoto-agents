@@ -1,0 +1,45 @@
+{
+  "skill_name": "zoto-create-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Scaffold the eval system into a fresh pnpm monorepo with two skills under plugins/example-plugin/skills/.",
+      "expected_output": "Static pytest backend stamped at evals/, LLM backend at evals/_llm/, evals.json generated for each skill with _meta.generated=true, manifest.yml and manifest.history.yml written, and package.json merged with eval scripts. pnpm run eval:update --check exits 0.",
+      "files": [],
+      "assertions": [
+        "evals/conftest.py exists",
+        "evals/_llm/runner.ts exists",
+        "Each discovered skill has evals/evals.json with >= 2 cases",
+        "Every generated case includes _meta.generated = true",
+        "Every generated case includes a 64-character sha256 source_hash in _meta",
+        "package.json includes the eval, eval:full, eval:update, eval:update:check and eval:compare scripts",
+        ".zoto-eval-system/manifest.yml exists and validates against manifest.schema.json",
+        ".zoto-eval-system/manifest.history.yml contains exactly one snapshot after create",
+        "pnpm run eval:update --check exits with code 0"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run /zoto-eval-create in a repository that already has a user-authored case at skills/foo/evals/evals.json (no _meta block). Ensure the user case is preserved.",
+      "expected_output": "The user-authored case is untouched; new generated cases may be appended, but existing cases without _meta remain byte-for-byte identical. All interactive prompts go through askQuestion.",
+      "files": [],
+      "assertions": [
+        "Pre-existing user-authored case is preserved verbatim (no _meta added retroactively)",
+        "Any new generated cases have _meta.generated = true",
+        "The skill uses askQuestion before overwriting or appending to any existing evals.json",
+        ".zoto-eval-system/manifest.yml lists the user's evals.json as an eval_file for the relevant target"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run /zoto-eval-create in a repository whose git working tree has no HEAD (brand new repo with no initial commit).",
+      "expected_output": "The skill completes successfully and records a placeholder git_ref in the manifest, clearly flagged. No crash.",
+      "files": [],
+      "assertions": [
+        "The skill does not crash on missing HEAD",
+        "manifest.yml is written with a placeholder or zero sha git_ref",
+        "The skill asks, via askQuestion, whether the user wants to make an initial commit before continuing"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "skill_name": "zoto-configure-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up the eval system config for a monorepo with skills under plugins/*/skills. Use composer-2 for the runner and opus-4.6 for the judge.",
+      "expected_output": ".zoto-eval-system/config.json written with skillsRoots containing plugins/*/skills, llm.model.id = composer-2, judgeModel = opus-4.6, and all contract fields stamped true.",
+      "files": [],
+      "assertions": [
+        ".zoto-eval-system/config.json is created at the repository root",
+        "Every interactive prompt is asked via the askQuestion tool",
+        "skillsRoots includes plugins/*/skills",
+        "llm.model.id equals composer-2",
+        "judgeModel equals opus-4.6",
+        "update.preserveUserAuthoredCases is true",
+        "update.writeMetaMarker is true",
+        "The written config validates against templates/schema/config.schema.json"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Attempt to configure the eval system with preserveUserAuthoredCases set to false.",
+      "expected_output": "The skill refuses to write this config and explains that preserveUserAuthoredCases is a hard-coded contract.",
+      "files": [],
+      "assertions": [
+        "No config file is written with preserveUserAuthoredCases: false",
+        "The skill routes the refusal through askQuestion when asking how to proceed",
+        "The user is told preserveUserAuthoredCases is a contract (schema const: true)",
+        "If the user accepts the contract, the config is written with preserveUserAuthoredCases: true"
+      ]
+    }
+  ]
+}
