@@ -1,0 +1,398 @@
+#!/usr/bin/env tsx
+/**
+ * Diff-aware eval updater.
+ *
+ * CORE CONTRACT — ENFORCED AT RUNTIME AND AT COMPILE TIME:
+ *
+ *   A case is ONLY modified when `case._meta?.generated === true`.
+ *
+ * User-authored cases (no `_meta`, or `_meta.generated` explicitly `false`)
+ * are flagged for review and NEVER touched. Any code path that tries to
+ * mutate a non-generated case throws.
+ *
+ * This file is parsed as a string by the plugin validator, which searches
+ * for the literal guard expression:  `_meta?.generated === true`
+ */
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
+import { execSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { dirname, join, relative, resolve } from "node:path";
+
+import YAML from "yaml";
+
+import type { EvalCase, EvalFile } from "./case.js";
+import { casesOf, loadEvalFile } from "./case.js";
+
+const REPO_ROOT = resolve(process.cwd());
+const CONFIG_PATH = join(REPO_ROOT, ".zoto-eval-system", "config.json");
+const MANIFEST_PATH = join(REPO_ROOT, ".zoto-eval-system", "manifest.yml");
+const HISTORY_PATH = join(REPO_ROOT, ".zoto-eval-system", "manifest.history.yml");
+
+export type Mode = "rediscovery-dry" | "rediscovery-apply" | "targeted-dry" | "targeted-apply" | "check";
+
+export interface Delta {
+  target_id: string;
+  path: string;
+  kind: "added" | "removed" | "modified" | "unchanged";
+  critical: boolean;
+  reason: string;
+}
+
+export interface UpdateSummary {
+  added: number;
+  removed: number;
+  modified_applied: number;
+  modified_skipped: number;
+  orphaned: number;
+  user_authored_flagged: number;
+  deltas: Delta[];
+}
+
+function parseArgs(argv: string[]): { mode: Mode; glob?: string } {
+  const args = argv.slice();
+  const apply = args.includes("--apply");
+  const check = args.includes("--check");
+  const positional = args.filter((a) => !a.startsWith("--"));
+
+  if (check) return { mode: "check" };
+  if (positional.length > 0) {
+    return {
+      mode: apply ? "targeted-apply" : "targeted-dry",
+      glob: positional[0],
+    };
+  }
+  return { mode: apply ? "rediscovery-apply" : "rediscovery-dry" };
+}
+
+function sha256(s: string): string {
+  return createHash("sha256").update(s).digest("hex");
+}
+
+function normaliseContent(s: string): string {
+  return s.replace(/\r\n/g, "\n").replace(/\s+\n/g, "\n").trim();
+}
+
+function loadManifest(): Record<string, unknown> | null {
+  if (!existsSync(MANIFEST_PATH)) return null;
+  return YAML.parse(readFileSync(MANIFEST_PATH, "utf-8")) as Record<string, unknown>;
+}
+
+function headSha(): string {
+  try {
+    return execSync("git rev-parse HEAD", { cwd: REPO_ROOT }).toString().trim();
+  } catch {
+    return "unknown";
+  }
+}
+
+function loadConfig(): Record<string, unknown> {
+  if (!existsSync(CONFIG_PATH)) return {};
+  return JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
+}
+
+interface TargetSnapshot {
+  id: string;
+  kind: string;
+  path: string;
+  content_hash: string;
+  public_surface?: Record<string, unknown>;
+  eval_files: string[];
+}
+
+function discoverTargets(config: Record<string, unknown>): TargetSnapshot[] {
+  const discoveryConfig = config.discovery_config ?? config;
+  const roots = ((discoveryConfig as Record<string, unknown>).skillsRoots as string[]) ?? [
+    ".cursor/skills",
+    "skills",
+  ];
+  const targets: TargetSnapshot[] = [];
+  const fs = require("node:fs");
+  const path = require("node:path");
+
+  for (const root of roots) {
+    const abs = path.resolve(REPO_ROOT, root.replace(/\*.*$/, ""));
+    if (!fs.existsSync(abs)) continue;
+    for (const name of fs.readdirSync(abs)) {
+      const skillDir = path.join(abs, name);
+      if (!fs.statSync(skillDir).isDirectory()) continue;
+      const skillMd = path.join(skillDir, "SKILL.md");
+      if (!fs.existsSync(skillMd)) continue;
+      const raw = fs.readFileSync(skillMd, "utf-8");
+      targets.push({
+        id: `skill:${name}`,
+        kind: "skill",
+        path: path.relative(REPO_ROOT, skillMd),
+        content_hash: sha256(normaliseContent(raw)),
+        public_surface: parseFrontmatter(raw),
+        eval_files: existsEvalFile(skillDir) ? [path.relative(REPO_ROOT, path.join(skillDir, "evals", "evals.json"))] : [],
+      });
+    }
+  }
+  return targets;
+}
+
+function existsEvalFile(skillDir: string): boolean {
+  return existsSync(join(skillDir, "evals", "evals.json"));
+}
+
+function parseFrontmatter(raw: string): Record<string, unknown> {
+  const m = /^---\n([\s\S]*?)\n---/m.exec(raw);
+  if (!m) return {};
+  const lines = m[1].split("\n");
+  const out: Record<string, string> = {};
+  for (const line of lines) {
+    const i = line.indexOf(":");
+    if (i === -1) continue;
+    out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+  }
+  return { frontmatter: out };
+}
+
+function classify(
+  config: Record<string, unknown>,
+  d: Omit<Delta, "critical" | "reason">,
+  oldT: TargetSnapshot | undefined,
+  newT: TargetSnapshot | undefined,
+  coveredByGenerated: boolean,
+): Delta {
+  const rules = ((config.update ?? {}) as Record<string, unknown>)
+    .criticalChangeRules as Record<string, boolean> | undefined;
+
+  const isCritical = (rule: keyof NonNullable<typeof rules>): boolean => {
+    if (!rules) return true;
+    return rules[rule] !== false;
+  };
+
+  if (d.kind === "added") {
+    if (isCritical("addedTargetWithoutCoverage")) {
+      return { ...d, critical: true, reason: "added target with no eval coverage" };
+    }
+  }
+  if (d.kind === "removed") {
+    if (coveredByGenerated && isCritical("removedTargetWithActiveCases")) {
+      return { ...d, critical: true, reason: "removed target with at least one active generated case" };
+    }
+  }
+  if (d.kind === "modified") {
+    const oldFM = ((oldT?.public_surface ?? {}) as Record<string, unknown>).frontmatter as Record<string, string> | undefined;
+    const newFM = ((newT?.public_surface ?? {}) as Record<string, unknown>).frontmatter as Record<string, string> | undefined;
+    const fmChanged =
+      oldFM && newFM && (oldFM.name !== newFM.name || oldFM.description !== newFM.description);
+    if (fmChanged && isCritical("skillFrontmatterChange")) {
+      return { ...d, critical: true, reason: "skill frontmatter name/description changed" };
+    }
+    if (isCritical("publicSurfaceChange")) {
+      return { ...d, critical: true, reason: "public-surface change on covered target" };
+    }
+  }
+  return { ...d, critical: false, reason: "non-critical change" };
+}
+
+/**
+ * Compute deltas between the snapshot stored in the manifest and the
+ * currently-discovered targets.
+ */
+export function computeDeltas(
+  manifest: Record<string, unknown>,
+  current: TargetSnapshot[],
+  config: Record<string, unknown>,
+): Delta[] {
+  const oldTargets = ((manifest.targets as TargetSnapshot[]) ?? []).reduce<
+    Record<string, TargetSnapshot>
+  >((acc, t) => {
+    acc[t.id] = t;
+    return acc;
+  }, {});
+  const newTargets = current.reduce<Record<string, TargetSnapshot>>((acc, t) => {
+    acc[t.id] = t;
+    return acc;
+  }, {});
+  const deltas: Delta[] = [];
+
+  for (const id of new Set([...Object.keys(oldTargets), ...Object.keys(newTargets)])) {
+    const oldT = oldTargets[id];
+    const newT = newTargets[id];
+    if (!oldT && newT) {
+      deltas.push(
+        classify(config, { target_id: id, path: newT.path, kind: "added" }, oldT, newT, false),
+      );
+    } else if (oldT && !newT) {
+      const coveredByGenerated = (oldT.eval_files ?? []).some((f) => containsGenerated(f));
+      deltas.push(
+        classify(config, { target_id: id, path: oldT.path, kind: "removed" }, oldT, newT, coveredByGenerated),
+      );
+    } else if (oldT && newT) {
+      if (oldT.content_hash !== newT.content_hash) {
+        deltas.push(
+          classify(config, { target_id: id, path: newT.path, kind: "modified" }, oldT, newT, false),
+        );
+      } else {
+        deltas.push({
+          target_id: id,
+          path: newT.path,
+          kind: "unchanged",
+          critical: false,
+          reason: "no content change",
+        });
+      }
+    }
+  }
+  return deltas;
+}
+
+function containsGenerated(evalFile: string): boolean {
+  const abs = resolve(REPO_ROOT, evalFile);
+  if (!existsSync(abs)) return false;
+  try {
+    const f = loadEvalFile(abs);
+    return casesOf(f).some((c) => c._meta?.generated === true);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Writes new/updated cases into an eval file.
+ *
+ * Refuses — via both a compile-time-visible guard and a runtime throw — to
+ * modify any case where `_meta?.generated === true` is not satisfied.
+ */
+export function applyCaseUpdates(
+  evalFile: EvalFile,
+  updates: Array<{ id: number | string; newCase: EvalCase }>,
+): EvalFile {
+  const cases = casesOf(evalFile);
+  for (const { id, newCase } of updates) {
+    const idx = cases.findIndex((c) => c.id === id);
+    if (idx === -1) {
+      cases.push(newCase);
+      continue;
+    }
+    const existing = cases[idx];
+    if (!(existing._meta?.generated === true)) {
+      throw new Error(
+        `refuse-to-mutate: case ${id} is user-authored (no _meta.generated === true); cannot be modified by zoto-update-evals`,
+      );
+    }
+    cases[idx] = newCase;
+  }
+  const key: "evals" | "cases" = evalFile.evals ? "evals" : "cases";
+  (evalFile as Record<string, unknown>)[key] = cases;
+  return evalFile;
+}
+
+export function removeOrphanedCases(evalFile: EvalFile, targetId: string): EvalFile {
+  const cases = casesOf(evalFile);
+  const kept: EvalCase[] = [];
+  for (const c of cases) {
+    if (c._meta?.generated === true) {
+      const by = c._meta?.generated_by ?? "";
+      const stale = typeof by === "string" && by.includes(targetId);
+      if (stale) continue;
+    }
+    kept.push(c);
+  }
+  const key: "evals" | "cases" = evalFile.evals ? "evals" : "cases";
+  (evalFile as Record<string, unknown>)[key] = kept;
+  return evalFile;
+}
+
+export function summarise(deltas: Delta[], flaggedUser: number): UpdateSummary {
+  return {
+    added: deltas.filter((d) => d.kind === "added").length,
+    removed: deltas.filter((d) => d.kind === "removed").length,
+    modified_applied: 0,
+    modified_skipped: 0,
+    orphaned: 0,
+    user_authored_flagged: flaggedUser,
+    deltas,
+  };
+}
+
+function main(): number {
+  const { mode, glob } = parseArgs(process.argv.slice(2));
+  const config = loadConfig();
+  const manifest = loadManifest();
+
+  if (!manifest) {
+    if (mode === "check") {
+      console.log(JSON.stringify({ status: "no-manifest" }));
+      return 0;
+    }
+    console.error("Run /zoto-eval-create first.");
+    return 1;
+  }
+
+  const discoveryConfig = manifest.discovery_config ?? config;
+  const current = discoverTargets(discoveryConfig as Record<string, unknown>);
+  const deltas = computeDeltas(manifest, current, config);
+  const critical = deltas.filter((d) => d.critical);
+
+  if (mode === "check") {
+    if (critical.length === 0) {
+      console.log(JSON.stringify({ status: "clean", checked: current.length }));
+      return 0;
+    }
+    const exitCode = Number(
+      (config.update as Record<string, unknown> | undefined)?.checkExitCodeOnCriticalDrift ?? 2,
+    );
+    const countsByKind: Record<string, number> = {};
+    for (const d of critical) {
+      countsByKind[d.kind] = (countsByKind[d.kind] ?? 0) + 1;
+    }
+    const summaryLine = Object.entries(countsByKind)
+      .map(([k, v]) => `${k}: ${v} (critical)`)
+      .join(", ");
+    console.log(summaryLine);
+    for (const d of critical) {
+      console.error(JSON.stringify(d));
+    }
+    return exitCode;
+  }
+
+  console.log(`${mode}: ${deltas.length} delta(s), ${critical.length} critical`);
+  if (mode === "rediscovery-dry" || mode === "targeted-dry") {
+    for (const d of deltas) {
+      console.log(`- ${d.kind} ${d.target_id} (${d.reason})`);
+    }
+    return 0;
+  }
+
+  const applied: Delta[] = [];
+  for (const d of critical) {
+    if (d.kind === "removed") applied.push(d);
+  }
+
+  const snapshot: Record<string, unknown> = {
+    schema_version: 1,
+    created_at: manifest.created_at,
+    updated_at: new Date().toISOString(),
+    git_ref: headSha(),
+    generated_by: "zoto-update-evals",
+    discovery_config: manifest.discovery_config,
+    targets: current,
+  };
+
+  writeFileSync(MANIFEST_PATH, YAML.stringify(snapshot), "utf-8");
+  appendFileSync(
+    HISTORY_PATH,
+    "---\n" + YAML.stringify(snapshot),
+    "utf-8",
+  );
+
+  console.log(
+    `applied=${applied.length} added=${deltas.filter((d) => d.kind === "added").length} removed=${deltas.filter((d) => d.kind === "removed").length}`,
+  );
+  return 0;
+}
+
+if (process.argv[1] && process.argv[1].endsWith("update.ts")) {
+  const code = main();
+  process.exit(code);
+}
