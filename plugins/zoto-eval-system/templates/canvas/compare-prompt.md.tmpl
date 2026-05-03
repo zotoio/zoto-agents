@@ -1,0 +1,44 @@
+# Canvas hand-off — cross-run compare
+
+You (the host agent) have been given a compact JSON payload that contains
+the dataset and rendering instructions for a cross-run comparison.
+
+Route the payload to Cursor's built-in `/canvas` tool. Do NOT render charts
+in text form. Do NOT invent a rendering — `/canvas` is the single source
+of truth for layout, legend, axes, and interactions.
+
+## Payload shape
+
+```json
+{
+  "tool": "/canvas",
+  "instructions": ["..."],
+  "dataset": [
+    {
+      "run_id": "...",
+      "model": "...",
+      "case_id": "...",
+      "status": "passed|failed|skipped|errored",
+      "tokens": 0,
+      "duration_ms": 0,
+      "verbosity": 0.0,
+      "accuracy": 0.0,
+      "confidence": 0.0,
+      "log_path": "_runs/<run>/logs/<case>.log"
+    }
+  ]
+}
+```
+
+## Expected interactions
+
+- Default view: grouped-bar chart, one group per `run_id`, bars by dimension.
+- Pivot: the user can switch the active dimension between `tokens`, `duration_ms`, `verbosity`, `accuracy`, `confidence`.
+- Drilldown: clicking a data point opens the file at `log_path` (relative to `{evalsDir}`).
+- Accessibility: use colours that survive grayscale; show legend with explicit labels.
+
+## What NOT to do
+
+- Do not summarise the dataset in prose first — go straight to `/canvas`.
+- Do not propose alternative visualisations unless the user asks.
+- Do not invent additional dimensions not present in the dataset.

@@ -1,0 +1,41 @@
+{
+  "skill_name": "zoto-judge-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run /zoto-eval-judge on a results.yml where one case has verbosity 3.8 and another has confidence 0.22.",
+      "expected_output": "The judge writes a judge: block with at least one finding per anomaly, each with severity warn or flag, and at least one recommendation. The original totals and aggregates are preserved.",
+      "files": [],
+      "assertions": [
+        "results.yml has a top-level judge: block appended",
+        "At least one finding flags verbosity > 2.0 for the high-verbosity case",
+        "At least one finding flags confidence < 0.4 for the low-confidence case",
+        "The original totals block is unchanged",
+        "The original aggregates block is unchanged"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run /zoto-eval-judge on a results.yml where several contains graders match only 2-character strings.",
+      "expected_output": "The judge flags the weak graders and, via askQuestion, offers to run /zoto-eval-update on the affected skills.",
+      "files": [],
+      "assertions": [
+        "At least one finding has dimension: grader for each flagged case",
+        "The detail on each grader finding names the weak string or grader type",
+        "askQuestion was used to offer handoff to /zoto-eval-update",
+        "No evals.json files were modified by this skill directly"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run /zoto-eval-judge when no results.yml exists.",
+      "expected_output": "The skill aborts cleanly, pointing the user to /zoto-eval-execute.",
+      "files": [],
+      "assertions": [
+        "No files were created or modified",
+        "The skill printed a pointer to /zoto-eval-execute",
+        "The skill did not crash"
+      ]
+    }
+  ]
+}

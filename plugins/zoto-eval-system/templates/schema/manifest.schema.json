@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/manifest.schema.json",
+  "title": "Zoto Eval System Manifest",
+  "type": "object",
+  "required": ["schema_version", "created_at", "updated_at", "git_ref", "generated_by", "discovery_config", "targets"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "git_ref": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+    "generated_by": {
+      "type": "string",
+      "enum": ["zoto-create-evals", "zoto-update-evals"]
+    },
+    "discovery_config": {
+      "type": "object",
+      "required": ["discoveryTargets", "skillsRoots", "evalsDir"],
+      "properties": {
+        "discoveryTargets": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "skillsRoots": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "evalsDir": { "type": "string" },
+        "additionalAutomation": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "path", "content_hash", "eval_files"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^(skill|command|agent|hook|cli|lib):[^\\s]+$" },
+          "kind": { "type": "string", "enum": ["skill", "command", "agent", "hook", "cli", "lib"] },
+          "path": { "type": "string", "minLength": 1 },
+          "content_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "public_surface": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "frontmatter": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              },
+              "exports": { "type": "array", "items": { "type": "string" } },
+              "tools": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "eval_files": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

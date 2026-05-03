@@ -1,0 +1,41 @@
+{
+  "skill_name": "zoto-execute-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run /zoto-eval-execute with no flags in a repo where the LLM API key is not set.",
+      "expected_output": "Static pytest suite runs via pnpm run eval. No LLM cases are run. results.yml is written under evals/_runs/<ts>/. A drift line is appended after eval:update --check.",
+      "files": [],
+      "assertions": [
+        "pnpm run eval was invoked (not eval:full)",
+        "No invocation of the LLM runner occurred",
+        "A results.yml exists under evals/_runs/<ts>/",
+        "The results.yml contains a drift block with status in {clean, critical, unknown}"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run /zoto-eval-execute --full --model opus-4.6 with CURSOR_API_KEY set in the environment.",
+      "expected_output": "Both static and LLM suites run. The LLM runner receives opus-4.6 both via --model and via ZOTO_EVAL_MODEL. results.yml records model: opus-4.6.",
+      "files": [],
+      "assertions": [
+        "pnpm run eval:full was invoked",
+        "The LLM runner received --model opus-4.6 on the CLI",
+        "The ZOTO_EVAL_MODEL environment variable was set to opus-4.6 for the child process",
+        "results.yml contains model: opus-4.6",
+        "A drift line is appended to results.yml after the run"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run /zoto-eval-execute --full in a repo where CURSOR_API_KEY is missing.",
+      "expected_output": "The skill stops, uses askQuestion to offer either aborting or running static-only, and never invokes the LLM runner.",
+      "files": [],
+      "assertions": [
+        "askQuestion was used to ask how to proceed",
+        "The LLM runner was not invoked",
+        "If the user chose static-only, pnpm run eval was invoked instead"
+      ]
+    }
+  ]
+}

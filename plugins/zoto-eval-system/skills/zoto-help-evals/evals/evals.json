@@ -1,0 +1,30 @@
+{
+  "skill_name": "zoto-help-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "How do I update evals when my code changes?",
+      "expected_output": "The skill loads the plugin README, navigates to the 'Updating evals when code changes' section, and prints it verbatim. askQuestion is used for section selection if ambiguous.",
+      "files": [],
+      "assertions": [
+        "The skill read plugins/zoto-eval-system/README.md",
+        "The response contains the 'Updating evals when code changes' section",
+        "The response mentions the _meta.generated contract",
+        "The response mentions the --check CI mode",
+        "The response mentions targeted vs rediscovery modes",
+        "No inferred or rephrased content was substituted for the README text"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/zoto-eval-help",
+      "expected_output": "A numbered askQuestion listing of all available help sections. No section content is printed until the user chooses.",
+      "files": [],
+      "assertions": [
+        "askQuestion was used with a numbered list of sections",
+        "The list includes at least: Overview, Quick start, Configuration, LLM backend (@cursor/sdk), Updating evals when code changes, Comparing runs, CI integration, Troubleshooting",
+        "No section body was printed until a selection was made"
+      ]
+    }
+  ]
+}

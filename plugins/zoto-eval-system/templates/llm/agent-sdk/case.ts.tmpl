@@ -1,0 +1,45 @@
+/**
+ * Typed case loader for the LLM backend.
+ *
+ * Cases without `_meta` (or with `_meta.generated === false`) are user-authored
+ * and MUST be treated as immutable by any updater. The runner does not care —
+ * it just runs whatever cases it finds.
+ */
+import { readFileSync } from "node:fs";
+
+export interface CaseMeta {
+  generated: boolean;
+  source_hash?: string | null;
+  last_updated?: string | null;
+  generated_by?: string | null;
+}
+
+export interface EvalCase {
+  id: number | string;
+  prompt: string;
+  expected_output?: string;
+  files?: string[];
+  assertions: string[];
+  graders?: Array<Record<string, unknown>>;
+  _meta?: CaseMeta;
+}
+
+export interface EvalFile {
+  skill_name?: string;
+  target?: string;
+  evals?: EvalCase[];
+  cases?: EvalCase[];
+}
+
+export function loadEvalFile(path: string): EvalFile {
+  const raw = readFileSync(path, "utf-8");
+  return JSON.parse(raw) as EvalFile;
+}
+
+export function casesOf(file: EvalFile): EvalCase[] {
+  return file.evals ?? file.cases ?? [];
+}
+
+export function isGenerated(c: EvalCase): boolean {
+  return Boolean(c._meta?.generated);
+}

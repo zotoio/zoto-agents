@@ -1,0 +1,73 @@
+"""Example pytest eval — shipped by zoto-eval-system/templates/static/pytest/.
+
+This file is user-authored the moment it lands in your repo. Edit, extend,
+delete, or duplicate it — /zoto-eval-update will not touch it.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from conftest import is_generated_case, load_eval_cases
+
+
+def _find_skills_evals(repo_root: Path) -> list[Path]:
+    roots = [
+        repo_root / ".cursor" / "skills",
+        repo_root / "skills",
+    ]
+    found: list[Path] = []
+    for root in roots:
+        if root.is_dir():
+            found.extend(root.glob("*/evals/evals.json"))
+    return found
+
+
+def test_eval_config_is_present(eval_config: dict) -> None:
+    """The config file is present after /zoto-eval-configure."""
+    # `eval_config == {}` is OK when no config file has been written yet.
+    assert isinstance(eval_config, dict)
+
+
+def test_manifest_is_well_formed(manifest: dict | None) -> None:
+    """If a manifest exists, it has the expected shape."""
+    if manifest is None:
+        pytest.skip("manifest.yml not present — run /zoto-eval-create first")
+
+    assert manifest.get("schema_version") == 1
+    assert "targets" in manifest
+    assert isinstance(manifest["targets"], list)
+
+
+@pytest.mark.parametrize("field", ["evalsDir", "discoveryTargets", "skillsRoots"])
+def test_config_has_key_when_present(eval_config: dict, field: str) -> None:
+    """If a config file exists, the critical fields are present."""
+    if not eval_config:
+        pytest.skip("no .zoto-eval-system/config.json yet")
+    assert field in eval_config, f"{field} missing from .zoto-eval-system/config.json"
+
+
+def test_skill_eval_files_have_assertions(repo_root: Path) -> None:
+    """Every case in every discovered evals.json has an assertions list."""
+    for evals_path in _find_skills_evals(repo_root):
+        cases = load_eval_cases(evals_path)
+        assert cases, f"no cases in {evals_path}"
+        for case in cases:
+            assertions = case.get("assertions") or []
+            assert assertions, f"case {case.get('id')} in {evals_path} missing assertions"
+
+
+def test_generated_cases_have_source_hash(repo_root: Path) -> None:
+    """Every generated case carries a sha256 source_hash."""
+    for evals_path in _find_skills_evals(repo_root):
+        for case in load_eval_cases(evals_path):
+            if not is_generated_case(case):
+                continue
+            meta = case["_meta"]
+            src = meta.get("source_hash") or ""
+            assert len(src) == 64, (
+                f"case {case.get('id')} in {evals_path}: "
+                f"_meta.source_hash must be a 64-char sha256"
+            )
