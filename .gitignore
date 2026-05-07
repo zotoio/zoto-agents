@@ -1,6 +1,3 @@
-# Legacy workspace-local eval state (migrated to .zoto/eval-system/)
-.zoto-eval-system/
-
 # Dependencies
 node_modules/
 

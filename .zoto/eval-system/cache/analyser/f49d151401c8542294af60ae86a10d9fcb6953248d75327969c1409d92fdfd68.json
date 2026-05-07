@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2",
+  "target_id": "skill:zoto-create-evals",
+  "kind": "skill",
+  "source_path": "plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md",
+  "source_hash": "f49d151401c8542294af60ae86a10d9fcb6953248d75327969c1409d92fdfd68",
+  "summary": "This skill provisions pytest and LLM eval backends together, runs discovery and ignore-aware approval handling, stamps central eval JSON only for command, agent, and hook targets while keeping skill coverage templated under each skill tree, merges package.json scripts plus dotenv, writes manifest.yml with an append-only manifest.history.yml, and finishes with eval listing, collection-only pytest, and update checks—using needs_user_input instead of askQuestion whenever configure or risky cleanup decisions are required.",
+  "cases": [
+    {
+      "scenario": "missing-config-returns-needs-configure",
+      "prompt": "`/z-eval-create` already recorded operator approvals for every discovered primitive, but this workspace tree has no `.zoto/eval-system/config.yml` yet—load zoto-create-evals and proceed with bootstrap.",
+      "expected_output": "A structured hand-off explaining that configuration must exist before scaffolding, pointing the operator at `/z-eval-configure`, with no interactive questionnaire from this skill run.",
+      "assertions": [
+        "The agent emits `needs_user_input` whose explanation states configure must run first because `.zoto/eval-system/config.yml` is absent.",
+        "No `askQuestion` tool call originates from the agent while executing this skill path."
+      ]
+    },
+    {
+      "scenario": "greenfield-create-orders-backends-and-manifest",
+      "prompt": "`/z-eval-create` finished its pre-flight checklist and approved every discovered target ID; your Task block lists that full approval set. Run zoto-create-evals to scaffold this repository for ongoing eval work.",
+      "expected_output": "Dual backends land under the configured evals directory, discovery output feeds ignore-filtered stamping, manifests capture targets with hashes, validation scripts succeed, and the closing report reminds the operator to install devDependencies—without this skill invoking `askQuestion`.",
+      "assertions": [
+        "Step 1 reads `.zoto/eval-system/config.yml` before any scaffolding subcommands run.",
+        "Step 2 runs `scripts/eval-discover.ts` (via the explore subagent) and consumes its manifest-shaped target list before stamping files.",
+        "Step 3 treats the Task-enumerated approval list as authoritative and applies `config.ignore` minimatches to canonical source paths before generation.",
+        "Step 4 copies static pytest templates into `{evalsDir}/` and LLM agent-sdk templates into `{evalsDir}/_llm/` in the same invocation.",
+        "Step 4 copies `templates/runner/test.py.tmpl` to `scripts/test.py` and copies `templates/schema/result.schema.json` into `{evalsDir}/_llm/result.schema.json`.",
+        "Per approved skill, eval intake stays under `skills/<name>/evals/evals.json` driven by `templates/skill-evals/evals.json.tmpl`, and the workflow does not invoke `eval-stamp.ts` for `skill:*` identifiers.",
+        "Step 4a runs `pnpm exec tsx scripts/eval-analyse.ts` followed by `pnpm exec tsx scripts/eval-stamp.ts` only for surviving command, agent, and hook IDs, and documentation or logs steer operators toward `hook:cursor-workspace` instead of the legacy `hook:cursor` alias.",
+        "Stamped central JSON rows include committed `fixtures` and `expected_filesystem` blocks plus `_meta.generated: true` metadata with hashes and timestamps as described in the skill contract.",
+        "Step 5 executes `scripts/package-json-merger.ts` so `dotenv` is present for the LLM runner, and the final report tells the operator to run their package manager install once.",
+        "Step 7 writes `.zoto/eval-system/manifest.yml` with `schema_version`, `created_at`, `updated_at`, `git_ref`, `generated_by: zoto-create-evals`, `discovery_config`, and a `targets` array.",
+        "The same manifest snapshot is appended to `.zoto/eval-system/manifest.history.yml` without rewriting prior history entries.",
+        "Step 8 runs `pnpm run eval:list`, `pnpm run eval -- --collect-only`, and `pnpm run eval:update --check`, each completing successfully in the reported transcript.",
+        "The skill does not modify arbitrary product source files beyond the explicit scaffold paths listed in the skill contract.",
+        "No `askQuestion` call is made by this skill implementation during the successful greenfield path."
+      ]
+    },
+    {
+      "scenario": "ignore-glob-skips-analyse-stamp-and-suggests-cleanup",
+      "prompt": "`/z-eval-create` approved every target, but `.zoto/eval-system/config.yml` now includes ignore globs for mirrored upstream trees. Run zoto-create-evals so vendored paths are skipped during generation.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "{\"evalsDir\":\"evals\",\"skillsRoots\":[\"plugins/*/skills\"],\"discoveryTargets\":[\"skill\",\"command\",\"agent\",\"hook\"],\"llm\":{\"model\":{\"id\":\"composer-2\"}},\"ignore\":[\"plugins/upstream-mirror/**\"]}"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Supplies a concrete `ignore` minimatch so Step 3 can prove `eval-analyse.ts` and `eval-stamp.ts` are not driven for matching canonical sources while still exercising the rest of the workflow contract."
+      ],
+      "expected_output": "Filtered targets skip central generation while retained targets still scaffold, and the operator guidance mentions optional `eval-cleanup-vendored` once ignore rules are active.",
+      "assertions": [
+        "For IDs whose canonical paths match `config.ignore`, the workflow does not schedule `pnpm exec tsx scripts/eval-analyse.ts` or `pnpm exec tsx scripts/eval-stamp.ts` except to observe the `{ ignored: true }` early exit when mis-invoked.",
+        "The closing guidance references `pnpm exec tsx scripts/eval-cleanup-vendored.ts` as the supported way to drop generated-only fixtures for ignored bundles after operators commit ignore rules."
+      ]
+    },
+    {
+      "scenario": "existing-root-env-template-not-replaced",
+      "prompt": "`/z-eval-create` approved the full target list on a repo that already ships a root `.env.example` curated by maintainers. Execute zoto-create-evals without clobbering that file.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.env.example",
+            "content": "CURSOR_API_KEY=\n# maintainer note retained\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Pre-seeds a repo-root `.env.example` so Step 4 must skip overwriting it and only emit a reminder about verifying `CURSOR_API_KEY=`."
+      ],
+      "expected_output": "The original `.env.example` bytes remain unchanged while the report still flags that operators should confirm the API key line exists.",
+      "assertions": [
+        "The preexisting `.env.example` content and comment line remain bit-identical after the skill completes.",
+        "The final report includes a one-line note instructing operators to verify `CURSOR_API_KEY=` without rewriting the file.",
+        "No `.env` file is created or edited by this skill run."
+      ]
+    },
+    {
+      "scenario": "manual-checklists-copied-when-enabled",
+      "prompt": "Configuration enables manual checklist delivery and `/z-eval-create` already approved the default target set—run zoto-create-evals so operators receive the human checklist artifact.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "{\"evalsDir\":\"evals\",\"skillsRoots\":[\"plugins/*/skills\"],\"discoveryTargets\":[\"skill\"],\"llm\":{\"model\":{\"id\":\"composer-2\"}},\"manualChecklists\":{\"enabled\":true},\"ignore\":[]}"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Turns on `manualChecklists.enabled` so Step 6 must materialize `templates/user-checklists/USER_EVAL_CHECKLISTS.md.tmpl` under `{evalsDir}/USER_EVAL_CHECKLISTS.md`."
+      ],
+      "expected_output": "`USER_EVAL_CHECKLISTS.md` appears inside the evals directory with the templated guidance while other scaffolding steps still occur.",
+      "assertions": [
+        "When `config.manualChecklists.enabled` is true, `{evalsDir}/USER_EVAL_CHECKLISTS.md` is created from the checklist template during the same run."
+      ]
+    },
+    {
+      "scenario": "vendored-cleanup-mixed-authorship-needs-review",
+      "prompt": "After adding aggressive ignore globs, an operator ran `pnpm exec tsx scripts/eval-cleanup-vendored.ts` and the tool reported mixed generated and hand-authored eval rows in one file. Summarize how zoto-create-evals operators should resolve that outcome.",
+      "expected_output": "Instruction to pause automation, surface `needs_user_input`, and avoid silent deletes when cleanup encounters mixed authorship.",
+      "assertions": [
+        "The agent explains that `eval-cleanup-vendored.ts` stops with `needs_user_input` when user-authored cases share files with generated rows, rather than deleting blindly."
+      ]
+    }
+  ]
+}

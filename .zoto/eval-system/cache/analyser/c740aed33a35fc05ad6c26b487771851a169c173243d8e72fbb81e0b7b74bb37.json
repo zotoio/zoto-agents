@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2",
+  "target_id": "skill:zoto-judge-spec",
+  "kind": "skill",
+  "source_path": "plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md",
+  "source_hash": "c740aed33a35fc05ad6c26b487771851a169c173243d8e72fbb81e0b7b74bb37",
+  "summary": "Eval coverage spans full-repository versus targeted spec assessments with manifest, graph, and risk auditing, then verifies the post-report repair offer and both acceptance and refusal paths while enforcing read-only assessment and spec-only edit scope.",
+  "cases": [
+    {
+      "scenario": "Repository-wide judge run writes dated assessment under specsDir",
+      "prompt": "We have not singled out one initiative file. Load the zoto-judge-spec skill and run a full repository assessment: survey the tree with an explore subagent, run read-only quality checks that match what is actually in the repo, score all six dimensions with weighted overall, and write the markdown report under the specs directory from .zoto/spec-system/config.yml using the assessment-repo-YYYYMMDD filename pattern.",
+      "expected_output": "A dated markdown report under the configured specs directory lists all six dimensions with numeric scores, a weighted overall score, verdict label aligned to the documented thresholds, strengths, an issues table with severities, dependency-graph commentary, and a risk summary table.",
+      "assertions": [
+        "Before dimension scoring, the agent delegates a broad repository survey to an explore subagent.",
+        "The agent performs read-only repository inspection suited to the visible stack (workflows, tests, lint config, docs) before scoring.",
+        "The written report includes all six dimensions named in the skill with a 1–5 score each and notes, plus an overall weighted score and Approve, Conditional, or Reject verdict.",
+        "The report path matches specsDir from .zoto/spec-system/config.yml and uses the assessment-repo-YYYYMMDD naming pattern.",
+        "No subtasks from any spec are executed and no application source, configuration, or test files are modified during the assessment.",
+        "The findings are substantive: for any dimension scored below 4, the issues table cites concrete gaps tied to observed repository facts rather than generic praise.",
+        "The assistant recommends running this judge workflow in a fresh agent context when it explains how to avoid biased reuse of earlier session details."
+      ]
+    },
+    {
+      "scenario": "Targeted spec assessment validates manifest, subtasks, graph, and risks",
+      "prompt": "Load zoto-judge-spec and assess only the auth-login initiative whose spec lives at workspace/specs/auth-login relative to the sandbox. Read the index and every subtask, spawn explore to confirm referenced paths, score all dimensions for that initiative, audit the Subtask Manifest rows against files and metadata, run the subtask-quality checklist, compare the mermaid dependency block to the manifest, document blocking and integration risks, then write assessment-auth-login-YYYYMMDD.md beside the spec files without changing any spec content before the assessment is complete.",
+      "expected_output": "The dated assessment file sits in workspace/specs/auth-login, reports scores for all six dimensions with weighted overall, includes manifest and graph findings, per-subtask quality observations, a risk summary table, and conditional remediation rows.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "specsDir: specs\n"
+          },
+          {
+            "path": "workspace/specs/auth-login/spec-index.md",
+            "content": "# Auth Login Initiative\n\n## Subtask Manifest\n\n| ID | File | Phase | Dependencies | Subagent |\n|----|------|-------|--------------|----------|\n| 01 | subtask-01.md | 1 | — | implementer |\n| 02 | subtask-02.md | 2 | 01 | implementer |\n\n## Dependency graph\n\n```mermaid\ngraph TD\n  T01[T01] --> T02[T02]\n```\n"
+          },
+          {
+            "path": "workspace/specs/auth-login/subtask-01.md",
+            "content": "# Subtask 01\n\n## Metadata\n- Phase: 1\n- Dependencies: none\n- Subagent: implementer\n\n## Objective\nIntroduce password-backed login flow.\n\n## Deliverables\n- [ ] Handler implementation with validation\n- [ ] Automated tests covering failure and success paths\n\n## Testing strategy\nRun the project test suite target that covers the new handler.\n"
+          },
+          {
+            "path": "workspace/specs/auth-login/subtask-02.md",
+            "content": "# Subtask 02\n\n## Metadata\n- Phase: 2\n- Dependencies: 01\n- Subagent: implementer\n\n## Objective\nWire login UI to the handler from subtask 01.\n\n## Deliverables\n- [ ] Screen flows for sign-in and error states\n\n## Implementation notes\nReuse existing routing conventions from the app shell.\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Supplies specsDir resolution required for canonical report paths under workspace/specs.",
+        "Provides a spec index with manifest and mermaid sections so manifest row checks and graph cross-checks have real rows and edges.",
+        "Gives a subtask file whose checklist and testing fields can be judged for clarity and completeness.",
+        "Adds a second subtask so dependency-order and phase-consistency rules can be exercised against multiple manifest rows."
+      ],
+      "assertions": [
+        "The agent reads the spec index and all subtask bodies before spawning explore for path verification.",
+        "An explore subagent run confirms referenced spec paths and repository assumptions before final scores.",
+        "Each manifest row is checked against a file that exists and against metadata fields such as dependencies, phase, and subagent assignment without inverted ID dependencies.",
+        "Each subtask file is reviewed for single objective, concrete deliverables, dependency correctness, implementation guidance, and testing plans where relevant.",
+        "The mermaid dependency diagram is compared to manifest edges and missing or over-serialized edges are called out if present.",
+        "The report includes a risk summary distinguishing blocking, scope, integration, and convention risks when applicable.",
+        "The output file is workspace/specs/auth-login/assessment-auth-login-YYYYMMDD.md and prior to finishing the assessment the agent does not edit spec-index.md or subtask markdown.",
+        "Application source, configuration, and tests outside the spec markdown set remain untouched for the whole case."
+      ]
+    },
+    {
+      "scenario": "Post-report offer and approved spec-only remediation",
+      "prompt": "Using zoto-judge-spec, assess workspace/specs/auth-login end-to-end and produce the assessment markdown in that directory.",
+      "follow_ups": [
+        "Yes — apply only the remediations you listed to the spec index and subtask markdown, update the assessment to note what you changed, then give the short bullet summary of touched files."
+      ],
+      "expected_output": "After the first turn, the assistant presents an Assessment Complete block with verdict, weighted score, a numbered findings table including Severity, Subtask, and Fix columns, and an explicit yes-or-no repair question. After approval, only spec markdown changes occur, the assessment file documents applied fixes, and the closing message enumerates modified spec paths.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "specsDir: specs\n"
+          },
+          {
+            "path": "workspace/specs/auth-login/spec-index.md",
+            "content": "# Auth Login Initiative\n\n## Subtask Manifest\n\n| ID | File | Phase | Dependencies | Subagent |\n|----|------|-------|--------------|----------|\n| 01 | subtask-01.md | 1 | — | implementer |\n| 02 | subtask-02.md | 2 | 01 | implementer |\n\n## Dependency graph\n\n```mermaid\ngraph TD\n  T01[T01] --> T02[T02]\n```\n"
+          },
+          {
+            "path": "workspace/specs/auth-login/subtask-01.md",
+            "content": "# Subtask 01\n\n## Metadata\n- Phase: 1\n- Dependencies: none\n- Subagent: implementer\n\n## Objective\nIntroduce password-backed login flow.\n\n## Deliverables\n- [ ] Handler implementation with validation\n- [ ] Automated tests covering failure and success paths\n\n## Testing strategy\nRun the project test suite target that covers the new handler.\n"
+          },
+          {
+            "path": "workspace/specs/auth-login/subtask-02.md",
+            "content": "# Subtask 02\n\n## Metadata\n- Phase: 2\n- Dependencies: 01\n- Subagent: implementer\n\n## Objective\nWire login UI to the handler from subtask 01.\n\n## Deliverables\n- [ ] Screen flows for sign-in and error states\n\n## Implementation notes\nReuse existing routing conventions from the app shell.\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Pins specsDir so the skill and evaluator agree on where auth-login reports land.",
+        "Ensures the manifest and graph exist for a complete assessment turn before the repair phase.",
+        "Provides subtask content that may receive concrete wording fixes after user approval.",
+        "Keeps two dependent subtasks so dependency edits stay in-scope when fixes target graph or manifest rows."
+      ],
+      "assertions": [
+        "After the report is written the assistant shows the Assessment Complete summary with verdict, weighted score, actionable findings table, and asks whether to apply spec-file fixes.",
+        "The user is not asked to approve edits until after that assessment table appears.",
+        "Once the user answers affirmatively, changes are limited to spec-index.md, subtask markdown, and the assessment markdown notes; no application directories receive edits.",
+        "Manifest, metadata, and mermaid adjustments stay aligned when dependencies or phases change.",
+        "The follow-up message lists each modified spec-relative path and states how many fixes were applied.",
+        "No subtask execution or production code changes occur in either turn."
+      ]
+    },
+    {
+      "scenario": "Operator refuses automated spec repairs after assessment",
+      "prompt": "Follow zoto-judge-spec for the auth-login initiative at workspace/specs/auth-login and write the assessment file there.",
+      "follow_ups": [
+        "No — do not modify spec-index.md or any subtask files; I will handle fixes manually."
+      ],
+      "expected_output": "The assessment markdown exists under workspace/specs/auth-login with full scoring tables and findings. After the refusal, spec-index.md and subtask files retain their pre-assessment contents while the assistant may restate manual next steps.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "specsDir: specs\n"
+          },
+          {
+            "path": "workspace/specs/auth-login/spec-index.md",
+            "content": "# Auth Login Initiative\n\n## Subtask Manifest\n\n| ID | File | Phase | Dependencies | Subagent |\n|----|------|-------|--------------|----------|\n| 01 | subtask-01.md | 1 | — | implementer |\n| 02 | subtask-02.md | 2 | 01 | implementer |\n\n## Dependency graph\n\n```mermaid\ngraph TD\n  T01[T01] --> T02[T02]\n```\n"
+          },
+          {
+            "path": "workspace/specs/auth-login/subtask-01.md",
+            "content": "# Subtask 01\n\n## Metadata\n- Phase: 1\n- Dependencies: none\n- Subagent: implementer\n\n## Objective\nIntroduce password-backed login flow.\n\n## Deliverables\n- [ ] Handler implementation with validation\n- [ ] Automated tests covering failure and success paths\n\n## Testing strategy\nRun the project test suite target that covers the new handler.\n"
+          },
+          {
+            "path": "workspace/specs/auth-login/subtask-02.md",
+            "content": "# Subtask 02\n\n## Metadata\n- Phase: 2\n- Dependencies: 01\n- Subagent: implementer\n\n## Objective\nWire login UI to the handler from subtask 01.\n\n## Deliverables\n- [ ] Screen flows for sign-in and error states\n\n## Implementation notes\nReuse existing routing conventions from the app shell.\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Defines specsDir for consistent relative paths in prompts and assertions.",
+        "Supplies the manifest-backed index that the assessment references.",
+        "Preserves deterministic subtask bodies so refusal can be verified by content stability.",
+        "Retains a second subtask so the assessment covers dependency context even when no edits follow."
+      ],
+      "assertions": [
+        "The assistant still delivers the Assessment Complete offer with the findings table before reacting to the refusal.",
+        "After the user declines, spec-index.md and every subtask markdown under workspace/specs/auth-login are byte-identical to the pre-assessment fixture text.",
+        "The assistant does not silently alter the assessment markdown to imply fixes were applied.",
+        "After the refusal, no further filesystem edits touch application packages, build configs, or test harnesses outside the spec markdown set."
+      ]
+    }
+  ]
+}
