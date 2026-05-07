@@ -1,21 +1,32 @@
 {
   "name": "@zoto-agents/zoto-spec-system",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
-  "description": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification.",
+  "description": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification, live execution status aggregation, and no-restart token-budget configuration.",
   "type": "module",
+  "bin": {
+    "spec-aggregator": "scripts/spec-aggregator.ts"
+  },
   "scripts": {
     "build": "tsup",
-    "test": "vitest run",
+    "test": "vitest run src scripts tests",
+    "test:integration": "vitest run tests/integration",
     "test:watch": "vitest",
     "validate": "tsx scripts/validate-plugin.ts",
     "install-local": "tsx scripts/install-local.ts",
-    "uninstall-local": "tsx scripts/uninstall-local.ts"
+    "uninstall-local": "tsx scripts/uninstall-local.ts",
+    "spec-status-roundtrip": "tsx scripts/spec-status-roundtrip.ts"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "tsup": "^8.4.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0",
     "vitest": "^3.1.0"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "yaml": "^2.8.4"
   }
 }

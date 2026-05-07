@@ -1,0 +1,88 @@
+schema_version: 1
+spec_id: 20260506-spec-system-live-status
+phase: 0
+aggregate_state: completed
+started_at: 2026-05-06T09:23:50.285Z
+updated_at: 2026-05-06T09:23:50.285Z
+aggregate_progress:
+  total: 9
+  completed: 9
+  in_progress: 0
+  blocked: 0
+  failed: 0
+subtasks:
+  - subtask_id: "01"
+    state: completed
+    status_path: specs/20260506-spec-system-live-status/status/subtask-01-spec-system-live-status-token-budget-audit-20260506.status.yml
+    last_heartbeat: 2026-05-06T08:04:23.744Z
+  - subtask_id: "02"
+    state: completed
+    status_path: specs/20260506-spec-system-live-status/status/subtask-02-spec-system-live-status-status-schemas-20260506.status.yml
+    last_heartbeat: 2026-05-06T08:03:50.886Z
+  - subtask_id: "03"
+    state: completed
+    status_path: specs/20260506-spec-system-live-status/status/subtask-03-spec-system-live-status-config-loader-20260506.status.yml
+    last_heartbeat: 2026-05-06T08:03:20.945Z
+  - subtask_id: "04"
+    state: completed
+    status_path: specs/20260506-spec-system-live-status/status/subtask-04-spec-system-live-status-executor-wiring-20260506.status.yml
+    last_heartbeat: 2026-05-06T08:17:15.949Z
+  - subtask_id: "05"
+    state: completed
+    status_path: specs/20260506-spec-system-live-status/status/subtask-05-spec-system-live-status-status-scaffold-20260506.status.yml
+    last_heartbeat: 2026-05-06T08:05:12.606Z
+  - subtask_id: "06"
+    state: completed
+    status_path: specs/20260506-spec-system-live-status/status/subtask-06-spec-system-live-status-subagent-status-ownership-20260506.status.yml
+    last_heartbeat: 2026-05-06T08:16:54.225Z
+  - subtask_id: "07"
+    state: completed
+    status_path: specs/20260506-spec-system-live-status/status/subtask-07-spec-system-live-status-aggregator-20260506.status.yml
+    last_heartbeat: 2026-05-06T08:55:42.000Z
+  - subtask_id: "08"
+    state: completed
+    status_path: specs/20260506-spec-system-live-status/status/subtask-08-spec-system-live-status-evals-20260506.status.yml
+    last_heartbeat: 2026-05-06T09:11:45.309Z
+  - subtask_id: "09"
+    state: completed
+    status_path: specs/20260506-spec-system-live-status/status/subtask-09-spec-system-live-status-docs-20260506.status.yml
+    last_heartbeat: 2026-05-06T09:04:15.139Z
+blockers: []
+definition_of_done_status:
+  - id: DOD01
+    text: All subtasks completed and adversarially verified
+    done: false
+  - id: DOD02
+    text: "`.zoto/spec-system/config.json` schema includes `subagents.*` and `aggregator.*` blocks; defaults populated in `plugins/zoto-spec-system/templates/config.json`"
+    done: false
+  - id: DOD03
+    text: "`spec-status.schema.json` and `subtask-status.schema.json` exist, are draft-07-valid, and round-trip via the helper script"
+    done: false
+  - id: DOD04
+    text: Spec creation scaffolds `status/` with the paired files for every subtask
+    done: false
+  - id: DOD05
+    text: Spawned subagents own and update their `.status.md` + `.status.yml` during execution
+    done: false
+  - id: DOD06
+    text: Aggregator rebuilds spec-root `status.md` + `status.yml` on every status-pair change and surfaces blocked/failed subtasks promptly
+    done: false
+  - id: DOD07
+    text: Token-budget changes in `.zoto/spec-system/config.json` apply to the next spawned subagent without restarting the executor (asserted by eval)
+    done: false
+  - id: DOD08
+    text: README, rule, AGENTS.md, and skill / agent / command files updated
+    done: false
+  - id: DOD09
+    text: No linter errors in modified files
+    done: false
+  - id: DOD10
+    text: Plugin tests pass (`pnpm --filter @zoto-agents/zoto-spec-system test`)
+    done: false
+config_reloaded: []
+events:
+  - at: 2026-05-06T09:23:50.285Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest f6dbd757…
+extra:
+  aggregator_digest: f6dbd75750f2ce045bcc82484fb8d8d054e9387185933888fe673ab826ac2067

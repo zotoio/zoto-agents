@@ -1,0 +1,70 @@
+schema_version: 1
+subtask_id: "04"
+feature: spec-system-live-status
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`plugins/zoto-spec-system/agents/zoto-spec-executor.md` — new section `## Live Configuration` (between `## Load Configuration` and `## Your Expertise`) that:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+  - id: D02
+    text: "`plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md` — extend the **Configuration** section table with the new keys (`subagents.default.tokenBudget`, `aggregator.pollIntervalMs`, `aggregator.debounceMs`) and add a new sub-section `### Live Reload` that:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+  - id: D03
+    text: "`plugins/zoto-spec-system/commands/zoto-spec-execute.md` — extend the **Execution safeguards** table with the row `| Live config reload | Token-budget and aggregator-cadence keys take effect on the next spawn — no executor restart required |`. Add a one-line note under the table that other keys (specsDir, unitOfWork, etc.) require a fresh invocation."
+    done: true
+    evidence_path: plugins/zoto-spec-system/commands/zoto-spec-execute.md
+  - id: D04
+    text: "`plugins/zoto-spec-system/src/spawn-prompt.ts` — pure function that builds the prompt prefix:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/src/spawn-prompt.ts
+  - id: D05
+    text: "`plugins/zoto-spec-system/src/spawn-prompt.test.ts` — vitest:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/src/spawn-prompt.test.ts
+  - id: D06
+    text: "`plugins/zoto-spec-system/scripts/spec-spawn-prefix.ts` — `tsx` CLI used by the executor LLM per spawn. Args: `--role <generator|executor|judge|subtask> --status-yml <path> --status-md <path>`. Behaviour: reads the repo root from `process.cwd()`, calls `loadConfig`, calls `resolveSubagentBudget(cfg, role)`, calls `buildSpawnPrefix({ role, tokenBudget, model, statusYmlPath, statusMdPath })`, and prints the resolved prefix to stdout. Exit 0 on success; non-zero with a structured `{ error, code }` JSON line on stderr if `loadConfig` throws (e.g. `ConfigValidationError`). The executor LLM treats a non-zero exit as \"fall back to last known prefix and emit a `kind: 'config_reload_failed'` event in the spec-root `status.yml` via the next aggregator tick\"."
+    done: true
+    evidence_path: plugins/zoto-spec-system/scripts/spec-spawn-prefix.ts
+  - id: D07
+    text: "`plugins/zoto-spec-system/scripts/spec-spawn-prefix.test.ts` — vitest:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/scripts/spec-spawn-prefix.test.ts
+  - id: D08
+    text: "**Legacy spec compatibility**: document in the agent / skill that if `<specDir>/status/` does not exist, the executor logs a one-line warning (`\"status/ directory absent — running legacy spawn path\"`), skips the `spec-aggregator --watch` background, and skips the `spec-spawn-prefix` shell-out (spawned subagents do not receive status-file paths in the prompt prefix). Subtask 08 ships an integration test covering this path. The agent doc must call this out explicitly so future maintainers don't regress legacy specs."
+    done: true
+    evidence_path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+  - id: D09
+    text: "`plugins/zoto-spec-system/docs/config-schema.md` — append a new section `## Live reload` summarising the no-restart contract. The section MUST include the canonical contract phrase verbatim: **Token budget changes apply to the next spawned subagent without restarting the executor.** (Full prose lives in subtask 09's docs sweep — this subtask adds the bare minimum so subtask 04's tests and subtask 09's grep DoD can find the phrase.)"
+    done: true
+    evidence_path: plugins/zoto-spec-system/docs/config-schema.md
+artifacts:
+  - path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+    kind: modified
+    note: Live
+  - path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+    kind: modified
+    note: Config
+  - path: plugins/zoto-spec-system/commands/zoto-spec-execute.md
+    kind: modified
+    note: Execution
+  - path: plugins/zoto-spec-system/docs/config-schema.md
+    kind: modified
+    note: Live
+  - path: plugins/zoto-spec-system/scripts/spec-spawn-prefix.test.ts
+    kind: modified
+    note: CLI
+errors: []
+notes: ""
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-06T08:30:00.000Z
+    notes: "All D01-D09 confirmed on disk: Live Configuration section in executor agent (lines 21-45) between Load Configuration and Your Expertise with canonical phrase verbatim, live/fresh key sets, spawn-prefix shell-out, and Legacy spec compatibility subsection; SKILL.md Configuration table extended (lines 19-21) plus Live Reload subsection (lines 23-41) with canonical phrase and ConfigValidationError fallback (last-good-config + kind: config_reload_failed); zoto-spec-execute.md Execution safeguards row (line 57) plus fresh-invocation note (lines 59-61); spawn-prompt.ts exports buildSpawnPrefix matching SpawnContext signature; spawn-prompt.test.ts covers verbatim wording, both paths, mocked resolveSubagentBudget; spec-spawn-prefix.ts CLI honours --role/--status-yml/--status-md, uses loadConfig(process.cwd()), prints structured {error,code} JSON on stderr on failure; spec-spawn-prefix.test.ts covers verbatim prefix, malformed-config exit code, subtask role override. pnpm --filter @zoto-agents/zoto-spec-system test = 51/51 pass; validate = 48/48 pass; smoke `tsx spec-spawn-prefix.ts --role subtask --status-yml /tmp/x.yml --status-md /tmp/x.md` prints verbatim prefix with budget 200000. Canonical phrase 'Token budget changes apply to the next spawned subagent without restarting the executor.' present in executor agent, skill, and docs/config-schema.md. `Token budget:` greps return spawn-prompt.ts, both test files, executor agent, skill — wording is consistent. .zoto/spec-system/config.yml is only read via loadConfig (config-loader.ts and spec-spawn-prefix.ts via the loader); no bypass. md/yml roundtrip diff = empty. Soft note: artifacts[] is non-empty (5 entries) but does not list the three new source files (src/spawn-prompt.ts, src/spawn-prompt.test.ts, scripts/spec-spawn-prefix.ts) — DoD only requires non-empty so this is informational, not a failure."
+last_heartbeat: 2026-05-06T08:17:15.949Z
+started_at: 2026-05-06T08:14:47.514Z
+completed_at: 2026-05-06T08:17:15.949Z

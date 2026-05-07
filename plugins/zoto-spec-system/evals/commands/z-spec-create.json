@@ -1,0 +1,164 @@
+{
+  "command_name": "z-spec-create",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/z-spec-create",
+      "assertions": [
+        "After `/z-spec-create`, the visible assistant output MUST present the exact abort text requiring `/z-spec-init` and `.zoto/spec-system/config.yml` without fabricating a default config.",
+        "After `/z-spec-create`, no new dated feature directory MUST appear under `specs/` on disk."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
+        "last_updated": "2026-05-07T10:46:43.812Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
+          "analysed_at": "2026-05-07T10:46:43.812Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status."
+        }
+      },
+      "expected_output": "The assistant refuses immediately, prints the mandated initialisation message, and does not spawn the generator or write specs."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-spec-create",
+      "assertions": [
+        "After `/z-spec-create`, the manifest or transcript MUST show a `zoto-spec-generator` delegation carrying an empty argument list consistent with the no-argument mode.",
+        "After `/z-spec-create`, clarifying user prompts MUST appear before any write creating `{specsDir}/[yyyymmdd]-[feature-name]/spec-[feature-name]-[yyyymmdd].md`.",
+        "After `/z-spec-create`, the new spec tree MUST include at least one `subtask-NN-` markdown file beside the coordination index inside the dated directory."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
+        "last_updated": "2026-05-07T10:46:43.812Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
+          "analysed_at": "2026-05-07T10:46:43.812Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status.",
+          "fixture_justifications": [
+            "Supplies the repository-root Spec System config so the precondition succeeds in sandboxes that have not run `/z-spec-init`."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "specsDir: specs\n"
+          }
+        ]
+      },
+      "expected_output": "The assistant routes work through the generator skill path, asks scope questions before locking filenames, and only then drafts the coordination index and subtasks under a new dated folder beneath the configured specs directory."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "/z-spec-create @workspace/docs/northstar-brief.md",
+      "assertions": [
+        "After `/z-spec-create @workspace/docs/northstar-brief.md`, tool activity MUST show the generator read `workspace/docs/northstar-brief.md` before drafting subtasks.",
+        "After `/z-spec-create @workspace/docs/northstar-brief.md`, the filesystem MUST contain `{specsDir}/[yyyymmdd]-[feature-name]/spec-[feature-name]-[yyyymmdd].md` and at least one `subtask-NN-[feature]-[name]-[yyyymmdd].md` sibling following the documented naming pattern."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
+        "last_updated": "2026-05-07T10:46:43.812Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
+          "analysed_at": "2026-05-07T10:46:43.812Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status.",
+          "fixture_justifications": [
+            "Ensures the Spec System precondition passes without assuming prior operator setup.",
+            "Provides a concrete design memo so the file-reference argument pathway can be exercised deterministically."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "specsDir: specs\n"
+          },
+          {
+            "path": "workspace/docs/northstar-brief.md",
+            "content": "# Northstar brief\n\nDeliver resumable batch export with integrity verification for large workspaces. Non-goals: interactive preview in the first release.\n"
+          }
+        ]
+      },
+      "expected_output": "The assistant ingests the brief, aligns phases to its constraints, and materialises a dated specs folder with a coordination file plus numbered subtasks that reference those requirements."
+    },
+    {
+      "id": 4,
+      "prompt": "/z-spec-create \"Add resilient offline queueing to the ingestion worker\"",
+      "assertions": [
+        "After `/z-spec-create`, the spawned generator payload MUST preserve the provided quoted description as the scope input rather than substituting an unrelated initiative title before discovery completes.",
+        "After `/z-spec-create`, created markdown filenames under the dated directory MUST embed a slug derived from the ingestion worker scope together with the same calendar date stamp used in the parent folder name."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
+        "last_updated": "2026-05-07T10:46:43.812Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
+          "analysed_at": "2026-05-07T10:46:43.812Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status.",
+          "fixture_justifications": [
+            "Initialises Spec System so the command proceeds past the precondition in minimal workspaces."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "specsDir: specs\n"
+          }
+        ]
+      },
+      "expected_output": "The assistant forwards the quoted initiative text into the generator, derives a slug and date-structured folder, and writes matching coordination and subtask files that stay anchored to that scope."
+    },
+    {
+      "id": 5,
+      "prompt": "/z-spec-create",
+      "assertions": [
+        "Before calling the spec complete, the transcript MUST record `pnpm run spec-status-roundtrip -- scaffold` (or a direct invocation producing the same paired artifacts) creating matching `.status.md` and `.status.yml` files under the dated `status/` directory for each subtask.",
+        "After the approval follow-up, the manifest MUST note a `zoto-spec-judge` engagement and the spec status MUST read Ready for Review in the written status artifacts."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
+        "last_updated": "2026-05-07T10:46:43.812Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
+          "analysed_at": "2026-05-07T10:46:43.812Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status.",
+          "fixture_justifications": [
+            "Provides the config file the command requires so later steps can execute end-to-end in the sandbox."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "specsDir: specs\n"
+          }
+        ]
+      },
+      "expected_output": "The assistant finishes drafting, runs the status round-trip scaffolder, presents a review summary, honours approval, brings in the judge agent, and marks the bundle Ready for Review.",
+      "follow_ups": [
+        "Approve the printed spec summary and run the quality gate now."
+      ]
+    }
+  ]
+}

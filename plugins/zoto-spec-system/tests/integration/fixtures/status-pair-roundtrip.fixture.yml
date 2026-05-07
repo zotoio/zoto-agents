@@ -1,0 +1,37 @@
+schema_version: 1
+subtask_id: "08"
+feature: spec-system-live-status
+assigned_agent: zoto-plugin-manager
+model: composer-2-fast
+token_budget: 200000
+state: in_progress
+started_at: "2026-05-06T08:00:00.000Z"
+last_heartbeat: "2026-05-06T09:00:00.000Z"
+checklist:
+  - id: D01
+    text: First deliverable for round-trip
+    done: true
+    evidence_path: /tmp/evidence-d01.txt
+  - id: D02
+    text: Second deliverable for round-trip
+    done: false
+    evidence_path: null
+  - id: D03
+    text: Third deliverable for round-trip
+    done: false
+    evidence_path: null
+artifacts:
+  - path: plugins/zoto-spec-system/src/foo.ts
+    kind: created
+    note: scaffolded helper
+  - path: plugins/zoto-spec-system/README.md
+    kind: modified
+    note: null
+errors:
+  - at: "2026-05-06T07:30:00.000Z"
+    message: Sample validation noise before fix
+    severity: error
+notes: |
+  Fixture notes for integration round-trip.
+
+extra: {}

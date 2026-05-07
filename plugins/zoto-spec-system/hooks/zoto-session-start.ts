@@ -1,24 +1,30 @@
 #!/usr/bin/env node
 /**
  * Session start hook: nudge when workDir contains more items than threshold.
+ *
+ * Reads `.zoto/spec-system/config.yml` (the only supported config path).
+ * If the file is missing the hook stays silent; the user must run
+ * `/z-spec-init` to scaffold one.
  */
 
-import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import YAML from "yaml";
 
 const DEFAULT_UNIT = "spec";
 const DEFAULT_WORK_DIR = "specs/current";
 const DEFAULT_THRESHOLD = 20;
 const DEFAULT_MESSAGE =
-  "You have ${count} unprocessed ${unitOfWork}s. Consider running /zoto-spec-create to organize.";
+  "You have ${count} unprocessed ${unitOfWork}s. Consider running /z-spec-create to organize.";
 
 function emitEmpty(): void {
   process.stdout.write("{}\n");
 }
 
-function loadJson(path: string): unknown {
+function loadYaml(path: string): unknown {
   try {
-    return JSON.parse(readFileSync(path, "utf-8"));
+    const raw = YAML.parse(readFileSync(path, "utf-8"));
+    return raw ?? {};
   } catch {
     return undefined;
   }
@@ -47,9 +53,33 @@ function main(): void {
   }
 
   const root = process.cwd();
-  const configPath = join(root, ".zoto-spec-system", "config.json");
 
-  const cfg = loadJson(configPath);
+  // Auto-migrate legacy .zoto-spec-system/ → .zoto/spec-system/
+  const legacyDir = join(root, ".zoto-spec-system");
+  const newDir = join(root, ".zoto", "spec-system");
+  if (existsSync(legacyDir) && !existsSync(newDir)) {
+    try {
+      mkdirSync(dirname(newDir), { recursive: true });
+      renameSync(legacyDir, newDir);
+      const oldCfg = join(newDir, "config.json");
+      const newCfg = join(newDir, "config.yml");
+      if (existsSync(oldCfg) && !existsSync(newCfg)) {
+        try {
+          const json = JSON.parse(readFileSync(oldCfg, "utf-8"));
+          writeFileSync(newCfg, YAML.stringify(json), "utf-8");
+          unlinkSync(oldCfg);
+        } catch {
+          renameSync(oldCfg, newCfg);
+        }
+      }
+    } catch {
+      /* best-effort; loadConfig will handle the fallback */
+    }
+  }
+
+  const configPath = join(root, ".zoto", "spec-system", "config.yml");
+
+  const cfg = loadYaml(configPath);
   if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) {
     emitEmpty();
     return;
