@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for command `z-spec-init`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,93 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "first-run-writes-init-template-and-prints-guidance",
+    "prompt": "/z-spec-init",
+    "assertions": [
+      "After `/z-spec-init`, `workspace/.zoto/spec-system/config.yml` exists and matches `plugins/zoto-spec-system/templates/init-config.yml` byte-for-byte.",
+      "The sole success line names an absolute path whose suffix is `.zoto/spec-system/config.yml`, reminds that defaults remain commented-out until uncommented, and names `plugins/zoto-spec-system/docs/config-schema.md` for fuller reference.",
+      "The process exits with status zero without invoking `/z-spec-create`, `/z-spec-execute`, or `/z-spec-judge` during this step."
+    ],
+    "assertion_patterns": [
+      "/z-spec-init",
+      "\\.zoto/spec-system/config\\.yml",
+      "/z-spec-create"
+    ],
+    "expected_filesystem": {
+      "created": [
+        "workspace/.zoto/spec-system/config.yml"
+      ]
+    },
+    "expected_output": "The command exits successfully, creates `.zoto/spec-system/config.yml` at the resolved repository root with the same bytes as `plugins/zoto-spec-system/templates/init-config.yml`, and prints one line that includes an absolute path to that file, notes that defaults stay commented until overrides are uncommented, and cites `plugins/zoto-spec-system/docs/config-schema.md`. No other Spec System slash command should run."
+  },
+  {
+    "id": "existing-config-stops-a-plain-init",
+    "prompt": "/z-spec-init",
+    "assertions": [
+      "The command exits non-zero and surfaces `.zoto/spec-system/config.yml already exists; pass --force to overwrite` without introducing alternate wording that hides `--force`.",
+      "The file `workspace/.zoto/spec-system/config.yml` keeps the line `prior: retained` verbatim, confirming no silent overwrite occurred."
+    ],
+    "assertion_patterns": [
+      "\\.zoto/spec-system/config\\.yml already exists; pass --force to overwrite",
+      "workspace/\\.zoto/spec-system/config\\.yml"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/spec-system/config.yml",
+          "content": "# operator lock\nprior: retained\n"
+        }
+      ]
+    },
+    "expected_output": "The command exits with a failure status without touching the on-disk YAML beyond what was already present, and reports that the configuration path already exists and that `--force` is required to replace it."
+  },
+  {
+    "id": "forced-init-replaces-an-older-file",
+    "prompt": "/z-spec-init --force",
+    "assertions": [
+      "After `/z-spec-init --force`, `workspace/.zoto/spec-system/config.yml` equals `plugins/zoto-spec-system/templates/init-config.yml` exactly, removing the seeded `prior: superseded-by-init` marker.",
+      "The success line includes the refreshed absolute destination path plus the reminders about commented defaults and the pointer to `plugins/zoto-spec-system/docs/config-schema.md`.",
+      "The process exits with status zero despite the earlier file contents."
+    ],
+    "assertion_patterns": [
+      "/z-spec-init --force",
+      "plugins/zoto-spec-system/docs/config-schema\\.md"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/spec-system/config.yml",
+          "content": "# stale scaffold\nprior: superseded-by-init\n"
+        }
+      ]
+    },
+    "expected_output": "The command exits successfully, restores the bundled init-template contents even though a file existed, and repeats the same confirmation pattern as the first-run scenario."
+  },
+  {
+    "id": "broken-install-without-init-template-yields-explicit-path-failure",
+    "prompt": "/z-spec-init",
+    "assertions": [
+      "Exit status is non-zero when the template cannot be read.",
+      "Diagnostics include the substring `templates/init-config.yml not found at ` followed by the concrete resolver path Cursor tried.",
+      "No partial `.zoto/spec-system/config.yml` is created when the template read fails before writing."
+    ],
+    "assertion_patterns": [
+      "templates/init-config\\.yml not found at ",
+      "\\.zoto/spec-system/config\\.yml"
+    ],
+    "expected_output": "Because `plugins/zoto-spec-system/templates/init-config.yml` is unreadable, the command aborts immediately with non-zero status and prints that `templates/init-config.yml not found at` alongside the filesystem path Cursor attempted."
+  }
+];
+const TARGET_ID = "command:z-spec-init";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("command:z-spec-init", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +299,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

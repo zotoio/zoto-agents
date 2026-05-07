@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for command `z-eval-judge`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,112 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "hard-stop-when-eval-system-config-is-missing",
+    "prompt": "/z-eval-judge",
+    "assertions": [
+      "The assistant message is exactly: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+      "No `zoto-eval-judge` subagent or `zoto-judge-evals` skill workflow starts and `llm.yml` under any `evals/_runs/` path is untouched."
+    ],
+    "assertion_patterns": [
+      "/z-eval-init",
+      "zoto-eval-judge"
+    ],
+    "expected_output": "A single refusal that tells the operator to initialise the eval system first, without opening run directories or editing YAML under evals."
+  },
+  {
+    "id": "happy-path-annotates-newest-run-directory-into-llm-yml",
+    "prompt": "/z-eval-judge",
+    "assertions": [
+      "After `/z-eval-judge`, `workspace/evals/_runs/20260507120000Z/llm.yml` contains a newly appended top-level `judge` mapping that was absent in the fixture.",
+      "The command run spawns a `zoto-eval-judge` subagent wired to the `zoto-judge-evals` skill before mutating `llm.yml`.",
+      "The judge narrative references signals that could only come from `static.yml`, `llm.yml`, `report.yml`, and `logs/case-a.log` together (for instance citing the passing total and the logged turn text).",
+      "`workspace/evals/_runs/20260507120000Z/static.yml` and `workspace/evals/_runs/20260507120000Z/report.yml` are not deleted or replaced wholesale; only `llm.yml` receives the documented append-only edit."
+    ],
+    "assertion_patterns": [
+      "/z-eval-judge",
+      "zoto-eval-judge",
+      "static\\.yml",
+      "workspace/evals/_runs/20260507120000Z/static\\.yml"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/eval-system/config.yml",
+          "content": "evalsDir: evals\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260507120000Z/static.yml",
+          "content": "totals:\n  passed: 1\n  failed: 0\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260507120000Z/llm.yml",
+          "content": "runs:\n  primary:\n    cases:\n      - id: case-a\n        verdict: pass\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260507120000Z/report.yml",
+          "content": "totals:\n  passed: 1\n  failed: 0\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260507120000Z/logs/case-a.log",
+          "content": "turn 0: assistant summarised coverage\n"
+        }
+      ]
+    },
+    "expected_output": "The subagent finishes analysis, `llm.yml` in that run folder contains a new `judge` section summarising findings from the loaded artefacts, and `static.yml` plus `report.yml` stay consistent with a read-only pass."
+  },
+  {
+    "id": "askquestion-handoff-to-z-eval-update-then-resumes",
+    "prompt": "/z-eval-judge",
+    "follow_ups": [
+      "Choose the handoff option that runs `/z-eval-update` next."
+    ],
+    "assertions": [
+      "Immediately after `/z-eval-judge` while `report.yml` advertises `needs_user_input` for `/z-eval-update`, the assistant calls `askQuestion` whose choices name that command.",
+      "After the follow-up answer selecting `/z-eval-update`, the assistant resumes with the chosen handoff and does not emit the identical `askQuestion` card again on the next turn.",
+      "Throughout the loop, `workspace/evals/_runs/20260507120000Z/llm.yml` still receives the append-only `judge` block expected from the analysis pass."
+    ],
+    "assertion_patterns": [
+      "/z-eval-judge",
+      "/z-eval-update",
+      "workspace/evals/_runs/20260507120000Z/llm\\.yml"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/eval-system/config.yml",
+          "content": "evalsDir: evals\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260507120000Z/static.yml",
+          "content": "totals:\n  passed: 0\n  failed: 1\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260507120000Z/llm.yml",
+          "content": "runs:\n  primary:\n    cases:\n      - id: case-b\n        verdict: fail\n        graders:\n          - type: regex\n            pattern: \"^$\"\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260507120000Z/report.yml",
+          "content": "needs_user_input:\n  kind: handoff\n  propose_command: /z-eval-update\n  detail: Regex grader cannot substantiate the assertion.\ntotals:\n  passed: 0\n  failed: 1\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260507120000Z/logs/case-b.log",
+          "content": "turn 0: assistant noted brittle grading\n"
+        }
+      ]
+    },
+    "expected_output": "First turn surfaces `askQuestion` options that include `/z-eval-update`; after the operator picks that path, the assistant resumes the judge flow without repeating the same prompt."
+  }
+];
+const TARGET_ID = "command:z-eval-judge";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("command:z-eval-judge", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +318,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

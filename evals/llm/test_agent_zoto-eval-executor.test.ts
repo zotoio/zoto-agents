@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for agent `zoto-eval-executor`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,82 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "static-harness-emits-judge-ready-run-artifacts",
+    "prompt": "Run the configured static eval lane now—the path that behaves like `/z-eval-execute` without `--full`. I need the split `static.yml` output plus the merged `report.yml` populated under today’s fresh `evals/_runs/<timestamp>/` bundle so downstream judge and compare steps can ingest the snapshot. Respect whatever `static.framework`, `llm.strategy`, and `llm.codeFramework` are pinned in `.zoto/eval-system/config.yml`; do not escalate into the LLM backend for this turn. After the orchestrated harness finishes, run the mandated drift bookkeeping pass tied to `zoto-update-evals`.",
+    "assertions": [
+      "Before launching work, the executor ingested `.zoto/eval-system/config.yml` and carried `static.framework`, `llm.strategy`, and `llm.codeFramework` forward into whichever stamped runner wiring the orchestrator selects instead of hard-coding a framework assumption.",
+      "The active skill path behaved like `zoto-execute-evals`, delegating to the host repo’s `pnpm run eval` entrypoint rather than spawning `pytest`, `vitest`, or `jest` CLIs directly.",
+      "Working directory artefacts under `evals/_runs/<timestamp>/` include `static.yml` plus merged `report.yml`, preserving the downstream judge and comparer layout contract.",
+      "After the orchestrated harness exited, `pnpm run eval:update --check` executed once and appended a `drift:` block beneath the freshest run folder’s `llm.yml`, leaving the originating pass verdict untouched.",
+      "The executor surfaced zero `askQuestion` tool interactions while clarifying prerequisites or statuses for this lane."
+    ],
+    "assertion_patterns": [
+      "\\.zoto/eval-system/config\\.yml",
+      "zoto-execute-evals",
+      "evals/_runs/<timestamp>/",
+      "pnpm run eval:update --check",
+      "askQuestion"
+    ],
+    "expected_output": "The executor returns a completion payload describing a finished static-only orchestration rooted in stamped `pnpm run eval` tooling, cites the `_runs` directory timestamp it produced, confirms `static.yml` and merged `report.yml` landed alongside the lane’s `llm.yml`, notes the appended `drift:` section from the post-run update check, and records that no LLM runner was touched so the pass stayed static-only."
+  },
+  {
+    "id": "full-harness-proceeds-once-cursor-credentials-resolve",
+    "prompt": "Kick off `/z-eval-execute --full` now. My setup relies on repo-root `.env` auto-loaded through `dotenv/config`, where an uncommented `CURSOR_API_KEY` line satisfies the Cursor API gate even if the terminal never exported it—honour that precedence, gate the LLM backend only after the secret resolves, run the aggregated static-plus-LLM lane, then complete the scripted drift bookkeeping the agent doc describes without falling back to interactive prompts.",
+    "assertions": [
+      "The executor refused to invoke the LLM runner until `--full` was active and either `CURSOR_API_KEY` was visible in process environment variables or surfaced through uncommented `.env` material read via `dotenv/config`.",
+      "The orchestrator launched `pnpm run eval:full` so static and LLM harness layers ran behind the sanctioned package.json router instead of ad hoc binaries.",
+      "Run telemetry stayed aligned with both `zoto-execute-evals` orchestration sequencing and `zoto-update-evals`-style hygiene by chaining `pnpm run eval:update --check` afterwards.",
+      "The returned payload contains no transcript lines showing `askQuestion` calls while satisfying or declining the Cursor credential precondition."
+    ],
+    "assertion_patterns": [
+      "--full",
+      "pnpm run eval:full",
+      "zoto-execute-evals",
+      "askQuestion"
+    ],
+    "expected_output": "The completion narrative documents a guarded transition into `pnpm run eval:full`, explains that the Cursor secret was accepted either from exported `process.env.CURSOR_API_KEY` or the repo-root `.env` line the runner loads automatically, summaries that both static and LLM portions finished under the consolidated script, repeats that `pnpm run eval:update --check` appended drift into the same run bundle’s `llm.yml`, and confirms no credential prompts relied on `askQuestion`."
+  },
+  {
+    "id": "forwarded-model-travels-through-cli-flag-and-ambient-export",
+    "prompt": "Execute `/z-eval-execute --full --model opus-4-6`; the delegated Task envelope already exposes that model slug. Carry it through precisely as the markdown mandates: propagate the identifier as a `--model` CLI argument to the runner while also exporting `ZOTO_EVAL_MODEL` for the spawned process so tooling that reads env vars stays consistent. Maintain the Cursor credential precondition before any LLM work starts.",
+    "assertions": [
+      "Documentation-level model forwarding manifested as concurrent `--model` CLI wiring plus a `ZOTO_EVAL_MODEL` environment assignment before the harness executed LLM graders.",
+      "The executor still withheld LLM subprocess creation until `--full` stayed engaged and Cursor API credentials remained resolvable exactly as prescribed.",
+      "Telemetry references show the honoured command remained `pnpm run eval:full` rather than invoking runner entrypoints bypassing package.json scripts."
+    ],
+    "assertion_patterns": [
+      "--model",
+      "--full",
+      "pnpm run eval:full"
+    ],
+    "expected_output": "The summary states the LLM runner launched with both an explicit `--model opus-4-6` argument and a `ZOTO_EVAL_MODEL` environment binding matching the same slug, notes the prior credential gate clearance, mentions completion of both static and LLM portions through `pnpm run eval:full`, and records drift attachment via `pnpm run eval:update --check` without interactive questioning."
+  },
+  {
+    "id": "credential-gap-returns-structured-steerage-without-interactive-tooling",
+    "prompt": "Attempt `/z-eval-execute --full` when `CURSOR_API_KEY` is absent from exported environment variables, uncommented `.env at repo root lacks the key`, and upstream `/z-eval-execute never pre-resolved continuation intent`; stop before any LLM runner starts and hand control back cleanly. Surface the mandated `needs_user_input` continuation object that contrasts aborting against switching to static-only continuation—never route that decision through interactive question tooling.",
+    "assertions": [
+      "Because neither exported `CURSOR_API_KEY` nor repo-root `.env` supplied a usable secret, the executor returned `needs_user_input` with explicit abort versus static-only guidance instead of launching the LLM runner.",
+      "No LLM runner process started while the `--full` request lacked a satisfiable Cursor API secret, satisfying the dual gate on full-mode execution.",
+      "The interaction log contains no `askQuestion` requests even while explaining the credential shortfall."
+    ],
+    "assertion_patterns": [
+      "CURSOR_API_KEY",
+      "--full",
+      "askQuestion"
+    ],
+    "expected_output": "The executor emits a structured `needs_user_input` payload enumerating guarded choices between aborting the full lane and resuming strictly static harness coverage, cites that no Cursor secret was obtainable from environment or `.env`, emphasises zero LLM runner dispatch occurred, and shows transcript silence for `askQuestion`."
+  }
+];
+const TARGET_ID = "agent:zoto-eval-executor";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("agent:zoto-eval-executor", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +288,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

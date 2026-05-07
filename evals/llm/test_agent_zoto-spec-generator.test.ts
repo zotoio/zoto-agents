@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for agent `zoto-spec-generator`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,118 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "configured-directories-drive-scaffolding-vocabulary",
+    "prompt": "Break down the OAuth token refresh hardening effort into an executable engineering initiative with numbered subtasks; follow our spec-system workflow and honor whichever directories the repository configuration assigns.",
+    "assertions": [
+      "User-visible wording adopts the configured initiative term after consulting `.zoto/spec-system/config.yml`.",
+      "Markdown artifacts appear only beneath `planning/specs/` with dated initiative folder layout consistent with the configured specs directory.",
+      "Before drafting subtasks the agent dispatches an explore-focused reconnaissance pass over pertinent modules.",
+      "After summarizing key decisions the agent waits for explicit approval prior to creating files on disk.",
+      "The index includes a mermaid dependency graph whose nodes expose subtask numbers via leading two-digit labels or `subtask-NN` substrings without embedding hand-authored `classDef` or `class` lines intended for aggregator-managed styling.",
+      "Following scaffolding the agent invokes zoto-spec-judge and presents that assessment before handing the initiative back for human review.",
+      "Scheduling commentary acknowledges at most three concurrent subagents when parallel phases arise, honoring `spec.parallelLimit`.",
+      "Planning or judge narration stresses adversarial verification expectations aligned with `spec.adversarialVerification` being true.",
+      "When routing new intake items the agent references `planning/specs/current`, consistent with the configured `workDir`.",
+      "With memory disabled the assistant issues no unsolicited reminders about memory plugins capturing lessons."
+    ],
+    "assertion_patterns": [
+      "\\.zoto/spec-system/config\\.yml",
+      "planning/specs/",
+      "subtask-NN",
+      "spec\\.parallelLimit",
+      "spec\\.adversarialVerification",
+      "planning/specs/current"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/spec-system/config.yml",
+          "content": "unitOfWork: initiative\nspecsDir: planning/specs\nworkDir: planning/specs/current\nspec:\n  maxSubtasks: 12\n  parallelLimit: 3\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: false\n"
+        }
+      ]
+    },
+    "expected_output": "The assistant reads configuration, speaks using the configured initiative term, queues discussion toward the configured work directory when relevant, explores the codebase before drafting subtasks, seeks approval before writing files, emits markdown only under the configured specs directory tree with index and paired subtask files, includes a properly labeled mermaid dependency graph without author-managed class styling, spawns zoto-spec-judge before declaring readiness, frames adversarial verification expectations, respects the concurrent subagent ceiling when discussing parallelism, and omits memory-plugin chatter while memory stays disabled."
+  },
+  {
+    "id": "command-palette-creation-cadence",
+    "prompt": "/z-spec-create migrating our background job runner to a queue-backed Postgres worker pool with idempotent consumers—stay inside vendors we already operate.",
+    "follow_ups": [
+      "Budget stays on existing regions and binaries; no net-new hosted services beyond Postgres already running."
+    ],
+    "assertions": [
+      "Clarifying prompts arrive at most once per assistant turn until scope constraints are settled.",
+      "No edits touch application source outside the spec-system markdown tree during planning."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "The assistant drives the guided creation flow with narrowly scoped clarifications, explores affected job runner code, confirms structural decisions, writes markdown planning artifacts exclusively under the specs directory from configuration, and finishes with judge output before closure."
+  },
+  {
+    "id": "parallel-phase-testing-discipline",
+    "prompt": "Produce the structured initiative package for splitting monolithic payment webhook handling into modular validators; include phases that could run concurrently once execution starts.",
+    "assertions": [
+      "Every authored subtask file carries explicit guidance forbidding repository-wide automated tests during parallel execution phases."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "Subtask markdown repeats that parallel phases must run targeted tests only and defer whole-repository suites until later verification."
+  },
+  {
+    "id": "memory-extension-acknowledgment",
+    "prompt": "Stand up the rate-limit telemetry dashboards initiative through our standard spec workflow so downstream agents know how to instrument collectors.",
+    "assertions": [
+      "Final messaging mentions that `org-memory-recorder` may capture learnings after execution while clarifying this agent does not perform memory writes itself."
+    ],
+    "assertion_patterns": [
+      "org-memory-recorder"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/spec-system/config.yml",
+          "content": "unitOfWork: initiative\nspecsDir: specs\nworkDir: specs/current\nspec:\n  maxSubtasks: 99\n  parallelLimit: 4\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: true\n    plugin: org-memory-recorder\n"
+        }
+      ]
+    },
+    "expected_output": "After judging completes the assistant closes by noting the named memory plugin may ingest lessons once execution finishes."
+  },
+  {
+    "id": "maxsubtasks-ceiling-binds-decomposition",
+    "prompt": "Produce the finest-grained feasible decomposition for rewriting our configuration loader while preserving backward compatibility across every consumer surface.",
+    "assertions": [
+      "The subtask manifest enumerates at most five numbered initiatives matching `spec.maxSubtasks`."
+    ],
+    "assertion_patterns": [
+      "spec\\.maxSubtasks"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/spec-system/config.yml",
+          "content": "unitOfWork: initiative\nspecsDir: specs\nworkDir: specs/current\nspec:\n  maxSubtasks: 5\n  parallelLimit: 4\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: false\n"
+        }
+      ]
+    },
+    "expected_output": "The assistant respects the five-subtask ceiling while still delivering coherent phased coverage and completes judge review."
+  },
+  {
+    "id": "decline-immortalizing-coordination-markdown",
+    "prompt": "The OAuth initiative package reads perfectly—mirror its narrative into `docs/architecture` as everlasting reference material and delete the dated copies under specs.",
+    "assertions": [
+      "The assistant rejects relocating spec narratives into immortal documentation hierarchies outside the spec-system workflow."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "The assistant refuses to promote spec markdown into permanent architecture canon or discard audit-oriented coordination artifacts, reaffirming their ephemeral role."
+  }
+];
+const TARGET_ID = "agent:zoto-spec-generator";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("agent:zoto-spec-generator", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +324,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

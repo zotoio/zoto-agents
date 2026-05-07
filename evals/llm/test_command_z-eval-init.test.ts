@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for command `z-eval-init`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,97 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "baseline-init-scaffolds-config-and-confirmation-line",
+    "prompt": "/z-eval-init",
+    "assertions": [
+      "After `/z-eval-init`, the repository contains `workspace/.zoto/eval-system/config.yml` with the same structure as `plugins/zoto-eval-system/templates/init-config.yml`, including the banner that every supported key is commented and the inline pointer to `plugins/zoto-eval-system/templates/schema/config.schema.json`.",
+      "The parent directory `workspace/.zoto/eval-system/` is created with mkdir-style semantics whenever it was missing before the run.",
+      "The visible completion output does not launch the configurer skill, does not open an `askQuestion` interview, and does not chain into `/z-eval-create`, `/z-eval-execute`, `/z-eval-judge`, `/z-eval-update`, `/z-eval-compare`, or `/z-eval-help`."
+    ],
+    "assertion_patterns": [
+      "/z-eval-init",
+      "workspace/\\.zoto/eval-system/",
+      "askQuestion"
+    ],
+    "expected_output": "One confirmation line naming the absolute filesystem path of `.zoto/eval-system/config.yml`, clarifying that behaviour stays identical to internal defaults until specific keys are uncommented, naming `plugins/zoto-eval-system/templates/schema/config.schema.json`, and steering people toward `/z-eval-configure` for guided setup."
+  },
+  {
+    "id": "second-init-without-force-stops-with-contract-error",
+    "prompt": "/z-eval-init",
+    "assertions": [
+      "The process or tool invocation ends with a non-zero status or an explicit Cursor failure state.",
+      "The error text contains the sentence `.zoto/eval-system/config.yml already exists; pass --force to overwrite`.",
+      "The on-disk contents of `workspace/.zoto/eval-system/config.yml` remain the pre-run version with the pinned `runs.retention` value."
+    ],
+    "assertion_patterns": [
+      "\\.zoto/eval-system/config\\.yml already exists; pass --force to overwrite",
+      "workspace/\\.zoto/eval-system/config\\.yml"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/eval-system/config.yml",
+          "content": "# pinned for idempotency check\nruns:\n  retention: 3\n"
+        }
+      ]
+    },
+    "expected_output": "A non-success tool or shell result whose text repeats that `.zoto/eval-system/config.yml already exists` and tells the operator to pass `--force` to overwrite."
+  },
+  {
+    "id": "init-with-force-replaces-a-customised-config",
+    "prompt": "/z-eval-init --force",
+    "assertions": [
+      "After `/z-eval-init --force`, `workspace/.zoto/eval-system/config.yml` no longer enables `manualChecklists` and instead mirrors the commented defaults from `plugins/zoto-eval-system/templates/init-config.yml`.",
+      "The command still refrains from spawning the configurer or running any secondary eval-system command during the same turn."
+    ],
+    "assertion_patterns": [
+      "/z-eval-init --force"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/eval-system/config.yml",
+          "content": "# stale settings that must be wiped\nmanualChecklists:\n  enabled: true\n"
+        }
+      ]
+    },
+    "expected_output": "The same single-line confirmation pattern as a first-time init: absolute path, reminder that defaults remain commented, pointer to `plugins/zoto-eval-system/templates/schema/config.schema.json`, and the `/z-eval-configure` hint."
+  },
+  {
+    "id": "missing-plugin-template-surfaces-precise-path-error",
+    "prompt": "/z-eval-init",
+    "assertions": [
+      "If `plugins/zoto-eval-system/templates/init-config.yml` cannot be read from the active plugin tree, stderr or tool output includes the substring `templates/init-config.yml not found` plus the concrete path that was checked.",
+      "No new `config.yml` appears under `workspace/.zoto/eval-system/` when the template read fails."
+    ],
+    "assertion_patterns": [
+      "plugins/zoto-eval-system/templates/init-config\\.yml",
+      "config\\.yml"
+    ],
+    "expected_output": "A hard failure message that names `templates/init-config.yml` and the plugin root path Cursor inspected, with no silent fallback file creation."
+  },
+  {
+    "id": "filesystem-permission-denial-propagates-verbatim",
+    "prompt": "/z-eval-init",
+    "assertions": [
+      "When directory creation or writing `workspace/.zoto/eval-system/config.yml` fails with permission denied, the surfaced text matches the underlying OS error payload instead of a hand-waved summary."
+    ],
+    "assertion_patterns": [
+      "workspace/\\.zoto/eval-system/config\\.yml"
+    ],
+    "expected_output": "A failure message that preserves the operating-system permission error returned from mkdir or write, without substituting a generic success string."
+  }
+];
+const TARGET_ID = "command:z-eval-init";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("command:z-eval-init", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +303,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

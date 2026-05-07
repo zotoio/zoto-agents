@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for agent `zoto-spec-judge`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,68 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "mode-1-verified-subtask-after-spec-execute",
+    "prompt": "zoto-spec-executor invoked you after subtask 02 closed: read specs/active-feature/subtasks/subtask-02-auth-flow-20260507.md together with specs/active-feature/status/subtask-02-auth-flow-20260507.status.yml, reconcile checklist.done against the workspace, merge extra.judge with verdict verified and an empty fix_list after independent filesystem checks, re-render the paired status markdown using spec-status-roundtrip md-from-yml only, run spec-onstop-check.ts --human for that spec directory and repo root, then report verified back to the executor.",
+    "assertions": [
+      "After reconciliation, every checklist item marked done in specs/active-feature/status/subtask-02-auth-flow-20260507.status.yml matches evidence found on disk from the Deliverables Checklist and Definition of Done sections.",
+      "The agent merged verdict notes and extra.judge.fix_list into specs/active-feature/status/subtask-02-auth-flow-20260507.status.yml and regenerated specs/active-feature/status/subtask-02-auth-flow-20260507.status.md via spec-status-roundtrip md-from-yml rather than hand-editing markdown.",
+      "The agent ran plugins/zoto-spec-system/scripts/spec-onstop-check.ts with --human before claiming verified and did not report verified if that process exited with status 2.",
+      "No writes occurred outside specs/active-feature/status/ for the subtask pair, and no tools attempted to modify the subtask markdown spec file or any deliverable paths referenced by the checklist."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "Only the subtask status YAML and its round-trip markdown change; extra.judge records verified with empty fix_list; spec-onstop-check exits zero; no edits land on application sources, tests, the subtask markdown spec, the spec index Status column, execution report, or spec-root status files."
+  },
+  {
+    "id": "mode-1-partial-verdict-routes-fix-list-to-subagent",
+    "prompt": "Executor handed you subtask 04: specs/active-feature/subtasks/subtask-04-rate-limit-20260507.md plus specs/active-feature/status/subtask-04-rate-limit-20260507.status.yml shows checklist items marked done but the throttle helper file is missing. Stay within Mode 1 reviewer constraints, downgrade reconciliation so unverified items remain false, populate extra.judge with verdict partial, timestamp, notes, and a fix_list entry whose recommended_path names the missing module without editing that path yourself, round-trip the status markdown from YAML, run spec-onstop-check.ts --human, then return partial to the executor.",
+    "assertions": [
+      "extra.judge.verdict is partial (not verified) while any Deliverables Checklist or Definition of Done item lacks proof, and fix_list entries describe concrete gaps with severity and recommended_path suitable for executor routing.",
+      "The agent never patched application code, configs, tests, documentation deliverables, or the subtask markdown spec to remediate the gap — only the status pair files were written.",
+      "spec-status-roundtrip md-from-yml was used after YAML edits so markdown mirrors YAML rather than diverging.",
+      "If spec-onstop-check exits 2 because verdict or state contradicts open checklist items, the reported verdict and notes acknowledge partial or failed rather than insisting on verified."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "Status YAML shows checklist.done false for items lacking proof; extra.judge.verdict is partial with at least one structured fix_list row carrying severity and recommended_path for routing to the originally assigned subagent; round-trip keeps YAML canonical; onStop reflects the inconsistency if state or verdict disagrees with open items."
+  },
+  {
+    "id": "mode-2-repo-assessment-via-z-spec-judge",
+    "prompt": "Run /z-spec-judge with no arguments after loading .zoto/spec-system/config.yml so specsDir resolves correctly. Use the zoto-judge-spec skill to examine the repository structure, perform read-only stack-specific sanity checks, score Completeness Feasibility Structure Specificity Risk Awareness and Convention Compliance, choose an Approve Conditional or Reject verdict using the documented thresholds, and write specs/assessment-repo-20260507.md with those scores and rationale.",
+    "assertions": [
+      "The agent invoked /z-spec-judge without a trailing spec path and relied on zoto-judge-spec workflow steps covering breadth of the tree plus tailored read-only checks.",
+      "The written report includes scores for Completeness, Feasibility, Structure, Specificity, Risk Awareness, and Convention Compliance even when dimensions look healthy.",
+      "Filesystem mutations are limited to the assessment markdown under specsDir; no edits touched subtask deliverables or unrelated configuration.",
+      "The qualitative verdict (Approve at least 4.0 average, Conditional between 3.0 and 3.9, Reject below 3.0) aligns with the numeric averages stated in the report."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "A repo assessment markdown appears under the configured specs directory using the assessment-repo naming convention with the run date embedded in the filename, listing numeric scores for all six dimensions plus rationale tied to the documented verdict thresholds, without mutating application sources beyond that report."
+  },
+  {
+    "id": "mode-3-spec-assessment-and-user-gated-spec-fixes",
+    "prompt": "Run /z-spec-judge targeting specs/active-feature/spec-payment-hooks-20260507.md: load the spec index and subtasks, validate manifest dependencies using zoto-judge-spec, score all six dimensions, write specs/active-feature/assessment-payment-hooks-20260507.md capturing unbiased findings first, then surface actionable recommendations and explicitly ask whether I want spec markdown edits applied.",
+    "follow_ups": [
+      "Yes — apply the approved wording tweaks only to the spec index and subtask markdown files you identified; skip application code entirely and annotate the assessment report with what changed.",
+      "No — leave every spec file byte-for-byte unchanged after publishing the assessment."
+    ],
+    "assertions": [
+      "The agent produced specs/active-feature/assessment-payment-hooks-20260507.md inside the spec directory with complete scoring, manifest review, and dependency commentary prior to offering edits.",
+      "Until the user explicitly approves changes, the agent did not modify spec index files, subtask markdown specs, or dependency graph artifacts.",
+      "After explicit approval in the follow-up turn, updates touched only spec-facing markdown described in the plan and never altered application sources, configs, or tests owned by subagents.",
+      "When the user declines fixes in the follow-up turn, spec documents remained unchanged while the assessment still documents findings and verdict thresholds."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "Before any approval message, the assessment markdown exists with full six-dimension scoring and risk discussion without premature spec edits; after approval the agent may revise only spec-level documents noted in the plan while leaving runtime code alone; after refusal only the assessment file reflects recommendations."
+  }
+];
+const TARGET_ID = "agent:zoto-spec-judge";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("agent:zoto-spec-judge", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +274,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for skill `zoto-compare-evals`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,94 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "two-resolved-runs-yield-full-dataset-and-canvas-json",
+    "prompt": "/z-eval-compare already narrowed this to runs 20260115090000 and 20260115090100 under the configured evals directory. Load each report.yml as the primary source, pull case-level fields from sibling static.yml and llm.yml where the flatten needs them, read templates/canvas/compare-prompt.md.tmpl without editing it, emit the single stdout object with tool /canvas plus instructions copied from that template and a dataset row for every underlying case from both runs (no dropping or binning), include log_path values shaped like _runs/<run-id>/logs/<case>.log, then instruct the host to forward that object to /canvas and keep charts out of the chat transcript.",
+    "assertions": [
+      "The assistant read evalsDir from workspace/.zoto/eval-system/config.yml before resolving workspace/evals/_runs/20260115090000 and workspace/evals/_runs/20260115090100.",
+      "Because the task supplied full run directory names consistent with output from /z-eval-compare, the assistant proceeded without needs_user_input.",
+      "The assistant treated each report.yml as canonical while pulling case-level measurements from the paired static.yml and llm.yml files whenever those rows were required for the flatten step.",
+      "Flattened dataset entries include run_id, model, case_id, status, tokens, duration_ms, verbosity, accuracy, confidence, and log_path for each underlying case drawn from the two runs.",
+      "The assistant incorporated rollup information from report.static and report.llm while building the flattened dataset.",
+      "The instructions array echoed in stdout matches plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl byte-for-byte without edits.",
+      "The primary stdout payload is JSON with keys tool set to /canvas, a non-empty instructions array, and a dataset array listing every case row from both runs without aggregation or subsampling.",
+      "The natural-language portion tells the host agent to forward the payload to /canvas and not render charts in the chat markdown.",
+      "Each log_path joins with the configured evalsDir to reach the matching file under _runs/<run-id>/logs/<case>.log.",
+      "No markdown chart, plot image, or downsized summary replaced the full dataset rows.",
+      "No askQuestion tool call appeared in the tool trace."
+    ],
+    "assertion_patterns": [],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/eval-system/config.yml",
+          "content": "evalsDir: workspace/evals\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260115090000/report.yml",
+          "content": "model: northstar-v1\nreport:\n  static:\n    passed: 1\n  llm:\n    passed: 1\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260115090000/static.yml",
+          "content": "rows:\n  - case_id: alpha\n    status: passed\n    duration_ms: 120\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260115090000/llm.yml",
+          "content": "rows:\n  - case_id: alpha\n    status: passed\n    tokens: 900\n    verbosity: 0.42\n    accuracy: 0.88\n    confidence: 0.91\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260115090100/report.yml",
+          "content": "model: northstar-v2\nreport:\n  static:\n    passed: 1\n  llm:\n    passed: 1\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260115090100/static.yml",
+          "content": "rows:\n  - case_id: beta\n    status: failed\n    duration_ms: 210\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260115090100/llm.yml",
+          "content": "rows:\n  - case_id: beta\n    status: failed\n    tokens: 1100\n    verbosity: 0.55\n    accuracy: 0.72\n    confidence: 0.68\n"
+        }
+      ]
+    },
+    "expected_output": "A single machine-readable hand-off object for Canvas plus a short natural-language instruction to route it through /canvas instead of drawing charts in the reply body, backed by one combined table covering every case row from both runs."
+  },
+  {
+    "id": "ambiguous-run-label-returns-needs-user-input",
+    "prompt": "The upstream compare command passed only the fragment 20260503 for an eval run id after syncing two different hourly folders under workspace/evals/_runs. Follow the compare skill: if multiple directories match and the message lacks a disambiguator, answer with structured needs_user_input that lists each candidate path—skip askQuestion entirely.",
+    "assertions": [
+      "The assistant returned structured needs_user_input naming both workspace/evals/_runs/20260503120000 and workspace/evals/_runs/20260503121500 (or their path equivalents) as competing matches.",
+      "No askQuestion tool call occurred while handling the ambiguity.",
+      "The assistant did not fabricate a combined canvas JSON before the operator picks a run."
+    ],
+    "assertion_patterns": [],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/eval-system/config.yml",
+          "content": "evalsDir: workspace/evals\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260503120000/report.yml",
+          "content": "model: ridge-a\nreport:\n  static:\n    passed: 1\n  llm:\n    passed: 0\n"
+        },
+        {
+          "path": "workspace/evals/_runs/20260503121500/report.yml",
+          "content": "model: ridge-b\nreport:\n  static:\n    passed: 0\n  llm:\n    passed: 1\n"
+        }
+      ]
+    },
+    "expected_output": "A needs_user_input style reply enumerating both candidate run directories without emitting chart data or canvas instructions."
+  }
+];
+const TARGET_ID = "skill:zoto-compare-evals";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("skill:zoto-compare-evals", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +300,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

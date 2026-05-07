@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for command `z-eval-update`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,137 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "abort-when-eval-system-configuration-file-is-absent",
+    "prompt": "/z-eval-update",
+    "assertions": [
+      "Before any subagent spawn or filesystem mutation, the command MUST surface the exact single-line guidance that Eval System is not initialised and instruct running `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+      "No regeneration helpers (`regeneratePytest`, `regenerateVitest`, `regenerateJest`, `regenerateLlmCode`, `regenerateLlmDeclarative`) run because execution stops at the precondition gate."
+    ],
+    "assertion_patterns": [
+      "/z-eval-init",
+      "regeneratePytest"
+    ],
+    "expected_output": "The operator sees only the initialisation failure message and no drift summaries or patch proposals."
+  },
+  {
+    "id": "rediscovery-dry-run-without-apply-writes-nothing-pending-confirmation",
+    "prompt": "/z-eval-update",
+    "assertions": [
+      "The flow MUST spawn `zoto-eval-updater` wired to the `zoto-update-evals` skill after confirming `.zoto/eval-system/config.yml` exists.",
+      "Running without `--apply` MUST classify deltas against `config.update.criticalChangeRules` but MUST NOT write regenerated files or refresh `.zoto/eval-system/manifest.yml` until the operator accepts changes through `askQuestion`."
+    ],
+    "assertion_patterns": [
+      "zoto-eval-updater",
+      "--apply"
+    ],
+    "expected_output": "The conversation lists drift classifications and proposed updates without committing manifest updates or overwriting guarded generated files."
+  },
+  {
+    "id": "scoped-dry-run-limits-discovery-output-to-targets-matching-glob",
+    "prompt": "/z-eval-update --target \"**/plugins/zoto-eval-system/commands/*.md\"",
+    "assertions": [
+      "Minimatch-style matching MUST evaluate against both `target.path` and `target.id` so only targets whose path or id satisfies the glob appear in the drift scope.",
+      "Non-interactive dry-run semantics remain in effect: no `--apply` flag means no confirmed writes even inside the narrowed scope."
+    ],
+    "assertion_patterns": [
+      "target\\.path",
+      "--apply"
+    ],
+    "expected_output": "Only commands whose tracked paths sit under the commands directory show up in the narrowed drift report while unrelated primitives stay omitted."
+  },
+  {
+    "id": "interactive-apply-loops-askquestion-and-resumes-until-completion",
+    "prompt": "/z-eval-update --apply",
+    "follow_ups": [
+      "Answer accept on the first `askQuestion` presenting a critical drift diff.",
+      "Answer reject on the next proposed change to prove per-change branching works."
+    ],
+    "assertions": [
+      "Each proposed regeneration MUST be mediated through `askQuestion` (accept, reject, edit, or skip-rest) rather than silent writes.",
+      "After each answer the orchestrator MUST resume the subagent with the chosen decision until no further `needs_user_input` payloads remain.",
+      "Accepted patches MUST refresh `.zoto/eval-system/manifest.yml`, bump metadata fields such as `git_ref` and `updated_at`, and append `.zoto/eval-system/manifest.history.yml`.",
+      "Helpers MUST refuse to overwrite files lacking the generated header and MUST refuse mutating cases flagged as user-authored per `_user-case-guards.ts`."
+    ],
+    "assertion_patterns": [
+      "askQuestion",
+      "needs_user_input",
+      "\\.zoto/eval-system/manifest\\.yml",
+      "_user-case-guards\\.ts"
+    ],
+    "expected_output": "The closing summary JSON reports `{ mode, regenerated_targets, files_written, files_preserved_user_authored, user_cases_preserved, reports[] }` reflecting accepted versus skipped decisions."
+  },
+  {
+    "id": "targeted-apply-regenerates-only-matched-primitives",
+    "prompt": "/z-eval-update --target \"command:z-eval-update\" --apply",
+    "follow_ups": [
+      "Approve the single scoped regeneration prompt when `askQuestion` appears."
+    ],
+    "assertions": [
+      "`runAnalyser({ invalidate: true })` MUST execute only for primitives matching the glob before dispatching stampers.",
+      "Downstream regeneration helpers MUST touch solely frameworks tied to the matched targets; unrelated primitives remain untouched on disk and in `manifest.yml`."
+    ],
+    "assertion_patterns": [
+      "runAnalyser\\(\\{ invalidate: true \\}\\)",
+      "manifest\\.yml"
+    ],
+    "expected_output": "Manifest entries outside the matched command id stay unchanged while the scoped command shows updated analyser metadata if accepted."
+  },
+  {
+    "id": "ci-check-runs-parity-gate-then-exits-with-configured-drift-codes",
+    "prompt": "/z-eval-update --check",
+    "assertions": [
+      "Execution MUST invoke `pnpm exec tsx scripts/check-analyser-payload-parity.ts` before emitting drift findings so `parity_drift` reflects that self-check.",
+      "Exit status MUST be `config.update.checkExitCodeOnCriticalDrift` when critical drift exists and zero when only non-critical drift or parity passes.",
+      "No `askQuestion` prompts appear because `--check` is fully non-interactive."
+    ],
+    "assertion_patterns": [
+      "pnpm exec tsx scripts/check-analyser-payload-parity\\.ts",
+      "config\\.update\\.checkExitCodeOnCriticalDrift",
+      "askQuestion"
+    ],
+    "expected_output": "Stderr or structured logs contain parity results followed by a concise drift verdict matching CI expectations."
+  },
+  {
+    "id": "reuse-cached-analyser-payloads-without-llm-invalidation",
+    "prompt": "/z-eval-update --no-analyser --apply",
+    "follow_ups": [
+      "Confirm proceed when warned about cached payloads unless CI forbids it."
+    ],
+    "assertions": [
+      "The updater MUST skip `runAnalyser({ invalidate: true })` and reuse `_meta.primitive_analysis` blobs from `.zoto/eval-system/cache/analyser/` instead of issuing fresh LLM calls.",
+      "When `process.env.CI` equals the literal string `true`, stderr MUST include the documented `[CI WARNING] --no-analyser used in CI; cached analyser payloads may be stale and produce drift` banner.",
+      "If `update.failOnNoAnalyserInCI` is enabled while CI is active, the command MUST abort early with exit code 5 instead of regenerating."
+    ],
+    "assertion_patterns": [
+      "runAnalyser\\(\\{ invalidate: true \\}\\)",
+      "process\\.env\\.CI",
+      "update\\.failOnNoAnalyserInCI"
+    ],
+    "expected_output": "Generation proceeds from cached analyser JSON without `CURSOR_API_KEY` traffic unless configuration escalates to a failure."
+  },
+  {
+    "id": "abort-when-manifest-yml-is-missing-after-config-loads",
+    "prompt": "/z-eval-update",
+    "assertions": [
+      "After locating `.zoto/eval-system/config.yml`, missing `.zoto/eval-system/manifest.yml` MUST halt before rediscovery with an explicit manifest-absence error surfaced to the operator.",
+      "Neither manifest snapshot readers nor regeneration helpers execute once the manifest prerequisite fails."
+    ],
+    "assertion_patterns": [
+      "\\.zoto/eval-system/config\\.yml"
+    ],
+    "expected_output": "The operator receives a clear failure that the manifest path could not be loaded rather than partial drift analysis."
+  }
+];
+const TARGET_ID = "command:z-eval-update";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("command:z-eval-update", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +343,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

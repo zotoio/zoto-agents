@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for agent `zoto-plugin-manager`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,85 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "greenfield-plugin-scaffold-via-create-plugin",
+    "prompt": "We need a new Cursor plugin packaged under plugins/invoice-linker that ships one skill for reconciling line items with markdown exports. Outline how you would scaffold it here without diverging from monorepo conventions.",
+    "assertions": [
+      "the agent anchors execution on the zoto-create-plugin skill rather than improvising a nonstandard plugin skeleton",
+      "the agent names plugins/invoice-linker/.cursor-plugin/plugin.json as the first manifest surface and enumerates required manifest keys from the documented table",
+      "the agent states skill authoring will keep SKILL.md lean and park supporting detail under references/, scripts/, or assets/ per Agent Skills layout guidance"
+    ],
+    "assertion_patterns": [],
+    "expected_output": "The agent ties execution to the zoto-create-plugin skill, lists the plugins/invoice-linker tree it will create, and spells out required plugin.json fields before proposing ancillary assets."
+  },
+  {
+    "id": "pre-merge-audit-with-validation-commands",
+    "prompt": "Audit plugins/zoto-eval-system end-to-end before we tag a release: manifest sanity, skill harness coverage, cross-links, and anything validation scripts would reject.",
+    "assertions": [
+      "the agent inspects plugins/zoto-eval-system/.cursor-plugin/plugin.json for required naming, semver, author, license, and description fields",
+      "the agent verifies each skill directory includes evals/evals.json with at least two graded rows and explicit assertions",
+      "the agent describes contrasting model outputs with the skill engaged versus a baseline run when iterating harness prompts",
+      "the agent plans running node scripts/validate-template.mjs, node scripts/validate-skills.mjs, and cd plugins/zoto-eval-system && pnpm validate plus pnpm test from the repo root",
+      "when hooks or MCP entries are declared, the agent checks hooks/hooks.json scripts and any referenced mcp.json paths resolve inside the plugin tree",
+      "the closing report splits must-fix defects from optional polish items"
+    ],
+    "assertion_patterns": [],
+    "expected_output": "The agent reads the plugin manifest, inventories agents/skills/commands/rules/hooks, cites eval coverage expectations, compares harness tightening strategies, and sequences template plus per-plugin validation commands with clear error-versus-warning grouping."
+  },
+  {
+    "id": "add-slash-command-with-manifest-wiring",
+    "prompt": "Add a new Cursor slash command under plugins/zoto-eval-system that jumps operators into the evaluator workflow, update plugin.json directory pointers if they drift, and leave the tree consistent for CI.",
+    "assertions": [
+      "the agent creates or extends a commands/*.md file whose frontmatter includes name and description",
+      "the agent updates plugins/zoto-eval-system/.cursor-plugin/plugin.json only when the commands directory path or naming no longer matches reality",
+      "the agent runs or prescribes pnpm validate inside plugins/zoto-eval-system after the edits settle"
+    ],
+    "assertion_patterns": [],
+    "expected_output": "The agent drafts commands/*.md with compliant frontmatter, adjusts plugin.json command paths when needed, updates any dependent references, and finishes with validation commands."
+  },
+  {
+    "id": "marketplace-submission-alignment",
+    "prompt": "Prepare plugins/zoto-eval-system for marketplace publication: confirm marketplace.json registration matches the manifest identity and give a concise preflight checklist tied to this repo's validators.",
+    "assertions": [
+      "the agent compares plugins/zoto-eval-system/.cursor-plugin/plugin.json name with the matching marketplace.json plugins[].name and plugins[].source tuple",
+      "the agent requires node scripts/validate-template.mjs before declaring the bundle marketplace-ready",
+      "the checklist explicitly covers README, LICENSE, CHANGELOG, logo path validity, and keyword hygiene"
+    ],
+    "assertion_patterns": [],
+    "expected_output": "The agent compares .cursor-plugin/marketplace.json plugin entries with the manifest name field, highlights mismatches, and lists submission gates including template validation."
+  },
+  {
+    "id": "crux-compression-guidance-for-busy-rules",
+    "prompt": "rules/release-guardrails.mdc ballooned past maintainability; walk me through enabling CRUX compression without losing enforceable intent inside Cursor.",
+    "assertions": [
+      "the agent instructs setting crux: true in rule frontmatter when adopting CRUX compression",
+      "the agent references invoking /crux-compress after the rule content stabilizes",
+      "the agent warns that compressed notation must still express concrete globs, triggers, and prohibitions observers can verify"
+    ],
+    "assertion_patterns": [],
+    "expected_output": "The agent explains tagging the rule for CRUX processing and outlines how compressed notation preserves obligations while shrinking tokens."
+  },
+  {
+    "id": "local-stale-plugin-copies-after-edits",
+    "prompt": "I edited plugin agents locally but the IDE still serves older payloads—what is the supported resynchronization flow for this monorepo?",
+    "assertions": [
+      "the agent mentions automatic synchronization configured via .cursor/hooks.json firing on session start or relevant file edits",
+      "the agent documents running node .cursor/hooks/sync-plugins.mjs --full when operators need an immediate refresh",
+      "the agent lists syncable directories such as agents, commands, skills, rules, hooks, docs, templates, and dot-plugin metadata consistent with the agent brief"
+    ],
+    "assertion_patterns": [],
+    "expected_output": "The agent cites hook-driven sync plus the manual full sync command and enumerates which directories copy into the local Cursor plugins mirror."
+  }
+];
+const TARGET_ID = "agent:zoto-plugin-manager";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("agent:zoto-plugin-manager", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +291,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

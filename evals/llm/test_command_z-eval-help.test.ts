@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for command `z-eval-help`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,116 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "abort-when-eval-system-config-missing",
+    "prompt": "/z-eval-help configuration",
+    "assertions": [
+      "after `/z-eval-help`, the run surfaces the exact abort sentence from the command precondition and does not call the zoto-help-evals skill",
+      "no `start:end:` README citation block appears because the command stopped before composing a tailored answer"
+    ],
+    "assertion_patterns": [
+      "/z-eval-help",
+      "start:end:"
+    ],
+    "expected_output": "A single error line stating that Eval System is not initialised and naming `/z-eval-init` plus the expected config path, with no skill invocation and no tailored help body."
+  },
+  {
+    "id": "section-chooser-when-topic-omitted",
+    "prompt": "/z-eval-help",
+    "follow_ups": [
+      "2"
+    ],
+    "assertions": [
+      "after `/z-eval-help` with no arguments, the command emits askQuestion whose options correspond to the enumerated `##` sections from `plugins/zoto-eval-system/README.md`",
+      "before invoking zoto-help-evals, the command constructs `help_context` with `selected_section` matching the operator choice",
+      "after the follow-up selection, the final answer includes at least one `start:end:plugins/zoto-eval-system/README.md` citation covering quoted README lines",
+      "the zoto-help-evals skill did not emit askQuestion; any prompts came from the command owner"
+    ],
+    "assertion_patterns": [
+      "/z-eval-help",
+      "help_context",
+      "start:end:plugins/zoto-eval-system/README\\.md"
+    ],
+    "expected_output": "First turn shows askQuestion listing numbered README sections derived from `plugins/zoto-eval-system/README.md` headings; after the operator picks an option, the zoto-help-evals skill returns prose grounded in that section with citations."
+  },
+  {
+    "id": "direct-topic-without-extra-section-menu",
+    "prompt": "/z-eval-help Quick start",
+    "assertions": [
+      "after `/z-eval-help Quick start`, the tailored prose names at least one project-specific datum drawn from `.zoto/eval-system/config.yml`, `manifest.yml`, `package.json` scripts, or `evals/_runs/` when that artefact is present in the workspace",
+      "the answer cites `plugins/zoto-eval-system/README.md` using `start:end:plugins/zoto-eval-system/README.md` for any quoted README excerpt",
+      "the command did not present the numbered full-section menu solely because a single `## Quick start` header uniquely matched the topic",
+      "observable behaviour shows zoto-help-evals ran without introducing its own askQuestion calls"
+    ],
+    "assertion_patterns": [
+      "/z-eval-help Quick start",
+      "plugins/zoto-eval-system/README\\.md",
+      "## Quick start"
+    ],
+    "expected_output": "The host agent invokes zoto-help-evals with help_context anchored on the Quick start section and returns operator-facing prose that weaves in values read from this workspace plus README citations."
+  },
+  {
+    "id": "disambiguate-topic-matching-multiple-headings",
+    "prompt": "/z-eval-help eval",
+    "follow_ups": [
+      "Pick the Overview heading"
+    ],
+    "assertions": [
+      "after `/z-eval-help eval`, the command emits askQuestion that resolves ambiguity across multiple `##` headers before a final tailored answer is returned",
+      "the resumed help_context carries `selected_section` from the clarification answer",
+      "the final response includes README citations in `start:end:plugins/zoto-eval-system/README.md` form and incorporates values read from `.zoto/eval-system/config.yml` and other inspected project files rather than generic defaults"
+    ],
+    "assertion_patterns": [
+      "/z-eval-help eval",
+      "selected_section",
+      "start:end:plugins/zoto-eval-system/README\\.md"
+    ],
+    "expected_output": "First turn asks which README section to use because several headings overlap the token; after the operator names a section, the skill answers with tailored prose and citations."
+  },
+  {
+    "id": "resume-after-skill-needs-user-input",
+    "prompt": "/z-eval-help Overview",
+    "follow_ups": [
+      "I mean compare two runs side by side"
+    ],
+    "assertions": [
+      "when the skill first returns needs_user_input, the command runs askQuestion before calling zoto-help-evals again with completed fields in help_context",
+      "after `/z-eval-help Overview` and the free-form follow-up turn, the final assistant text still honours the citation contract for `plugins/zoto-eval-system/README.md`",
+      "the free-form follow-up text is captured on help_context as `user_question` per the documented skill contract"
+    ],
+    "assertion_patterns": [
+      "/z-eval-help Overview",
+      "user_question"
+    ],
+    "expected_output": "When zoto-help-evals returns needs_user_input, the command issues askQuestion to capture the missing detail, then re-invokes the skill with an updated help_context until a final narrative answer is returned."
+  },
+  {
+    "id": "post-answer-navigation-prompt",
+    "prompt": "/z-eval-help Configuration",
+    "follow_ups": [
+      "Jump to the File layout and run outputs section"
+    ],
+    "assertions": [
+      "after the first skill result for Configuration, the command optionally emits askQuestion that offers navigating to another README section versus finishing",
+      "after the operator requests another section, zoto-help-evals runs again with `selected_section` updated to the new heading",
+      "each delivered section answer cites the README with `start:end:plugins/zoto-eval-system/README.md` and keeps tailoring tied to on-disk config and run artefacts"
+    ],
+    "assertion_patterns": [
+      "selected_section",
+      "start:end:plugins/zoto-eval-system/README\\.md"
+    ],
+    "expected_output": "After the first tailored answer, the command may offer askQuestion for staying or jumping to another README section; choosing another section triggers a second zoto-help-evals call with revised help_context."
+  }
+];
+const TARGET_ID = "command:z-eval-help";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("command:z-eval-help", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +322,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });
