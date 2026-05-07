@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" font-family="system-ui, -apple-system, sans-serif">
+  <title>Eval Run Report Layout</title>
+  <desc>Three-panel illustration: a single timestamped run directory evals/_runs/&lt;ts&gt;/ on the left, three output files (static.yml, llm.yml, report.yml) in the centre, and the report.yml aggregate fanning out into the /canvas hand-off on the right.</desc>
+  <defs>
+    <marker id="arrow-accent" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8" fill="#00ff7f"/>
+    </marker>
+    <style>
+      .panel { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1.5; }
+      .file { fill: #0f1a0f; stroke: #1a3a1a; stroke-width: 1.5; }
+      .file-static { fill: #0f1a0f; stroke: #5cffaf; stroke-width: 2; }
+      .file-llm { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 2; }
+      .file-aggregate { fill: #0f1a0f; stroke: #c8ffc8; stroke-width: 2.5; }
+      .header { fill: #c8ffc8; font-size: 22px; font-weight: 700; }
+      .panel-heading { fill: #00ff7f; font-size: 15px; font-weight: 700; }
+      .label-title { fill: #c8ffc8; font-size: 14px; font-weight: 700; font-family: ui-monospace, monospace; }
+      .label-sub { fill: #6a8a6a; font-size: 11px; }
+      .label-tag { fill: #00ff7f; font-size: 11px; font-weight: 600; }
+      .footer { fill: #6a8a6a; font-size: 11px; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="700" fill="#000000" rx="10"/>
+  <text x="600" y="48" text-anchor="middle" class="header">Eval Run Report</text>
+  <text x="600" y="74" text-anchor="middle" class="label-sub">One timestamped directory per run. Three outputs roll up into a single aggregate.</text>
+
+  <!-- Panel 1: run directory -->
+  <rect x="50" y="120" width="280" height="440" rx="10" class="panel"/>
+  <text x="190" y="156" text-anchor="middle" class="panel-heading">1. Run directory</text>
+  <text x="190" y="178" text-anchor="middle" class="label-sub">Created on every /z-eval-execute</text>
+
+  <rect x="80" y="210" width="220" height="60" rx="6" class="file"/>
+  <text x="190" y="234" text-anchor="middle" class="label-title">evals/_runs/&lt;ts&gt;/</text>
+  <text x="190" y="252" text-anchor="middle" class="label-sub">e.g. 20260503T152604Z</text>
+
+  <rect x="80" y="290" width="220" height="42" rx="6" class="file"/>
+  <text x="190" y="316" text-anchor="middle" class="label-sub" font-family="ui-monospace, monospace">.run-meta.json</text>
+
+  <rect x="80" y="342" width="220" height="42" rx="6" class="file"/>
+  <text x="190" y="368" text-anchor="middle" class="label-sub" font-family="ui-monospace, monospace">static.yml</text>
+
+  <rect x="80" y="394" width="220" height="42" rx="6" class="file"/>
+  <text x="190" y="420" text-anchor="middle" class="label-sub" font-family="ui-monospace, monospace">llm.yml</text>
+
+  <rect x="80" y="446" width="220" height="42" rx="6" class="file"/>
+  <text x="190" y="472" text-anchor="middle" class="label-sub" font-family="ui-monospace, monospace">report.yml</text>
+
+  <rect x="80" y="498" width="220" height="42" rx="6" class="file"/>
+  <text x="190" y="524" text-anchor="middle" class="label-sub" font-family="ui-monospace, monospace">logs/&lt;case-id&gt;.log</text>
+
+  <!-- Arrow to panel 2 -->
+  <line x1="330" y1="340" x2="380" y2="340" stroke="#00ff7f" stroke-width="2" marker-end="url(#arrow-accent)"/>
+
+  <!-- Panel 2: outputs -->
+  <rect x="390" y="120" width="320" height="440" rx="10" class="panel"/>
+  <text x="550" y="156" text-anchor="middle" class="panel-heading">2. Per-backend outputs</text>
+  <text x="550" y="178" text-anchor="middle" class="label-sub">Each backend writes its own YAML</text>
+
+  <rect x="420" y="210" width="260" height="80" rx="6" class="file-static"/>
+  <text x="550" y="240" text-anchor="middle" class="label-title">static.yml</text>
+  <text x="550" y="260" text-anchor="middle" class="label-sub">pytest cases  pass/fail counts,</text>
+  <text x="550" y="276" text-anchor="middle" class="label-sub">stdout summaries, lint diagnostics.</text>
+
+  <rect x="420" y="310" width="260" height="80" rx="6" class="file-llm"/>
+  <text x="550" y="340" text-anchor="middle" class="label-title">llm.yml</text>
+  <text x="550" y="360" text-anchor="middle" class="label-sub">@cursor/sdk cases  graders,</text>
+  <text x="550" y="376" text-anchor="middle" class="label-sub">accuracy / verbosity / judge block.</text>
+
+  <rect x="420" y="410" width="260" height="100" rx="6" class="file-aggregate"/>
+  <text x="550" y="440" text-anchor="middle" class="label-title">report.yml</text>
+  <text x="550" y="460" text-anchor="middle" class="label-sub">report.static + report.llm</text>
+  <text x="550" y="476" text-anchor="middle" class="label-sub">aggregate  used by /z-eval-update</text>
+  <text x="550" y="492" text-anchor="middle" class="label-sub">--check and /z-eval-compare.</text>
+
+  <!-- Arrow to panel 3 -->
+  <line x1="710" y1="460" x2="760" y2="460" stroke="#00ff7f" stroke-width="2.5" marker-end="url(#arrow-accent)"/>
+
+  <!-- Panel 3: /canvas hand-off -->
+  <rect x="770" y="120" width="380" height="440" rx="10" class="panel"/>
+  <text x="960" y="156" text-anchor="middle" class="panel-heading">3. /canvas hand-off</text>
+  <text x="960" y="178" text-anchor="middle" class="label-sub">/z-eval-compare prompts the host agent</text>
+
+  <rect x="800" y="220" width="320" height="60" rx="6" class="file"/>
+  <text x="960" y="246" text-anchor="middle" class="label-title">flat dataset</text>
+  <text x="960" y="262" text-anchor="middle" class="label-sub">runs  cases  dimensions (CSV-shape JSON)</text>
+
+  <rect x="800" y="300" width="320" height="60" rx="6" class="file"/>
+  <text x="960" y="326" text-anchor="middle" class="label-title">/canvas instruction</text>
+  <text x="960" y="342" text-anchor="middle" class="label-sub">"Render charts via Cursor's built-in /canvas"</text>
+
+  <rect x="800" y="380" width="320" height="60" rx="6" class="file-aggregate"/>
+  <text x="960" y="406" text-anchor="middle" class="label-title">cross-run charts (host)</text>
+  <text x="960" y="422" text-anchor="middle" class="label-sub">accuracy, tokens, verdicts, drift markers</text>
+
+  <rect x="800" y="460" width="320" height="60" rx="6" class="file"/>
+  <text x="960" y="486" text-anchor="middle" class="label-tag">drilldown  per-case logs</text>
+  <text x="960" y="502" text-anchor="middle" class="label-sub">opens evals/_runs/&lt;ts&gt;/logs/&lt;case-id&gt;.log</text>
+
+  <!-- Footer -->
+  <text x="600" y="660" text-anchor="middle" class="footer">report.yml is authoritative. The skill never renders charts directly  it hands off to /canvas.</text>
+</svg>

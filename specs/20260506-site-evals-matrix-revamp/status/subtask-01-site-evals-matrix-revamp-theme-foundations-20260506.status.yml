@@ -1,0 +1,241 @@
+schema_version: 1
+subtask_id: "01"
+feature: site-evals-matrix-revamp
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-06T12:31:33Z"
+last_heartbeat: "2026-05-06T12:33:00Z"
+completed_at: "2026-05-06T12:33:00Z"
+git_sha: "36e26f7e7b8d557f0dd414ca6d63e82b657fe818"
+checklist:
+  - id: D01
+    text: "**`site/css/style.css`** — add a `--matrix-*` custom-property block at the top of the `:root` rule (`--matrix-bg: #000`, `--matrix-surface: #0a0f0a`, `--matrix-card: #0f1a0f`, `--matrix-border: #1a3a1a`, `--matrix-text: #c8ffc8`, `--matrix-text-dim: #6a8a6a`, `--matrix-accent: #00ff7f`, `--matrix-accent-hover: #5cffaf`, `--matrix-grid: #1a3a1a`). The existing `--color-*` semantic tokens (`--color-bg-primary`, `--color-text-primary`, `--color-bg-secondary`, etc.) are reassigned to the Matrix palette so every consumer of the semantic tokens picks up the new look without a rename. **Do not** add a `--charcoal-*` alias block in `site/css/style.css` — the only `--charcoal-*` consumers in the repo are inline in `site/index.html` (under `body.landing-charcoal`), and subtask 02 owns that migration directly."
+    done: true
+    evidence_path: "75:111:site/css/style.css"
+  - id: D02
+    text: "**`site/css/style.css`** — update base `body` rules so the Matrix palette is the default; verify the existing `--color-bg-primary`, `--color-text-primary`, etc. still resolve to readable values (≥7:1 contrast for body copy on background)."
+    done: true
+    evidence_path: "172:183:site/css/style.css"
+  - id: D03
+    text: "**`site/css/style.css`** — add `.matrix-rain-strong` and `.matrix-rain-soft` body modifiers (canvas opacity 1.0 vs 0.10 respectively) and a `.matrix-rain-canvas` selector for the `<canvas>` element (`position: fixed; inset: 0; z-index: -1; pointer-events: none`)."
+    done: true
+    evidence_path: "1085:1122:site/css/style.css"
+  - id: D04
+    text: "**`site/css/prism-matrix.css`** — new file. Override the Tomorrow-Night Prism palette to Matrix-flavoured greens (keywords / strings / functions in cool greens, comments dimmed at `#4a6a4a`). Loads *after* the CDN Prism stylesheet on every page."
+    done: true
+    evidence_path: "1:147:site/css/prism-matrix.css"
+  - id: D05
+    text: "**`site/js/matrix-rain.js`** — new file. A self-contained IIFE that bails out under prefers-reduced-motion + missing canvas; sizes/resizes; throttles to ~30 fps; pauses on visibilityChange; reduces density on mobile; UTF-8 katakana literals."
+    done: true
+    evidence_path: "1:161:site/js/matrix-rain.js"
+  - id: D06
+    text: '**`site/index.html`** *(structural only — copy stays for now, subtask 02 rewrites it)* — add `<canvas class="matrix-rain-canvas"></canvas>` as the first child of `<body>`, add `class="matrix-rain-strong"` to the `<body>`, and `<script defer src="js/matrix-rain.js"></script>` + `<link rel="stylesheet" href="css/prism-matrix.css">` to `<head>`.'
+    done: true
+    evidence_path: "21:32:site/index.html"
+  - id: D07
+    text: '**`site/spec-system/{index,quickstart,configuration,design}.html`** *(structural only — full restyle is subtask 03)* — same canvas element + `class="matrix-rain-soft"` on body + the two new `<script>` / `<link>` references (with `../` prefixes).'
+    done: true
+    evidence_path: "9:20:site/spec-system/index.html"
+  - id: D08
+    text: "**`site/404.html`** — same wiring as `site/index.html` (`matrix-rain-strong`)."
+    done: true
+    evidence_path: "1:14:site/404.html"
+  - id: D09
+    text: '**`site/images/logo.svg`** — recolour fills to the Matrix palette and add a `<filter id="crt-glow">` (subtle inner shadow + scanline). Preserve viewBox and pixel-block geometry.'
+    done: true
+    evidence_path: "1:33:site/images/logo.svg"
+  - id: D10
+    text: "**`site/images/logo.png`** — re-export at the existing dimensions from the updated SVG (use ImageMagick / Inkscape locally; the artefact is committed)."
+    done: true
+    evidence_path: "1:1:site/images/logo.png"
+  - id: D11
+    text: '**Favicon** in `site/index.html` and every existing page — replace the inline data-URI SVG with a Matrix-themed equivalent (or point to the retinted SVG via `<link rel="icon" href="images/logo.svg">`).'
+    done: true
+    evidence_path: "21:23:site/index.html"
+artifacts:
+  - path: site/css/style.css
+    kind: modified
+    note: Added Matrix --matrix-* token block, reassigned --color-* semantic tokens, .matrix-rain-canvas / -strong / -soft selectors, and prefers-reduced-motion display:none guard.
+  - path: site/css/prism-matrix.css
+    kind: created
+    note: Tomorrow-Night Prism override mapped to cool-green Matrix palette (keywords #c8ffc8, strings #00ff7f, functions/numbers #5cffaf, comments #4a6a4a italic).
+  - path: site/js/matrix-rain.js
+    kind: created
+    note: UTF-8 IIFE for the falling-glyphs canvas; prefers-reduced-motion bail-out, missing-canvas guard, ~30 fps throttle, in-loop visibility pause, mobile density / DPR halving, half-width katakana literals.
+  - path: site/index.html
+    kind: modified
+    note: Added prism-matrix.css link, matrix-rain.js script, matrix-rain-strong body class, canvas as first child of body, and SVG favicon link. Inline body.landing-charcoal block left for subtask 02.
+  - path: site/spec-system/index.html
+    kind: modified
+    note: Structural Matrix wiring (matrix-rain-soft body class, canvas, prism-matrix stylesheet, matrix-rain script with ../ prefix, SVG favicon).
+  - path: site/spec-system/quickstart.html
+    kind: modified
+    note: Structural Matrix wiring (matrix-rain-soft body class, canvas, prism-matrix stylesheet, matrix-rain script with ../ prefix, SVG favicon).
+  - path: site/spec-system/configuration.html
+    kind: modified
+    note: Structural Matrix wiring (matrix-rain-soft body class, canvas, prism-matrix stylesheet, matrix-rain script with ../ prefix, SVG favicon).
+  - path: site/spec-system/design.html
+    kind: modified
+    note: Structural Matrix wiring (matrix-rain-soft body class, canvas, prism-matrix stylesheet, matrix-rain script with ../ prefix, SVG favicon).
+  - path: site/404.html
+    kind: modified
+    note: Matrix-rain-strong wiring (canvas, prism-matrix stylesheet, matrix-rain script, SVG favicon).
+  - path: site/images/logo.svg
+    kind: modified
+    note: Retinted to #00ff7f on #000 with <filter id="crt-glow"> + <pattern id="scanlines">. ViewBox / pixel-block geometry preserved.
+  - path: site/images/logo.png
+    kind: modified
+    note: Re-exported via ImageMagick from a flattened intermediate SVG (only locally available rasteriser is MSVG; rsvg-convert / inkscape / cairosvg not installed). 256x256 sRGB with #00FF7F SpringGreen pixels. Canonical SVG retains full filter + pattern for browser rendering.
+errors: []
+notes: |
+  2026-05-06T12:31:33Z heartbeat: subtask started, token_budget=200000.
+  2026-05-06T12:31:50Z D01-D03 done: --matrix-* token block added at top of :root; semantic --color-* tokens reassigned to var(--matrix-*); .matrix-rain-canvas / .matrix-rain-strong / .matrix-rain-soft + prefers-reduced-motion display:none guard added at end of style.css. No --charcoal-* alias block introduced (only an inline comment explaining the deliberate omission).
+  2026-05-06T12:32:00Z D04 done: site/css/prism-matrix.css written — overrides prism-tomorrow with cool greens (keywords #c8ffc8, strings #00ff7f, functions/numbers #5cffaf, comments #4a6a4a italic).
+  2026-05-06T12:32:10Z D05 done: site/js/matrix-rain.js written as UTF-8 (no BOM); IIFE with early-exit prefers-reduced-motion check + lazy-start change listener, canvas-presence check, ~30 fps throttle (FRAME_INTERVAL_MS=33), document.visibilityState pause/resume, debounced resize, mobile (innerWidth ≤ 768 OR DPR < 2) → halved density + DPR=1, half-width katakana U+FF6A–U+FF9D + ASCII digits + 'Z'. Verified UTF-8 with `file` (Unicode text, UTF-8 text) and `node --check` (no syntax errors).
+  2026-05-06T12:32:25Z D06 done: site/index.html — added prism-matrix.css + matrix-rain.js script in <head>; added `matrix-rain-strong` class to existing `landing-charcoal` body; canvas element added as first child of body. Inline `body.landing-charcoal` style block was deliberately left intact (subtask 02 owns it).
+  2026-05-06T12:32:35Z D07 done: spec-system/{index,quickstart,configuration,design}.html — each gets prism-matrix.css link + matrix-rain.js script (../ prefixed), `matrix-rain-soft` body class, canvas element, and SVG favicon link.
+  2026-05-06T12:32:40Z D08 done: 404.html received the same matrix-rain-strong wiring as index.html (plus the two prism stylesheets it lacked, since prism is now expected on every page for ::selection consistency).
+  2026-05-06T12:32:50Z D09 done: site/images/logo.svg retinted (#00ff7f matrix accent on #000 bg with #000 negative-space cutout); added <filter id="crt-glow"> with feGaussianBlur+feMerge and <pattern id="scanlines"> overlay. ViewBox / geometry preserved.
+  2026-05-06T12:33:00Z D10 done: site/images/logo.png re-exported via ImageMagick `convert` (only converter available locally — no rsvg-convert / inkscape installed). Because ImageMagick's internal MSVG renderer cannot rasterise <filter>/<pattern>, the PNG was rendered from a flattened intermediate SVG (same geometry, solid #00ff7f rects on #000) — the canonical SVG keeps the CRT glow + scanlines for browser rendering. PNG verified to contain `#00FF7F` SpringGreen pixels (256×256 8-bit sRGB, 78c indexed colormap).
+  2026-05-06T12:33:00Z D11 done: every page's inline data-URI favicon replaced with `<link rel="icon" type="image/svg+xml" href="images/logo.svg">` (+ `<link rel="alternate icon" type="image/png" href="images/logo.png">` for downlevel UAs). `rg "data:image/svg" site/` confirms zero residual data-URI favicons.
+  Verification: ReadLints clean across all 10 modified files. `node --check site/js/matrix-rain.js` passes. `rg "charcoal" site/css/style.css` only matches a comment (no --charcoal-* declarations). The inline `body.landing-charcoal` block in site/index.html is preserved (lines 36, 48, 53).
+  Manual prefers-reduced-motion verification (code inspection): (a) JS path — `motionMediaQuery.matches` check at the very top of the IIFE returns before any rAF/listener attachment when reduce is on; (b) CSS path — `@media (prefers-reduced-motion: reduce) .matrix-rain-canvas { display: none !important }` ensures the element is invisible even if the JS module is bypassed. Visibility handler skips drawing whenever `document.visibilityState === 'hidden'` via an in-loop `paused` flag (no explicit cancelAnimationFrame call); browsers also throttle rAF in hidden tabs, so the combined effect is no work while the tab is backgrounded.
+extra:
+  heartbeats:
+    - ts: "2026-05-06T12:31:33Z"
+      msg: "subtask started"
+    - ts: "2026-05-06T12:33:00Z"
+      msg: "subtask completed; 11/11 deliverables done; 0 errors"
+  dod_checks:
+    matrix_tokens_resolve: true
+    no_charcoal_alias_block_in_style_css: true
+    matrix_rain_reduced_motion_safe: true
+    prismjs_readable: true
+    logo_svg_renders: true
+    logo_png_reexported: true
+    no_linter_errors: true
+    no_content_or_ia_change: true
+  caveats:
+    - "PNG re-export went through a flattened intermediate SVG because the only locally installed SVG-to-raster converter is ImageMagick's internal MSVG (no rsvg-convert / inkscape / cairosvg). The canonical SVG keeps the full <filter id=\"crt-glow\"> and <pattern id=\"scanlines\"> for browser rendering — only the rasterised PNG is geometry-only. Anyone with rsvg-convert or inkscape can regenerate a fully-effected PNG from the unchanged SVG."
+  judge:
+    verdict: Partial
+    score: 4
+    confidence: high
+    at: "2026-05-06T22:50:00Z"
+    superseded_at: "2026-05-06T12:38:00Z"
+    summary: |
+      All eleven deliverables (D01–D11) are confirmed against disk. The
+      `--matrix-*` token block sits at the top of `:root` with the exact
+      values specified; the `--color-*` semantic tokens are reassigned via
+      `var(--matrix-*)` (no `--charcoal-*` alias bridge — the lone substring
+      in `style.css` is an explanatory comment). The `.matrix-rain-canvas`
+      / `.matrix-rain-strong` / `.matrix-rain-soft` selectors and the
+      `prefers-reduced-motion: reduce` `display: none !important` guard are
+      present at the bottom of the file. `site/css/prism-matrix.css` loads
+      after `prism-tomorrow.min.css` on every page with the documented
+      cool-green token tiers and `#4a6a4a` italic comments. `site/js/matrix-rain.js`
+      is a self-contained UTF-8 IIFE (verified with `file`) that bails on
+      `prefers-reduced-motion: reduce`, bails when the canvas is absent,
+      throttles to ~30 fps, pauses drawing on `document.visibilityState ===
+      'hidden'`, halves column density and skips DPR upscaling on mobile,
+      and ships the half-width katakana literal untouched (`node --check`
+      passes). `site/index.html`, `site/404.html`, and the four
+      `site/spec-system/*.html` pages all carry the canvas as the first
+      child of `<body>`, the correct strong/soft body modifier, the
+      `matrix-rain.js` script (defer), the `prism-matrix.css` link, and the
+      new `<link rel="icon" type="image/svg+xml">` favicon. `rg "data:image/svg" site/`
+      returns zero matches. `site/images/logo.svg` is retinted to the
+      Matrix palette (`#00ff7f` on `#000` with the inner negative-space
+      cutout preserved), carries `<filter id="crt-glow">` and `<pattern
+      id="scanlines">`, and the original `viewBox="0 0 420 420"` is intact.
+      `site/images/logo.png` is a 256×256 8-bit sRGB PNG that contains
+      `#00FF7F` SpringGreen pixels (`convert ... -unique-colors txt:-`
+      confirms the colour). ReadLints across every modified file is clean.
+
+      D06's "inline `body.landing-charcoal` block preserved" sub-clause
+      cannot be re-verified at HEAD because subtask 02 has since legitimately
+      migrated the inline block to `body.landing-matrix` (see subtask 02
+      status.yml D13 and the current `<body class="landing-matrix matrix-rain-strong">`).
+      Subtask 02 started 2026-05-06T12:36:00Z, three minutes after subtask 01
+      completed at 2026-05-06T12:33:00Z, so the temporal ordering is
+      consistent with subtask 01 having preserved the block at the time it
+      ran (subtask 01 status notes claim preservation, verified at lines
+      36, 48, 53 of the index.html snapshot it observed). The structural
+      half of D06 — canvas as first child of `<body>`, `matrix-rain-strong`
+      class, `matrix-rain.js` + `prism-matrix.css` in `<head>` — is fully
+      verified on disk.
+
+      Verdict is Partial (not Approve) because the prior judge run already
+      flagged that this status pair is schema-invalid: the `artifacts`
+      array is a list of bare path strings instead of the
+      `{path, kind, note}` object form required by
+      `plugins/zoto-spec-system/templates/schema/subtask-status.schema.json`.
+      `spec-onstop-check.ts` will exit 2 against the current YAML, which
+      forbids reporting `Verified`. The deliverables on disk are sound —
+      only the status-pair authoring needs to be re-rendered. Per the
+      reviewer non-interference contract, the judge does not author the
+      `artifacts` block (that is the assigned subagent's surface); the fix
+      is routed back to `crux-software-engineer` via the fix_list below.
+      The remaining items (F02–F05) are minor housekeeping: a few
+      `evidence_path` line ranges drifted as the files grew/shrank during
+      edits, and the work-log line that says the visibilitychange handler
+      calls `cancelAnimationFrame` overstates the implementation, which
+      uses an in-loop `paused` flag (functionally equivalent — drawing is
+      skipped, browsers throttle hidden-tab rAF anyway).
+    fix_list:
+      - id: F01
+        severity: major
+        owner: crux-software-engineer
+        deliverable_ref: artifacts
+        description: |
+          `artifacts:` is a list of bare path strings; the schema at
+          `plugins/zoto-spec-system/templates/schema/subtask-status.schema.json#/properties/artifacts/items`
+          requires objects with `{path:string, kind:enum(created|modified|deleted), note:string|null}`.
+          `spec-onstop-check.ts` exits 2 on this, which blocks a `Verified`
+          verdict by contract. Deliverables on disk are correct; only the
+          status-pair authoring needs to be re-rendered. Recommended shape:
+          `site/css/style.css` (modified), `site/css/prism-matrix.css`
+          (created), `site/js/matrix-rain.js` (created), the four
+          spec-system HTML pages (modified), `site/404.html` (modified),
+          `site/images/logo.svg` (modified), `site/images/logo.png`
+          (modified), `site/index.html` (modified). Then re-render the
+          `.status.md` via
+          `pnpm --filter @zoto-agents/zoto-spec-system run spec-status-roundtrip -- md-from-yml --in <yml> --out <md>`
+          and re-run `spec-onstop-check.ts` to confirm exit 0.
+        evidence_path: "57:68:specs/20260506-site-evals-matrix-revamp/status/subtask-01-site-evals-matrix-revamp-theme-foundations-20260506.status.yml"
+      - id: F02
+        severity: minor
+        owner: crux-software-engineer
+        deliverable_ref: D03
+        description: "Update D03 evidence_path from `1014:1051:site/css/style.css` to `1028:1056:site/css/style.css` so the cite matches the on-disk `.matrix-rain-canvas` / `.matrix-rain-strong` / `.matrix-rain-soft` block."
+        evidence_path: "1028:1056:site/css/style.css"
+      - id: F03
+        severity: minor
+        owner: crux-software-engineer
+        deliverable_ref: D04
+        description: "Update D04 evidence_path from `1:135:site/css/prism-matrix.css` to `1:147:site/css/prism-matrix.css` (file is 147 lines including the markdown bold/italic + selection rules)."
+        evidence_path: "1:147:site/css/prism-matrix.css"
+      - id: F04
+        severity: minor
+        owner: crux-software-engineer
+        deliverable_ref: D05
+        description: "Update D05 evidence_path from `1:235:site/js/matrix-rain.js` to `1:161:site/js/matrix-rain.js` (final IIFE is 161 lines; `235` looks like an early draft estimate)."
+        evidence_path: "1:161:site/js/matrix-rain.js"
+      - id: F05
+        severity: minor
+        owner: crux-software-engineer
+        deliverable_ref: D05
+        description: "Reword the work-log line that says `visibilitychange → cancelAnimationFrame + running = false` so it matches the implementation, which sets a `paused` flag inside the rAF callback (drawing is skipped while hidden, but rAF continues to be scheduled). Functionally pauses the loop as the deliverable requires; the note just over-promises the mechanism. Optionally tighten the implementation to also `cancelAnimationFrame(rafId)` on hidden so the rAF queue itself is drained, but this is not required by D05."
+        evidence_path: "110:115:site/js/matrix-rain.js"
+      - id: F06
+        severity: minor
+        owner: crux-software-engineer
+        deliverable_ref: D10
+        description: "Cosmetic: `site/images/logo.png` was rasterised through a flattened intermediate SVG because only ImageMagick's MSVG converter is available locally; the PNG therefore lacks the `<filter id=\"crt-glow\">` and `<pattern id=\"scanlines\">` effects. The canonical SVG retains both. D10 is satisfied (PNG re-exported at 256×256 from the updated palette), but anyone with `rsvg-convert` / `inkscape` / `cairosvg` can regenerate a fully-effected PNG without changing the SVG. Nice-to-have; do NOT block subtask 01 advancement on this — the subtask file already calls out the caveat."
+        evidence_path: "1:1:site/images/logo.png"
+    notes: |
+      D06's `body.landing-charcoal` preservation cannot be re-verified at HEAD because subtask 02 has since legitimately migrated the inline block to `body.landing-matrix` (subtask 02 status.yml D13 + current `<body class="landing-matrix matrix-rain-strong">`). Temporal ordering of the two status pairs is consistent with subtask 01 having preserved the block at the time it ran (S01 completed 12:33:00Z, S02 started 12:36:00Z). No verdict change is required from this observation alone — flagging only so future re-runs of `/zoto-spec-judge` on subtask 01 in isolation know to look for the cross-subtask overlay rather than treating the on-disk delta as a S01 violation.
+      D07 spec-system pages also contain a `/zoto-spec-* → /z-spec-*` command-name change visible in `git diff HEAD`. This is from a separate command-prefix-shortening spec, not subtask 01, so it does NOT count against the no-IA-change DoD for this subtask.
+      Verdict: Partial / score 4 / confidence high. The deliverables on disk are sound; the only blocker is F01 (schema-invalid artifacts), which is routed back to `crux-software-engineer` to re-author and re-render. F02–F06 are minor housekeeping that can be folded in at the same time. Once F01 is re-rendered and `spec-onstop-check.ts` exits 0, this verdict should be re-evaluated and is expected to upgrade to Approve.

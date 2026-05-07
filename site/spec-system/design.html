@@ -7,27 +7,48 @@
   <link rel="stylesheet" href="../css/style.css">
   <!-- Prism.js for syntax highlighting (Tomorrow Night theme) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
   <script defer src="../js/main.js"></script>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 420'><rect width='420' height='420' fill='%23e8e8e8'/><rect x='30' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='165' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='300' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='30' y='240' width='360' height='150' fill='%238ec0d6'/><rect x='150' y='300' width='120' height='90' fill='%23e8e8e8'/></svg>">
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
 </head>
-<body>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
 
   <!-- Top Navigation -->
-  <nav class="top-nav">
+  <nav class="top-nav" aria-label="Main navigation">
     <div class="top-nav-inner">
       <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
-      <button class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
         <span class="sidebar-toggle-icon"></span>
       </button>
       <ul class="top-nav-links">
         <li><a href="../index.html">Home</a></li>
-        <li><a href="index.html" class="active">Spec System</a></li>
+        <li class="nav-dropdown">
+          <a href="index.html" class="nav-dropdown-toggle active">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="quickstart.html">Quickstart</a></li>
+            <li><a href="design.html">Design</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../eval-system/index.html">Overview</a></li>
+            <li><a href="../eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../eval-system/design.html">Design</a></li>
+            <li><a href="../eval-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
         <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
       </ul>
     </div>
@@ -37,7 +58,7 @@
   <div class="page-layout">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav" aria-label="Spec System pages">
         <h3 class="sidebar-heading">Spec System</h3>
         <ul class="sidebar-list">
           <li><a href="index.html" class="sidebar-link">Overview</a></li>
@@ -90,9 +111,9 @@
           </li>
           <li><a href="#commands">Commands</a>
             <ul>
-              <li><a href="#cmd-create">/zoto-spec-create</a></li>
-              <li><a href="#cmd-judge">/zoto-spec-judge</a></li>
-              <li><a href="#cmd-execute">/zoto-spec-execute</a></li>
+              <li><a href="#cmd-create">/z-spec-create</a></li>
+              <li><a href="#cmd-judge">/z-spec-judge</a></li>
+              <li><a href="#cmd-execute">/z-spec-execute</a></li>
             </ul>
           </li>
           <li><a href="#hooks-rules">Hooks &amp; Rules</a></li>
@@ -128,7 +149,7 @@
         <p>The system follows a layered design:</p>
 
         <ul>
-          <li><strong>Commands</strong> are the user-facing entry points (<code>/zoto-spec-create</code>, <code>/zoto-spec-judge</code>, <code>/zoto-spec-execute</code>)</li>
+          <li><strong>Commands</strong> are the user-facing entry points (<code>/z-spec-create</code>, <code>/z-spec-judge</code>, <code>/z-spec-execute</code>)</li>
           <li><strong>Agents</strong> are the execution contexts with domain expertise and model configuration</li>
           <li><strong>Skills</strong> define the step-by-step workflows each agent follows</li>
           <li><strong>Spec files</strong> are the coordination artifacts that pass state between agents</li>
@@ -164,7 +185,7 @@
           </p>
         </div>
 
-        <p><strong>When invoked:</strong> Spawned by the <code>/zoto-spec-create</code> command. The user triggers it when they want to plan a new feature, refactor, or multi-step initiative.</p>
+        <p><strong>When invoked:</strong> Spawned by the <code>/z-spec-create</code> command. The user triggers it when they want to plan a new feature, refactor, or multi-step initiative.</p>
 
         <p><strong>Capabilities:</strong></p>
         <ul>
@@ -201,7 +222,7 @@
           </p>
         </div>
 
-        <p><strong>When invoked:</strong> Spawned by the <code>/zoto-spec-execute</code> command when a spec exists with status <em>Ready for Review</em> or by explicit user request.</p>
+        <p><strong>When invoked:</strong> Spawned by the <code>/z-spec-execute</code> command when a spec exists with status <em>Ready for Review</em> or by explicit user request.</p>
 
         <p><strong>Capabilities:</strong></p>
         <ul>
@@ -281,14 +302,14 @@
 
         <h4>Mode 2: Repository Assessment</h4>
         <p>
-          Invoked via <code>/zoto-spec-judge</code> with no arguments. Performs a
+          Invoked via <code>/z-spec-judge</code> with no arguments. Performs a
           comprehensive repository-level audit: explores codebase structure, runs
           read-only quality checks, and scores six dimensions.
         </p>
 
         <h4>Mode 3: Spec Assessment</h4>
         <p>
-          Invoked via <code>/zoto-spec-judge</code> with a spec path. Loads the spec
+          Invoked via <code>/z-spec-judge</code> with a spec path. Loads the spec
           index and all subtask files, verifies codebase assumptions, validates the
           Subtask Manifest, audits the dependency graph, and performs risk analysis.
           After producing the assessment report, <strong>offers to apply recommended
@@ -357,9 +378,9 @@
             </tr>
             <tr>
               <td><strong>Triggered by</strong></td>
-              <td><code>/zoto-spec-create</code></td>
-              <td><code>/zoto-spec-execute</code></td>
-              <td><code>/zoto-spec-judge</code>, or spawned by other agents</td>
+              <td><code>/z-spec-create</code></td>
+              <td><code>/z-spec-execute</code></td>
+              <td><code>/z-spec-judge</code>, or spawned by other agents</td>
             </tr>
             <tr>
               <td><strong>Primary skill</strong></td>
@@ -768,13 +789,13 @@
         </p>
 
         <!-- ---------------------------------------- -->
-        <h3 id="cmd-create">/zoto-spec-create</h3>
+        <h3 id="cmd-create">/z-spec-create</h3>
 
         <p>Generate structured engineering specs for complex features and multi-step initiatives.</p>
 
-        <pre><code class="language-bash">/zoto-spec-create                      # Interactive guided mode
-/zoto-spec-create @docs/design.md      # Create from a design doc
-/zoto-spec-create "add feature X"      # Create from a description</code></pre>
+        <pre><code class="language-bash">/z-spec-create                      # Interactive guided mode
+/z-spec-create @docs/design.md      # Create from a design doc
+/z-spec-create "add feature X"      # Create from a description</code></pre>
 
         <p><strong>Argument handling:</strong></p>
         <ul>
@@ -794,13 +815,13 @@
         </ol>
 
         <!-- ---------------------------------------- -->
-        <h3 id="cmd-judge">/zoto-spec-judge</h3>
+        <h3 id="cmd-judge">/z-spec-judge</h3>
 
         <p>Independently assess the repository or a specific engineering spec.</p>
 
-        <pre><code class="language-bash">/zoto-spec-judge                                  # Assess the entire repository
-/zoto-spec-judge specs/20260403-feature-name      # Assess a spec by directory
-/zoto-spec-judge specs/.../spec-name-20260403.md   # Assess by index file path</code></pre>
+        <pre><code class="language-bash">/z-spec-judge                                  # Assess the entire repository
+/z-spec-judge specs/20260403-feature-name      # Assess a spec by directory
+/z-spec-judge specs/.../spec-name-20260403.md   # Assess by index file path</code></pre>
 
         <p><strong>Argument handling:</strong></p>
         <ul>
@@ -819,14 +840,14 @@
         </p>
 
         <!-- ---------------------------------------- -->
-        <h3 id="cmd-execute">/zoto-spec-execute</h3>
+        <h3 id="cmd-execute">/z-spec-execute</h3>
 
         <p>Execute an engineering spec with guided subagent coordination, progress tracking, and completion verification.</p>
 
-        <pre><code class="language-bash">/zoto-spec-execute                                  # Execute the most recent spec
-/zoto-spec-execute specs/20260403-feature-name      # Execute a specific spec
-/zoto-spec-execute specs/.../spec-name-20260403.md   # Execute by index file path
-/zoto-spec-execute --resume                          # Resume interrupted execution</code></pre>
+        <pre><code class="language-bash">/z-spec-execute                                  # Execute the most recent spec
+/z-spec-execute specs/20260403-feature-name      # Execute a specific spec
+/z-spec-execute specs/.../spec-name-20260403.md   # Execute by index file path
+/z-spec-execute --resume                          # Resume interrupted execution</code></pre>
 
         <p><strong>Spec discovery:</strong></p>
         <ul>
@@ -896,7 +917,7 @@
 
         <p><strong>What it checks:</strong></p>
         <ol>
-          <li>Loads <code>.zoto-spec-system/config.json</code> from the repository root</li>
+          <li>Loads <code>.zoto/spec-system/config.yml</code> from the repository root</li>
           <li>Reads <code>hooks.sessionStartNudge.enabled</code> &mdash; if <code>false</code>, exits silently</li>
           <li>Resolves <code>workDir</code> (default <code>specs/current</code>) and counts subdirectories</li>
           <li>If the count exceeds <code>threshold</code> (default 20), emits a nudge message</li>
@@ -910,7 +931,7 @@
         </p>
 
         <pre><code class="language-json">{
-  "additional_context": "You have 25 unprocessed specs. Consider running /zoto-spec-create to organize."
+  "additional_context": "You have 25 unprocessed specs. Consider running /z-spec-create to organize."
 }</code></pre>
 
         <p>
@@ -946,8 +967,8 @@
         <p><strong>What it teaches agents:</strong></p>
         <ul>
           <li>The three available commands and their purposes</li>
-          <li>When to suggest <code>/zoto-spec-create</code> (multi-step initiatives, cross-component changes, ambiguous requirements)</li>
-          <li>How configuration works (<code>.zoto-spec-system/config.json</code> with <code>unitOfWork</code> and <code>specsDir</code>)</li>
+          <li>When to suggest <code>/z-spec-create</code> (multi-step initiatives, cross-component changes, ambiguous requirements)</li>
+          <li>How configuration works (<code>.zoto/spec-system/config.yml</code> with <code>unitOfWork</code> and <code>specsDir</code>)</li>
           <li>How to discover existing specs in the configured <code>specsDir</code> directory</li>
           <li>Available extensions (memory system)</li>
         </ul>
@@ -956,7 +977,7 @@
         <h2 id="configuration">6. Configuration System</h2>
 
         <p>
-          The Spec System is configured via <code>.zoto-spec-system/config.json</code>
+          The Spec System is configured via <code>.zoto/spec-system/config.yml</code>
           at the repository root. An empty <code>{}</code> is valid &mdash; all fields
           have sensible defaults.
         </p>
@@ -1068,8 +1089,8 @@ Draft | Ready for Review | In Progress | Completed
 
 ```mermaid
 graph TD
-    A[subtask-01] --> C[subtask-03]
-    B[subtask-02] --> C
+    A[subtask-01] --&gt; C[subtask-03]
+    B[subtask-02] --&gt; C
 ```
 
 ## Execution Order

@@ -1,9 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420" width="420" height="420">
   <title>zoto.io logo</title>
-  <rect width="420" height="420" rx="0" fill="#e8e8e8"/>
-  <rect x="30" y="30" width="90" height="90" fill="#8ec0d6"/>
-  <rect x="165" y="30" width="90" height="90" fill="#8ec0d6"/>
-  <rect x="300" y="30" width="90" height="90" fill="#8ec0d6"/>
-  <rect x="30" y="240" width="360" height="150" fill="#8ec0d6"/>
-  <rect x="150" y="300" width="120" height="90" fill="#e8e8e8"/>
+  <defs>
+    <!--
+      crt-glow — subtle CRT-style scanline + inner shadow.
+      Layered: Gaussian-blurred copy of the source plus a 1px scanline
+      overlay so the pixel-block geometry stays crisp but reads as a
+      lit phosphor.
+    -->
+    <filter id="crt-glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.1" result="blur"/>
+      <feComponentTransfer in="blur" result="glow">
+        <feFuncA type="linear" slope="0.85" intercept="0"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="scanlines" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="4" height="4" fill="transparent"/>
+      <rect x="0" y="0" width="4" height="1" fill="#000" fill-opacity="0.18"/>
+    </pattern>
+  </defs>
+  <rect width="420" height="420" rx="0" fill="#000"/>
+  <g filter="url(#crt-glow)">
+    <rect x="30" y="30" width="90" height="90" fill="#00ff7f"/>
+    <rect x="165" y="30" width="90" height="90" fill="#00ff7f"/>
+    <rect x="300" y="30" width="90" height="90" fill="#00ff7f"/>
+    <rect x="30" y="240" width="360" height="150" fill="#00ff7f"/>
+    <rect x="150" y="300" width="120" height="90" fill="#000"/>
+  </g>
+  <rect width="420" height="420" fill="url(#scanlines)" pointer-events="none"/>
 </svg>

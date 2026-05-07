@@ -1,0 +1,88 @@
+schema_version: 1
+subtask_id: "05"
+feature: site-evals-matrix-revamp
+assigned_agent: crux-platform-architect
+model: claude-opus-4.7
+token_budget: 200000
+state: completed
+started_at: "2026-05-06T13:02:30Z"
+last_heartbeat: "2026-05-06T13:18:00Z"
+completed_at: "2026-05-06T13:18:00Z"
+checklist:
+  - id: D01
+    text: "site/eval-system/index.html — Overview with hero, when-to-use, dual-backend, askQuestion, _meta.generated, see-also."
+    done: true
+    evidence_path: site/eval-system/index.html
+  - id: D02
+    text: "site/eval-system/quickstart.html — Lifecycle walk-through (install → init → configure → create → update → execute → judge → advise → compare) + CI integration."
+    done: true
+    evidence_path: site/eval-system/quickstart.html
+  - id: D03
+    text: "site/eval-system/configuration.html — Schema-grounded reference for .zoto/eval-system/config.yml; init template; field tables; env vars; migration note."
+    done: true
+    evidence_path: site/eval-system/configuration.html
+  - id: D04
+    text: "site/eval-system/design.html — Architecture deep-dive: lifecycle, askQuestion flow, static/LLM backends, run output schema, _meta.generated contract, critical-change rubric, manifest example, judge vs adviser comparison, /canvas hand-off."
+    done: true
+    evidence_path: site/eval-system/design.html
+  - id: D05
+    text: "Sidebar nav on every eval-system page — heading 'Eval System', 4 entries, active state correct per page."
+    done: true
+    evidence_path: site/eval-system/
+  - id: D06
+    text: "Top nav on every eval-system page mirrors landing-page peer dropdowns (Spec System / Eval System / GitHub)."
+    done: true
+    evidence_path: site/eval-system/
+  - id: D07
+    text: "Breadcrumbs Home > Eval System > <page> on every page."
+    done: true
+    evidence_path: site/eval-system/
+  - id: D08
+    text: "Meta tags (title / description / og:* / twitter:*) populated per page."
+    done: true
+    evidence_path: site/eval-system/
+  - id: D09
+    text: "Workspace path consistency — every workspace-local path reads .zoto/eval-system/ (the only .zoto-eval-system reference is the migration callout in configuration.html, intentionally framed as no-longer-supported)."
+    done: true
+    evidence_path: site/eval-system/configuration.html
+  - id: D10
+    text: "Code samples — every code block uses the correct Prism language tag (bash, yaml, json, typescript, markdown)."
+    done: true
+    evidence_path: site/eval-system/
+  - id: D11
+    text: "site/index.html cross-links resolve — hero CTA, dropdown entries, Explore quick-link cards, and the plugin grid all point at the four new pages."
+    done: true
+    evidence_path: site/index.html
+artifacts:
+  - path: site/eval-system/index.html
+    kind: created
+    note: New page. 221 lines. References eval-lifecycle.svg, eval-askquestion-flow.svg, eval-update-contract.svg.
+  - path: site/eval-system/quickstart.html
+    kind: created
+    note: New page. 276 lines. References eval-run-report.svg, eval-canvas-compare.svg.
+  - path: site/eval-system/configuration.html
+    kind: created
+    note: New page. 274 lines. Init template + 5 reference tables + env vars table.
+  - path: site/eval-system/design.html
+    kind: created
+    note: New page. 309 lines. References all 4 diagrams + 3 mockups; manifest + result schema examples.
+errors: []
+notes: |
+  Source-of-truth content was sourced from plugins/zoto-eval-system/README.md. Each claim that materially shapes the page (the lifecycle command list, the dual-backend story, the manifest layout, the critical-change rubric, the judge vs adviser comparison, the result schema example) traces back to a labelled section of that README and is reproduced verbatim where appropriate. All workspace-local paths reference .zoto/eval-system/; the lone reference to the legacy .zoto-eval-system path lives in the configuration.html migration callout, framed as no-longer-supported. Page sizes (221–309 lines) sit well under the 600-line guidance and on par with site/spec-system/ equivalents. All four SVG diagrams and three mockups from subtask 04 are referenced via <img src="../images/..."> with descriptive alt text.
+extra:
+  heartbeats:
+    - ts: "2026-05-06T13:02:30Z"
+      msg: "subtask started; sourcing content from README"
+    - ts: "2026-05-06T13:18:00Z"
+      msg: "subtask completed; 4 pages authored, lints clean"
+  dod_checks:
+    four_pages_exist: true
+    sidebar_nav_correct: true
+    breadcrumbs_correct: true
+    matrix_theme_inherited: true
+    workspace_paths_consistent: true
+    svg_references_resolve: true
+    cross_links_from_landing_resolve: true
+    no_crux_generated_files_touched: true
+    no_plugin_source_change: true
+    no_linter_errors: true

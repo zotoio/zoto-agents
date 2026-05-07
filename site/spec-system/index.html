@@ -7,25 +7,46 @@
   <link rel="stylesheet" href="../css/style.css">
   <!-- Prism.js for syntax highlighting (Tomorrow Night theme) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
   <script defer src="../js/main.js"></script>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 420'><rect width='420' height='420' fill='%23e8e8e8'/><rect x='30' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='165' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='300' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='30' y='240' width='360' height='150' fill='%238ec0d6'/><rect x='150' y='300' width='120' height='90' fill='%23e8e8e8'/></svg>">
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
 </head>
-<body>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
 
   <!-- Top Navigation -->
-  <nav class="top-nav">
+  <nav class="top-nav" aria-label="Main navigation">
     <div class="top-nav-inner">
       <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
-      <button class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
         <span class="sidebar-toggle-icon"></span>
       </button>
       <ul class="top-nav-links">
         <li><a href="../index.html">Home</a></li>
-        <li><a href="index.html" class="active">Spec System</a></li>
+        <li class="nav-dropdown">
+          <a href="index.html" class="nav-dropdown-toggle active">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="quickstart.html">Quickstart</a></li>
+            <li><a href="design.html">Design</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../eval-system/index.html">Overview</a></li>
+            <li><a href="../eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../eval-system/design.html">Design</a></li>
+            <li><a href="../eval-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
         <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
       </ul>
     </div>
@@ -35,7 +56,7 @@
   <div class="page-layout">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav" aria-label="Spec System pages">
         <h3 class="sidebar-heading">Spec System</h3>
         <ul class="sidebar-list">
           <li><a href="index.html" class="sidebar-link active">Overview</a></li>
@@ -340,7 +361,7 @@
 
         <h3>Phase 1: Create</h3>
         <p>
-          Run <code>/zoto-spec-create</code> to start a guided workflow. The
+          Run <code>/z-spec-create</code> to start a guided workflow. The
           generator agent asks clarifying questions, explores your codebase to
           understand existing patterns, then produces a spec index and subtask
           files under your configured specs directory. You confirm key decisions
@@ -349,7 +370,7 @@
 
         <h3>Phase 2: Judge</h3>
         <p>
-          Run <code>/zoto-spec-judge</code> on the spec (or skip straight to
+          Run <code>/z-spec-judge</code> on the spec (or skip straight to
           execution if you prefer). A fresh judge agent &mdash; deliberately
           isolated from the planning context &mdash; reads the spec, explores
           your codebase, and produces a structured assessment with scores across
@@ -361,7 +382,7 @@
 
         <h3>Phase 3: Execute</h3>
         <p>
-          Run <code>/zoto-spec-execute</code> to begin implementation. The
+          Run <code>/z-spec-execute</code> to begin implementation. The
           executor spawns subagents for each subtask, respects the dependency
           graph, and coordinates adversarial verification after each subtask
           completes. A final verification step runs your project's test suite
@@ -377,7 +398,7 @@
         </p>
 
         <figure>
-          <img src="../images/diagrams/agent-architecture.svg" alt="Spec System architecture: three commands (/zoto-spec-create, /zoto-spec-judge, /zoto-spec-execute) spawn three agents (zoto-spec-generator, zoto-spec-judge, zoto-spec-executor) which use three skills (zoto-create-spec, zoto-judge-spec, zoto-execute-spec), supported by a session-start hook, integration rule, and config file">
+          <img src="../images/diagrams/agent-architecture.svg" alt="Spec System architecture: three commands (/z-spec-create, /z-spec-judge, /z-spec-execute) spawn three agents (zoto-spec-generator, zoto-spec-judge, zoto-spec-executor) which use three skills (zoto-create-spec, zoto-judge-spec, zoto-execute-spec), supported by a session-start hook, integration rule, and config file">
           <figcaption>Commands, agents, skills, and supporting components</figcaption>
         </figure>
 
@@ -392,17 +413,17 @@
           <tbody>
             <tr>
               <td>Command</td>
-              <td><code>/zoto-spec-create</code></td>
+              <td><code>/z-spec-create</code></td>
               <td>Entry point for creating a new spec</td>
             </tr>
             <tr>
               <td>Command</td>
-              <td><code>/zoto-spec-judge</code></td>
+              <td><code>/z-spec-judge</code></td>
               <td>Entry point for quality assessment</td>
             </tr>
             <tr>
               <td>Command</td>
-              <td><code>/zoto-spec-execute</code></td>
+              <td><code>/z-spec-execute</code></td>
               <td>Entry point for spec execution</td>
             </tr>
             <tr>
