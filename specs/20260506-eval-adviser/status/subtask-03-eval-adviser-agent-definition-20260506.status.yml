@@ -1,0 +1,36 @@
+schema_version: 1
+subtask_id: "03"
+feature: Eval Adviser
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Agent file: `plugins/zoto-eval-system/agents/zoto-eval-adviser.md`"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: Agent follows frontmatter conventions (`name`, `description`)
+    done: false
+    evidence_path: null
+  - id: D03
+    text: Agent specifies skills it uses (`zoto-advise-evals`)
+    done: false
+    evidence_path: null
+  - id: D04
+    text: Agent specifies operating mode (Advise Mode)
+    done: false
+    evidence_path: null
+  - id: D05
+    text: Agent includes critical rules (no askQuestion, needs_user_input pattern)
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Agent references the correct command (`/zoto-eval-advise`)
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}
