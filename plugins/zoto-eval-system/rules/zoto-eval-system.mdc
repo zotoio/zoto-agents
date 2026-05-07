@@ -5,25 +5,58 @@ alwaysApply: true
 
 # Eval System
 
-This repository uses the Eval System plugin to generate, run, and keep static (pytest) + LLM (@cursor/sdk) eval suites in sync with code changes.
+This repository uses the Eval System plugin to generate, run, and consciously update static (pytest) + LLM (@cursor/sdk) eval suites when AI primitives change — every proposed update requires user confirmation before writing.
 
 ## Available Commands
 
-- `/zoto-eval-configure` — askQuestion-driven config writer.
-- `/zoto-eval-create` — scaffold both eval backends and the manifest.
-- `/zoto-eval-update [<file-or-glob>] [--apply] [--check]` — diff-aware refresh.
-- `/zoto-eval-execute [--full] [--model <id>]` — run the suite.
-- `/zoto-eval-judge` — adversarial coverage and soft-metric review.
-- `/zoto-eval-compare <r1> <r2> [<rN>]` — cross-run analysis via `/canvas`.
-- `/zoto-eval-help [<topic>]` — README-backed canonical help.
+- `/z-eval-init` — scaffold `.zoto/eval-system/config.yml` from the init template (every key commented; run once per repo).
+- `/z-eval-configure` — interactive config; the command owns `askQuestion`, then delegates to the configurer subagent.
+- `/z-eval-create` — scaffold both eval backends and the manifest.
+- `/z-eval-update [<file-or-glob>] [--apply] [--check]` — diff-aware refresh.
+- `/z-eval-execute [--full] [--model <id>]` — run the suite.
+- `/z-eval-judge` — adversarial coverage and soft-metric review.
+- `/z-eval-compare <r1> <r2> [<rN>]` — cross-run analysis via `/canvas`.
+- `/z-eval-help [<topic>]` — README-anchored, project-tailored help with mandatory citations.
+- `/z-eval-advise [<scope>]` — interactive eval coverage gap analysis and recommendations.
+
+If an Eval System command is invoked and `.zoto/eval-system/config.yml` is missing, **stop and instruct the user to run `/z-eval-init`** rather than continuing.
 
 ## Help-Intent Routing
 
-Before answering ANY question about how to configure, create, update, execute, judge, or compare evals — or any question about `.zoto-eval-system/`, `evals/`, `results.yml`, the `_meta.generated` contract, or `manifest.history.yml` — the agent MUST invoke `/zoto-eval-help` so the answer is backed by the plugin's shipped README. Do not answer from inferred knowledge.
+Before answering ANY question about how to configure, create, update, execute, judge, compare, or advise on evals — or any question about `.zoto/eval-system/`, `evals/`, `llm.yml`, the `_meta.generated` contract, or `manifest.history.yml` — the agent MUST invoke `/z-eval-help` so the answer is anchored on the plugin's shipped README, tailored to this project's actual state (config, manifest, runs), and cited inline with `start:end:plugins/zoto-eval-system/README.md` code references. Do not answer from inferred knowledge.
 
-## askQuestion Contract
+Questions about "what tests am I missing?", "eval coverage gaps", "are my evals sufficient?", or "eval recommendations" should be routed to `/z-eval-advise` rather than `/z-eval-help`.
 
-Every interactive prompt surfaced by this plugin routes through the `askQuestion` tool. If you are implementing or extending a skill, do not add free-form text prompts — use `askQuestion`.
+## User confirmation contract
+
+No generated eval is rewritten without explicit user consent. When the updater detects drift or the configurer proposes a change, every modification is presented for user approval before writing.
+
+### Implementation: askQuestion delegation (commands vs subagents/skills)
+
+Cursor subagents cannot prompt the user directly — this is standard Cursor subagent plumbing, not a plugin feature. The contract works as follows:
+
+| Layer | Interactive prompts |
+|-------|---------------------|
+| **Commands** (`commands/*.md`) | Own all `askQuestion` usage. Pre-collect answers **before** spawning a subagent and pass them in the Task prompt. |
+| **Agents** (`agents/*.md`) and **skills** (`skills/*/SKILL.md`) | **Do not** call `askQuestion`. Consume pre-collected answers from the invoking command. If mid-flight user input is unexpectedly required, finish with a structured `needs_user_input` block (below); the command runs `askQuestion`, then **resumes** the same subagent via the Task tool `resume` parameter with the answers. |
+
+### `needs_user_input` schema
+
+When a subagent needs user input that was not pre-provided, it returns this structured block. The command maps each question to `askQuestion`, then resumes the subagent with answers. Validated against `templates/schema/needs-user-input.schema.json`.
+
+```yaml
+needs_user_input:
+  reason: "<one-line why this can't be answered without the user>"
+  questions:
+    - id: <slug>
+      prompt: "<question text>"
+      options:
+        - id: <slug>
+          label: "<label>"
+      allow_multiple: false  # optional, defaults false
+```
+
+Free-form chat prompts from skills/agents are forbidden for interactive choices — use `needs_user_input` so the command can route through `askQuestion`. The schema enforces: at least one question, at least two options per question, slug-format ids, and no additional properties.
 
 ## _meta.generated Contract
 
@@ -35,7 +68,7 @@ The plugin validator rejects any code path that violates this contract. Don't tr
 
 ## Configuration
 
-`.zoto-eval-system/config.json` is the single source of truth. Validated against `templates/schema/config.schema.json`.
+`.zoto/eval-system/config.yml` is the single source of truth — the **only** path the plugin reads. The shipped init template (`templates/init-config.yml`) lists every supported key commented out alongside its internal default; uncomment lines to override. Validated against `templates/schema/config.schema.json`.
 
 Two fields are hard-coded:
 - `update.preserveUserAuthoredCases: true`
@@ -43,5 +76,5 @@ Two fields are hard-coded:
 
 ## Manifest
 
-- `.zoto-eval-system/manifest.yml` — current state (validated against `manifest.schema.json`).
-- `.zoto-eval-system/manifest.history.yml` — append-only full-snapshot history.
+- `.zoto/eval-system/manifest.yml` — current state (validated against `manifest.schema.json`).
+- `.zoto/eval-system/manifest.history.yml` — append-only full-snapshot history.

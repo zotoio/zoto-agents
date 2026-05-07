@@ -1,24 +1,32 @@
 ---
-name: zoto-spec-execute
+name: z-spec-execute
 description: Execute an engineering spec with guided subagent coordination, progress tracking, and completion verification.
 ---
 
-# zoto-spec-execute
+# z-spec-execute
 
 Execute an engineering spec with guided subagent coordination, progress tracking, and completion verification.
 
 ## Usage
 
 ```
-/zoto-spec-execute                                          - Execute the most recent spec in {specsDir}
-/zoto-spec-execute specs/20260403-feature-name              - Execute a specific spec by directory
-/zoto-spec-execute specs/20260403-feature-name/spec-feature-name-20260403.md  - Execute by index file path
-/zoto-spec-execute --resume                                  - Resume an interrupted execution
+/z-spec-execute                                          - Execute the most recent spec in {specsDir}
+/z-spec-execute specs/20260403-feature-name              - Execute a specific spec by directory
+/z-spec-execute specs/20260403-feature-name/spec-feature-name-20260403.md  - Execute by index file path
+/z-spec-execute --resume                                  - Resume an interrupted execution
 ```
 
 In examples above, `specs/` is the default `{specsDir}`; substitute your configured specs directory when it differs.
 
 ## Instructions
+
+### Precondition
+
+Before doing anything else, verify that **`.zoto/spec-system/config.yml`** exists at the repository root. If it does not, abort with the exact message:
+
+> Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.
+
+Do not synthesize a default config and do not proceed.
 
 When this command is invoked, spawn a `zoto-spec-executor` subagent to execute an engineering spec. The executor uses the `zoto-execute-spec` skill to coordinate the work. Pass `$ARGUMENTS` through to the spawned agent.
 
@@ -53,6 +61,13 @@ When this command is invoked, spawn a `zoto-spec-executor` subagent to execute a
 | **Progress persistence** | Spec index manifest updated after each subtask — supports `--resume` |
 | **User gates** | Approval before starting and before marking complete |
 | **Durable execution report** | Written under the spec directory as an audit trail |
+| **Status pair ownership** | Each spawned subagent owns its .status.md + .status.yml; aggregator only reads |
+| **Spec-root aggregation** | Executor backgrounds `pnpm --filter @zoto-agents/zoto-spec-system exec tsx scripts/spec-aggregator.ts --watch` for the spec's lifetime; rebuilds spec-root `status.md` + `status.yml` when the digest changes; `--once` / `--validate-only` available for resume / CI |
+| **Live config reload** | Token-budget and aggregator-cadence keys take effect on the next spawn — no executor restart required |
+
+**Live reload (`.zoto/spec-system/config.yml`):** takes effect on the **next spawn** (or aggregator tick) — `subagents.*.tokenBudget`, `subagents.*.model`, `aggregator.pollIntervalMs`, `aggregator.debounceMs`, `aggregator.enabled`, `spec.parallelLimit`.
+
+Keys such as **`specsDir`**, **`unitOfWork`**, **`workDir`**, **`hooks.*`**, and **`extensions.*`** still require a **fresh `/z-spec-execute` invocation** to take effect.
 
 ### Execution report location
 
@@ -69,5 +84,5 @@ When this command is invoked, spawn a `zoto-spec-executor` subagent to execute a
 - `zoto-spec-generator` agent — creates specs
 - `zoto-spec-judge` agent — adversarial verification and quality gate
 - `zoto-execute-spec` skill — execution workflow, dependency management, verification steps
-- `/zoto-spec-create` — create a spec
-- `/zoto-spec-judge` — assess a spec before execution
+- `/z-spec-create` — create a spec
+- `/z-spec-judge` — assess a spec before execution
