@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2",
+  "target_id": "agent:zoto-eval-comparer",
+  "kind": "agent",
+  "source_path": "plugins/zoto-eval-system/agents/zoto-eval-comparer.md",
+  "source_hash": "eb959882f19a53bc26b86566643f50928acedc44fd11450e1e775dbdaab9237e",
+  "summary": "The comparer merges completed eval runs from each folder’s report.yml and rollup fields, emits a flat per-case table without downsampling together with verbatim compare-canvas instructions for /canvas routing, and must return needs_user_input when run paths stay ambiguous instead of calling askQuestion.",
+  "cases": [
+    {
+      "scenario": "Multi-run compare prepares full canvas routing payload",
+      "prompt": "Two finished eval runs live under evals/_runs with different timestamps. Compare them, merge the case-level metrics from their reports, and give me the structured hand-off the host agent should pass to Cursor’s canvas tool so I can review pass rates and per-case drift in one view.",
+      "expected_output": "Assistant output that includes a JSON routing envelope naming /canvas, embeds the full flattened case rows for every input run without trimming, copies the compare prompt wording from the template file, points each row’s log reference at logs/<case>.log under the correct run, and tells the host to forward that object through /canvas while keeping charts out of the chat.",
+      "assertions": [
+        "The agent treats zoto-compare-evals as the governing checklist: read each run’s report.yml first, lean on report.static and report.llm rollups, and only touch standalone static.yml or llm.yml files when row normalization still needs backend-specific fields.",
+        "Flattened rows each include run_id, model, case_id, status, tokens, duration_ms, verbosity, accuracy, confidence, and log_path aligned with the originating report entries.",
+        "The delivered instructions quote templates/canvas/compare-prompt.md.tmpl exactly and the dataset retains every case from each resolved run with no aggregation or downsampling.",
+        "The payload instructs the host to call /canvas and does not attempt to render charts inline.",
+        "The tool trace contains no askQuestion calls for this flow."
+      ]
+    },
+    {
+      "scenario": "Ambiguous run selection returns needs_user_input roster",
+      "prompt": "Compare eval runs under evals/_runs using only the partial token 202605; more than one directory still matches and I have not chosen a single folder yet—still try the comparer workflow.",
+      "expected_output": "A needs_user_input structure enumerating every still-ambiguous run directory the operator must disambiguate, without emitting a /canvas JSON bundle or a flattened comparison table until paths resolve.",
+      "assertions": [
+        "needs_user_input lists all candidate run folders that match the incomplete reference instead of silently picking one.",
+        "No askQuestion invocation occurs while surfacing the ambiguity.",
+        "The agent withholds downsampling-free dataset export and /canvas routing instructions until the runs resolve to concrete directories."
+      ]
+    }
+  ]
+}
