@@ -15,7 +15,8 @@ Before execution, read `.zoto-spec-system/config.json` from the repository root 
 |-----|---------|-----|
 | `specsDir` | `specs` | Root directory for spec folders; substitute `{specsDir}` in paths below |
 | `unitOfWork` | `spec` | Singular term in messages (e.g. spec scope, nudges) |
-| `spec.parallelLimit` | `4` | Maximum concurrent subagents during a phase |
+| `spec.parallelLimit` | `8` | Maximum concurrent subagents during a phase |
+| `spec.preferredModel` | `composer-2` | Preferred model for spawned agents when supported |
 
 ## When to Use
 
@@ -44,7 +45,8 @@ Present the manifest as the execution summary and wait for user approval. Use `u
 - **Spec**: [feature name]
 - **Subtasks**: [total count]
 - **Phases**: [phase count]
-- **Parallel limit**: [spec.parallelLimit from config, default 4]
+- **Parallel limit**: [spec.parallelLimit from config, default 8]
+- **Preferred model**: [spec.preferredModel from config, default composer-2]
 
 ### Subtask Manifest
 | ID | File | Subagent | Dependencies | Phase |
@@ -63,7 +65,7 @@ Immediately after the user confirms execution, capture the start timestamp by ru
 
 ### Step 3: Execute Subtasks
 
-Read `spec.parallelLimit` from `.zoto-spec-system/config.json` (default **4**). Use it as the maximum number of subagents running at once for a phase.
+Read `spec.parallelLimit` from `.zoto-spec-system/config.json` (default **8**). Use it as the maximum number of execution subagents running at once for a phase. Read `spec.preferredModel` (default **composer-2**) and prefer it when spawning agents if the environment supports model selection.
 
 For each phase in order:
 
@@ -76,13 +78,14 @@ For each phase in order:
      - Tick each **Definition of Done** item (`- [ ]` → `- [x]`) as the corresponding quality gate is satisfied (e.g. code implemented, tests added, no linter errors)
      - Both sections must be fully checked before the agent reports completion
    - Instructions to record files modified and any blockers in Execution Notes
-3. **Wait for all phase subtasks** to complete before starting the next phase
+3. **Use slot-filling scheduling**: If the phase contains more ready subtasks than `spec.parallelLimit`, start the next ready subtask as soon as an execution slot opens. Do not wait for fixed batches that leave slots idle.
+4. **Wait for all phase subtasks** to complete and verify before starting the next dependent phase
 
-If a phase has more subtasks than `spec.parallelLimit`, batch them (N at a time per config) and wait for each batch before the next.
+If a phase has more subtasks than `spec.parallelLimit`, keep a ready queue ordered by critical-path importance: prerequisites for later phases first, then lower-risk independent work.
 
 ### Step 4: Adversarial Verification (per subtask) — mandatory
 
-After each subtask's assigned agent completes, spawn a **fresh `zoto-spec-judge` subagent** to adversarially verify the work. This is a dedicated judge agent — it did not execute the subtask and has no bias toward the implementation. Run the judge as a **background subagent** so verification can proceed while the next phase's subtasks are being prepared.
+After each subtask's assigned agent completes, immediately spawn a **fresh `zoto-spec-judge` subagent** to adversarially verify the work. This is a dedicated judge agent — it did not execute the subtask and has no bias toward the implementation. Run the judge as a **background subagent** so verification can proceed while ready execution work continues.
 
 For each completed subtask, the adversarial verifier must:
 
@@ -220,8 +223,19 @@ After user approval:
 
 ### Parallel Limits
 
-- Maximum concurrent subagents = `spec.parallelLimit` from `.zoto-spec-system/config.json` (default **4**)
-- If a phase has more subtasks than that limit, batch them and wait for each batch before the next
+- Maximum concurrent subagents = `spec.parallelLimit` from `.zoto-spec-system/config.json` (default **8**)
+- If a phase has more subtasks than that limit, use slot-filling scheduling instead of fixed batches
+- Prefer `spec.preferredModel` (default **composer-2**) where model selection is available; record unsupported fallbacks in the report
+
+### End-to-End Performance Rules
+
+Use these top five rules to reduce wall-clock execution time while preserving quality:
+
+1. **Critical path first**: Launch prerequisite subtasks before optional or isolated work when ready work exceeds available slots.
+2. **Right-size before launch**: Pause for spec adjustment if a subtask is too broad, too vague, or likely to dominate the phase.
+3. **Slot-fill execution**: Keep execution slots full up to `spec.parallelLimit`; avoid idle waits inside a phase.
+4. **Immediate focused judging**: Start verification as soon as each subtask completes and verify only the stated deliverables, touched files, and targeted checks.
+5. **Measure and report**: Capture per-subtask execution and verification timing plus bottlenecks in the execution report.
 
 ### Error Handling
 

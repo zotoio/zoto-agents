@@ -29,13 +29,14 @@ When this command is invoked, spawn a `zoto-spec-generator` subagent to create a
 
 1. Gather requirements (questions or from the referenced doc)
 2. Explore the codebase to understand existing patterns and potential conflicts
-3. Propose key decisions for user confirmation
-4. Create spec files in `{specsDir}/[yyyymmdd]-[feature-name]/` (for example `specs/20260403-feature-name/` when `specsDir` is `specs`):
+3. Propose key decisions for user confirmation, including dependency shape, `spec.parallelLimit`, and `composer-2` preference when supported
+4. Optimize the dependency graph for end-to-end execution time: shallow critical path, balanced subtask size, parallel phase packing, localized context, and targeted tests
+5. Create spec files in `{specsDir}/[yyyymmdd]-[feature-name]/` (for example `specs/20260403-feature-name/` when `specsDir` is `specs`):
    - `spec-[feature-name]-[yyyymmdd].md` — coordination index with dependency graph, phases, and definition of done
    - `subtask-NN-[feature]-[name]-[yyyymmdd].md` — one per subtask with objectives, deliverables, and agent assignments
-5. Present the spec summary for user review
-6. After user approval, automatically spawn a `zoto-spec-judge` agent to assess the spec's quality and feasibility
-7. Set spec status to **Ready for Review**
+6. Present the spec summary for user review
+7. After user approval, automatically spawn a `zoto-spec-judge` agent to assess the spec's quality and feasibility
+8. Set spec status to **Ready for Review**
 
 ## Spec output structure
 

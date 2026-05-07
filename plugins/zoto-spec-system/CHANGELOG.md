@@ -2,6 +2,12 @@
 
 All notable changes to the Spec System plugin will be documented in this file.
 
+## Unreleased
+
+### Changed
+- Spec creation and execution guidance now optimizes end-to-end runtime through critical-path planning, balanced subtask sizing, slot-filling execution, focused verification, and `composer-2` preference.
+- Default execution parallelism is now 8 subagents per phase.
+
 ## [0.6.0] - 2026-04-05
 
 ### Changed

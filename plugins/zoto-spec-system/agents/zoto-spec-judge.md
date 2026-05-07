@@ -1,6 +1,6 @@
 ---
 name: zoto-spec-judge
-model: claude-4.6-opus-high-thinking
+model: composer-2
 description: Independent quality gate for the Spec System. Performs adversarial verification of subtask deliverables during spec execution, produces structured assessments of repositories and specs, and offers to apply recommended fixes to spec files. Always runs in a fresh context to avoid bias.
 is_background: true
 ---
