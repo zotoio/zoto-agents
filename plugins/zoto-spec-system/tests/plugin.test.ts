@@ -123,6 +123,42 @@ describe("Config Schema", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 2b. Performance Defaults
+// ---------------------------------------------------------------------------
+
+describe("Performance Defaults", () => {
+  it("spec agents prefer composer-2", () => {
+    const agentsDir = join(PLUGIN_DIR, "agents");
+    for (const agent of [
+      "zoto-spec-generator.md",
+      "zoto-spec-executor.md",
+      "zoto-spec-judge.md",
+    ]) {
+      const text = readText(join(agentsDir, agent));
+      expect(text, `${agent} should prefer composer-2`).toContain(
+        "model: composer-2",
+      );
+    }
+  });
+
+  it("create and execute skills document execution-time optimization", () => {
+    const createSkill = readText(
+      join(PLUGIN_DIR, "skills", "zoto-create-spec", "SKILL.md"),
+    );
+    const executeSkill = readText(
+      join(PLUGIN_DIR, "skills", "zoto-execute-spec", "SKILL.md"),
+    );
+
+    expect(createSkill).toContain("Optimize for End-to-End Execution Time");
+    expect(createSkill).toContain("Critical path first");
+    expect(createSkill).toContain("Right-size subtasks");
+    expect(executeSkill).toContain("End-to-End Performance Rules");
+    expect(executeSkill).toContain("Slot-fill execution");
+    expect(executeSkill).toContain("composer-2");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 3. Content Integrity — No CRUX References
 // ---------------------------------------------------------------------------
 

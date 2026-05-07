@@ -26,6 +26,12 @@ Suggest `/zoto-spec-create` when:
 The spec system is configured via `.zoto-spec-system/config.json`. Key settings:
 - `unitOfWork` — term for work items (default: "spec")
 - `specsDir` — where specs are stored (default: "specs")
+- `spec.parallelLimit` — maximum execution subagents active during a phase (default: 4)
+- `spec.preferredModel` — preferred model for spec agents and spawned subagents when supported (default: "composer-2")
+
+## Performance Guidance
+
+When creating or executing specs, optimize end-to-end execution time by minimizing the critical path, right-sizing subtasks, packing independent work up to `spec.parallelLimit`, using slot-filling execution, and preferring `composer-2` when available.
 
 ## Discovering Existing Specs
 

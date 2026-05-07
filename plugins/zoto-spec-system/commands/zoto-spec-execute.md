@@ -33,8 +33,8 @@ When this command is invoked, spawn a `zoto-spec-executor` subagent to execute a
 
 1. **Load and validate**: Read the spec index and validate the subtask manifest — confirm files exist, agent assignments match metadata, dependencies are ordered correctly
 2. **Confirm**: Present the manifest as an execution summary (phases, subtask count, agent assignments per subtask) and wait for user approval
-3. **Execute**: For each phase in order, spawn the **exact subagent listed in the manifest** for each subtask (up to four in parallel). Agent assignments are never overridden. Executing agents tick off each **Deliverables Checklist** and **Definition of Done** item in the subtask file as they complete it. Wait for the phase to finish before the next.
-4. **Adversarial verification**: After each subtask completes, a **fresh `zoto-spec-judge` agent** (not the agent that did the work) independently verifies every Deliverables Checklist and Definition of Done item — confirms files exist, checks compile or validity, sets authoritative checklist state (ticking confirmed items, unticking unverified ones), returns Verified / Partial / Failed. Judge runs as a background subagent.
+3. **Execute**: For each phase in order, spawn the **exact subagent listed in the manifest** for each subtask (up to `spec.parallelLimit`, default four, in parallel). Prefer `composer-2` through `spec.preferredModel` when supported. Agent assignments are never overridden. Executing agents tick off each **Deliverables Checklist** and **Definition of Done** item in the subtask file as they complete it. Use slot-filling scheduling: start the next ready subtask as soon as a slot opens.
+4. **Adversarial verification**: Immediately after each subtask completes, a **fresh `zoto-spec-judge` agent** (not the agent that did the work) independently verifies every Deliverables Checklist and Definition of Done item — confirms files exist, checks compile or validity, sets authoritative checklist state (ticking confirmed items, unticking unverified ones), returns Verified / Partial / Failed. Judge runs as a background subagent while ready execution work continues.
 5. **Final verification**: After all subtasks are verified: run the project's test suite, check linter errors on modified files, and run an overall quality pass
 6. **Execution report**: Write a persistent report to the spec directory as `execution-report-[feature-name]-[yyyymmdd].md` with per-subtask results, verification outcomes, test and lint status, and files modified
 7. **Review**: Present the execution report and ask for user approval
@@ -48,7 +48,8 @@ When this command is invoked, spawn a `zoto-spec-executor` subagent to execute a
 | **Adversarial verification** | Each subtask's Deliverables Checklist and Definition of Done verified by a fresh `zoto-spec-judge` agent that did not execute the work |
 | **Dependency enforcement** | No subtask starts before its dependencies are complete |
 | **Failure handling** | On failure or Failed verification, stop and ask: retry, skip, or abort |
-| **Parallel limit** | Maximum four concurrent subagents per batch |
+| **Parallel limit** | Maximum `spec.parallelLimit` execution subagents, with slot-filling inside phases |
+| **Performance optimization** | Critical-path ordering, balanced subtask size, immediate focused verification, targeted tests, and `composer-2` preference |
 | **No global tests mid-execution** | Targeted tests per subtask where appropriate; full suite deferred to final verification |
 | **Progress persistence** | Spec index manifest updated after each subtask — supports `--resume` |
 | **User gates** | Approval before starting and before marking complete |

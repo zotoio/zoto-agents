@@ -6,7 +6,7 @@ Structured engineering workflows for complex initiatives: turn ideas into specs,
 
 Cursor's built-in **Plan mode** works well for focused, single-session tasks. The Spec System is for work that's too complex for a single session — when you need **durable spec files** you can review in PRs, share with teammates, and iterate on before execution. The judge provides an independent quality gate, and adversarial verification ensures every deliverable is checked by an agent that didn't write the code.
 
-Spec files are designed to be **committed alongside the feature code they describe** — the spec directory (index, subtasks, assessment, execution report) becomes a permanent record of *why* something was built, not just what changed. With the optional [CRUX Memories](https://github.com/zotoio/CRUX-Compress) integration, learnings from completed specs are extracted and surfaced in future sessions, so your project builds institutional knowledge over time.
+Spec files are designed to be **committed alongside the feature code they describe** — the spec directory (index, subtasks, assessment, execution report) becomes a permanent record of *why* something was built, not just what changed. With the optional memory integration, learnings from completed specs are extracted and surfaced in future sessions, so your project builds institutional knowledge over time.
 
 If the task can be described in a sentence and done in one pass, use Plan mode. If it needs a design discussion, has dependencies between subtasks, or would benefit from a second opinion — create a spec.
 
@@ -50,6 +50,8 @@ Full field reference, defaults, and path rules are in [`docs/config-schema.md`](
 | **`unitOfWork`** | Word used in prompts and hooks for a single work item (for example `spec`, `story`, `task`). Keeps messaging consistent with how your team talks about work. |
 | **`specsDir`** | Root directory for spec folders, relative to the repo root. All spec indexes, subtasks, assessments, and execution reports live under here (unless you change it). |
 | **`workDir`** | Directory the session-start hook watches for unprocessed items, relative to the repo root. Used for optional nudges when the backlog grows. |
+| **`spec.parallelLimit`** | Maximum execution subagents active at once during a phase. Defaults to `4`. |
+| **`spec.preferredModel`** | Preferred model for spec agents and spawned subagents when supported. Defaults to `composer-2`. |
 
 An empty `{}` is valid: every setting has a documented default in the schema.
 
@@ -87,6 +89,16 @@ After producing a spec assessment, the judge **offers to apply recommended fixes
 Runs the spec with phased subagent work, progress tracking, and **adversarial verification** (the dedicated `zoto-spec-judge` agent independently checks each subtask's deliverables). Supports targeting the latest spec, a spec directory, an index file path, and **`--resume`** after an interruption.
 
 Produces `execution-report-[feature-name]-[yyyymmdd].md` in the spec directory.
+
+## Performance model
+
+The Spec System optimizes complex work for end-to-end execution time with five rules:
+
+1. **Minimize the critical path** — dependency edges are used only when a subtask needs another subtask's output.
+2. **Right-size subtasks** — each subtask should have one ownership area, a small changed-file set, 2-5 deliverables, and a targeted test.
+3. **Pack parallel phases** — independent subtasks are grouped up to `spec.parallelLimit` so execution slots stay useful.
+4. **Use slot-filling execution** — `/zoto-spec-execute` starts the next ready subtask as soon as a slot opens instead of waiting for fixed batches.
+5. **Prefer `composer-2` and focused checks** — spec agents default to `composer-2` and defer global test suites to final verification.
 
 ## Agents
 
