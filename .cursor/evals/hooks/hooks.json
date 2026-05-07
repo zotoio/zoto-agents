@@ -1,0 +1,35 @@
+{
+  "hook_name": "cursor-workspace",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Workspace hooks fire on agent session start.",
+      "assertions": [
+        "All registered hooks in .cursor/hooks.json execute",
+        "Hook scripts exit with code 0",
+        "Hook output is injected into the agent context"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "0a8483a7a8b5f97f31998cff0cb714f000896d661f379cc8cf8149bafca7e8f8",
+        "last_updated": "2026-05-07T10:18:00.000Z",
+        "generated_by": "zoto-update-evals"
+      }
+    },
+    {
+      "id": 2,
+      "prompt": "A workspace hook script fails with exit code 1.",
+      "assertions": [
+        "The failure is reported but does not block the agent session",
+        "Other hooks still execute",
+        "The error is surfaced to the agent"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "0a8483a7a8b5f97f31998cff0cb714f000896d661f379cc8cf8149bafca7e8f8",
+        "last_updated": "2026-05-07T10:18:00.000Z",
+        "generated_by": "zoto-update-evals"
+      }
+    }
+  ]
+}

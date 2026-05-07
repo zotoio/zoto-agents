@@ -1,3 +1,6 @@
+# Legacy workspace-local eval state (migrated to .zoto/eval-system/)
+.zoto-eval-system/
+
 # Dependencies
 node_modules/
 
@@ -9,6 +12,13 @@ dist/
 
 # Testing
 coverage/
+.pytest_cache/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # Environment and secrets
 .env
