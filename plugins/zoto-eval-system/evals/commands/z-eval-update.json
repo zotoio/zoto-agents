@@ -1,0 +1,188 @@
+{
+  "command_name": "z-eval-update",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/z-eval-update",
+      "assertions": [
+        "Before any subagent spawn or filesystem mutation, the command MUST surface the exact single-line guidance that Eval System is not initialised and instruct running `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+        "No regeneration helpers (`regeneratePytest`, `regenerateVitest`, `regenerateJest`, `regenerateLlmCode`, `regenerateLlmDeclarative`) run because execution stops at the precondition gate."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+        "last_updated": "2026-05-07T10:46:15.689Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+          "analysed_at": "2026-05-07T10:46:15.689Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system configuration and manifest presence, runs rediscovery or targeted drift handling via the updater subagent and skill, and separates dry-run, interactive apply with resume, CI check with parity, and cached-analyser modes while preserving user-authored eval artifacts."
+        }
+      },
+      "expected_output": "The operator sees only the initialisation failure message and no drift summaries or patch proposals."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-eval-update",
+      "assertions": [
+        "The flow MUST spawn `zoto-eval-updater` wired to the `zoto-update-evals` skill after confirming `.zoto/eval-system/config.yml` exists.",
+        "Running without `--apply` MUST classify deltas against `config.update.criticalChangeRules` but MUST NOT write regenerated files or refresh `.zoto/eval-system/manifest.yml` until the operator accepts changes through `askQuestion`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+        "last_updated": "2026-05-07T10:46:15.689Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+          "analysed_at": "2026-05-07T10:46:15.689Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system configuration and manifest presence, runs rediscovery or targeted drift handling via the updater subagent and skill, and separates dry-run, interactive apply with resume, CI check with parity, and cached-analyser modes while preserving user-authored eval artifacts."
+        }
+      },
+      "expected_output": "The conversation lists drift classifications and proposed updates without committing manifest updates or overwriting guarded generated files."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "/z-eval-update --target \"**/plugins/zoto-eval-system/commands/*.md\"",
+      "assertions": [
+        "Minimatch-style matching MUST evaluate against both `target.path` and `target.id` so only targets whose path or id satisfies the glob appear in the drift scope.",
+        "Non-interactive dry-run semantics remain in effect: no `--apply` flag means no confirmed writes even inside the narrowed scope."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+        "last_updated": "2026-05-07T10:46:15.689Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+          "analysed_at": "2026-05-07T10:46:15.689Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system configuration and manifest presence, runs rediscovery or targeted drift handling via the updater subagent and skill, and separates dry-run, interactive apply with resume, CI check with parity, and cached-analyser modes while preserving user-authored eval artifacts."
+        }
+      },
+      "expected_output": "Only commands whose tracked paths sit under the commands directory show up in the narrowed drift report while unrelated primitives stay omitted."
+    },
+    {
+      "id": 4,
+      "prompt": "/z-eval-update --apply",
+      "assertions": [
+        "Each proposed regeneration MUST be mediated through `askQuestion` (accept, reject, edit, or skip-rest) rather than silent writes.",
+        "After each answer the orchestrator MUST resume the subagent with the chosen decision until no further `needs_user_input` payloads remain.",
+        "Accepted patches MUST refresh `.zoto/eval-system/manifest.yml`, bump metadata fields such as `git_ref` and `updated_at`, and append `.zoto/eval-system/manifest.history.yml`.",
+        "Helpers MUST refuse to overwrite files lacking the generated header and MUST refuse mutating cases flagged as user-authored per `_user-case-guards.ts`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+        "last_updated": "2026-05-07T10:46:15.689Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+          "analysed_at": "2026-05-07T10:46:15.689Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system configuration and manifest presence, runs rediscovery or targeted drift handling via the updater subagent and skill, and separates dry-run, interactive apply with resume, CI check with parity, and cached-analyser modes while preserving user-authored eval artifacts."
+        }
+      },
+      "expected_output": "The closing summary JSON reports `{ mode, regenerated_targets, files_written, files_preserved_user_authored, user_cases_preserved, reports[] }` reflecting accepted versus skipped decisions.",
+      "follow_ups": [
+        "Answer accept on the first `askQuestion` presenting a critical drift diff.",
+        "Answer reject on the next proposed change to prove per-change branching works."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "/z-eval-update --target \"command:z-eval-update\" --apply",
+      "assertions": [
+        "`runAnalyser({ invalidate: true })` MUST execute only for primitives matching the glob before dispatching stampers.",
+        "Downstream regeneration helpers MUST touch solely frameworks tied to the matched targets; unrelated primitives remain untouched on disk and in `manifest.yml`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+        "last_updated": "2026-05-07T10:46:15.689Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+          "analysed_at": "2026-05-07T10:46:15.689Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system configuration and manifest presence, runs rediscovery or targeted drift handling via the updater subagent and skill, and separates dry-run, interactive apply with resume, CI check with parity, and cached-analyser modes while preserving user-authored eval artifacts."
+        }
+      },
+      "expected_output": "Manifest entries outside the matched command id stay unchanged while the scoped command shows updated analyser metadata if accepted.",
+      "follow_ups": [
+        "Approve the single scoped regeneration prompt when `askQuestion` appears."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "/z-eval-update --check",
+      "assertions": [
+        "Execution MUST invoke `pnpm exec tsx scripts/check-analyser-payload-parity.ts` before emitting drift findings so `parity_drift` reflects that self-check.",
+        "Exit status MUST be `config.update.checkExitCodeOnCriticalDrift` when critical drift exists and zero when only non-critical drift or parity passes.",
+        "No `askQuestion` prompts appear because `--check` is fully non-interactive."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+        "last_updated": "2026-05-07T10:46:15.689Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+          "analysed_at": "2026-05-07T10:46:15.689Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system configuration and manifest presence, runs rediscovery or targeted drift handling via the updater subagent and skill, and separates dry-run, interactive apply with resume, CI check with parity, and cached-analyser modes while preserving user-authored eval artifacts."
+        }
+      },
+      "expected_output": "Stderr or structured logs contain parity results followed by a concise drift verdict matching CI expectations."
+    },
+    {
+      "id": 7,
+      "prompt": "/z-eval-update --no-analyser --apply",
+      "assertions": [
+        "The updater MUST skip `runAnalyser({ invalidate: true })` and reuse `_meta.primitive_analysis` blobs from `.zoto/eval-system/cache/analyser/` instead of issuing fresh LLM calls.",
+        "When `process.env.CI` equals the literal string `true`, stderr MUST include the documented `[CI WARNING] --no-analyser used in CI; cached analyser payloads may be stale and produce drift` banner.",
+        "If `update.failOnNoAnalyserInCI` is enabled while CI is active, the command MUST abort early with exit code 5 instead of regenerating."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+        "last_updated": "2026-05-07T10:46:15.689Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+          "analysed_at": "2026-05-07T10:46:15.689Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system configuration and manifest presence, runs rediscovery or targeted drift handling via the updater subagent and skill, and separates dry-run, interactive apply with resume, CI check with parity, and cached-analyser modes while preserving user-authored eval artifacts."
+        }
+      },
+      "expected_output": "Generation proceeds from cached analyser JSON without `CURSOR_API_KEY` traffic unless configuration escalates to a failure.",
+      "follow_ups": [
+        "Confirm proceed when warned about cached payloads unless CI forbids it."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "/z-eval-update",
+      "assertions": [
+        "After locating `.zoto/eval-system/config.yml`, missing `.zoto/eval-system/manifest.yml` MUST halt before rediscovery with an explicit manifest-absence error surfaced to the operator.",
+        "Neither manifest snapshot readers nor regeneration helpers execute once the manifest prerequisite fails."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+        "last_updated": "2026-05-07T10:46:15.689Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3ad0971f37159c68fc4f19049d7c04bb2cdd522f373068ec8908f7dd47f88b34",
+          "analysed_at": "2026-05-07T10:46:15.689Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system configuration and manifest presence, runs rediscovery or targeted drift handling via the updater subagent and skill, and separates dry-run, interactive apply with resume, CI check with parity, and cached-analyser modes while preserving user-authored eval artifacts."
+        }
+      },
+      "expected_output": "The operator receives a clear failure that the manifest path could not be loaded rather than partial drift analysis."
+    }
+  ]
+}

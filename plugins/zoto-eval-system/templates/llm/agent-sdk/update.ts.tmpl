@@ -30,9 +30,9 @@ import type { EvalCase, EvalFile } from "./case.js";
 import { casesOf, loadEvalFile } from "./case.js";
 
 const REPO_ROOT = resolve(process.cwd());
-const CONFIG_PATH = join(REPO_ROOT, ".zoto-eval-system", "config.json");
-const MANIFEST_PATH = join(REPO_ROOT, ".zoto-eval-system", "manifest.yml");
-const HISTORY_PATH = join(REPO_ROOT, ".zoto-eval-system", "manifest.history.yml");
+const CONFIG_PATH = join(REPO_ROOT, ".zoto", "eval-system", "config.yml");
+const MANIFEST_PATH = join(REPO_ROOT, ".zoto", "eval-system", "manifest.yml");
+const HISTORY_PATH = join(REPO_ROOT, ".zoto", "eval-system", "manifest.history.yml");
 
 export type Mode = "rediscovery-dry" | "rediscovery-apply" | "targeted-dry" | "targeted-apply" | "check";
 
@@ -93,7 +93,8 @@ function headSha(): string {
 
 function loadConfig(): Record<string, unknown> {
   if (!existsSync(CONFIG_PATH)) return {};
-  return JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
+  const parsed = YAML.parse(readFileSync(CONFIG_PATH, "utf-8"));
+  return (parsed && typeof parsed === "object" && !Array.isArray(parsed)) ? parsed as Record<string, unknown> : {};
 }
 
 interface TargetSnapshot {
@@ -325,7 +326,7 @@ function main(): number {
       console.log(JSON.stringify({ status: "no-manifest" }));
       return 0;
     }
-    console.error("Run /zoto-eval-create first.");
+    console.error("Run /z-eval-create first.");
     return 1;
   }
 

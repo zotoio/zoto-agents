@@ -1,0 +1,203 @@
+{
+  "command_name": "z-eval-compare",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/z-eval-compare 20260115090000 20260115090100 20260115090200",
+      "assertions": [
+        "Before resolving folders, the assistant treated workspace/.zoto/eval-system/config.yml as present and readable so execution continued past the initialisation gate.",
+        "The assistant spawned a zoto-eval-comparer subagent whose brief referenced the zoto-compare-evals skill workflow.",
+        "Each slash-delimited argument mapped to report.yml under workspace/evals/_runs/20260115090000, workspace/evals/_runs/20260115090100, and workspace/evals/_runs/20260115090200 respectively.",
+        "Flattening honoured report.static and report.llm totals while pulling case-level measurements from sibling static.yml and llm.yml files for every run.",
+        "Every emitted dataset row carried run_id, model, case_id, status, tokens, duration_ms, verbosity, accuracy, confidence, and log_path aimed at the matching logs directory entry for drill-down.",
+        "The instructions array embedded in stdout reproduced plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl without edits.",
+        "The structured hand-off set tool to /canvas, included the copied instructions array, listed all underlying cases from the three runs in dataset, and paired it with plain-language guidance telling the host agent to call /canvas instead of drawing charts inline."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "bc9e0d22c1a87b4a52b3b2eb8f65617fe1ab3f9484957ad286357f7eda3e8d7c",
+        "last_updated": "2026-05-07T10:40:04.190Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "bc9e0d22c1a87b4a52b3b2eb8f65617fe1ab3f9484957ad286357f7eda3e8d7c",
+          "analysed_at": "2026-05-07T10:40:04.190Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system config, disambiguates run identifiers with askQuestion before or during the comparer task, drives zoto-eval-comparer via zoto-compare-evals, and finishes by emitting a flat dataset plus a verbatim canvas-template hand-off for /canvas.",
+          "fixture_justifications": [
+            "Pins evalsDir so each argument resolves under workspace/evals/_runs without touching host-specific paths.",
+            "Primary report.yml anchor for the first run with rollup headers used during flattening.",
+            "Static-backend slice for the first run merged into per-case rows.",
+            "LLM-backend metrics for the first run merged into per-case rows.",
+            "Primary report.yml anchor for the second run.",
+            "Static-backend slice for the second run.",
+            "LLM-backend slice for the second run.",
+            "Primary report.yml anchor for the third optional run token.",
+            "Static-backend slice for the third run.",
+            "LLM-backend slice for the third run."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: workspace/evals\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090000/report.yml",
+            "content": "model: northstar-v1\nreport:\n  static:\n    passed: 1\n  llm:\n    passed: 1\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090000/static.yml",
+            "content": "rows:\n  - case_id: alpha\n    status: passed\n    duration_ms: 120\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090000/llm.yml",
+            "content": "rows:\n  - case_id: alpha\n    status: passed\n    tokens: 900\n    verbosity: 0.42\n    accuracy: 0.88\n    confidence: 0.91\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090100/report.yml",
+            "content": "model: northstar-v2\nreport:\n  static:\n    passed: 1\n  llm:\n    passed: 1\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090100/static.yml",
+            "content": "rows:\n  - case_id: beta\n    status: failed\n    duration_ms: 210\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090100/llm.yml",
+            "content": "rows:\n  - case_id: beta\n    status: failed\n    tokens: 1100\n    verbosity: 0.55\n    accuracy: 0.72\n    confidence: 0.68\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090200/report.yml",
+            "content": "model: northstar-v3\nreport:\n  static:\n    passed: 1\n  llm:\n    passed: 1\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090200/static.yml",
+            "content": "rows:\n  - case_id: gamma\n    status: passed\n    duration_ms: 95\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090200/llm.yml",
+            "content": "rows:\n  - case_id: gamma\n    status: passed\n    tokens: 780\n    verbosity: 0.39\n    accuracy: 0.93\n    confidence: 0.89\n"
+          }
+        ]
+      },
+      "expected_output": "After confirming eval-system config is present, the assistant launches the comparer workflow, builds one combined table covering alpha, beta, and gamma rows across three runs, and hands hosts a /canvas JSON object whose instructions came straight from the bundled compare template."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-eval-compare 20260503 20260115090100",
+      "assertions": [
+        "After `/z-eval-compare 20260503 20260115090100`, askQuestion ran before the comparer task ingested report.yml for the first argument because two directories shared the 20260503 fragment.",
+        "The resumed Task prompt referenced exactly one chosen path under workspace/evals/_runs for the first slot.",
+        "The assistant resolved the second token straight to workspace/evals/_runs/20260115090100/report.yml without another ambiguity round."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "bc9e0d22c1a87b4a52b3b2eb8f65617fe1ab3f9484957ad286357f7eda3e8d7c",
+        "last_updated": "2026-05-07T10:40:04.190Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "bc9e0d22c1a87b4a52b3b2eb8f65617fe1ab3f9484957ad286357f7eda3e8d7c",
+          "analysed_at": "2026-05-07T10:40:04.190Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system config, disambiguates run identifiers with askQuestion before or during the comparer task, drives zoto-eval-comparer via zoto-compare-evals, and finishes by emitting a flat dataset plus a verbatim canvas-template hand-off for /canvas.",
+          "fixture_justifications": [
+            "Pins evalsDir so ambiguous fragments resolve inside the sandbox evals tree.",
+            "First report.yml matching the shared 20260503 prefix for slot-one disambiguation.",
+            "Second report.yml matching the same prefix so multiple directories collide.",
+            "Distinct report.yml for the fully-qualified second argument that needs no extra disambiguation."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: workspace/evals\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260503120000/report.yml",
+            "content": "model: ridge-a\nreport:\n  static:\n    passed: 1\n  llm:\n    passed: 0\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260503121500/report.yml",
+            "content": "model: ridge-b\nreport:\n  static:\n    passed: 0\n  llm:\n    passed: 1\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090100/report.yml",
+            "content": "model: northstar-v2\nreport:\n  static:\n    passed: 1\n  llm:\n    passed: 1\n"
+          }
+        ]
+      },
+      "expected_output": "The assistant pauses with askQuestion until the operator picks one workspace/evals/_runs folder for the first argument, then proceeds while leaving the second argument untouched."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "/z-eval-compare 20260115090000 20260115090100",
+      "assertions": [
+        "The assistant spawned zoto-eval-comparer with the zoto-compare-evals skill immediately after parsing `/z-eval-compare 20260115090000 20260115090100`.",
+        "When the comparer returned structured needs_user_input about clashing alpha statuses, the command-owned loop surfaced askQuestion before loading datasets further.",
+        "After the follow-up answer prioritising static-backend rows, the assistant resumed the comparer task with that decision reflected in the instructions passed back into the Task prompt.",
+        "The closing transcript still contained JSON whose tool field equals /canvas, whose instructions mirrored plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl, and whose dataset enumerated both runs including alpha and beta rows with log_path values targeting each run's logs directory."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "bc9e0d22c1a87b4a52b3b2eb8f65617fe1ab3f9484957ad286357f7eda3e8d7c",
+        "last_updated": "2026-05-07T10:40:04.190Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "bc9e0d22c1a87b4a52b3b2eb8f65617fe1ab3f9484957ad286357f7eda3e8d7c",
+          "analysed_at": "2026-05-07T10:40:04.190Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on eval-system config, disambiguates run identifiers with askQuestion before or during the comparer task, drives zoto-eval-comparer via zoto-compare-evals, and finishes by emitting a flat dataset plus a verbatim canvas-template hand-off for /canvas.",
+          "fixture_justifications": [
+            "Pins evalsDir for resolving both run folders inside the sandbox workspace tree.",
+            "report.yml anchor for the first run whose conflicting slices trigger clarification.",
+            "Deliberately mismatched static-backend status versus llm-backend status on shared case_id alpha.",
+            "Provides metrics so the comparer can emit structured needs_user_input instead of silently guessing.",
+            "report.yml anchor for the second run used after clarification completes.",
+            "Static-backend slice for the second run included in the flattened dataset.",
+            "LLM-backend slice for the second run included in the flattened dataset."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: workspace/evals\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090000/report.yml",
+            "content": "model: northstar-v1\nreport:\n  static:\n    passed: 1\n  llm:\n    passed: 1\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090000/static.yml",
+            "content": "rows:\n  - case_id: alpha\n    status: passed\n    duration_ms: 120\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090000/llm.yml",
+            "content": "rows:\n  - case_id: alpha\n    status: failed\n    tokens: 900\n    verbosity: 0.42\n    accuracy: 0.88\n    confidence: 0.91\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090100/report.yml",
+            "content": "model: northstar-v2\nreport:\n  static:\n    passed: 1\n  llm:\n    passed: 1\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090100/static.yml",
+            "content": "rows:\n  - case_id: beta\n    status: failed\n    duration_ms: 210\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260115090100/llm.yml",
+            "content": "rows:\n  - case_id: beta\n    status: failed\n    tokens: 1100\n    verbosity: 0.55\n    accuracy: 0.72\n    confidence: 0.68\n"
+          }
+        ]
+      },
+      "expected_output": "The assistant surfaces askQuestion (or an equivalent clarification) after needs_user_input from the comparer, applies the operator tie-breaker, resumes work, and still finishes with the /canvas JSON described in the canvas template.",
+      "follow_ups": [
+        "When the comparer surfaces needs_user_input because static.yml marks case_id alpha passed while llm.yml marks alpha failed on the first run, answer that static-backend rows win on ties before resuming."
+      ]
+    }
+  ]
+}

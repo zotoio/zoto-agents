@@ -9,8 +9,8 @@ Manual testing scenarios for the system under evaluation. Each scenario is self-
 These apply to every scenario below unless a scenario overrides them.
 
 1. You are working in a clean clone of the repository.
-2. `.zoto-eval-system/config.json` exists (run `/zoto-eval-configure` otherwise).
-3. `.zoto-eval-system/manifest.yml` exists (run `/zoto-eval-create` otherwise).
+2. `.zoto/eval-system/config.yml` exists (run `/z-eval-configure` otherwise).
+3. `.zoto/eval-system/manifest.yml` exists (run `/z-eval-create` otherwise).
 4. Python 3.10+ is installed and on PATH.
 5. `pnpm`, `tsx`, and the dev dependencies are installed.
 
@@ -22,13 +22,13 @@ These apply to every scenario below unless a scenario overrides them.
 
 **Prerequisites**
 - No `evals/` directory.
-- No `.zoto-eval-system/` directory.
+- No `.zoto/eval-system/` directory.
 
 **Steps**
-1. Run `/zoto-eval-configure`.
+1. Run `/z-eval-configure`.
 2. Answer every prompt (each must route through `askQuestion`).
-3. Run `/zoto-eval-create`.
-4. Inspect `{evalsDir}/` and `.zoto-eval-system/manifest.yml`.
+3. Run `/z-eval-create`.
+4. Inspect `{evalsDir}/` and `.zoto/eval-system/manifest.yml`.
 
 **Expected Outcomes**
 
@@ -48,7 +48,7 @@ These apply to every scenario below unless a scenario overrides them.
 ### B1. No drift after create
 
 **Steps**
-1. Immediately after `/zoto-eval-create`, run `pnpm run eval:update --check`.
+1. Immediately after `/z-eval-create`, run `pnpm run eval:update --check`.
 
 **Expected**
 - Exit code `0`.
@@ -63,7 +63,7 @@ These apply to every scenario below unless a scenario overrides them.
 
 **Steps**
 1. Modify the covered target (e.g. rewrite a skill's body).
-2. Run `/zoto-eval-update <target-path> --apply` and accept every prompt.
+2. Run `/z-eval-update <target-path> --apply`. The command issues `askQuestion` per change; if a subagent needed clarification first, it returned `needs_user_input` and the command resumed it after answers.
 
 **Expected**
 - The generated case has a new `source_hash` and `last_updated`.
@@ -77,7 +77,7 @@ These apply to every scenario below unless a scenario overrides them.
 **Steps**
 1. Delete a covered target file.
 2. Run `pnpm run eval:update --check`.
-3. Run `/zoto-eval-update --apply` and accept the deletion.
+3. Run `/z-eval-update --apply` and accept the deletion.
 
 **Expected**
 - Step 2 exits `2` with `removed-with-active-cases`.
@@ -90,18 +90,18 @@ These apply to every scenario below unless a scenario overrides them.
 ### C1. Static only
 
 **Steps**
-1. Run `/zoto-eval-execute`.
+1. Run `/z-eval-execute`.
 
 **Expected**
 - `pytest` runs.
-- A `results.yml` is written under `{evalsDir}/_runs/<ts>/`.
+- A `llm.yml` is written under `{evalsDir}/_runs/<ts>/`.
 - A `drift:` field is populated from `eval:update --check`.
 
 ### C2. LLM with model override
 
 **Steps**
-1. Run `/zoto-eval-execute --full --model opus-4.6`.
-2. Inspect `results.yml` for `model: opus-4.6`.
+1. Run `/z-eval-execute --full --model opus-4.6`.
+2. Inspect `llm.yml` for `model: opus-4.6`.
 
 ---
 
@@ -111,11 +111,11 @@ These apply to every scenario below unless a scenario overrides them.
 
 **Steps**
 1. Edit a `contains` grader to match a short, ambiguous string.
-2. Run `/zoto-eval-judge`.
+2. Run `/z-eval-judge`.
 
 **Expected**
 - Judge flags the grader as weak.
-- Via `askQuestion`, judge offers to run `/zoto-eval-update` on the affected skill.
+- The `/z-eval-judge` command uses `askQuestion` to offer running `/z-eval-update` (the judge subagent does not call `askQuestion` directly).
 
 ---
 
@@ -125,7 +125,7 @@ These apply to every scenario below unless a scenario overrides them.
 
 **Steps**
 1. Produce two runs with different `--model` values.
-2. Run `/zoto-eval-compare <r1> <r2>`.
+2. Run `/z-eval-compare <r1> <r2>`.
 
 **Expected**
 - The skill emits the canvas hand-off prompt from `templates/canvas/compare-prompt.md.tmpl`.

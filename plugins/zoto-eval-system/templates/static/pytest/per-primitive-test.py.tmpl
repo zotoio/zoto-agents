@@ -1,0 +1,465 @@
+# _meta.generated: True
+"""Per-primitive pytest eval — stamped by ``scripts/eval-stamp.ts``
+``stampPytestPerPrimitive`` (subtask 06) when
+``static.framework === "pytest"``.
+
+Header contract (DO NOT EDIT THE FIRST LINE):
+    The file-level marker ``# _meta.generated: True`` MUST stay on line 1
+    verbatim. Subtask 03's cleanup engine and subtask 11's updater both
+    gate destructive operations on this exact marker. Removing or
+    altering it WILL cause your changes to be overwritten on the next
+    ``/z-eval-create`` or ``/z-eval-update --apply``. If you want
+    to own this file as user-authored, copy it to a sibling path under
+    ``evals/test_user_<slug>.py`` instead.
+
+Source: every assertion below is derived from the analyser payload
+(``AnalyserPayload`` exported by ``scripts/eval-analyse.ts``, subtask 04;
+mirrored in ``evals/_llm/types.py`` for Python consumers). Each
+behavioural assertion in the payload becomes one parametrised pytest
+case that asserts the documented intent against the primitive source.
+
+Template substitutions resolved at stamp time by
+``stampPytestPerPrimitive`` (the {{...}} markers below are replaced
+with concrete values; ``<<...>>`` markers are documentation-only and
+do not match the stamper's replacement table):
+
+* ``<<TARGET_ID>>`` (raw + ``_JSON`` variants)            — analyser target id
+* ``<<KIND>>`` (raw + ``_JSON`` variants)                 — primitive kind
+* ``<<SOURCE_PATH>>`` (raw + ``_JSON`` variants)          — POSIX repo-relative
+* ``<<SOURCE_HASH>>`` (raw + ``_JSON`` variants)          — sha256 cache key
+* ``<<ANALYSER_VERSION>>`` (raw + ``_JSON`` variants)
+* ``<<MODEL_ID>>`` (raw + ``_JSON`` variants)
+* ``<<LAST_UPDATED>>`` (raw + ``_JSON`` variants)         — deterministic stamp
+* ``<<SUMMARY_JSON>>``                                     — analyser summary
+* ``<<ASSERTION_ROWS>>``                                   — parametrize tuples
+* ``<<RUNTIME_CASES_JSON>>``                               — full cases list
+* ``<<PAYLOAD_JSON>>``                                     — full payload envelope
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any, Iterable
+
+import pytest
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+# Make ``evals/_llm/types.py`` importable without a package marker.
+_EVALS_DIR = Path(__file__).resolve().parent
+if str(_EVALS_DIR) not in sys.path:
+    sys.path.insert(0, str(_EVALS_DIR))
+
+try:
+    from _llm.types import (  # type: ignore[import-not-found]
+        AnalyserCase,
+        AnalyserPayload,
+    )
+except ImportError:  # pragma: no cover — host repo without the LLM package
+    AnalyserCase = None  # type: ignore[assignment,misc]
+    AnalyserPayload = None  # type: ignore[assignment,misc]
+
+
+TARGET_ID: str = {{TARGET_ID_JSON}}
+KIND: str = {{KIND_JSON}}
+SOURCE_PATH: str = {{SOURCE_PATH_JSON}}
+SOURCE_HASH: str = {{SOURCE_HASH_JSON}}
+ANALYSER_VERSION: str = {{ANALYSER_VERSION_JSON}}
+MODEL_ID: str = {{MODEL_ID_JSON}}
+LAST_UPDATED: str = {{LAST_UPDATED_JSON}}
+SUMMARY: str = {{SUMMARY_JSON}}
+
+# The stamper inlines the analyser payload as a JSON literal so the test
+# file is self-contained and does not need to reach back into the cache
+# directory at runtime. ``r"""..."""`` is safe: ``JSON.stringify`` on the
+# TS side never produces a literal ``\"\"\"`` substring, so no escaping
+# is required.
+PAYLOAD_JSON: str = r"""{{PAYLOAD_JSON}}"""
+
+# The runtime cases array, separately addressable so subtasks 09/10 can
+# import this list directly without re-parsing the full payload.
+RUNTIME_CASES_JSON: str = r"""{{RUNTIME_CASES_JSON}}"""
+
+PAYLOAD_DICT: dict[str, Any] = json.loads(PAYLOAD_JSON)
+CASES: list[dict[str, Any]] = json.loads(RUNTIME_CASES_JSON)
+
+PLACEHOLDER_PATTERN = re.compile(
+    r"<replace me>|your prompt here|<command>|<args>|TODO|FIXME|placeholder",
+    re.IGNORECASE,
+)
+VAGUE_VOCAB_PATTERN = re.compile(
+    r"\b(behaved correctly|worked as expected|followed documented sequencing)\b",
+    re.IGNORECASE,
+)
+
+
+def _frontmatter(text: str) -> dict[str, str]:
+    """Lightweight YAML-ish frontmatter parser.
+
+    Mirrors ``scripts/eval-discover.ts#parseFrontmatter`` so the static
+    test agrees with the discoverer on what counts as a primitive's
+    public surface.
+    """
+    m = re.match(r"^---\n([\s\S]*?)\n---", text)
+    if not m:
+        return {}
+    out: dict[str, str] = {}
+    for line in m.group(1).split("\n"):
+        idx = line.find(":")
+        if idx == -1:
+            continue
+        out[line[:idx].strip()] = line[idx + 1 :].strip()
+    return out
+
+
+def _load_source() -> str:
+    abs_path = REPO_ROOT / SOURCE_PATH
+    if not abs_path.is_file():
+        raise FileNotFoundError(
+            f"primitive source missing: {SOURCE_PATH} - re-run /z-eval-create"
+        )
+    return abs_path.read_text(encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Parametrise tables
+# ---------------------------------------------------------------------------
+
+# Each row: ``(assertion_idx, scenario, assertion_text, [needles])``.
+# The TS stamper precomputes ``needles`` (concrete tokens extracted from
+# the assertion) so the Python side performs a fast O(needle) substring
+# scan against the primitive source. The ``needles`` column is allowed
+# to be empty when the analyser produced an assertion without any
+# concrete tokens (which is itself a soft signal worth flagging).
+ASSERTION_TABLE: list[tuple[int, str, str, list[str]]] = [
+{{ASSERTION_ROWS}}
+]
+
+
+def _case_id(idx: int, scenario: str) -> str:
+    safe = re.sub(r"[^A-Za-z0-9]+", "-", scenario)[:60].strip("-")
+    return f"{idx + 1:02d}-{safe or f'case-{idx + 1}'}"
+
+
+def _assertion_id(row: tuple[int, str, str, list[str]]) -> str:
+    aidx, scenario, assertion, _needles = row
+    safe_assertion = re.sub(r"[^A-Za-z0-9]+", "-", assertion)[:40].strip("-")
+    safe_scenario = re.sub(r"[^A-Za-z0-9]+", "-", scenario)[:30].strip("-")
+    return f"a{aidx:03d}-{safe_scenario or 'case'}-{safe_assertion or 'assertion'}"
+
+
+def _fixture_params() -> list[tuple[int, int, dict[str, Any], dict[str, Any]]]:
+    out: list[tuple[int, int, dict[str, Any], dict[str, Any]]] = []
+    for ci, case in enumerate(CASES):
+        files = ((case.get("fixtures") or {}).get("files")) or []
+        for fi, file in enumerate(files):
+            out.append((ci, fi, case, file))
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+
+def test_primitive_metadata_is_well_formed() -> None:
+    """Static metadata embedded by the stamper matches the schema."""
+    assert re.match(
+        r"^(skill|command|agent|hook|rule):[^\s]+$", TARGET_ID
+    ), f"target_id {TARGET_ID!r} does not match the analyser schema"
+    assert KIND in {"skill", "command", "agent", "hook", "rule"}, (
+        f"kind {KIND!r} is not one of the analyser-supported kinds"
+    )
+    assert re.search(r"\.(md|mdc|json)$", SOURCE_PATH, re.IGNORECASE), (
+        f"source_path {SOURCE_PATH!r} must point at .md/.mdc/.json"
+    )
+    assert re.match(r"^[0-9a-f]{64}$", SOURCE_HASH), (
+        f"source_hash {SOURCE_HASH!r} must be a 64-char hex sha256"
+    )
+    assert ANALYSER_VERSION, "analyser_version must be non-empty"
+    assert MODEL_ID, "model_id must be non-empty"
+    assert SUMMARY.strip(), "analyser summary must be non-empty"
+
+
+def test_primitive_source_loads_and_is_non_empty() -> None:
+    """Primitive source markdown can be loaded and is non-empty."""
+    source = _load_source()
+    assert source.strip(), f"primitive source {SOURCE_PATH} is empty"
+
+
+def test_primitive_frontmatter_parses() -> None:
+    """Primitive source frontmatter parses to a dict (may be empty for hooks)."""
+    source = _load_source()
+    fm = _frontmatter(source)
+    assert isinstance(fm, dict), "frontmatter parser must return a dict"
+    if KIND in {"skill", "command", "agent", "rule"}:
+        assert "name" in fm or "description" in fm, (
+            f"{KIND} frontmatter must declare at least one of name/description "
+            f"(got keys: {sorted(fm)})"
+        )
+
+
+def test_payload_envelope_is_consistent() -> None:
+    """Embedded analyser payload matches the file's stamped metadata."""
+    assert PAYLOAD_DICT.get("schema_version") == 1, (
+        "analyser payload schema_version must be 1"
+    )
+    assert PAYLOAD_DICT.get("target_id") == TARGET_ID
+    assert PAYLOAD_DICT.get("kind") == KIND
+    assert PAYLOAD_DICT.get("source_path") == SOURCE_PATH
+    assert PAYLOAD_DICT.get("source_hash") == SOURCE_HASH
+    assert PAYLOAD_DICT.get("analyser_version") == ANALYSER_VERSION
+    assert PAYLOAD_DICT.get("model_id") == MODEL_ID
+    assert isinstance(CASES, list) and len(CASES) > 0, (
+        "analyser payload must declare at least one case"
+    )
+
+
+def test_payload_loads_into_dataclass_when_available() -> None:
+    """When the LLM types module is present, the payload deserialises."""
+    if AnalyserPayload is None:
+        pytest.skip("evals/_llm/types.py not available; skipping dataclass coercion")
+    cases = [
+        AnalyserCase(  # type: ignore[call-arg]
+            scenario=str(c.get("scenario") or ""),
+            prompt=str(c.get("prompt") or ""),
+            assertions=list(c.get("assertions") or []),
+        )
+        for c in CASES
+    ]
+    payload = AnalyserPayload(  # type: ignore[call-arg]
+        schema_version=int(PAYLOAD_DICT["schema_version"]),
+        analyser_version=str(PAYLOAD_DICT["analyser_version"]),
+        model_id=str(PAYLOAD_DICT["model_id"]),
+        target_id=str(PAYLOAD_DICT["target_id"]),
+        kind=str(PAYLOAD_DICT["kind"]),  # type: ignore[arg-type]
+        source_path=str(PAYLOAD_DICT["source_path"]),
+        source_hash=str(PAYLOAD_DICT["source_hash"]),
+        summary=str(PAYLOAD_DICT["summary"]),
+        cases=cases,
+    )
+    assert payload.target_id == TARGET_ID
+    assert len(payload.cases) == len(CASES)
+
+
+@pytest.mark.parametrize(
+    "case_idx,case",
+    [(i, c) for i, c in enumerate(CASES)],
+    ids=[_case_id(i, c.get("scenario") or "") for i, c in enumerate(CASES)],
+)
+def test_case_prompt_is_realistic(case_idx: int, case: dict[str, Any]) -> None:
+    """Case prompt is a non-empty, non-placeholder string (analyser contract)."""
+    prompt = case.get("prompt") or ""
+    assert isinstance(prompt, str) and prompt.strip(), (
+        f"case #{case_idx + 1} ({case.get('scenario')!r}) has empty prompt"
+    )
+    assert not PLACEHOLDER_PATTERN.search(prompt), (
+        f"case #{case_idx + 1} ({case.get('scenario')!r}) prompt contains "
+        f"placeholder vocabulary forbidden by the analyser schema"
+    )
+    if KIND == "command":
+        assert "/" in prompt, (
+            f"command case #{case_idx + 1} prompt should mention a /command "
+            f"invocation; got: {prompt[:80]!r}"
+        )
+
+
+@pytest.mark.parametrize(
+    "case_idx,case",
+    [(i, c) for i, c in enumerate(CASES)],
+    ids=[_case_id(i, c.get("scenario") or "") for i, c in enumerate(CASES)],
+)
+def test_case_declares_at_least_one_assertion(
+    case_idx: int, case: dict[str, Any]
+) -> None:
+    """Each case declares at least one behavioural assertion."""
+    assertions = list(case.get("assertions") or [])
+    assert assertions, (
+        f"case #{case_idx + 1} ({case.get('scenario')!r}) has zero "
+        f"behavioural assertions; analyser schema requires minItems: 1"
+    )
+
+
+@pytest.mark.parametrize(
+    "assertion_idx,scenario,assertion,needles",
+    ASSERTION_TABLE,
+    ids=[_assertion_id(row) for row in ASSERTION_TABLE],
+)
+def test_case_assertion_is_grounded_in_source(
+    assertion_idx: int,
+    scenario: str,
+    assertion: str,
+    needles: list[str],
+) -> None:
+    """Every analyser assertion references the primitive's documented intent.
+
+    Implements the subtask 06 contract: ``for each behavioural assertion
+    in the analyser payload, an assert statement that checks the
+    documented intent (e.g. for a skill: ``assert "askQuestion" in
+    skill_body`` if the analyser identified askQuestion as a documented
+    capability).``
+
+    The TS stamper extracts concrete tokens (``needles``) from each
+    assertion. We assert each needle either:
+
+    * appears in the primitive source body (strong grounding), OR
+    * the assertion is substantive (>20 chars) and free of vague
+      vocabulary. Some assertions reference runtime behaviour absent
+      from the source markdown, which is legitimate.
+    """
+    assert isinstance(assertion, str) and assertion.strip(), (
+        f"assertion #{assertion_idx} ({scenario!r}) is empty"
+    )
+    forbidden = VAGUE_VOCAB_PATTERN.search(assertion)
+    assert not forbidden, (
+        f"assertion #{assertion_idx} ({scenario!r}) uses vague vocabulary "
+        f"forbidden by the analyser schema: {assertion!r}"
+    )
+    if needles:
+        source = _load_source()
+        grounded = any(needle in source for needle in needles)
+        if not grounded:
+            assert len(assertion) > 20, (
+                f"assertion #{assertion_idx} ({scenario!r}) is not grounded "
+                f"in the source (none of needles={needles!r} present) and is "
+                f"too short to be substantive: {assertion!r}"
+            )
+    else:
+        assert len(assertion) > 20, (
+            f"assertion #{assertion_idx} ({scenario!r}) has no concrete "
+            f"tokens for grounding and is too short to be substantive: "
+            f"{assertion!r}"
+        )
+
+
+@pytest.mark.parametrize(
+    "case_idx,case",
+    [
+        (i, c)
+        for i, c in enumerate(CASES)
+        if (c.get("follow_ups") or [])
+    ],
+    ids=[
+        _case_id(i, c.get("scenario") or "")
+        for i, c in enumerate(CASES)
+        if (c.get("follow_ups") or [])
+    ],
+)
+def test_case_follow_ups_are_realistic(
+    case_idx: int, case: dict[str, Any]
+) -> None:
+    """Optional ``follow_ups`` turns must be non-empty and non-placeholder."""
+    follow_ups: Iterable[str] = case.get("follow_ups") or []
+    materialised = list(follow_ups)
+    assert materialised, "follow_ups, when present, must be non-empty"
+    for i, turn in enumerate(materialised):
+        assert isinstance(turn, str) and turn.strip(), (
+            f"follow_ups[{i}] in case #{case_idx + 1} is empty"
+        )
+        assert not PLACEHOLDER_PATTERN.search(turn), (
+            f"follow_ups[{i}] in case #{case_idx + 1} contains placeholder "
+            f"vocabulary"
+        )
+
+
+@pytest.mark.parametrize(
+    "case_idx,file_idx,case,file",
+    _fixture_params(),
+    ids=[
+        f"{_case_id(ci, c.get('scenario') or '')}-fixture-{fi + 1:02d}"
+        for ci, fi, c, _ in _fixture_params()
+    ],
+)
+def test_case_fixture_paths_are_safe(
+    case_idx: int,
+    file_idx: int,
+    case: dict[str, Any],
+    file: dict[str, Any],
+) -> None:
+    """Fixture overlay paths obey the analyser schema's safety rules.
+
+    Forbidden: absolute paths, ``..`` segments, env-var expansions,
+    backslashes. The runtime sandbox layer (subtask 05) re-validates,
+    but failing fast in the static suite catches analyser regressions
+    before any LLM call is made.
+    """
+    path = file.get("path")
+    assert isinstance(path, str) and path.strip(), (
+        f"fixture #{file_idx + 1} in case #{case_idx + 1} has empty path"
+    )
+    assert not path.startswith("/"), (
+        f"fixture path {path!r} is absolute (forbidden by analyser schema)"
+    )
+    assert "\\" not in path, (
+        f"fixture path {path!r} contains backslash (POSIX-only paths required)"
+    )
+    assert ".." not in path.split("/"), (
+        f"fixture path {path!r} contains '..' segment (escape forbidden)"
+    )
+    assert "$" not in path, (
+        f"fixture path {path!r} contains '$' (env-var expansions forbidden)"
+    )
+    has_content = isinstance(file.get("content"), str)
+    has_from = isinstance(file.get("from_"), str) or isinstance(file.get("from"), str)
+    assert has_content or has_from, (
+        f"fixture #{file_idx + 1} in case #{case_idx + 1} must declare "
+        f"either 'content' or 'from'"
+    )
+
+
+@pytest.mark.parametrize(
+    "case_idx,case",
+    [
+        (i, c)
+        for i, c in enumerate(CASES)
+        if c.get("expected_filesystem")
+    ],
+    ids=[
+        _case_id(i, c.get("scenario") or "")
+        for i, c in enumerate(CASES)
+        if c.get("expected_filesystem")
+    ],
+)
+def test_case_expected_filesystem_paths_are_normalised(
+    case_idx: int, case: dict[str, Any]
+) -> None:
+    """``expected_filesystem`` entries are POSIX-normalised, non-empty strings."""
+    fs = case.get("expected_filesystem") or {}
+    for bucket in ("created", "modified", "removed", "unchanged"):
+        for path in fs.get(bucket) or []:
+            assert isinstance(path, str) and path.strip(), (
+                f"expected_filesystem.{bucket} entry is empty in case "
+                f"#{case_idx + 1}"
+            )
+            assert "\\" not in path, (
+                f"expected_filesystem.{bucket} path {path!r} contains backslash"
+            )
+
+
+@pytest.mark.parametrize(
+    "case_idx,case",
+    [
+        (i, c)
+        for i, c in enumerate(CASES)
+        if isinstance(c.get("expected_output"), str)
+    ],
+    ids=[
+        _case_id(i, c.get("scenario") or "")
+        for i, c in enumerate(CASES)
+        if isinstance(c.get("expected_output"), str)
+    ],
+)
+def test_case_expected_output_is_substantive(
+    case_idx: int, case: dict[str, Any]
+) -> None:
+    """``expected_output`` is plain English, non-empty, non-placeholder."""
+    expected = case.get("expected_output") or ""
+    assert isinstance(expected, str) and expected.strip(), (
+        f"expected_output in case #{case_idx + 1} is empty"
+    )
+    assert not PLACEHOLDER_PATTERN.search(expected), (
+        f"expected_output in case #{case_idx + 1} contains placeholder vocabulary"
+    )

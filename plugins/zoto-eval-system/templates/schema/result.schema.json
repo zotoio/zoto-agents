@@ -42,6 +42,73 @@
         "message": { "type": "string" }
       }
     },
+    "report": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional per-backend aggregate. Present in the merged top-level `evals/_runs/<ts>/report.yml` (which carries `backend: \"mixed\"`) so consumers can see per-backend totals without losing data. Per-backend `static.yml` and `llm.yml` files keep `backend: \"static\"` / `backend: \"llm\"` and do NOT need this field — the aggregate is additive and entirely optional.",
+      "properties": {
+        "static": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Mirrors the per-backend `static.yml` totals/aggregates. Optional sub-keys allow forwarding the underlying `static.yml` path and `backend` marker.",
+          "properties": {
+            "backend": { "type": "string", "const": "static" },
+            "totals": {
+              "type": "object",
+              "required": ["cases", "passed", "failed"],
+              "properties": {
+                "cases": { "type": "integer", "minimum": 0 },
+                "passed": { "type": "integer", "minimum": 0 },
+                "failed": { "type": "integer", "minimum": 0 },
+                "skipped": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "aggregates": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "tokens_total": { "type": "integer", "minimum": 0 },
+                "duration_ms_total": { "type": "integer", "minimum": 0 },
+                "verbosity_avg": { "type": "number" },
+                "accuracy_avg": { "type": "number" },
+                "confidence_avg": { "type": "number" }
+              }
+            },
+            "report_path": { "type": "string" }
+          }
+        },
+        "llm": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Mirrors the per-backend `llm.yml` totals/aggregates. Optional sub-keys allow forwarding the underlying `llm.yml` path and `backend` marker.",
+          "properties": {
+            "backend": { "type": "string", "const": "llm" },
+            "totals": {
+              "type": "object",
+              "required": ["cases", "passed", "failed"],
+              "properties": {
+                "cases": { "type": "integer", "minimum": 0 },
+                "passed": { "type": "integer", "minimum": 0 },
+                "failed": { "type": "integer", "minimum": 0 },
+                "skipped": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "aggregates": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "tokens_total": { "type": "integer", "minimum": 0 },
+                "duration_ms_total": { "type": "integer", "minimum": 0 },
+                "verbosity_avg": { "type": "number" },
+                "accuracy_avg": { "type": "number" },
+                "confidence_avg": { "type": "number" }
+              }
+            },
+            "report_path": { "type": "string" }
+          }
+        }
+      }
+    },
     "cases": {
       "type": "array",
       "items": {
@@ -67,7 +134,23 @@
               }
             }
           },
-          "log_path": { "type": "string" }
+          "log_path": { "type": "string" },
+          "repo_mutations": {
+            "type": "object",
+            "properties": {
+              "added": { "type": "array", "items": { "type": "string" } },
+              "modified": { "type": "array", "items": { "type": "string" } },
+              "removed": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "filesystem_assertions": {
+            "type": "object",
+            "properties": {
+              "passed": { "type": "boolean" },
+              "failed": { "type": "boolean" },
+              "detail": { "type": "string" }
+            }
+          }
         }
       }
     }

@@ -1,6 +1,6 @@
 ---
 name: zoto-compare-evals
-description: Cross-run analysis across two or more results.yml files. Emits a flat dataset (runs × cases × dimensions) plus the /canvas hand-off prompt, instructing the host agent to invoke Cursor's built-in /canvas tool. The skill never renders charts itself. Drill-down opens per-case logs.
+description: Cross-run analysis across two or more eval runs driven by **`report.yml`**. Inputs are resolved per run directory under `{evalsDir}/_runs/<ts>/`; per-backend summaries are nested under **`report.static`** and **`report.llm`**. Emits a flat dataset (runs × cases × dimensions) plus the /canvas hand-off prompt, instructing the host agent to invoke Cursor's built-in /canvas tool. The skill never renders charts itself. Drill-down opens per-case log files. Does not call askQuestion — ambiguous run IDs use needs_user_input for the command.
 ---
 
 # Compare Evals
@@ -9,26 +9,29 @@ Compare two or more eval runs. The skill does not render any UI; it emits a stru
 
 ## Configuration
 
-Reads `.zoto-eval-system/config.json` for `evalsDir`. Accepts run identifiers as either:
+Reads `.zoto/eval-system/config.yml` for `evalsDir`. Accepts run identifiers as either directory names under `{evalsDir}/_runs/` (e.g. `20260503051900`) or paths that resolve to that run folder.
 
-- Directory names under `{evalsDir}/_runs/` (e.g. `20260503051900`).
-- Absolute paths to specific `results.yml` files.
+## File layout / reads
+
+Comparison is anchored on each run’s **`report.yml`** (merged static + LLM). When flattening datasets, **`static.yml`** carries static-backend case rows/outcomes and **`llm.yml`** carries LLM case rows/metrics; per-backend rollup numbers also appear under **`report.static`** and **`report.llm`** inside `report.yml`. Logs for drill-down: `{evalsDir}/_runs/<run>/logs/<case>.log`.
 
 ## Usage
 
 ```
-/zoto-eval-compare <run-1> <run-2> [<run-N>]
+/z-eval-compare <run-1> <run-2> [<run-N>]
 ```
+
+Prefer receiving **disambiguated** run paths from **`/z-eval-compare`** (the command may have prompted before spawning this workflow).
 
 ## Workflow
 
 ### Step 1: Resolve runs
 
-For each argument, locate the corresponding `results.yml`. If a name resolves to multiple candidates, use `askQuestion` to disambiguate.
+For each argument, locate the corresponding run directory (and its **`report.yml`**). Prefer `report.yml` as the canonical comparison input; use sibling **`static.yml`** / **`llm.yml`** when a dimension needs backend-specific replay. If a name resolves to multiple candidates and the Task prompt does not include a resolution, return `needs_user_input` listing candidates — **never** call `askQuestion`.
 
 ### Step 2: Load and normalise
 
-Parse each `results.yml` and flatten into rows:
+Parse each **`report.yml`** (and pull per-backend totals from **`report.static`** / **`report.llm`** as needed); include linked rows from **`static.yml`** / **`llm.yml`** where the flatten step requires case-level metrics. Flatten into rows:
 
 ```json
 {
@@ -71,4 +74,4 @@ When the user selects a point on the rendered chart, the `log_path` field maps t
 
 - Do not render charts in text or markdown. `/canvas` owns layout.
 - Do not aggregate or downsample. Emit every row; `/canvas` decides.
-- Do not skip askQuestion when a run name is ambiguous.
+- Do **not** call `askQuestion`.

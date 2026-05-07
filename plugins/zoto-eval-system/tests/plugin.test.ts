@@ -15,6 +15,7 @@ import { join, relative, resolve } from "node:path";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 
 import Ajv from "ajv";
+import addFormats from "ajv-formats";
 import YAML from "yaml";
 
 import {
@@ -118,10 +119,10 @@ describe("Plugin Structure", () => {
 // 2. Naming Convention
 // ---------------------------------------------------------------------------
 describe("Naming Convention", () => {
-  it("command files use zoto- prefix", () => {
+  it("command files use z- prefix", () => {
     const cmdDir = join(PLUGIN_DIR, "commands");
     for (const f of readdirSync(cmdDir).filter((n) => n.endsWith(".md"))) {
-      expect(f, `${f} missing zoto- prefix`).toMatch(/^zoto-/);
+      expect(f, `${f} missing z- prefix`).toMatch(/^z-/);
     }
   });
 
@@ -223,7 +224,7 @@ describe("Forbidden identifiers", () => {
 describe("Schemas & config contract", () => {
   const schemaDir = join(PLUGIN_DIR, "templates", "schema");
   function newAjv(): Ajv {
-    return new Ajv({ allErrors: true, strict: false });
+    return addFormats(new Ajv({ allErrors: true, strict: false }));
   }
 
   it("all schemas compile", () => {
@@ -260,6 +261,164 @@ describe("Schemas & config contract", () => {
   it("skill-evals template emits _meta.generated: true", () => {
     const raw = readText(join(PLUGIN_DIR, "templates", "skill-evals", "evals.json.tmpl"));
     expect(/"_meta"\s*:\s*\{[\s\S]*?"generated"\s*:\s*true/.test(raw)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 5b. needs_user_input schema — validates the structured handoff contract
+// ---------------------------------------------------------------------------
+describe("needs_user_input schema", () => {
+  const schemaDir = join(PLUGIN_DIR, "templates", "schema");
+  function newAjv(): Ajv {
+    return addFormats(new Ajv({ allErrors: true, strict: false }));
+  }
+
+  it("schema compiles", () => {
+    const ajv = newAjv();
+    ajv.compile(loadJson(join(schemaDir, "needs-user-input.schema.json")));
+  });
+
+  it("accepts a valid payload", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "needs-user-input.schema.json"));
+    const v = ajv.compile(schema);
+    const valid = {
+      needs_user_input: {
+        reason: "Cannot determine target without user selection",
+        questions: [
+          {
+            id: "select-target",
+            prompt: "Which skill should be updated?",
+            options: [
+              { id: "skill-a", label: "zoto-create-spec" },
+              { id: "skill-b", label: "zoto-execute-spec" },
+            ],
+          },
+        ],
+      },
+    };
+    expect(v(valid), JSON.stringify(v.errors)).toBe(true);
+  });
+
+  it("accepts allow_multiple: true", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "needs-user-input.schema.json"));
+    const v = ajv.compile(schema);
+    const valid = {
+      needs_user_input: {
+        reason: "Multiple dimensions can be drilled into",
+        questions: [
+          {
+            id: "drill-down",
+            prompt: "Which dimensions to explore?",
+            options: [
+              { id: "trigger", label: "Trigger phrases" },
+              { id: "schema", label: "Schema validation" },
+            ],
+            allow_multiple: true,
+          },
+        ],
+      },
+    };
+    expect(v(valid), JSON.stringify(v.errors)).toBe(true);
+  });
+
+  it("rejects missing reason", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "needs-user-input.schema.json"));
+    const v = ajv.compile(schema);
+    const bad = {
+      needs_user_input: {
+        questions: [
+          {
+            id: "q1",
+            prompt: "Pick one",
+            options: [
+              { id: "a", label: "A" },
+              { id: "b", label: "B" },
+            ],
+          },
+        ],
+      },
+    };
+    expect(v(bad)).toBe(false);
+  });
+
+  it("rejects empty questions array", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "needs-user-input.schema.json"));
+    const v = ajv.compile(schema);
+    const bad = {
+      needs_user_input: {
+        reason: "needs input",
+        questions: [],
+      },
+    };
+    expect(v(bad)).toBe(false);
+  });
+
+  it("rejects fewer than 2 options", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "needs-user-input.schema.json"));
+    const v = ajv.compile(schema);
+    const bad = {
+      needs_user_input: {
+        reason: "pick",
+        questions: [
+          {
+            id: "q1",
+            prompt: "Pick one",
+            options: [{ id: "only", label: "Only option" }],
+          },
+        ],
+      },
+    };
+    expect(v(bad)).toBe(false);
+  });
+
+  it("rejects additional properties on the envelope", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "needs-user-input.schema.json"));
+    const v = ajv.compile(schema);
+    const bad = {
+      needs_user_input: {
+        reason: "pick",
+        questions: [
+          {
+            id: "q1",
+            prompt: "Pick",
+            options: [
+              { id: "a", label: "A" },
+              { id: "b", label: "B" },
+            ],
+          },
+        ],
+      },
+      extra_field: true,
+    };
+    expect(v(bad)).toBe(false);
+  });
+
+  it("rejects invalid option id format", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "needs-user-input.schema.json"));
+    const v = ajv.compile(schema);
+    const bad = {
+      needs_user_input: {
+        reason: "pick",
+        questions: [
+          {
+            id: "q1",
+            prompt: "Pick",
+            options: [
+              { id: "Valid-id", label: "A" },
+              { id: "b", label: "B" },
+            ],
+          },
+        ],
+      },
+    };
+    expect(v(bad)).toBe(false);
   });
 });
 
@@ -363,14 +522,14 @@ describe("Fixture repo — update semantics", () => {
         },
         preserveUserAuthoredCases: true,
         writeMetaMarker: true,
-        manifestPath: ".zoto-eval-system/manifest.yml",
-        historyPath: ".zoto-eval-system/manifest.history.yml",
+        manifestPath: ".zoto/eval-system/manifest.yml",
+        historyPath: ".zoto/eval-system/manifest.history.yml",
         rediscoverWithSameDefaults: true,
         checkExitCodeOnCriticalDrift: 2,
       },
     };
-    mkdirSync(join(tmp, ".zoto-eval-system"), { recursive: true });
-    writeFileSync(join(tmp, ".zoto-eval-system", "config.json"), JSON.stringify(cfg, null, 2));
+    mkdirSync(join(tmp, ".zoto", "eval-system"), { recursive: true });
+    writeFileSync(join(tmp, ".zoto", "eval-system", "config.yml"), YAML.stringify(cfg));
     return cfg;
   }
 
@@ -413,9 +572,9 @@ describe("Fixture repo — update semantics", () => {
 
   function seedManifest(cfg: Record<string, unknown>, generatedBy: "zoto-create-evals" | "zoto-update-evals" = "zoto-create-evals"): void {
     const mf = manifestFor(tmp, cfg, generatedBy);
-    mkdirSync(join(tmp, ".zoto-eval-system"), { recursive: true });
-    writeFileSync(join(tmp, ".zoto-eval-system", "manifest.yml"), YAML.stringify(mf));
-    writeFileSync(join(tmp, ".zoto-eval-system", "manifest.history.yml"), "---\n" + YAML.stringify(mf));
+    mkdirSync(join(tmp, ".zoto", "eval-system"), { recursive: true });
+    writeFileSync(join(tmp, ".zoto", "eval-system", "manifest.yml"), YAML.stringify(mf));
+    writeFileSync(join(tmp, ".zoto", "eval-system", "manifest.history.yml"), "---\n" + YAML.stringify(mf));
   }
 
   const originalCwd = process.cwd();
@@ -588,7 +747,7 @@ describe("Fixture repo — update semantics", () => {
     writeGeneratedEvalsFile("zoto-foo", hash);
     seedManifest(cfg);
 
-    const historyPath = join(tmp, ".zoto-eval-system", "manifest.history.yml");
+    const historyPath = join(tmp, ".zoto", "eval-system", "manifest.history.yml");
     const before = readFileSync(historyPath, "utf-8");
     const snapshotsBefore = before.split(/^---$/m).filter((s) => s.trim()).length;
     expect(snapshotsBefore).toBe(1);
@@ -609,8 +768,8 @@ describe("Fixture repo — update semantics", () => {
     writeGeneratedEvalsFile("zoto-foo", hash);
     seedManifest(cfg);
 
-    const cfgPath = join(tmp, ".zoto-eval-system", "config.json");
-    const edited = JSON.parse(readFileSync(cfgPath, "utf-8"));
+    const cfgPath = join(tmp, ".zoto", "eval-system", "config.yml");
+    const edited = YAML.parse(readFileSync(cfgPath, "utf-8")) as { discoveryTargets: unknown[] };
     edited.discoveryTargets = [...edited.discoveryTargets, "lib"];
     writeFileSync(cfgPath, JSON.stringify(edited, null, 2));
 

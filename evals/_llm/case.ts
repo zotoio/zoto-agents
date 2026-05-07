@@ -1,0 +1,236 @@
+/**
+ * Typed case loader for the LLM `declarative` backend (subtask 10).
+ *
+ * Cases without `_meta` (or with `_meta.generated === false`) are user-authored
+ * and MUST be treated as immutable by any updater. The runner does not care -
+ * it just runs whatever cases it finds — but it now also enforces the
+ * subtask-10 enriched-shape contract via `validateEnriched(case)` before
+ * invoking the SDK so cheap, deterministic problems (placeholder prompts,
+ * empty assertion lists, missing analyser payloads) fail fast without paying
+ * an API call.
+ *
+ * The `_meta.generated` per-case checks delegate to the canonical guard at
+ * `evals/_llm/_user-case-guards.ts#isGeneratedCase` (owned by subtask 09);
+ * this module is a CONSUMER and never re-implements the predicate.
+ */
+import { readFileSync } from "node:fs";
+
+import { isGeneratedCase, isUserAuthoredCase } from "./_user-case-guards.js";
+
+/**
+ * Cached LLM-analyser block (subtask 04). The runner uses this as the
+ * tripwire for "is this case real?". A missing block on a generated case
+ * means the analyser was never run (or was run against a placeholder
+ * payload) and the case must be rejected before invoking the SDK.
+ *
+ * Mirrors the schema at
+ * `plugins/zoto-eval-system/templates/schema/case-meta.schema.json#primitive_analysis`.
+ */
+export interface CasePrimitiveAnalysis {
+  source_hash: string;
+  analysed_at: string;
+  analyser_version: string;
+  summary: string;
+  invalidate?: boolean;
+  fixture_justifications?: string[];
+}
+
+export interface CaseMeta {
+  generated: boolean;
+  source_hash?: string | null;
+  primitive_analysis_hash?: string | null;
+  last_updated?: string | null;
+  generated_by?: string | null;
+  /** True when the primitive was too thin for full fixture synthesis */
+  partial?: boolean;
+  primitive_analysis?: CasePrimitiveAnalysis;
+}
+
+export interface CaseFixtures {
+  /** Each entry uses `content` and/or non-empty `from` (prefer `from` when both supplied). */
+  files: Array<{ path: string; content?: string; from?: string }>;
+}
+
+export interface CaseExpectedFilesystem {
+  created?: string[];
+  modified?: string[];
+  removed?: string[];
+  unchanged?: string[];
+}
+
+export interface EvalCase {
+  id: number | string;
+  prompt: string;
+  fixtures?: CaseFixtures;
+  expected_filesystem?: CaseExpectedFilesystem;
+  expected_output?: string;
+  files?: string[];
+  assertions: string[];
+  graders?: Array<Record<string, unknown>>;
+  follow_ups?: string[];
+  _meta?: CaseMeta;
+}
+
+export interface EvalFile {
+  skill_name?: string;
+  target?: string;
+  command_name?: string;
+  agent_name?: string;
+  hook_plugin?: string;
+  evals?: EvalCase[];
+  cases?: EvalCase[];
+}
+
+export function loadEvalFile(path: string): EvalFile {
+  const raw = readFileSync(path, "utf-8");
+  return JSON.parse(raw) as EvalFile;
+}
+
+export function casesOf(file: EvalFile): EvalCase[] {
+  return file.evals ?? file.cases ?? [];
+}
+
+/**
+ * Re-export the canonical user-case guards for legacy callers. New code
+ * should import directly from `./_user-case-guards.js`.
+ */
+export function isGenerated(c: EvalCase): boolean {
+  return isGeneratedCase(c);
+}
+
+export { isGeneratedCase, isUserAuthoredCase };
+
+/* ----------------------------------------------------------------------- */
+/* Subtask 10 — enriched-shape validation                                  */
+/* ----------------------------------------------------------------------- */
+
+/**
+ * Sentinel substrings the analyser MUST NOT leave in a real prompt. Any
+ * match makes the prompt "placeholder" and the runner refuses the case.
+ *
+ * Two design notes:
+ *
+ *   • The list is intentionally small and case-insensitive. We only flag
+ *     phrases that are unambiguously "this prompt was never written by a
+ *     human or the analyser" — e.g. literal `TODO` markers and the
+ *     historical `<placeholder>` token used by older heuristic stamps.
+ *   • Short prompts (< 8 chars after trim) are also rejected — the
+ *     declarative strategy is supposed to ship realistic user/agent
+ *     turns, not one-word smoke checks.
+ */
+const PLACEHOLDER_RE =
+  /\b(?:TODO|TBD|FIXME|placeholder prompt|<placeholder>|\.\.\.)/i;
+
+const PLACEHOLDER_EXACT_MATCHES = new Set<string>([
+  "placeholder",
+  "todo",
+  "tbd",
+  "fixme",
+  "...",
+  "n/a",
+  "tba",
+]);
+
+/**
+ * Returns `null` when the prompt looks real, or a human-readable reason
+ * string when it should be rejected.
+ */
+export function detectPlaceholderPrompt(prompt: unknown): string | null {
+  if (typeof prompt !== "string") {
+    return "prompt is not a string";
+  }
+  const trimmed = prompt.trim();
+  if (trimmed.length === 0) {
+    return "prompt is empty";
+  }
+  if (trimmed.length < 8) {
+    return `prompt is too short (${trimmed.length} chars; declarative strategy requires realistic user/agent turns)`;
+  }
+  if (PLACEHOLDER_EXACT_MATCHES.has(trimmed.toLowerCase())) {
+    return `prompt is a placeholder token: ${trimmed}`;
+  }
+  if (PLACEHOLDER_RE.test(trimmed)) {
+    return `prompt contains placeholder marker: ${trimmed.slice(0, 80)}`;
+  }
+  return null;
+}
+
+export interface ValidateEnrichedResult {
+  ok: boolean;
+  reason?: string;
+}
+
+/**
+ * Subtask 10 enriched-shape gate. The runner calls this before invoking
+ * the SDK; failures exit non-zero with the rejection reason printed to
+ * stderr.
+ *
+ * A case is accepted only when:
+ *
+ *   1. `prompt` is a non-placeholder string (see `detectPlaceholderPrompt`).
+ *   2. `assertions` is a non-empty array of strings.
+ *   3. `_meta.primitive_analysis` is present AND carries the four
+ *      required fields (`source_hash`, `analysed_at`, `analyser_version`,
+ *      `summary`) — the source-hash MUST be a 64-char lowercase hex
+ *      digest matching the case-meta schema.
+ *
+ * User-authored cases (`_meta.generated !== true`) are exempt from
+ * (3) — they keep their full freedom to ship without an analyser block.
+ * They still must satisfy (1) and (2) so a hand-written eval that forgets
+ * to add a real prompt or assertion still fails fast.
+ */
+export function validateEnriched(c: EvalCase): ValidateEnrichedResult {
+  const placeholder = detectPlaceholderPrompt(c.prompt);
+  if (placeholder) {
+    return { ok: false, reason: placeholder };
+  }
+  if (!Array.isArray(c.assertions) || c.assertions.length === 0) {
+    return {
+      ok: false,
+      reason: "case has no assertions; declarative runner requires ≥1",
+    };
+  }
+  if (!c.assertions.every((a) => typeof a === "string" && a.trim().length > 0)) {
+    return {
+      ok: false,
+      reason: "every assertion must be a non-empty string",
+    };
+  }
+
+  /* Generated-case-only requirement: a real primitive_analysis block. */
+  if (isGeneratedCase(c)) {
+    const pa = c._meta?.primitive_analysis;
+    if (!pa) {
+      return {
+        ok: false,
+        reason:
+          "_meta.primitive_analysis missing on a generated case (run /z-eval-update --apply with CURSOR_API_KEY set, or `pnpm run eval:analyse --target <id>`)",
+      };
+    }
+    const missing: string[] = [];
+    if (typeof pa.source_hash !== "string") missing.push("source_hash");
+    if (typeof pa.analysed_at !== "string") missing.push("analysed_at");
+    if (typeof pa.analyser_version !== "string") missing.push("analyser_version");
+    if (typeof pa.summary !== "string") missing.push("summary");
+    if (missing.length > 0) {
+      return {
+        ok: false,
+        reason: `_meta.primitive_analysis missing required fields: ${missing.join(", ")}`,
+      };
+    }
+    if (!/^[0-9a-f]{64}$/.test(pa.source_hash)) {
+      return {
+        ok: false,
+        reason: `_meta.primitive_analysis.source_hash is not a 64-char hex digest (got: ${pa.source_hash.slice(0, 16)}…)`,
+      };
+    }
+    if (pa.summary.trim().length === 0) {
+      return {
+        ok: false,
+        reason: "_meta.primitive_analysis.summary is empty",
+      };
+    }
+  }
+
+  return { ok: true };
+}

@@ -1,0 +1,34 @@
+{
+  "hook_name": "zoto-eval-system",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Session start hook fires in a repo with .zoto/eval-system/config.yml present.",
+      "assertions": [
+        "The hook detects the eval-system config file",
+        "The hook outputs session context (e.g. active framework, last run timestamp)",
+        "The hook does not block or error on missing optional files"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5aede789d6f42e7903d75ee1d9dd7b9d16787575075d8aaffb35a0bc4704aa11",
+        "last_updated": "2026-05-07T10:18:00.000Z",
+        "generated_by": "zoto-update-evals"
+      }
+    },
+    {
+      "id": 2,
+      "prompt": "Session start hook fires in a repo without eval-system config.",
+      "assertions": [
+        "The hook exits gracefully without errors",
+        "No eval-system context is injected into the session"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5aede789d6f42e7903d75ee1d9dd7b9d16787575075d8aaffb35a0bc4704aa11",
+        "last_updated": "2026-05-07T10:18:00.000Z",
+        "generated_by": "zoto-update-evals"
+      }
+    }
+  ]
+}

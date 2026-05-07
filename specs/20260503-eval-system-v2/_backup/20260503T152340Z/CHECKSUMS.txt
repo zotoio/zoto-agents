@@ -1,0 +1,3 @@
+3be07729c5454f533fafc8d0d2165233eac8c53d44b043c005daffa461f5ccd6  config.json
+6be27c8bb26dbf95fde7323331be79bafb7c208f60b78e96d7725dfee421f011  manifest.yml
+8e0823b9eaee15d8eaaeaa9eb9756fed365005efdf5862d1202c2599e99ce7d4  manifest.history.yml

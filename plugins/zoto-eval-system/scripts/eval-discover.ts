@@ -8,11 +8,11 @@
  * Usage:
  *   tsx scripts/eval-discover.ts [--config <path>] [--resolve <file>]
  *
- * --config      Path to .zoto-eval-system/config.json. Defaults to
- *               $CWD/.zoto-eval-system/config.json.
+ * --config      Path to .zoto/eval-system/config.yml. Defaults to
+ *               $CWD/.zoto/eval-system/config.yml.
  * --resolve     Resolve a single file path to its target_id(s) and print
  *               the matching target records. Useful for targeted
- *               `/zoto-eval-update <file>`.
+ *               `/z-eval-update <file>`.
  *
  * Output is YAML on stdout.
  */
@@ -25,6 +25,7 @@ import {
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { join, relative, resolve } from "node:path";
+import { loadEvalConfig } from "../src/config-loader.js";
 
 function parseArgs(argv: string[]): { configPath?: string; resolveFile?: string } {
   const out: { configPath?: string; resolveFile?: string } = {};
@@ -267,13 +268,8 @@ export function manifestFor(
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2));
   const repoRoot = process.cwd();
-  const cfgPath =
-    args.configPath ?? join(repoRoot, ".zoto-eval-system", "config.json");
-  if (!existsSync(cfgPath)) {
-    console.error(`missing config: ${cfgPath}`);
-    return 1;
-  }
-  const config = JSON.parse(readFileSync(cfgPath, "utf-8"));
+  const { config: typedConfig } = loadEvalConfig(repoRoot);
+  const config = typedConfig as unknown as Record<string, unknown>;
 
   if (args.resolveFile) {
     const all = discover(repoRoot, config);

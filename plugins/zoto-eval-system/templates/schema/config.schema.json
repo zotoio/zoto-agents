@@ -19,6 +19,19 @@
       },
       "default": ["skill", "command", "agent", "hook"]
     },
+    "static": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Static-analysis backend configuration. `framework` is the active framework for this repo. Python primitives always use pytest regardless of this value, but the field is recorded uniformly so the manifest snapshot is consistent. For TS primitives, the value selects between vitest and jest. Switching the framework is a config-changing operation handled by the cleanup engine (subtask 03).",
+      "properties": {
+        "framework": {
+          "type": "string",
+          "enum": ["pytest", "vitest", "jest"],
+          "default": "pytest",
+          "description": "Active static framework for the repo. Cross-field rule (enforced at runtime by the configurer): when `llm.strategy === \"code\"`, `static.framework` must equal `llm.codeFramework`."
+        }
+      }
+    },
     "llm": {
       "type": "object",
       "additionalProperties": true,
@@ -30,6 +43,18 @@
             "id": { "type": "string", "enum": ["composer-2", "opus-4.6", "sonnet"], "default": "composer-2" }
           },
           "required": ["id"]
+        },
+        "strategy": {
+          "type": "string",
+          "enum": ["code", "declarative"],
+          "default": "declarative",
+          "description": "Exclusive LLM strategy for this repo. `code` emits per-primitive `*.test.ts` files importing `@cursor/sdk`; `declarative` keeps the central `evals.json` + `runner.ts` pipeline. Switching strategy triggers cleanup of the other strategy's stamped assets via the cleanup engine (subtask 03)."
+        },
+        "codeFramework": {
+          "type": "string",
+          "enum": ["vitest", "jest"],
+          "default": "vitest",
+          "description": "TS test framework used by `llm.strategy=\"code\"`. Only meaningful when `llm.strategy === \"code\"`. Cross-field rule (enforced at runtime by the configurer): when `llm.strategy === \"code\"`, this value must equal `static.framework`."
         }
       }
     },
@@ -44,6 +69,46 @@
       "type": "array",
       "items": { "type": "string", "enum": ["vitest", "jest", "bats"] },
       "default": []
+    },
+    "ignore": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Minimatch glob patterns (POSIX repo-relative paths) for targets excluded from generation/update and optionally removed via eval-cleanup-vendored.",
+      "default": []
+    },
+    "analyser": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Cost & concurrency guardrails for the LLM-driven primitive analyser (subtask 04). The analyser fans out across primitives and can rapidly burn through API budget without these caps. Both fields are advisory upper bounds — the analyser script enforces them at runtime and bails non-zero with a clear message when the call budget is exhausted.",
+      "properties": {
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32,
+          "default": 4,
+          "description": "Maximum number of in-flight analyser subagent calls per invocation. Lower values reduce burst load on the Cursor API; higher values trade tokens for wall-time. Defaults to 4 to match the safe steady-state for most repos."
+        },
+        "maxCallsPerInvocation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 50,
+          "description": "Hard ceiling on the number of fresh LLM calls (cache misses) made in a single analyser invocation. When hit, the script exits non-zero and prints a message pointing the operator at the `--target` flag for scoping. Cache hits and replay hits do NOT count against this ceiling."
+        }
+      }
+    },
+    "runs": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Run-folder retention controls consumed by `scripts/eval-gc.ts` (subtask 12). Keeps the newest `runs.retention` directories under `evals/_runs/` and prunes the rest. CI cron jobs invoke `pnpm run eval:gc:apply` explicitly; humans run `pnpm run eval:gc` (dry-run).",
+      "properties": {
+        "retention": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 30,
+          "description": "Maximum number of run-folders to keep under `evals/_runs/`. Must be >= 1. Default 30 keeps roughly a month of daily runs."
+        }
+      }
     },
     "update": {
       "type": "object",
@@ -72,8 +137,8 @@
           "default": true,
           "description": "Hard-coded contract — every generated case gets a _meta marker."
         },
-        "manifestPath": { "type": "string", "default": ".zoto-eval-system/manifest.yml" },
-        "historyPath": { "type": "string", "default": ".zoto-eval-system/manifest.history.yml" },
+        "manifestPath": { "type": "string", "default": ".zoto/eval-system/manifest.yml" },
+        "historyPath": { "type": "string", "default": ".zoto/eval-system/manifest.history.yml" },
         "rediscoverWithSameDefaults": { "type": "boolean", "default": true },
         "checkExitCodeOnCriticalDrift": { "type": "integer", "default": 2, "minimum": 1, "maximum": 255 }
       }

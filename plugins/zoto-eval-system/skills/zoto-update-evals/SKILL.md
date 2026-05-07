@@ -1,45 +1,59 @@
 ---
 name: zoto-update-evals
-description: Diff-aware eval updater. Detects drift between covered targets and generated eval cases, classifies changes as critical or non-critical, offers surgical diffs to apply via askQuestion, and preserves user-authored cases verbatim. Supports targeted mode (file/glob), rediscovery mode, and a CI-friendly --check mode (exit 2 on critical drift).
+description: "Diff-aware eval updater. Detects drift between covered targets and generated eval cases for skills and central plugin eval files (commands/agents/hooks), classifies changes as critical or non-critical, and preserves user-authored cases verbatim. Apply-mode regeneration re-invokes the LLM analyser per drifted primitive and dispatches per-framework / per-strategy stamping. The `_meta.generated === true` (case) and `// _meta.generated\\: true` (file) contracts are enforced at runtime AND compile time. Supports targeted mode, rediscovery mode, `--no-analyser` (cached payloads), and CI `--check` (exit 2 on critical drift)."
 ---
 
 # Update Evals
 
-Surgical diff engine that keeps generated eval cases honest. User-authored cases are never mutated — this contract is enforced at runtime and at compile time.
+Surgical diff engine that detects when covered AI primitives have changed and presents each proposed eval update for user confirmation before writing. Behavioural drift is managed consciously — nothing is rewritten silently. User-authored cases are never mutated and user-authored test files are never overwritten — both contracts are enforced at runtime and at compile time, gated by the canonical helpers in `evals/_llm/_user-case-guards.ts` (`isGeneratedCase`, `isGeneratedFile`).
 
 ## Configuration
 
-Reads `.zoto-eval-system/config.json` and `.zoto-eval-system/manifest.yml`. Both must exist; if the manifest is missing, the skill aborts with `"Run /zoto-eval-create first."`.
+Reads `.zoto/eval-system/config.yml` and `.zoto/eval-system/manifest.yml`. Both must exist; if the manifest is missing, the skill aborts with `"Run /z-eval-create first."`.
 
-The rediscovery path uses `manifest.discovery_config` — a deep snapshot of the discovery config at the last create or update — rather than the current `config.json`. This prevents edits to `config.json` from masquerading as code drift.
+The rediscovery path uses `manifest.discovery_config` for **skillsRoots**, **discoveryTargets**, etc. Optional `ignore` globs likewise live exclusively in **``pnpm run eval:discover``** (plus manifest snapshots) — `eval-analyse.ts` / `eval-stamp.ts` deliberately ignore those filters unless you recreate them outside this workflow.
+
+The active framework / strategy is read via `evals/_llm/manifest-snapshot.ts#readManifestSnapshot()` (subtask 02). The `static.framework` field selects the static stamper (pytest / vitest / jest); the `llm.strategy` field selects the LLM stamper (`code` or `declarative`).
+
+## Coverage paths
+
+Drift detection considers eval files at:
+
+- Skills: `…/skills/<name>/evals/evals.json` (under configured `skillsRoots`).
+- Commands: `plugins/<plugin>/evals/commands/<name>.json` **and** `.cursor/evals/commands/<name>.json`.
+- Agents: `plugins/<plugin>/evals/agents/<name>.json` **and** `.cursor/evals/agents/<name>.json`.
+- Hooks: `plugins/<plugin>/evals/hooks/<plugin>.json` **and** `.cursor/evals/hooks/hooks.json` (canonical target id **`hook:cursor-workspace`**).
+
+The **preserve user-authored cases** contract applies uniformly: no `_meta`, or `_meta.generated === false` → never overwritten.
 
 ## Modes
 
 | Invocation | Interactive? | Writes? |
 |------------|--------------|---------|
-| `/zoto-eval-update --check` | no | no — exits 0 or 2 |
-| `/zoto-eval-update` (no args) | no | no — rediscovery dry run |
-| `/zoto-eval-update --apply` | yes, askQuestion per change | yes |
-| `/zoto-eval-update <file-or-glob>` | no | no — targeted dry run |
-| `/zoto-eval-update <file-or-glob> --apply` | yes, askQuestion per change | yes |
+| `/z-eval-update --check` | no | no — exits 0 or 2 |
+| `/z-eval-update` (no args) | no | no — rediscovery dry run |
+| `/z-eval-update --apply` | command-owned `askQuestion` per change + resume | yes |
+| `/z-eval-update --target <glob>` | no | no — targeted dry run |
+| `/z-eval-update --target <glob> --apply` | command-owned `askQuestion` per change + resume | yes |
+| `/z-eval-update --no-analyser [--apply]` | as above | yes/no — bypasses LLM, reuses cached payloads |
 
 ## When to Use
 
-- Immediately after `/zoto-eval-create` (should no-op).
-- Whenever a covered target (skill body, agent body, command, lib export, hook script) is edited.
+- Immediately after `/z-eval-create` (should no-op).
+- Whenever a covered target (skill body, agent body, command, hook definition) is edited.
 - In CI — the `--check` variant is designed to gate builds.
 
-## Workflow (rediscovery apply)
+## Workflow (`--apply`)
 
-### Step 1: Load manifest and config
+### Step 1: Load manifest, config, and snapshot
 
-Read `.zoto-eval-system/config.json` and `.zoto-eval-system/manifest.yml`. Record `previous_ref = manifest.git_ref`. Compute `current_ref = git rev-parse HEAD`.
+Read `.zoto/eval-system/config.yml` and `.zoto/eval-system/manifest.yml`. Record `previous_ref = manifest.git_ref`. Compute `current_ref = git rev-parse HEAD`. Call `readManifestSnapshot()` for the active `static.framework` / `llm.strategy` / `llm.codeFramework`.
 
 ### Step 2: Rediscover
 
-Run `scripts/eval-discover.ts` using `manifest.discovery_config`. Produce a fresh list of targets with content hashes and public-surface data.
+Run discovery using `manifest.discovery_config`. Produce a fresh list of targets with `content_hash` values and `public_surface` data.
 
-### Step 3: Classify deltas
+### Step 3: Classify manifest deltas
 
 - `added` — target present now, absent in manifest.
 - `removed` — target present in manifest, absent now.
@@ -56,57 +70,76 @@ Classify each delta against `config.update.criticalChangeRules`:
 | modified (public surface) | `publicSurfaceChange` enabled |
 | modified (comment / whitespace only) | non-critical |
 
-### Step 4: Build surgical diffs
+### Step 4: Per-primitive analyser refresh
 
-- `added` → propose a brand-new generated case (full `_meta` block with `generated: true`, current source_hash, ISO timestamp, `generated_by: zoto-update-evals`).
-- `removed` → mark each covering generated case `orphaned` and offer deletion.
-- `modified` → regenerate ONLY cases where `case._meta?.generated === true` AND `case._meta.source_hash === previous.content_hash`. Cases without `_meta`, or with `_meta.generated === false`, are NEVER modified — instead they are flagged as `may need review` in the summary.
+For each `added` or `modified` target:
 
-### Step 5: askQuestion per change
+- **Default**: call `runAnalyser({ target, invalidate: true })` from ``pnpm run eval:analyse`` — refreshes the per-primitive `_meta.primitive_analysis` payload from the LLM.
+- **`--no-analyser`**: load the cached payload from `.zoto/eval-system/cache/analyser/<source_hash>.json` instead. When `process.env.CI === "true"` AND `--no-analyser` is passed, a `[CI WARNING] --no-analyser used in CI; cached analyser payloads may be stale and produce drift` line is written to stderr. Optional escalation: `update.failOnNoAnalyserInCI: true` aborts with exit 5.
 
-Present each surgical diff via `askQuestion` with options:
-- `accept`
-- `reject`
-- `edit` (opens the proposed case for user edits before writing)
-- `skip-rest`
+### Step 5: Dispatch regeneration
+
+The dispatcher reads the manifest snapshot and routes per-primitive payloads to the framework-specific helpers:
+
+| `static.framework` | helper |
+|---|---|
+| `pytest` | `regeneratePytest()` → `stampPytestPerPrimitive()` |
+| `vitest` | `regenerateVitest()` → `stampVitestPerPrimitive()` |
+| `jest` | `regenerateJest()` → `stampJestPerPrimitive()` |
+
+| `llm.strategy` | helper |
+|---|---|
+| `code` | `regenerateLlmCode()` → `stampLlmCodeStrategy()` |
+| `declarative` | `regenerateLlmDeclarative()` → surgical `evals.json` edits via `json-source-map` + `buildDeclarativeStampedCase()` |
+
+**Hard-coded file-level guard** (every `*.test.ts` / `*.test.js` / `*.test.py` overwrite): each helper calls `isGeneratedFile(path)` from `evals/_llm/_user-case-guards.ts`. A file lacking the literal `// _meta.generated: true` (TS) or `# _meta.generated: True` (Python) marker on its first line is **user-authored** — the helper skips the write, records the path under `files_preserved`, and emits a `manual_merge_required` note.
+
+**Hard-coded case-level guard** (every `evals.json` row mutation): `regenerateLlmDeclarative()` parses the file with `json-source-map`, walks the cases array, and per row calls `isGeneratedCase(c)`. User-authored cases (no `_meta`, or `_meta.generated === false`) are preserved byte-identically — only their containing file's generated rows are surgically replaced via per-pointer byte splicing.
 
 ### Step 6: Write
 
 For accepted changes:
-- Write line-level patches into the target `evals.json` files. Preserve the order of unchanged cases — no whole-file rewrites.
-- Update `_meta.source_hash` to the new hash and `_meta.last_updated` to now.
-- Rewrite `.zoto-eval-system/manifest.yml` (new `git_ref`, new `updated_at`, `generated_by: zoto-update-evals`).
-- APPEND the new manifest snapshot to `.zoto-eval-system/manifest.history.yml`.
+- Per-framework helpers write per-primitive test files (only when guard passes).
+- `regenerateLlmDeclarative()` writes the merged `evals.json` (only when bytes differ).
+- Refresh `.zoto/eval-system/manifest.yml` with new `git_ref`, `updated_at`, `generated_by: zoto-update-evals`, and the rediscovered `targets[]` (each carries a fresh `content_hash`).
+- APPEND the new manifest snapshot to `.zoto/eval-system/manifest.history.yml` (append-only — never compacted).
 
 ### Step 7: Summary
 
-Print a table: `{ added, removed, modified-applied, modified-skipped, orphaned, user-authored-flagged }`.
+Print a structured JSON summary: `{ mode, regenerated_targets, files_written, files_preserved_user_authored, user_cases_preserved, reports[] }`. Each `report` lists framework + strategy, `files_written`, `files_preserved` (user-authored skips), `cases_replaced`, `cases_added`, `cases_removed`, `user_cases_preserved`, and any `notes[]`.
 
-## Workflow (targeted)
+## Workflow (`--target <glob>`)
 
-Given `<file-or-glob>`:
+Given `<glob>`:
 
-1. Resolve against the repository (respect `.gitignore`).
-2. For each resolved file, call `scripts/eval-discover.ts --resolve <file>` to get the target(s) it represents.
-3. Recompute each target's `content_hash`. If no covering `eval_files` exist, propose creating one. If covering `eval_files` exist, regenerate only cases where `_meta?.generated === true`.
-4. `askQuestion` per change before writing.
+1. Resolve against discovered targets — match either `target.path` or `target.id` against the glob (dot-aware).
+2. Filter `current` and only compute deltas for the resolved subset.
+3. Apply-mode decisions arrive via command resume — not via skill `askQuestion`.
 
-## Workflow (--check)
+## Workflow (`--check`)
 
-Non-interactive. Prints structured JSON-line deltas to stdout/stderr. Exits `0` if no critical drift, else exits `config.update.checkExitCodeOnCriticalDrift` (default `2`).
+Non-interactive. The check:
+
+1. Runs `pnpm exec tsx scripts/check-analyser-payload-parity.ts` (TS↔Python `AnalyserPayload` parity gate). Drift surfaces under `parity_drift` in the report.
+2. Computes deltas as above.
+3. Emits a single JSON summary line plus per-critical-delta JSON-line stderr entries.
+4. Exits `0` on clean drift + parity, else `config.update.checkExitCodeOnCriticalDrift` (default `2`).
+
+This mode is wired into subtask 12's orchestrator drift hook; keep `--check` non-interactive at all times.
 
 ## Surgical-diff invariants
 
-Enforced by `scripts/validate-plugin.ts` and tests:
+Enforced by the unit suite at `scripts/__tests__/eval-update-guards.test.ts`:
 
-- Cases without `_meta` (or with `_meta.generated === false`) are immutable to the updater.
-- Order of unchanged cases is preserved.
-- All generated cases include `_meta` with current `source_hash` and ISO-8601 `last_updated`.
-- `manifest.history.yml` is append-only — never rewritten, never compacted.
+- A user-authored case in a mixed `evals.json` is byte-identical (canonical JSON) before and after `--apply`.
+- A `*.test.ts` lacking the marker is byte-identical before and after `--apply`.
+- A `*.test.ts` with the marker is regenerated.
+- `--no-analyser` + `CI=true` emits the `[CI WARNING] --no-analyser` stderr line.
 
 ## What NOT to Do
 
 - Do not touch user-authored cases. Ever.
+- Do not overwrite a `*.test.{ts,js,py}` file lacking the literal first-line `_meta.generated` marker — log `manual_merge_required` instead.
 - Do not use the current `config.json.discoveryTargets` when rediscovering — always use `manifest.discovery_config`.
-- Do not rewrite whole `evals.json` files — patch at case granularity.
-- Do not skip askQuestion in `--apply` modes.
+- Do not rewrite whole `evals.json` files when a surgical replacement suffices — always go through `surgicallyReplaceGeneratedCases()` for mixed files.
+- Do **not** call `askQuestion` from inside the skill — the command owns interactive prompts.

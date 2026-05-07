@@ -1,10 +1,13 @@
 /**
- * Writes a validated results.yml and per-case log files.
+ * Writes a validated `evals/_runs/<ts>/llm.yml` and per-case log files.
  *
- * The results document is validated against
- * `templates/schema/result.schema.json` before being written.
+ * Subtask 10 renamed the per-backend file from `results.yml` to `llm.yml`
+ * so it sits alongside the static backend's `static.yml` and the merged
+ * top-level `report.yml` (subtask 12). The document is validated against
+ * `templates/schema/result.schema.json` (carrying `backend: "llm"` for
+ * the declarative strategy) before being written.
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import YAML from "yaml";
 import Ajv from "ajv";
@@ -18,6 +21,17 @@ export interface WriterCase {
   metrics: SoftMetrics;
   grader_reports: GraderReport[];
   log: string;
+  /**
+   * Optional per-case `_meta.primitive_analysis` snapshot threaded through
+   * from the runner. Surfaced in the YAML so downstream consumers (judge,
+   * comparer, updater) can correlate runner outcomes with the analyser
+   * payload version that produced the case.
+   */
+  primitive_analysis?: {
+    source_hash: string;
+    analyser_version: string;
+    summary: string;
+  };
 }
 
 export interface WriteOptions {
@@ -78,6 +92,7 @@ export function writeResults(opts: WriteOptions): string {
       ...c.metrics,
       grader_reports: c.grader_reports,
       log_path: join("_runs", opts.runId, "logs", `${sanitize(c.id)}.log`),
+      ...(c.primitive_analysis ? { primitive_analysis: c.primitive_analysis } : {}),
     })),
   };
 
@@ -86,11 +101,11 @@ export function writeResults(opts: WriteOptions): string {
   }
 
   const ajv = new Ajv({ allErrors: true, strict: false });
-  const schema = JSON.parse(require("node:fs").readFileSync(opts.schemaPath, "utf-8"));
+  const schema = JSON.parse(readFileSync(opts.schemaPath, "utf-8"));
   const validate = ajv.compile(schema);
   if (!validate(doc)) {
     throw new Error(
-      `results.yml failed schema validation: ${JSON.stringify(validate.errors, null, 2)}`,
+      `llm.yml failed schema validation: ${JSON.stringify(validate.errors, null, 2)}`,
     );
   }
 
@@ -98,10 +113,7 @@ export function writeResults(opts: WriteOptions): string {
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, YAML.stringify(doc), "utf-8");
 
-  const topPath = join(opts.evalsDir, "_runs", opts.runId, "results.yml");
-  writeFileSync(topPath, YAML.stringify(doc), "utf-8");
-
-  return topPath;
+  return outPath;
 }
 
 function sanitize(id: string): string {
