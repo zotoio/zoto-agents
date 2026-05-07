@@ -1,23 +1,31 @@
 ---
-name: zoto-spec-judge
+name: z-spec-judge
 description: Independently assess the repository or a specific engineering spec for quality, feasibility, and completeness. For spec assessments, offers to apply recommended fixes directly to spec files.
 ---
 
-# zoto-spec-judge
+# z-spec-judge
 
 Independently assess the repository or a specific engineering spec for quality, feasibility, and completeness. For spec assessments, offers to apply recommended fixes directly to the spec files after producing the assessment.
 
 ## Usage
 
 ```
-/zoto-spec-judge                                          - Assess the entire repository
-/zoto-spec-judge specs/20260403-feature-name              - Assess a specific spec by directory
-/zoto-spec-judge specs/20260403-feature-name/spec-feature-name-20260403.md  - Assess by index file path
+/z-spec-judge                                          - Assess the entire repository
+/z-spec-judge specs/20260403-feature-name              - Assess a specific spec by directory
+/z-spec-judge specs/20260403-feature-name/spec-feature-name-20260403.md  - Assess by index file path
 ```
 
 In examples above, `specs/` is the default `{specsDir}`; substitute your configured specs directory when it differs.
 
 ## Instructions
+
+### Precondition
+
+Before doing anything else, verify that **`.zoto/spec-system/config.yml`** exists at the repository root. If it does not, abort with the exact message:
+
+> Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.
+
+Do not synthesize a default config and do not proceed.
 
 When this command is invoked, spawn a **fresh `zoto-spec-judge` subagent** to perform an independent assessment. The judge uses the `zoto-judge-spec` skill for the assessment workflow. Pass `$ARGUMENTS` through to the spawned agent. Using a dedicated judge agent in a fresh context avoids bias from prior sessions.
 
@@ -54,7 +62,7 @@ When this command is invoked, spawn a **fresh `zoto-spec-judge` subagent** to pe
 
 | Verdict | Score | Action |
 |---------|-------|--------|
-| **Approve** | 4.0+ | Repo is healthy / spec is ready for `/zoto-spec-execute` |
+| **Approve** | 4.0+ | Repo is healthy / spec is ready for `/z-spec-execute` |
 | **Conditional** | 3.0–3.9 | Address the listed findings before proceeding |
 | **Reject** | < 3.0 | Significant issues — needs rework |
 
@@ -85,5 +93,5 @@ After producing a **spec assessment**, the judge presents actionable findings an
 - `zoto-spec-generator` agent — creates specs
 - `zoto-spec-executor` agent — executes specs with subagent coordination
 - `zoto-judge-spec` skill — assessment methodology and scoring rubric
-- `/zoto-spec-create` — create a spec
-- `/zoto-spec-execute` — execute a spec with guided coordination
+- `/z-spec-create` — create a spec
+- `/z-spec-execute` — execute a spec with guided coordination

@@ -1,0 +1,76 @@
+schema_version: 1
+subtask_id: "03"
+feature: command-prefix-shortening
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: Create `plugins/zoto-eval-system/commands/z-eval-init.md` — canonical, mirrored from `zoto-eval-init.md` with in-body slash references rewritten to `/z-eval-*`
+    done: false
+    evidence_path: null
+  - id: D02
+    text: Create `plugins/zoto-eval-system/commands/z-eval-configure.md` — canonical, mirrored from `zoto-eval-configure.md`
+    done: false
+    evidence_path: null
+  - id: D03
+    text: Create `plugins/zoto-eval-system/commands/z-eval-create.md` — canonical, mirrored from `zoto-eval-create.md`
+    done: false
+    evidence_path: null
+  - id: D04
+    text: Create `plugins/zoto-eval-system/commands/z-eval-update.md` — canonical, mirrored from `zoto-eval-update.md`
+    done: false
+    evidence_path: null
+  - id: D05
+    text: Create `plugins/zoto-eval-system/commands/z-eval-execute.md` — canonical, mirrored from `zoto-eval-execute.md`
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Create `plugins/zoto-eval-system/commands/z-eval-judge.md` — canonical, mirrored from `zoto-eval-judge.md`
+    done: false
+    evidence_path: null
+  - id: D07
+    text: Create `plugins/zoto-eval-system/commands/z-eval-compare.md` — canonical, mirrored from `zoto-eval-compare.md`
+    done: false
+    evidence_path: null
+  - id: D08
+    text: Create `plugins/zoto-eval-system/commands/z-eval-help.md` — canonical, mirrored from `zoto-eval-help.md`
+    done: false
+    evidence_path: null
+  - id: D09
+    text: Create `plugins/zoto-eval-system/commands/z-eval-advise.md` — canonical, mirrored from `zoto-eval-advise.md` (preserves the **two** command-owned `askQuestion` breakpoints — drill-down selection and action recommendations — and the handoff to `/z-eval-create` / `/z-eval-update`)
+    done: false
+    evidence_path: null
+  - id: D10
+    text: "Convert each existing `zoto-eval-<verb>.md` (including `zoto-eval-advise.md`) into a thin alias that delegates to its `z-eval-<verb>` counterpart, with `$ARGUMENTS` passed through. For commands that own pre-collection (`/zoto-eval-help`, `/zoto-eval-advise`), follow the **alias delegation idiom for `askQuestion`-owning commands** documented in subtask 02's Implementation Notes: the alias body must instruct the agent to read and follow the canonical file's instructions verbatim rather than spawn-without-pre-collection"
+    done: false
+    evidence_path: null
+  - id: D11
+    text: Each alias file's `description` includes the phrase **"alias for `/z-eval-<verb>`"**
+    done: false
+    evidence_path: null
+  - id: D12
+    text: Each canonical file's "Related" / cross-reference sections use the new short names
+    done: false
+    evidence_path: null
+  - id: D13
+    text: Each alias file is < 30 lines, contains no instruction duplication, and links to its canonical counterpart
+    done: false
+    evidence_path: null
+  - id: D14
+    text: Frontmatter `name:` matches the file basename in every case
+    done: false
+    evidence_path: null
+  - id: D15
+    text: The `/z-eval-help` canonical file's body (and any sibling) preserves the exact help-routing contract documented in `plugins/zoto-eval-system/rules/zoto-eval-system.mdc` § "Help-Intent Routing" — only the slash-command literal changes
+    done: false
+    evidence_path: null
+  - id: D16
+    text: "`node scripts/validate-template.mjs` passes for the eval-system plugin"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

@@ -1,0 +1,108 @@
+schema_version: 1
+subtask_id: "04"
+feature: command-prefix-shortening
+assigned_agent: docs-sync-agent
+model: composer-2-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: Update `plugins/zoto-spec-system/README.md` — canonical commands switched to `/z-spec-*`; add a single "Back-compat aliases" subsection listing the four `/zoto-spec-*` legacy names
+    done: false
+    evidence_path: null
+  - id: D02
+    text: Update `plugins/zoto-eval-system/README.md` — canonical commands switched to `/z-eval-*`; add a single "Back-compat aliases" subsection listing the eight `/zoto-eval-*` legacy names
+    done: false
+    evidence_path: null
+  - id: D03
+    text: 'Update `plugins/zoto-spec-system/CHANGELOG.md` — add an "Unreleased" entry: *"Renamed canonical slash commands to `/z-spec-*`. Legacy `/zoto-spec-*` names remain functional via thin alias files."*'
+    done: false
+    evidence_path: null
+  - id: D04
+    text: Update `plugins/zoto-eval-system/CHANGELOG.md` — add an analogous "Unreleased" entry for the eval-system rename
+    done: false
+    evidence_path: null
+  - id: D05
+    text: Update `AGENTS.md` — replace `/zoto-spec-execute` reference (line ~53) with `/z-spec-execute`; verify no other occurrences
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Update `.cursor/rules/zoto-plugin-conventions.mdc` — replace any slash-command references with the short form
+    done: false
+    evidence_path: null
+  - id: D07
+    text: Update `plugins/zoto-spec-system/rules/zoto-spec-system.mdc` — "Available Commands" section, "When to Suggest Planning", configuration section, and any inline references switched to `/z-spec-*`; add a small "Back-compat aliases" line at the end of "Available Commands"
+    done: false
+    evidence_path: null
+  - id: D08
+    text: Update `plugins/zoto-eval-system/rules/zoto-eval-system.mdc` — "Available Commands" section, "Help-Intent Routing", and any inline references switched to `/z-eval-*`; add the analogous "Back-compat aliases" line
+    done: false
+    evidence_path: null
+  - id: D09
+    text: Update plugin agent files under `plugins/zoto-spec-system/agents/*.md` (`zoto-spec-generator.md`, `zoto-spec-executor.md`, `zoto-spec-judge.md`) and `plugins/zoto-eval-system/agents/*.md` (`zoto-eval-configurer.md`, `zoto-eval-generator.md`, `zoto-eval-executor.md`, `zoto-eval-judge.md`, `zoto-eval-updater.md`, `zoto-eval-comparer.md`, `zoto-eval-adviser.md`, `zoto-eval-analyser-subagent.md`) — replace body-level slash command references with the new canonical names. Agent identifiers (filenames, frontmatter `name:`) are NOT changed
+    done: false
+    evidence_path: null
+  - id: D10
+    text: "Update plugin skill `SKILL.md` files where they reference slash commands in the body — explicit list:"
+    done: false
+    evidence_path: null
+  - id: D11
+    text: Update `plugins/zoto-spec-system/hooks/zoto-session-start.{ts,mjs}` — replace the default nudge message string `"...running /zoto-spec-create to organize."` with `"...running /z-spec-create to organize."`
+    done: false
+    evidence_path: null
+  - id: D12
+    text: Update `plugins/zoto-eval-system/hooks/zoto-eval-session-start.{ts,mjs}` — replace any analogous nudge message strings
+    done: false
+    evidence_path: null
+  - id: D13
+    text: Update `plugins/zoto-eval-system/hooks/hooks.json` if it carries any slash-command literal (verify, update if present)
+    done: false
+    evidence_path: null
+  - id: D14
+    text: Update `plugins/zoto-spec-system/templates/init-config.yml` and `plugins/zoto-eval-system/templates/init-config.yml` — commented example messages use the new canonical short form
+    done: false
+    evidence_path: null
+  - id: D15
+    text: Update `.zoto/spec-system/config.yml` (the live workspace config) only if it contains an uncommented override that references the old name; otherwise leave commented defaults alone
+    done: false
+    evidence_path: null
+  - id: D16
+    text: Update `plugins/zoto-eval-system/templates/baseline-fixtures/.zoto/eval-system/config.yml` — example messages use the new canonical short form
+    done: false
+    evidence_path: null
+  - id: D17
+    text: Update `plugins/zoto-spec-system/docs/*.md` (`config-schema.md`, `aggregator.md`, `memory-extension-guide.md`, `status-schema.md`, `example-config.yml`) — replace any slash-command references with the new canonical names
+    done: false
+    evidence_path: null
+  - id: D18
+    text: Update `docs/zoto-eval-system.md` — replace the command list with the new canonical names; **also realign the list to cover all 9 current eval-system commands** (`init`, `configure`, `create`, `update`, `execute`, `judge`, `compare`, `help`, `advise` — the file's existing line 17 list is missing `init` and `advise`, so a mechanical 1:1 swap would preserve that gap); add a single line acknowledging the legacy `/zoto-eval-*` aliases
+    done: false
+    evidence_path: null
+  - id: D19
+    text: "Update GitHub Pages: `site/index.html`, `site/spec-system/index.html`, `site/spec-system/quickstart.html`, `site/spec-system/configuration.html`, `site/spec-system/design.html` — replace any displayed `/zoto-*` slash commands with `/z-*`"
+    done: false
+    evidence_path: null
+  - id: D20
+    text: "Update SVG diagrams/mockups that contain slash-command text: `site/images/diagrams/agent-architecture.svg`, `site/images/diagrams/workflow-overview.svg`, `site/images/mockups/create-spec.svg`, `site/images/mockups/execute-progress.svg`, `site/images/mockups/judge-output.svg`. Where in-place text replacement is non-trivial because of styling, add a one-line note in the surrounding HTML page rather than editing the SVG path data"
+    done: false
+    evidence_path: null
+  - id: D21
+    text: Update `.cursor/agents/zoto-plugin-manager.md` — line ~390 references `/zoto-spec-create` etc.; update to canonical short form. **Also include `/z-spec-init` in the rewrite** even though the existing line only lists three commands (`/zoto-spec-create`, `/zoto-spec-judge`, `/zoto-spec-execute`); the file currently omits `/zoto-spec-init` and a mechanical rename would preserve that omission
+    done: false
+    evidence_path: null
+  - id: D22
+    text: Verify `.cursor-plugin/marketplace.json` is unchanged (it does not list individual commands)
+    done: false
+    evidence_path: null
+  - id: D23
+    text: Verify root `package.json` is unchanged (no `zoto-*` literal command alias scripts exist)
+    done: false
+    evidence_path: null
+  - id: D24
+    text: Sanity-confirm root `README.md` still has no `/zoto-spec-*` or `/zoto-eval-*` slash-command literals (verified clean at spec time; this is a guard against accidental drift mid-rename)
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}
