@@ -1,0 +1,42 @@
+unitOfWork: spec
+specsDir: specs
+workDir: specs/current
+
+spec:
+  maxSubtasks: 99
+  parallelLimit: 4
+  adversarialVerification: true
+
+subagents:
+  default:
+    tokenBudget: 200000
+    model: gpt-5.2
+  generator:
+    tokenBudget: 250000
+    model: claude-opus-4-7-thinking-xhigh
+  executor:
+    tokenBudget: 180000
+  judge:
+    tokenBudget: 300000
+    model: gpt-5.2-codex-high-fast
+  subtask:
+    tokenBudget: 150000
+
+aggregator:
+  enabled: true
+  pollIntervalMs: 1500
+  debounceMs: 250
+  outputs:
+    specStatusMd: status.md
+    specStatusYml: status.yml
+
+hooks:
+  sessionStartNudge:
+    enabled: true
+    threshold: 20
+    message: "You have ${count} unprocessed ${unitOfWork}s. Consider running /z-spec-create to organize."
+
+extensions:
+  memory:
+    enabled: false
+    plugin: null

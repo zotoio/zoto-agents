@@ -9,13 +9,14 @@ This repository uses the Spec System plugin for structured engineering workflows
 
 ## Available Commands
 
-- `/zoto-spec-create` — Create a structured engineering spec for a complex initiative
-- `/zoto-spec-judge` — Independently assess the repository or a specific spec
-- `/zoto-spec-execute` — Execute a spec with subagent coordination and adversarial verification
+- `/z-spec-init` — Scaffold `.zoto/spec-system/config.yml` with all defaults commented out (run once per repo)
+- `/z-spec-create` — Create a structured engineering spec for a complex initiative
+- `/z-spec-judge` — Independently assess the repository or a specific spec
+- `/z-spec-execute` — Execute a spec with subagent coordination and adversarial verification
 
 ## When to Suggest Planning
 
-Suggest `/zoto-spec-create` when:
+Suggest `/z-spec-create` when:
 - The user describes a multi-step initiative (3+ distinct changes)
 - A task touches multiple files, systems, or components
 - Requirements are ambiguous and need structured decomposition
@@ -23,9 +24,11 @@ Suggest `/zoto-spec-create` when:
 
 ## Configuration
 
-The spec system is configured via `.zoto-spec-system/config.json`. Key settings:
+The spec system is configured via **`.zoto/spec-system/config.yml`** (the only supported path). Run `/z-spec-init` once to scaffold a fully commented template; uncomment any line to override defaults. Key settings:
 - `unitOfWork` — term for work items (default: "spec")
 - `specsDir` — where specs are stored (default: "specs")
+
+If a Spec System command is invoked and the config file is missing, **stop and instruct the user to run `/z-spec-init`** rather than continuing.
 
 ## Discovering Existing Specs
 
@@ -35,3 +38,52 @@ Check the configured `specsDir` directory for existing spec directories. Each fo
 
 The spec system supports optional extensions:
 - **Memory system**: When `extensions.memory.enabled` is true in config, the memory plugin provides learning extraction and recall across sessions
+
+## Live Status & Token Budget
+
+- Live execution status lives under **`{specsDir}/<spec>/status/*.status.{md,yml}`** for each subtask (YAML authoritative for structured fields; markdown mirrors fenced regions — see `plugins/zoto-spec-system/docs/status-schema.md`).
+- While **`/z-spec-execute`** runs with a `status/` directory present, the spec-root **`status.md`** and **`status.yml`** are aggregator outputs rebuilt whenever subtask YAML sources change.
+- Token budgets and optional role models live under **`subagents.*`** in **`.zoto/spec-system/config.yml`**. **Token budget changes apply to the next spawned subagent without restarting the executor.**
+- Route questions about **progress**, **blockers**, or **in-flight status** to reading the spec-root **`status.md`** first, then drill into paired **`status/subtask-NN-*.status.md`** files.
+- Route questions about **token budgets** or **which model** a role uses to **`.zoto/spec-system/config.yml`** (`subagents.default.*` and per-role overrides).
+
+## Mandatory Dependency Graph & Auto-Colouring
+
+Every spec index **must** contain a `## Subtask Dependency Graph` section with a mermaid fence. The aggregator auto-colors its nodes on every tick based on the corresponding subtask's live `state`:
+
+| State | Colour | Class |
+|-------|--------|-------|
+| `completed` | green (`#86efac`) | `specDone` |
+| `in_progress` | amber (`#fde68a`) | `specInProgress` |
+| `blocked` | red (`#fca5a5`) | `specBlocked` |
+| `failed` | red (`#fca5a5`) | `specFailed` |
+| `pending` | grey (`#e5e7eb`) | `specPending` |
+
+For colouring to work, each mermaid node label must contain the subtask number as a leading two-digit prefix (`S01[01: Audit]`) or via a `subtask-NN` substring (`A[subtask-01]`). The aggregator-managed `classDef`/`class` block lives inside the mermaid fence between `%% spec-system:classes:begin` and `%% spec-system:classes:end` comments — it is rewritten on every rebuild and must not be hand-edited. The aggregator is the only writer of these directives; the executor, judge, and subtask agents must never modify them directly.
+
+## Reviewer Non-Interference (HARD RULE)
+
+The Spec System enforces strict separation between **doers** (the assigned subagent for each subtask) and **reviewers** (the `zoto-spec-judge` agent). Reviewer agents must **never interfere** with subtask work.
+
+- **Judges in Mode 1 (during `/z-spec-execute`) write to nothing except the paired status files**: `<specDir>/status/<subtask>.status.yml` and `.status.md` (markdown only via the round-trip helper). They do not edit deliverables (source, tests, configs, docs), the subtask spec markdown, the spec index, the execution report, or the spec-root `status.{md,yml}`.
+- **Judges produce structured `fix_list` recommendations**, never code changes. The verdict block is written into `extra.judge` of the subtask's `.status.yml` (see `plugins/zoto-spec-system/agents/z-spec-judge.md`).
+- **The executor never authors fixes from a `fix_list`**. When a judge returns `Partial` or `Failed`, the executor re-spawns the **originally-assigned subagent** (per the manifest's Subagent column) with the `fix_list` as input — even for trivial or mechanical gaps — then spawns a fresh judge to re-verify. This preserves single-owner provenance per deliverable.
+- The only files the executor itself writes are the spec index manifest's bookkeeping fields (Status column, execution notes) and the execution report.
+
+## onStop Consistency Check (HARD GATE)
+
+Spec-execute and review agents must verify they have not left any inconsistencies in the subtask `.status.{md,yml}` pair, the spec-root `status.yml`, or `.zoto/spec-system/config.yml` before terminating. The plugin ships a single CLI that performs every check:
+
+```
+pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --repo-root <repoRoot>
+```
+
+What it covers:
+- **Schema validation** of every `.status.yml`, the spec-root `status.yml`, and `.zoto/spec-system/config.yml` against their JSON schemas in `plugins/zoto-spec-system/templates/schema/`.
+- **Checkbox cross-check** between the rendered `.status.md` and the authoritative `.status.yml` — both via the parser AND a regex sweep (`^\s*- \[ \] \*\*(D\d+)\*\*`) that catches unchecked boxes in md when yml claims done.
+- **Auto-fix** of md/yml drift via the existing round-trip helper (yml is authoritative).
+- **Critical-issue surfacing** when `state: completed` or `extra.judge.verdict: verified` is paired with any open checklist item, or when the yml/config fails schema validation.
+
+Exit codes: `0` clean (or every issue auto-fixed); `2` critical issues remain. The executor agent must not advance to the user-approval gate until exit `0`. Judges must downgrade a `verified` verdict if exit `2` reveals an inconsistency they cannot reconcile.
+
+A Cursor `stop` event hook (`plugins/zoto-spec-system/hooks/zoto-onstop-check.mjs`) runs the same library on every agent stop as a defence-in-depth backstop, surfacing fixes and critical issues to the next agent turn via Cursor's `additional_context` channel.

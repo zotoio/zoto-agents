@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 
 // hooks/zoto-session-start.ts
-import { readFileSync, readdirSync, statSync } from "fs";
-import { join, resolve } from "path";
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from "fs";
+import { dirname, join, resolve } from "path";
+import YAML from "yaml";
 var DEFAULT_UNIT = "spec";
 var DEFAULT_WORK_DIR = "specs/current";
 var DEFAULT_THRESHOLD = 20;
-var DEFAULT_MESSAGE = "You have ${count} unprocessed ${unitOfWork}s. Consider running /zoto-spec-create to organize.";
+var DEFAULT_MESSAGE = "You have ${count} unprocessed ${unitOfWork}s. Consider running /z-spec-create to organize.";
 function emitEmpty() {
   process.stdout.write("{}\n");
 }
-function loadJson(path) {
+function loadYaml(path) {
   try {
-    return JSON.parse(readFileSync(path, "utf-8"));
+    const raw = YAML.parse(readFileSync(path, "utf-8"));
+    return raw ?? {};
   } catch {
     return void 0;
   }
@@ -36,8 +38,28 @@ function main() {
   } catch {
   }
   const root = process.cwd();
-  const configPath = join(root, ".zoto-spec-system", "config.json");
-  const cfg = loadJson(configPath);
+  const legacyDir = join(root, ".zoto-spec-system");
+  const newDir = join(root, ".zoto", "spec-system");
+  if (existsSync(legacyDir) && !existsSync(newDir)) {
+    try {
+      mkdirSync(dirname(newDir), { recursive: true });
+      renameSync(legacyDir, newDir);
+      const oldCfg = join(newDir, "config.json");
+      const newCfg = join(newDir, "config.yml");
+      if (existsSync(oldCfg) && !existsSync(newCfg)) {
+        try {
+          const json = JSON.parse(readFileSync(oldCfg, "utf-8"));
+          writeFileSync(newCfg, YAML.stringify(json), "utf-8");
+          unlinkSync(oldCfg);
+        } catch {
+          renameSync(oldCfg, newCfg);
+        }
+      }
+    } catch {
+    }
+  }
+  const configPath = join(root, ".zoto", "spec-system", "config.yml");
+  const cfg = loadYaml(configPath);
   if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) {
     emitEmpty();
     return;

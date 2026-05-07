@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-spec-system/subtask-status.schema.json",
+  "title": "Zoto Spec System Subtask Status",
+  "description": "Canonical JSON/YAML payload for a single subtask live-status file (paired with a block-marked `.status.md`). The yml is authoritative for machine round-trips; see `docs/status-schema.md`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "subtask_id",
+    "feature",
+    "assigned_agent",
+    "model",
+    "token_budget",
+    "state",
+    "checklist",
+    "artifacts",
+    "errors",
+    "notes",
+    "extra"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema revision for this document. Bump only when breaking the subtask status contract."
+    },
+    "subtask_id": {
+      "type": "string",
+      "pattern": "^[0-9]{2}$",
+      "description": "Zero-padded subtask number from the spec manifest (e.g. `01`, `02`)."
+    },
+    "feature": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Feature slug for the initiative (e.g. `spec-system-live-status`)."
+    },
+    "assigned_agent": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Agent id assigned by the spec manifest (e.g. `zoto-software-engineer`). May differ if the executor substitutes another registered agent."
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Resolved model slug at subagent spawn time."
+    },
+    "token_budget": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Resolved token budget at spawn time; typically mirrors `subagents.<role>.tokenBudget` from config."
+    },
+    "state": {
+      "type": "string",
+      "enum": ["pending", "in_progress", "blocked", "completed", "failed"],
+      "description": "High-level execution state for this subtask."
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp when execution started, if known."
+    },
+    "last_heartbeat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of the most recent status write or progress ping."
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp when the subtask reached a terminal state (`completed` or `failed`), if known."
+    },
+    "checklist": {
+      "type": "array",
+      "description": "Deliverables checklist with stable `id` values so round-trip tooling can merge agent hand-edits in markdown.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "done", "evidence_path"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "text": { "type": "string" },
+          "done": { "type": "boolean" },
+          "evidence_path": {
+            "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "description": "Files created, modified, or deleted while executing this subtask.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "kind", "note"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "kind": { "type": "string", "enum": ["created", "modified", "deleted"] },
+          "note": {
+            "oneOf": [{ "type": "string" }, { "type": "null" }]
+          }
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "description": "Structured error and warn log lines captured during execution.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at", "message", "severity"],
+        "properties": {
+          "at": { "type": "string", "format": "date-time" },
+          "message": { "type": "string", "minLength": 1 },
+          "severity": { "type": "string", "enum": ["info", "warn", "error"] }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-form notes for humans. Rendered as a single markdown block between `notes` markers."
+    },
+    "git_sha": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Best-effort `git rev-parse HEAD` at last write."
+    },
+    "agent_session_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Cursor agent session identifier when available (e.g. `process.env.CURSOR_AGENT_SESSION_ID`)."
+    },
+    "extra": {
+      "type": "object",
+      "description": "Escape hatch for forward-compatible fields not yet in this schema.",
+      "additionalProperties": true
+    }
+  }
+}

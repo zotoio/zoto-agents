@@ -1,0 +1,192 @@
+{
+  "command_name": "z-spec-judge",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/z-spec-judge",
+      "assertions": [
+        "After `/z-spec-judge`, the assistant output contains the exact text: Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.",
+        "After `/z-spec-judge`, no new `specs/assessment-repo-*.md` file appears and no file matching `specs/*/assessment-*-*.md` is created."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+        "last_updated": "2026-05-07T10:49:23.992Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+          "analysed_at": "2026-05-07T10:49:23.992Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The slash command gates on `.zoto/spec-system/config.yml`, delegates assessment to a fresh `zoto-spec-judge` subagent using `zoto-judge-spec`, supports repository-wide and spec-targeted modes with dated Markdown reports, and after spec runs may offer spec-only remediation."
+        }
+      },
+      "expected_output": "The run stops before delegation, prints the initialisation error, and leaves specs without a new assessment report."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-spec-judge",
+      "assertions": [
+        "After `/z-spec-judge`, the visible transcript records handing the work to `zoto-spec-judge` with an empty argument list before publishing scores.",
+        "After `/z-spec-judge`, a Markdown file matching `specs/assessment-repo-*.md` exists and its sections discuss completeness, feasibility, structure, specificity, risk awareness, and convention compliance of the repository.",
+        "That repository assessment names a numeric score and assigns Approve only at 4.0 or above, Conditional between 3.0 and 3.9 inclusive, or Reject below 3.0, consistent with the command table.",
+        "After `/z-spec-judge`, the delegated flow references the `zoto-judge-spec` skill name in operator-visible output before the report is finalized."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+        "last_updated": "2026-05-07T10:49:23.992Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+          "analysed_at": "2026-05-07T10:49:23.992Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The slash command gates on `.zoto/spec-system/config.yml`, delegates assessment to a fresh `zoto-spec-judge` subagent using `zoto-judge-spec`, supports repository-wide and spec-targeted modes with dated Markdown reports, and after spec runs may offer spec-only remediation.",
+          "fixture_justifications": [
+            "Creates `.zoto/spec-system/config.yml` at the workspace root so the precondition passes and Mode 1 can run."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "from": "plugins/zoto-spec-system/templates/init-config.yml"
+          }
+        ]
+      },
+      "expected_output": "With Spec System initialised, the command delegates to `zoto-spec-judge`, produces a dated repository health report under `specs/`, and states a score with Approve, Conditional, or Reject per the documented cutoffs."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "/z-spec-judge specs/20260403-circuit-breaker-api",
+      "assertions": [
+        "After `/z-spec-judge specs/20260403-circuit-breaker-api`, the transcript shows the spawned `zoto-spec-judge` subagent receives that directory path in its forwarded arguments.",
+        "After `/z-spec-judge specs/20260403-circuit-breaker-api`, a Markdown report matching `specs/20260403-circuit-breaker-api/assessment-circuit-breaker-api-*.md` exists in the spec directory.",
+        "That spec assessment narrative explicitly discusses dependency graph integrity and the quality of individual subtasks, not only high-level goals.",
+        "Before proposing file-editing tool calls against spec sources, the assistant surfaces an explicit offer to apply recommended corrections limited to spec Markdown (index, subtasks, dependency graph materials)."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+        "last_updated": "2026-05-07T10:49:23.992Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+          "analysed_at": "2026-05-07T10:49:23.992Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The slash command gates on `.zoto/spec-system/config.yml`, delegates assessment to a fresh `zoto-spec-judge` subagent using `zoto-judge-spec`, supports repository-wide and spec-targeted modes with dated Markdown reports, and after spec runs may offer spec-only remediation.",
+          "fixture_justifications": [
+            "Initialises Spec System so the command may proceed past the config gate.",
+            "Provides a spec index file matching `spec-*.md` plus objectives so directory mode can locate the tree automatically.",
+            "Provides a linked subtask so subtask-quality and dependency checks have concrete material beyond the index page alone."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "from": "plugins/zoto-spec-system/templates/init-config.yml"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md",
+            "content": "---\ntitle: Circuit breaker HTTP API\nstatus: draft\n---\n\n# Circuit breaker HTTP API\n\n## Objectives\nDeliver a resilient edge proxy that sheds load when upstream latency spikes.\n\n## Deliverables\n- OpenAPI description for the control plane\n- Contract tests for timeout and half-open behaviour\n\n## Dependency graph\n- subtask-01-circuit-breaker-api-scaffold-20260403.md has no upstream dependencies\n\n## Subtasks\n- [subtask-01-circuit-breaker-api-scaffold-20260403.md](subtask-01-circuit-breaker-api-scaffold-20260403.md)\n"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/subtask-01-circuit-breaker-api-scaffold-20260403.md",
+            "content": "---\ntitle: Scaffold service skeleton\n---\n\n# Scaffold service skeleton\n\n## Objective\nEstablish the module layout and configuration loading path.\n\n## Deliverables\n- Runnable entrypoint\n- Configuration schema\n\n## Agent assignment\nPlatform engineer agent\n"
+          }
+        ]
+      },
+      "expected_output": "The judge resolves the directory, ingests the `spec-*.md` index and linked subtasks, evaluates the six dimensions in spec context, audits dependencies and subtask quality, and asks before editing spec Markdown."
+    },
+    {
+      "id": 4,
+      "prompt": "/z-spec-judge specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md",
+      "assertions": [
+        "After `/z-spec-judge specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md`, the delegated arguments mention that exact index path ending in `spec-circuit-breaker-api-20260403.md`.",
+        "After `/z-spec-judge specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md`, the assessment Markdown lands under `specs/20260403-circuit-breaker-api/` alongside the index file."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+        "last_updated": "2026-05-07T10:49:23.992Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+          "analysed_at": "2026-05-07T10:49:23.992Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The slash command gates on `.zoto/spec-system/config.yml`, delegates assessment to a fresh `zoto-spec-judge` subagent using `zoto-judge-spec`, supports repository-wide and spec-targeted modes with dated Markdown reports, and after spec runs may offer spec-only remediation.",
+          "fixture_justifications": [
+            "Supplies the required Spec System config file so execution is not blocked at the gate.",
+            "Gives a concrete `spec-*.md` path matching the file-argument mode in the usage section.",
+            "Includes a dependent subtask file so the judge can verify linked content when given an explicit index path."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "from": "plugins/zoto-spec-system/templates/init-config.yml"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md",
+            "content": "---\ntitle: Circuit breaker HTTP API\nstatus: draft\n---\n\n# Circuit breaker HTTP API\n\n## Objectives\nDeliver a resilient edge proxy that sheds load when upstream latency spikes.\n\n## Deliverables\n- OpenAPI description for the control plane\n- Contract tests for timeout and half-open behaviour\n\n## Dependency graph\n- subtask-01-circuit-breaker-api-scaffold-20260403.md has no upstream dependencies\n\n## Subtasks\n- [subtask-01-circuit-breaker-api-scaffold-20260403.md](subtask-01-circuit-breaker-api-scaffold-20260403.md)\n"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/subtask-01-circuit-breaker-api-scaffold-20260403.md",
+            "content": "---\ntitle: Scaffold service skeleton\n---\n\n# Scaffold service skeleton\n\n## Objective\nEstablish the module layout and configuration loading path.\n\n## Deliverables\n- Runnable entrypoint\n- Configuration schema\n\n## Agent assignment\nPlatform engineer agent\n"
+          }
+        ]
+      },
+      "expected_output": "The judge consumes the named index path directly and still writes the assessment beside that spec without requiring a separate directory-only invocation."
+    },
+    {
+      "id": 5,
+      "prompt": "/z-spec-judge specs/20260403-circuit-breaker-api",
+      "assertions": [
+        "After the follow-up approving work, the recorded file-write operations do not touch paths outside `specs/20260403-circuit-breaker-api/`.",
+        "After remediation completes, the assessment Markdown in that directory states which spec edits were applied, satisfying the documented post-fix logging expectation."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+        "last_updated": "2026-05-07T10:49:23.992Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+          "analysed_at": "2026-05-07T10:49:23.992Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The slash command gates on `.zoto/spec-system/config.yml`, delegates assessment to a fresh `zoto-spec-judge` subagent using `zoto-judge-spec`, supports repository-wide and spec-targeted modes with dated Markdown reports, and after spec runs may offer spec-only remediation.",
+          "fixture_justifications": [
+            "Ensures the command is allowed to run by providing the Spec System configuration file.",
+            "Seeds the spec index that will receive judge recommendations so acceptance has defined targets.",
+            "Seeds a subtask document so remediation can clarify deliverables without inventing new paths."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "from": "plugins/zoto-spec-system/templates/init-config.yml"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md",
+            "content": "---\ntitle: Circuit breaker HTTP API\nstatus: draft\n---\n\n# Circuit breaker HTTP API\n\n## Objectives\nDeliver a resilient edge proxy that sheds load when upstream latency spikes.\n\n## Deliverables\n- OpenAPI description for the control plane\n- Contract tests for timeout and half-open behaviour\n\n## Dependency graph\n- subtask-01-circuit-breaker-api-scaffold-20260403.md has no upstream dependencies\n\n## Subtasks\n- [subtask-01-circuit-breaker-api-scaffold-20260403.md](subtask-01-circuit-breaker-api-scaffold-20260403.md)\n"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/subtask-01-circuit-breaker-api-scaffold-20260403.md",
+            "content": "---\ntitle: Scaffold service skeleton\n---\n\n# Scaffold service skeleton\n\n## Objective\nEstablish the module layout and configuration loading path.\n\n## Deliverables\n- Runnable entrypoint\n- Configuration schema\n\n## Agent assignment\nPlatform engineer agent\n"
+          }
+        ]
+      },
+      "expected_output": "Following approval, edits remain confined to spec artefacts in the assessed directory and the assessment report records which corrections were applied, without touching paths outside that spec scope.",
+      "follow_ups": [
+        "Yes—apply the recommended edits only inside this spec folder’s Markdown and refresh the assessment note afterward."
+      ]
+    }
+  ]
+}
