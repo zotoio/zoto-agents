@@ -1,0 +1,37 @@
+{
+  "command_name": "zoto-create-plugin",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/zoto-create-plugin — scaffold a new plugin called zoto-analytics",
+      "assertions": [
+        "The zoto-plugin-manager subagent is spawned",
+        "A new directory plugins/zoto-analytics/ is created with the required structure",
+        "The plugin is registered in .cursor-plugin/marketplace.json",
+        "Plugin.json manifest contains name, displayName, version, description, author, license"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "92365d4ef5d937dad6da4376751ae1ed5fa2efdf53c0ee5990b5b4174e2a08aa",
+        "last_updated": "2026-05-07T10:18:00.000Z",
+        "generated_by": "zoto-update-evals"
+      }
+    },
+    {
+      "id": 2,
+      "prompt": "/zoto-create-plugin with components: 1 agent, 2 skills, 1 command, 1 rule",
+      "assertions": [
+        "The generated plugin has agents/*.md, skills/*/SKILL.md, commands/*.md, and rules/*.mdc",
+        "Each skill has evals/evals.json with >= 2 test cases",
+        "All component frontmatter includes required fields (name, description)",
+        "Validation passes: validate-template.mjs and validate-skills.mjs"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "92365d4ef5d937dad6da4376751ae1ed5fa2efdf53c0ee5990b5b4174e2a08aa",
+        "last_updated": "2026-05-07T10:18:00.000Z",
+        "generated_by": "zoto-update-evals"
+      }
+    }
+  ]
+}

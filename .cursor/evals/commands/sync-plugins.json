@@ -1,0 +1,35 @@
+{
+  "command_name": "sync-plugins",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/sync-plugins",
+      "assertions": [
+        "Plugin source files are copied from plugins/ to ~/.cursor/plugins/local/",
+        "All registered plugins in marketplace.json are synced",
+        "The sync completes without errors"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "e56e7f7f021ea8ba307df39f91b53e36d4dff99eb8f1fd3b291af12269474d5d",
+        "last_updated": "2026-05-07T10:18:00.000Z",
+        "generated_by": "zoto-update-evals"
+      }
+    },
+    {
+      "id": 2,
+      "prompt": "/sync-plugins when a plugin has invalid structure",
+      "assertions": [
+        "The sync reports which plugin failed validation",
+        "Valid plugins are still synced despite the invalid one",
+        "The error message is actionable"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "e56e7f7f021ea8ba307df39f91b53e36d4dff99eb8f1fd3b291af12269474d5d",
+        "last_updated": "2026-05-07T10:18:00.000Z",
+        "generated_by": "zoto-update-evals"
+      }
+    }
+  ]
+}

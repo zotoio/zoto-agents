@@ -1,0 +1,37 @@
+{
+  "agent_name": "zoto-plugin-manager",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a new plugin called zoto-analytics with 1 agent, 2 skills, 1 command.",
+      "assertions": [
+        "The plugin directory plugins/zoto-analytics/ is created with required structure",
+        "plugin.json manifest has name, displayName, version, description, author, license",
+        "Each skill has SKILL.md with correct frontmatter and evals/evals.json",
+        "The plugin is registered in .cursor-plugin/marketplace.json",
+        "Validation scripts pass"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "c9990169fd4a797931ca95be5e4a1424873ff8df370acc3320b8048e57f070b8",
+        "last_updated": "2026-05-07T10:18:00.000Z",
+        "generated_by": "zoto-update-evals"
+      }
+    },
+    {
+      "id": 2,
+      "prompt": "Validate an existing plugin that has a skill missing evals/evals.json.",
+      "assertions": [
+        "The validation identifies the missing evals.json",
+        "The error message names the specific skill lacking eval coverage",
+        "A fix suggestion is provided"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "c9990169fd4a797931ca95be5e4a1424873ff8df370acc3320b8048e57f070b8",
+        "last_updated": "2026-05-07T10:18:00.000Z",
+        "generated_by": "zoto-update-evals"
+      }
+    }
+  ]
+}

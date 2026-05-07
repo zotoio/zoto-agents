@@ -47,3 +47,9 @@ When building or executing engineering specs in this repository, **always use th
 | Documentation sync after source changes | `docs-sync-agent` |
 
 **Do not default to `generalPurpose`** — every subtask in a spec should map to the most appropriate CRUX agent above.
+
+### Live Status During Spec Execution
+
+- During **`/z-spec-execute`**, every spawned subagent owns its **`{specsDir}/<spec>/status/subtask-NN-....status.{md,yml}`** pair. The executor's aggregator rebuilds the spec-root **`status.{md,yml}`** on every change. Read these files before asking about progress.
+- Token budgets for spec-system subagents live in **`.zoto/spec-system/config.yml`** under **`subagents.*.tokenBudget`** and reload on the next spawn — no executor restart required. **Token budget changes apply to the next spawned subagent without restarting the executor.**
+- Plugin workspace-local config lives under **`.zoto/<plugin-suffix>/`** per [`.cursor/rules/zoto-plugin-conventions.mdc`](.cursor/rules/zoto-plugin-conventions.mdc). The spec-system uses **`.zoto/spec-system/`**.
