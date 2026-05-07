@@ -15,7 +15,7 @@ Before execution, read `.zoto-spec-system/config.json` from the repository root 
 |-----|---------|-----|
 | `specsDir` | `specs` | Root directory for spec folders; substitute `{specsDir}` in paths below |
 | `unitOfWork` | `spec` | Singular term in messages (e.g. spec scope, nudges) |
-| `spec.parallelLimit` | `4` | Maximum concurrent subagents during a phase |
+| `spec.parallelLimit` | `8` | Maximum concurrent subagents during a phase |
 | `spec.preferredModel` | `composer-2` | Preferred model for spawned agents when supported |
 
 ## When to Use
@@ -45,7 +45,7 @@ Present the manifest as the execution summary and wait for user approval. Use `u
 - **Spec**: [feature name]
 - **Subtasks**: [total count]
 - **Phases**: [phase count]
-- **Parallel limit**: [spec.parallelLimit from config, default 4]
+- **Parallel limit**: [spec.parallelLimit from config, default 8]
 - **Preferred model**: [spec.preferredModel from config, default composer-2]
 
 ### Subtask Manifest
@@ -65,7 +65,7 @@ Immediately after the user confirms execution, capture the start timestamp by ru
 
 ### Step 3: Execute Subtasks
 
-Read `spec.parallelLimit` from `.zoto-spec-system/config.json` (default **4**). Use it as the maximum number of execution subagents running at once for a phase. Read `spec.preferredModel` (default **composer-2**) and prefer it when spawning agents if the environment supports model selection.
+Read `spec.parallelLimit` from `.zoto-spec-system/config.json` (default **8**). Use it as the maximum number of execution subagents running at once for a phase. Read `spec.preferredModel` (default **composer-2**) and prefer it when spawning agents if the environment supports model selection.
 
 For each phase in order:
 
@@ -223,7 +223,7 @@ After user approval:
 
 ### Parallel Limits
 
-- Maximum concurrent subagents = `spec.parallelLimit` from `.zoto-spec-system/config.json` (default **4**)
+- Maximum concurrent subagents = `spec.parallelLimit` from `.zoto-spec-system/config.json` (default **8**)
 - If a phase has more subtasks than that limit, use slot-filling scheduling instead of fixed batches
 - Prefer `spec.preferredModel` (default **composer-2**) where model selection is available; record unsupported fallbacks in the report
 

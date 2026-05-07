@@ -127,6 +127,15 @@ describe("Config Schema", () => {
 // ---------------------------------------------------------------------------
 
 describe("Performance Defaults", () => {
+  it("documents default parallelism as 8", () => {
+    const schema = readText(join(PLUGIN_DIR, "docs", "config-schema.md"));
+    const example = loadJson(join(PLUGIN_DIR, "docs", "example-config.json"));
+    const spec = example.spec as Record<string, unknown>;
+
+    expect(schema).toContain("| `spec.parallelLimit` | number | `8` |");
+    expect(spec.parallelLimit).toBe(8);
+  });
+
   it("spec agents prefer composer-2", () => {
     const agentsDir = join(PLUGIN_DIR, "agents");
     for (const agent of [

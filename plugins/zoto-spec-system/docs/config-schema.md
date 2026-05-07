@@ -13,7 +13,7 @@ The Spec System is configured via `.zoto-spec-system/config.json` in your reposi
 | `hooks.sessionStartNudge.threshold` | number | `20` | Number of items in workDir before nudge triggers |
 | `hooks.sessionStartNudge.message` | string | `"You have ${count} unprocessed ${unitOfWork}s..."` | Nudge message template. Supports `${count}` and `${unitOfWork}` interpolation |
 | `spec.maxSubtasks` | number | `99` | Maximum subtasks allowed per spec |
-| `spec.parallelLimit` | number | `4` | Maximum concurrent subagents during execution |
+| `spec.parallelLimit` | number | `8` | Maximum concurrent subagents during execution |
 | `spec.preferredModel` | string | `"composer-2"` | Preferred model for spec agents and spawned subagents when supported |
 | `spec.adversarialVerification` | boolean | `true` | Whether adversarial verification is mandatory |
 | `extensions.memory.enabled` | boolean | `false` | Whether the memory extension is active |

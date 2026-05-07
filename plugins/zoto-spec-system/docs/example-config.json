@@ -11,7 +11,7 @@
   },
   "spec": {
     "maxSubtasks": 99,
-    "parallelLimit": 4,
+    "parallelLimit": 8,
     "preferredModel": "composer-2",
     "adversarialVerification": true
   },

@@ -13,7 +13,7 @@ Read `.zoto-spec-system/config.json` for repository settings:
 
 - **`specsDir`** — directory for spec files (default: `specs`). Used as `{specsDir}` throughout this skill.
 - **`unitOfWork`** — term for work items in user-facing messages (default: `spec`). Use this term when referring to units of work in prompts and summaries shown to the user.
-- **`spec.parallelLimit`** — maximum concurrent execution subagents (default: `4`). Use this to shape phases.
+- **`spec.parallelLimit`** — maximum concurrent execution subagents (default: `8`). Use this to shape phases.
 - **`spec.preferredModel`** — preferred model for spawned agents when supported (default: `composer-2`).
 
 If the config file is missing, use defaults for all fields.

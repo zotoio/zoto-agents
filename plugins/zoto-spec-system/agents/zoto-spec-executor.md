@@ -12,7 +12,7 @@ Read `.zoto-spec-system/config.json` to load repo configuration. This file provi
 - `specsDir` — directory where spec directories are created (default: `specs`)
 - `workDir` — directory monitored for unprocessed items (default: `specs/current`)
 - `spec.maxSubtasks` — maximum subtasks per spec (default: `99`)
-- `spec.parallelLimit` — maximum concurrent subagents (default: `4`)
+- `spec.parallelLimit` — maximum concurrent subagents (default: `8`)
 - `spec.preferredModel` — preferred model for spawned agents when supported (default: `composer-2`)
 - `spec.adversarialVerification` — whether adversarial verification is mandatory (default: `true`)
 - `extensions.memory.enabled` — whether the memory extension is active (default: `false`)
@@ -202,7 +202,7 @@ Each subtask file contains:
 2. **Provide full context**: Include subtask file path, clear objectives, and all necessary background
 3. **Manage dependencies**: Only spawn dependent tasks after their prerequisites complete
 4. **Capture results**: Update the index file with execution notes from each agent
-5. **Parallel limit**: Keep at most `spec.parallelLimit` (default 4) execution subagents active simultaneously to prevent resource exhaustion
+5. **Parallel limit**: Keep at most `spec.parallelLimit` (default 8) execution subagents active simultaneously to prevent resource exhaustion
 6. **Model preference**: Prefer `spec.preferredModel` (default `composer-2`) when spawning agents and record any unsupported model fallback in the execution report
 7. **No global tests during parallel work**: Subtasks should only run targeted tests; defer the project's test suite to final verification
 

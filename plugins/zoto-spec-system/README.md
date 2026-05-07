@@ -50,7 +50,7 @@ Full field reference, defaults, and path rules are in [`docs/config-schema.md`](
 | **`unitOfWork`** | Word used in prompts and hooks for a single work item (for example `spec`, `story`, `task`). Keeps messaging consistent with how your team talks about work. |
 | **`specsDir`** | Root directory for spec folders, relative to the repo root. All spec indexes, subtasks, assessments, and execution reports live under here (unless you change it). |
 | **`workDir`** | Directory the session-start hook watches for unprocessed items, relative to the repo root. Used for optional nudges when the backlog grows. |
-| **`spec.parallelLimit`** | Maximum execution subagents active at once during a phase. Defaults to `4`. |
+| **`spec.parallelLimit`** | Maximum execution subagents active at once during a phase. Defaults to `8`. |
 | **`spec.preferredModel`** | Preferred model for spec agents and spawned subagents when supported. Defaults to `composer-2`. |
 
 An empty `{}` is valid: every setting has a documented default in the schema.
