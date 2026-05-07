@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" font-family="system-ui, -apple-system, sans-serif">
+  <title>Eval Update Contract  _meta.generated</title>
+  <desc>Two columns illustrate the _meta.generated === true contract: generated cases on the left receive arrows from the updater, while user-authored cases on the right are marked "preserved verbatim"  no arrow touches them.</desc>
+  <defs>
+    <marker id="arrow-accent" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8" fill="#00ff7f"/>
+    </marker>
+    <marker id="arrow-blocked" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto">
+      <circle cx="7" cy="7" r="6" fill="none" stroke="#ff6464" stroke-width="2"/>
+      <line x1="3" y1="3" x2="11" y2="11" stroke="#ff6464" stroke-width="2"/>
+    </marker>
+    <style>
+      .panel { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1.5; }
+      .updater { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 2.5; }
+      .gen-case { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 1.5; }
+      .user-case { fill: #0f1a0f; stroke: #c8ffc8; stroke-width: 1.5; stroke-dasharray: 4,3; }
+      .header { fill: #c8ffc8; font-size: 22px; font-weight: 700; }
+      .panel-heading { fill: #00ff7f; font-size: 15px; font-weight: 700; }
+      .panel-heading-user { fill: #c8ffc8; font-size: 15px; font-weight: 700; }
+      .label-title { fill: #c8ffc8; font-size: 14px; font-weight: 700; font-family: ui-monospace, monospace; }
+      .label-sub { fill: #6a8a6a; font-size: 11px; }
+      .label-tag { fill: #00ff7f; font-size: 11px; font-weight: 700; }
+      .label-warn { fill: #ff8c8c; font-size: 11px; font-weight: 600; }
+      .footer { fill: #6a8a6a; font-size: 11px; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="700" fill="#000000" rx="10"/>
+  <text x="600" y="48" text-anchor="middle" class="header">Eval Update Contract  <tspan font-family="ui-monospace, monospace" fill="#00ff7f">_meta.generated === true</tspan></text>
+  <text x="600" y="74" text-anchor="middle" class="label-sub">The updater rewrites generated cases only. User-authored cases are preserved verbatim  both at runtime and at compile time.</text>
+
+  <!-- Updater node (centre top) -->
+  <rect x="450" y="120" width="300" height="100" rx="10" class="updater"/>
+  <text x="600" y="158" text-anchor="middle" class="label-title">/z-eval-update</text>
+  <text x="600" y="180" text-anchor="middle" class="label-sub">Diff covered targets vs cases on disk;</text>
+  <text x="600" y="196" text-anchor="middle" class="label-sub">re-run analyser; dispatch per framework / strategy.</text>
+
+  <!-- Left column: generated cases -->
+  <rect x="60" y="270" width="490" height="370" rx="10" class="panel"/>
+  <text x="305" y="304" text-anchor="middle" class="panel-heading">Generated cases (touch zone)</text>
+  <text x="305" y="324" text-anchor="middle" class="label-sub">marked with `_meta.generated: true`</text>
+
+  <rect x="100" y="350" width="410" height="60" rx="6" class="gen-case"/>
+  <text x="305" y="376" text-anchor="middle" class="label-title">case-001 (auto)</text>
+  <text x="305" y="394" text-anchor="middle" class="label-sub">_meta.generated: true . regenerated on drift</text>
+
+  <rect x="100" y="420" width="410" height="60" rx="6" class="gen-case"/>
+  <text x="305" y="446" text-anchor="middle" class="label-title">case-002 (auto)</text>
+  <text x="305" y="464" text-anchor="middle" class="label-sub">_meta.generated: true . regenerated on drift</text>
+
+  <rect x="100" y="490" width="410" height="60" rx="6" class="gen-case"/>
+  <text x="305" y="516" text-anchor="middle" class="label-title">case-003 (auto)</text>
+  <text x="305" y="534" text-anchor="middle" class="label-sub">_meta.generated: true . regenerated on drift</text>
+
+  <text x="305" y="600" text-anchor="middle" class="label-tag">writable: yes</text>
+  <text x="305" y="618" text-anchor="middle" class="label-sub">enforced by writer.ts schema check</text>
+
+  <!-- Right column: user-authored cases -->
+  <rect x="650" y="270" width="490" height="370" rx="10" class="panel"/>
+  <text x="895" y="304" text-anchor="middle" class="panel-heading-user">User-authored cases (no-touch)</text>
+  <text x="895" y="324" text-anchor="middle" class="label-sub">no `_meta.generated` marker, or marker absent</text>
+
+  <rect x="690" y="350" width="410" height="60" rx="6" class="user-case"/>
+  <text x="895" y="376" text-anchor="middle" class="label-title">edge-case-A (human)</text>
+  <text x="895" y="394" text-anchor="middle" class="label-sub">preserved verbatim . zero edits, zero overwrites</text>
+
+  <rect x="690" y="420" width="410" height="60" rx="6" class="user-case"/>
+  <text x="895" y="446" text-anchor="middle" class="label-title">edge-case-B (human)</text>
+  <text x="895" y="464" text-anchor="middle" class="label-sub">preserved verbatim . zero edits, zero overwrites</text>
+
+  <rect x="690" y="490" width="410" height="60" rx="6" class="user-case"/>
+  <text x="895" y="516" text-anchor="middle" class="label-title">edge-case-C (human)</text>
+  <text x="895" y="534" text-anchor="middle" class="label-sub">preserved verbatim . zero edits, zero overwrites</text>
+
+  <text x="895" y="600" text-anchor="middle" class="label-warn">writable: no  guard at runtime + compile time</text>
+  <text x="895" y="618" text-anchor="middle" class="label-sub">// _meta.generated: true (file-level), _meta.generated === true (case-level)</text>
+
+  <!-- Arrows from updater -->
+  <line x1="500" y1="225" x2="305" y2="345" stroke="#00ff7f" stroke-width="2.25" marker-end="url(#arrow-accent)"/>
+  <line x1="700" y1="225" x2="895" y2="345" stroke="#ff6464" stroke-width="2.25" stroke-dasharray="6,4" marker-end="url(#arrow-blocked)"/>
+
+  <!-- Footer -->
+  <text x="600" y="666" text-anchor="middle" class="footer">Single-owner provenance per case. Drift detection ` silent overwrite.</text>
+</svg>

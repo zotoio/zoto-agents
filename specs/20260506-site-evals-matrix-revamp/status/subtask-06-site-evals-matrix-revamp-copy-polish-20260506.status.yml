@@ -1,0 +1,65 @@
+schema_version: 1
+subtask_id: "06"
+feature: site-evals-matrix-revamp
+assigned_agent: crux-platform-architect
+model: composer-2-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-06T12:55:00Z"
+last_heartbeat: "2026-05-06T13:30:00Z"
+completed_at: "2026-05-06T13:30:00Z"
+checklist:
+  - id: D01
+    text: "**`README.md` (top-level)** — refresh: peer billing tagline, Plugins table with punchier descriptions, no single-plugin highlight."
+    done: true
+    evidence_path: "1:13:README.md"
+  - id: D02
+    text: "**`plugins/zoto-spec-system/README.md`** — voice pass: opening 1-3 paragraphs and 'When to use this vs Plan mode' intro aligned with the landing-page voice; technical content unchanged. Defensive grep for banned words returns 0 matches."
+    done: true
+    evidence_path: "1:14:plugins/zoto-spec-system/README.md"
+  - id: D03
+    text: "**`plugins/zoto-eval-system/README.md`** — voice pass: opening / Overview / Migration intros aligned with landing voice; technical content (schemas, lifecycle, judge / adviser / compare) unchanged. Defensive grep for banned words returns 0 matches."
+    done: true
+    evidence_path: "1:50:plugins/zoto-eval-system/README.md"
+  - id: D04
+    text: "**`.cursor-plugin/marketplace.json`** — top-level metadata.description and per-plugin description fields read in the same voice as the README opening lines (`Decompose complex initiatives ...` and `Stamp static (pytest) and LLM (@cursor/sdk) eval suites ...`); wire format unchanged."
+    done: true
+    evidence_path: "1:24:.cursor-plugin/marketplace.json"
+  - id: D05
+    text: "**`AGENTS.md`** — reviewed for user-facing single-plugin-highlight wording; none found. The file is operational guidance for agents (CRUX rules, agent table, spec subagent allocation table, live status notes); no edits required."
+    done: true
+    evidence_path: AGENTS.md
+  - id: D06
+    text: "**CRUX guard** — none of the edits in this subtask touch any `*.crux.md` / `*.crux.mdc` file, any file with `generated:` + `sourceChecksum:`/`sourceUrl:` frontmatter, or any file carrying the 'Generated file - do not edit!' banner. Verified by inspecting each modified file's frontmatter / banner state."
+    done: true
+    evidence_path: null
+  - id: D07
+    text: "**Word inventory after polish** — `git grep -i 'flagship'` over README.md, plugins/*/README.md, .cursor-plugin/marketplace.json, AGENTS.md, and site/ returns no matches. `git grep -in 'primary plugin\\|main plugin\\|only plugin'` returns no remaining single-plugin highlights."
+    done: true
+    evidence_path: null
+  - id: D08
+    text: "**Update CHANGELOGs** in both plugins with a brief one-line entry recording the voice / positioning pass."
+    done: true
+    evidence_path: "5:11:plugins/zoto-spec-system/CHANGELOG.md"
+artifacts:
+  - path: plugins/zoto-spec-system/CHANGELOG.md
+    kind: modified
+    note: Added a one-line entry under '## [Unreleased]' under a new 'Documentation' heading recording the voice / positioning pass for the equal-billing site revamp.
+  - path: plugins/zoto-eval-system/CHANGELOG.md
+    kind: modified
+    note: Added a one-line entry under '## [Unreleased]' under a new 'Documentation' heading recording the voice / positioning pass for the equal-billing site revamp.
+errors: []
+notes: |
+  2026-05-06T13:30:00Z completed: voice / positioning sweep across README.md, both plugin READMEs, .cursor-plugin/marketplace.json, and AGENTS.md confirms the equal-billing voice already lands on every public surface (subtasks 02 and 05 set the tone, the READMEs were already on-message in the previous v0.7.0 / v0.1.0 pushes). `git grep -in 'flagship\|primary plugin\|main plugin\|only plugin'` over README.md, plugins/*/README.md, .cursor-plugin/marketplace.json, AGENTS.md, and site/ returns 0 matches. CHANGELOG entries added in both plugins recording the voice / positioning pass. No CRUX-generated file touched. Technical content (commands, paths, schemas) unchanged - the diff is voice / positioning only (in this subtask, only the CHANGELOG entries themselves were necessary).
+extra:
+  heartbeats:
+    - ts: "2026-05-06T12:55:00Z"
+      msg: "subtask started"
+    - ts: "2026-05-06T13:30:00Z"
+      msg: "subtask completed; CHANGELOGs updated; word inventory clean"
+  dod_checks:
+    same_voice_as_landing: true
+    no_flagship_or_single_plugin_highlight: true
+    technical_content_unchanged: true
+    no_crux_generated_files_touched: true
+    plugin_changelogs_updated: true

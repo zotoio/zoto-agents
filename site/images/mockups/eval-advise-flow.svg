@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900" font-family="system-ui, -apple-system, sans-serif">
+  <title>Cursor IDE  /z-eval-advise</title>
+  <desc>Cursor IDE mockup showing /z-eval-advise running. The right pane is a five-dimension severity scoreboard  trigger-phrase coverage, schema validation, regression baselines, citation verification, checklist completeness  and a recommendation hand-off explaining the next command to run.</desc>
+  <defs>
+    <style>
+      .ide-bg { fill: #000000; }
+      .ide-titlebar { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-sidebar { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-chat { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-board { fill: #000000; stroke: #1a3a1a; stroke-width: 1; }
+      .file-row { fill: #0a0f0a; }
+      .file-row-active { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 1.25; }
+      .chat-msg-user { fill: #0f1a0f; stroke: #5cffaf; stroke-width: 1.25; }
+      .chat-msg-agent { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 1.25; }
+      .dim-card-clean { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 1.5; }
+      .dim-card-warn { fill: #0f1a0f; stroke: #ffd166; stroke-width: 1.5; }
+      .dim-card-block { fill: #0f1a0f; stroke: #ff8c8c; stroke-width: 1.5; }
+      .label-title { fill: #c8ffc8; font-size: 14px; font-weight: 700; }
+      .label-mono { fill: #c8ffc8; font-size: 12px; font-family: ui-monospace, monospace; }
+      .label-mono-accent { fill: #00ff7f; font-size: 12px; font-family: ui-monospace, monospace; font-weight: 700; }
+      .label-sub { fill: #6a8a6a; font-size: 11px; }
+      .label-sub-mono { fill: #6a8a6a; font-size: 11px; font-family: ui-monospace, monospace; }
+      .header { fill: #c8ffc8; font-size: 14px; font-weight: 700; }
+      .footer { fill: #6a8a6a; font-size: 11px; }
+      .severity-clean { fill: #00ff7f; font-size: 13px; font-weight: 700; }
+      .severity-warn { fill: #ffd166; font-size: 13px; font-weight: 700; }
+      .severity-block { fill: #ff8c8c; font-size: 13px; font-weight: 700; }
+      .dim-name { fill: #c8ffc8; font-size: 14px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="900" class="ide-bg" rx="8"/>
+
+  <!-- Title bar -->
+  <rect x="0" y="0" width="1400" height="36" class="ide-titlebar"/>
+  <circle cx="20" cy="18" r="6" fill="#ff6464"/>
+  <circle cx="40" cy="18" r="6" fill="#ffd166"/>
+  <circle cx="60" cy="18" r="6" fill="#00ff7f"/>
+  <text x="700" y="22" text-anchor="middle" class="label-sub">cursor  host-repo &#8212; /z-eval-advise</text>
+
+  <!-- Sidebar -->
+  <rect x="0" y="36" width="220" height="864" class="ide-sidebar"/>
+  <text x="20" y="68" class="header">Explorer</text>
+  <rect x="10" y="92" width="200" height="22" class="file-row-active"/>
+  <text x="24" y="108" class="label-mono-accent"> host-repo/</text>
+  <rect x="10" y="120" width="200" height="20" class="file-row"/>
+  <text x="42" y="134" class="label-sub-mono">plugins/</text>
+  <rect x="10" y="146" width="200" height="20" class="file-row"/>
+  <text x="42" y="160" class="label-sub-mono">evals/</text>
+  <rect x="10" y="172" width="200" height="20" class="file-row"/>
+  <text x="42" y="186" class="label-sub-mono">.zoto/eval-system/</text>
+
+  <text x="20" y="240" class="label-sub">read-only inputs:</text>
+  <text x="20" y="258" class="label-sub-mono">" evals.json (per skill)</text>
+  <text x="20" y="276" class="label-sub-mono">" SKILL.md / agent.md</text>
+  <text x="20" y="294" class="label-sub-mono">" command .md</text>
+  <text x="20" y="320" class="label-sub">never reads:</text>
+  <text x="20" y="338" class="label-sub-mono">" evals/_runs/&lt;ts&gt;/</text>
+  <text x="20" y="356" class="label-sub-mono">" run logs</text>
+
+  <!-- Chat pane (centre) -->
+  <rect x="220" y="36" width="380" height="864" class="ide-chat"/>
+  <text x="240" y="64" class="header">Cursor Chat</text>
+
+  <rect x="232" y="84" width="356" height="60" rx="6" class="chat-msg-user"/>
+  <text x="246" y="108" class="label-title">You</text>
+  <text x="246" y="130" class="label-sub-mono">/z-eval-advise</text>
+
+  <rect x="232" y="160" width="356" height="200" rx="6" class="chat-msg-agent"/>
+  <text x="246" y="184" class="label-title">Eval Adviser</text>
+  <text x="246" y="206" class="label-sub">Surveyed coverage across five dimensions:</text>
+  <text x="246" y="228" class="label-mono">" trigger-phrase coverage</text>
+  <text x="246" y="246" class="label-mono">" schema validation</text>
+  <text x="246" y="264" class="label-mono">" regression baselines</text>
+  <text x="246" y="282" class="label-mono">" citation verification</text>
+  <text x="246" y="300" class="label-mono">" checklist completeness</text>
+  <text x="246" y="328" class="label-sub-mono"> scoreboard rendered to the right</text>
+  <text x="246" y="350" class="label-sub-mono"> recommendation appended below</text>
+
+  <rect x="232" y="376" width="356" height="160" rx="6" class="chat-msg-agent"/>
+  <text x="246" y="400" class="label-title">Recommendation</text>
+  <text x="246" y="422" class="label-sub">Two skills missing schema validation cases:</text>
+  <text x="246" y="442" class="label-mono">" zoto-create-evals</text>
+  <text x="246" y="460" class="label-mono">" zoto-execute-evals</text>
+  <text x="246" y="488" class="label-sub">Hand-off (askQuestion in command):</text>
+  <text x="246" y="508" class="label-mono-accent">/z-eval-update zoto-create-evals \</text>
+  <text x="266" y="524" class="label-mono-accent">--regenerate schema-cases</text>
+
+  <!-- Scoreboard (right) -->
+  <rect x="600" y="36" width="800" height="864" class="ide-board"/>
+  <text x="620" y="64" class="header">Adviser Scoreboard</text>
+  <text x="620" y="84" class="label-sub">five-dimension coverage check (severity colour-coded)</text>
+
+  <!-- Dim 1: trigger-phrase coverage -->
+  <rect x="620" y="110" width="760" height="120" rx="8" class="dim-card-clean"/>
+  <text x="640" y="138" class="dim-name">trigger-phrase coverage</text>
+  <text x="640" y="160" class="label-sub">Skill descriptions vs SKILL.md trigger phrases / commands.</text>
+  <text x="640" y="186" class="label-mono">covered: 12 / 14 skills</text>
+  <text x="640" y="206" class="label-sub">2 skills under-covered: zoto-help-evals, zoto-judge-evals</text>
+  <text x="1340" y="160" text-anchor="end" class="severity-clean">CLEAN</text>
+
+  <!-- Dim 2: schema validation -->
+  <rect x="620" y="240" width="760" height="120" rx="8" class="dim-card-block"/>
+  <text x="640" y="268" class="dim-name">schema validation</text>
+  <text x="640" y="290" class="label-sub">evals.json cases referencing schema files / payload shape.</text>
+  <text x="640" y="316" class="label-mono">covered: 7 / 14 skills</text>
+  <text x="640" y="336" class="label-sub">missing: zoto-create-evals, zoto-execute-evals, ...</text>
+  <text x="1340" y="290" text-anchor="end" class="severity-block">BLOCK</text>
+
+  <!-- Dim 3: regression baselines -->
+  <rect x="620" y="370" width="760" height="120" rx="8" class="dim-card-warn"/>
+  <text x="640" y="398" class="dim-name">regression baselines</text>
+  <text x="640" y="420" class="label-sub">Stamped expected accuracy / token medians per case.</text>
+  <text x="640" y="446" class="label-mono">stamped: 11 / 14 skills</text>
+  <text x="640" y="466" class="label-sub">drift detected: zoto-update-evals ( accuracy 0.18)</text>
+  <text x="1340" y="420" text-anchor="end" class="severity-warn">WARN</text>
+
+  <!-- Dim 4: citation verification -->
+  <rect x="620" y="500" width="760" height="120" rx="8" class="dim-card-clean"/>
+  <text x="640" y="528" class="dim-name">citation verification</text>
+  <text x="640" y="550" class="label-sub">grader=llm-judge cases that check `start:end:path` cites.</text>
+  <text x="640" y="576" class="label-mono">covered: 6 / 6 doc skills</text>
+  <text x="640" y="596" class="label-sub">all citation graders inline schema-bound</text>
+  <text x="1340" y="550" text-anchor="end" class="severity-clean">CLEAN</text>
+
+  <!-- Dim 5: checklist completeness -->
+  <rect x="620" y="630" width="760" height="120" rx="8" class="dim-card-warn"/>
+  <text x="640" y="658" class="dim-name">checklist completeness</text>
+  <text x="640" y="680" class="label-sub">SKILL.md "Use when ..." + sub-action checklist coverage.</text>
+  <text x="640" y="706" class="label-mono">covered: 9 / 14 skills</text>
+  <text x="640" y="726" class="label-sub">5 skills with thin sub-action checklists</text>
+  <text x="1340" y="680" text-anchor="end" class="severity-warn">WARN</text>
+
+  <!-- Hand-off banner -->
+  <rect x="620" y="770" width="760" height="80" rx="8" fill="#0f1a0f" stroke="#5cffaf" stroke-width="2"/>
+  <text x="640" y="800" class="label-title">Next step (command-owned askQuestion)</text>
+  <text x="640" y="822" class="label-mono-accent">/z-eval-update zoto-create-evals --regenerate schema-cases</text>
+  <text x="640" y="842" class="label-sub-mono">command will confirm via askQuestion before stamping new cases.</text>
+
+  <text x="700" y="888" text-anchor="middle" class="footer">Adviser is read-only. The command resumes the subagent after the user confirms.</text>
+</svg>

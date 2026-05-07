@@ -4,11 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>404 — Page Not Found — Zoto Agents</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 420'><rect width='420' height='420' fill='%23e8e8e8'/><rect x='30' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='165' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='300' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='30' y='240' width='360' height='150' fill='%238ec0d6'/><rect x='150' y='300' width='120' height='90' fill='%23e8e8e8'/></svg>">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="images/logo.png">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="css/prism-matrix.css">
   <script defer src="js/main.js"></script>
+  <script defer src="js/matrix-rain.js"></script>
 </head>
-<body>
+<body class="matrix-rain-strong">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
 
   <nav class="top-nav">
@@ -17,6 +22,7 @@
       <ul class="top-nav-links">
         <li><a href="index.html">Home</a></li>
         <li><a href="spec-system/index.html">Spec System</a></li>
+        <li><a href="eval-system/index.html">Eval System</a></li>
         <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
       </ul>
     </div>
@@ -25,12 +31,14 @@
   <div class="page-layout no-sidebar">
     <main class="main-content" id="main-content">
       <div class="container" style="text-align: center; padding-top: 4rem;">
-        <h1 style="border-bottom: none; font-size: 4rem; margin-bottom: 0.5rem;">404</h1>
-        <p class="text-lg text-muted" style="margin-bottom: 2rem;">
-          The page you're looking for doesn't exist or has been moved.
+        <h1 style="border-bottom: none; font-size: 4rem; margin-bottom: 0.5rem; color: var(--matrix-text); text-shadow: 0 0 12px rgba(232, 192, 122, 0.3);">404</h1>
+        <p class="text-lg" style="margin-bottom: 2rem; color: var(--matrix-text);">
+          That page slipped through the cracks. Head back to the plugin grid and
+          pick a starting point — Spec System for planning &amp; verification,
+          Eval System for stamping &amp; comparing eval suites.
         </p>
-        <a href="index.html" style="display: inline-block; padding: 0.75rem 1.5rem; background-color: var(--color-accent); color: var(--color-bg-primary); border-radius: var(--radius-md); font-weight: 600; transition: opacity 150ms ease;">
-          Go Home
+        <a href="index.html#plugins" style="display: inline-block; padding: 0.75rem 1.5rem; background-color: var(--matrix-accent); color: var(--matrix-bg); border-radius: var(--radius-md); font-weight: 700; transition: opacity 150ms ease;">
+          See the Plugins
         </a>
       </div>
     </main>

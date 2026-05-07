@@ -73,28 +73,42 @@
    ========================================================================== */
 
 :root {
-  /* Backgrounds */
-  --color-bg-primary: #0d1117;
-  --color-bg-secondary: #161b22;
-  --color-bg-tertiary: #1c2129;
+  /* Charcoal palette tokens — site-wide source of truth.
+     Body copy uses --matrix-text on --matrix-bg (#d4d4d4 on #0d0d0d) which
+     measures > 10:1 contrast (well above WCAG AAA). Landing-page-specific
+     overrides live inline in site/index.html under body.landing-matrix
+     and resolve directly from --matrix-* / --color-* tokens. */
+  --matrix-bg: #0d0d0d;
+  --matrix-surface: #141414;
+  --matrix-card: #1c1c1c;
+  --matrix-border: #2d2d2d;
+  --matrix-text: #d4d4d4;
+  --matrix-text-dim: #737373;
+  --matrix-accent: #e8c07a;
+  --matrix-accent-hover: #f0d898;
+  --matrix-grid: #2d2d2d;
 
-  /* Text */
-  --color-text-primary: #e6edf3;
-  --color-text-secondary: #8b949e;
-  --color-text-heading: #f0f6fc;
+  /* Semantic --color-* tokens are reassigned to the Matrix palette so
+     every existing consumer (sidebar, top-nav, cards, code blocks, …)
+     picks up the new look without a per-rule rename. */
+  --color-bg-primary: var(--matrix-bg);
+  --color-bg-secondary: var(--matrix-surface);
+  --color-bg-tertiary: var(--matrix-card);
 
-  /* Accents */
-  --color-accent: #58a6ff;
-  --color-accent-hover: #79b8ff;
+  --color-text-primary: var(--matrix-text);
+  --color-text-secondary: var(--matrix-text-dim);
+  --color-text-heading: var(--matrix-text);
+
+  --color-accent: var(--matrix-accent);
+  --color-accent-hover: var(--matrix-accent-hover);
   --color-success: #3fb950;
   --color-warning: #d29922;
   --color-danger: #f85149;
 
-  /* Borders & Surfaces */
-  --color-border: #30363d;
-  --color-border-light: #21262d;
-  --color-card-bg: #161b22;
-  --color-code-bg: #1c2129;
+  --color-border: var(--matrix-border);
+  --color-border-light: var(--matrix-grid);
+  --color-card-bg: var(--matrix-card);
+  --color-code-bg: var(--matrix-surface);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -164,6 +178,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  position: relative;
+  min-height: 100vh;
 }
 
 /* ==========================================================================
@@ -875,7 +891,7 @@ figcaption {
   left: var(--spacing-md);
   z-index: 200;
   background-color: var(--color-accent);
-  color: #fff;
+  color: #000;
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-md);
   font-weight: 600;
@@ -886,7 +902,7 @@ figcaption {
 
 .skip-to-content:focus {
   top: var(--spacing-sm);
-  color: #fff;
+  color: #000;
 }
 
 /* ==========================================================================
@@ -997,5 +1013,111 @@ button:focus-visible {
   .page-nav-next {
     text-align: left;
     margin-left: 0;
+  }
+}
+
+/* ==========================================================================
+   24a. Top-Nav Dropdowns (peer-aware nav)
+   ==========================================================================
+   Dropdown markup pattern (used on landing + every plugin docs subtree):
+     <li class="nav-dropdown">
+       <a href="…/index.html" class="nav-dropdown-toggle">Plugin Name</a>
+       <ul class="nav-dropdown-menu"> … </ul>
+     </li>
+*/
+
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown-toggle {
+  cursor: pointer;
+}
+
+.nav-dropdown-toggle::after {
+  content: " \25BE";
+  font-size: 0.7em;
+}
+
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 180px;
+  background-color: var(--matrix-surface);
+  border: 1px solid var(--matrix-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  padding: var(--spacing-xs) 0;
+  list-style: none;
+  margin: 0;
+  z-index: 200;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown:focus-within .nav-dropdown-menu {
+  display: block;
+}
+
+.nav-dropdown-menu a {
+  display: block;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--matrix-text);
+  white-space: nowrap;
+}
+
+.nav-dropdown-menu a:hover {
+  color: var(--matrix-accent);
+  background-color: var(--matrix-card);
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .nav-dropdown-menu {
+    left: auto;
+    right: 0;
+  }
+}
+
+/* ==========================================================================
+   25. Horizontal Stream Canvas (background)
+   ==========================================================================
+   The <canvas class="matrix-rain-canvas"> element is rendered as the first
+   child of <body> on every page; the actual draw loop lives in
+   site/js/matrix-rain.js, which bails out when prefers-reduced-motion: reduce
+   matches (so the canvas is intentionally left blank, never animated).
+   The effect renders horizontal bidirectional character streams with a
+   parallax offset driven by window scroll position.
+*/
+
+.matrix-rain-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  display: block;
+  background-color: var(--matrix-bg);
+}
+
+/* Strong (landing + 404): full intensity. */
+body.matrix-rain-strong .matrix-rain-canvas {
+  opacity: 1;
+}
+
+/* Soft (docs subtrees): low-alpha backdrop so body copy stays WCAG AA. */
+body.matrix-rain-soft .matrix-rain-canvas {
+  opacity: 0.08;
+}
+
+/* Hard guarantee: when prefers-reduced-motion is on, the canvas is hidden
+   regardless of which body modifier was applied. The JS module also bails
+   out at runtime, so the element stays inert. */
+@media (prefers-reduced-motion: reduce) {
+  .matrix-rain-canvas {
+    display: none !important;
   }
 }

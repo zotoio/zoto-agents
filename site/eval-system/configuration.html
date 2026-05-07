@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuration — Eval System — Zoto Agents</title>
+  <meta name="description" content="zoto-eval-system configuration reference — every key in .zoto/eval-system/config.yml, with defaults, validation rules, and migration notes.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Eval System — Configuration — Zoto Agents">
+  <meta property="og:description" content="Schema-grounded reference for .zoto/eval-system/config.yml and the env vars that drive the plugin.">
+  <meta property="og:url" content="https://zotoio.github.io/zoto-agents/eval-system/configuration.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Eval System — Configuration — Zoto Agents">
+  <meta name="twitter:description" content="Schema-grounded reference for .zoto/eval-system/config.yml.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
+</head>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <nav class="top-nav" aria-label="Main navigation">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="../spec-system/index.html" class="nav-dropdown-toggle">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../spec-system/index.html">Overview</a></li>
+            <li><a href="../spec-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../spec-system/design.html">Design</a></li>
+            <li><a href="../spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="index.html" class="nav-dropdown-toggle active">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="quickstart.html">Quickstart</a></li>
+            <li><a href="design.html">Design</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" aria-label="Eval System pages">
+        <h3 class="sidebar-heading">Eval System</h3>
+        <ul class="sidebar-list">
+          <li><a href="index.html" class="sidebar-link">Overview</a></li>
+          <li><a href="quickstart.html" class="sidebar-link">Quickstart</a></li>
+          <li><a href="design.html" class="sidebar-link">Design</a></li>
+          <li><a href="configuration.html" class="sidebar-link active">Configuration</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="index.html">Eval System</a></li>
+          <li>Configuration</li>
+        </ul>
+
+        <h1>Configuration</h1>
+        <p>
+          Configuration lives at <code>.zoto/eval-system/config.yml</code> — the only supported
+          path. The file is validated against
+          <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-eval-system/templates/schema/config.schema.json" target="_blank" rel="noopener noreferrer"><code>templates/schema/config.schema.json</code></a>.
+        </p>
+
+        <div class="callout callout-warning">
+          <p class="callout-title">Migration</p>
+          <p>
+            Earlier scaffolding wrote to <code>.zoto-eval-system/config.json</code>. <strong>That
+            path is no longer supported</strong>; the plugin reads <code>.zoto/eval-system/config.yml</code>
+            exclusively. Run <code>/z-eval-init</code> in any repository that still has the legacy
+            file to drop the new template into place; the old file can then be deleted.
+          </p>
+        </div>
+
+        <h2 id="init-template">The init template</h2>
+        <p>
+          <code>/z-eval-init</code> drops a fully-commented YAML skeleton into
+          <code>.zoto/eval-system/config.yml</code>. Every key is commented out alongside the
+          internal default; uncomment the keys you want to override.
+        </p>
+        <pre><code class="language-yaml"># ─────────────────────────────  discovery  ───────────────────────────────────
+# evalsDir: evals
+# skillsRoots:
+#   - .cursor/skills
+#   - skills
+#   - plugins/*/skills
+# discoveryTargets:
+#   - skill
+#   - command
+#   - agent
+#   - hook
+# ignore: []
+
+# ──────────────────────────────  backends  ───────────────────────────────────
+# static:
+#   framework: pytest          # pytest | vitest | jest
+# llm:
+#   runtime: tsx               # tsx | node
+#   strategy: declarative      # declarative | code
+#   codeFramework: vitest      # vitest | jest  (only when strategy=code)
+#   model:
+#     id: composer-2           # composer-2 | opus-4.6 | sonnet
+
+# ────────────────────────────────  judge  ────────────────────────────────────
+# judgeModel: opus-4.6
+
+# ────────────────────────────  manual checklists  ────────────────────────────
+# manualChecklists:
+#   enabled: false
+
+# ────────────────────────────  extra automation  ─────────────────────────────
+# additionalAutomation: []     # any of: vitest, jest
+
+# ───────────────────────────────  analyser  ──────────────────────────────────
+# analyser:
+#   concurrency: 4
+#   maxCallsPerInvocation: 50
+
+# ───────────────────────────  run retention (gc)  ────────────────────────────
+# runs:
+#   retention: 30
+
+# ────────────────────────────────  update  ───────────────────────────────────
+# update:
+#   criticalChangeRules:
+#     addedTargetWithoutCoverage: true
+#     removedTargetWithActiveCases: true
+#     skillFrontmatterChange: true
+#     publicSurfaceChange: true
+#     promptTemplateChange: true
+#   preserveUserAuthoredCases: true       # hard-coded contract — do not change
+#   writeMetaMarker: true                 # hard-coded contract — do not change
+</code></pre>
+
+        <h2 id="field-reference">Field reference</h2>
+
+        <h3 id="discovery">Discovery</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>evalsDir</code></td><td><code>evals</code></td><td>Where static tests and the <code>_llm/</code> backend are stamped.</td></tr>
+            <tr><td><code>skillsRoots[]</code></td><td><code>[".cursor/skills", "skills", "plugins/*/skills"]</code></td><td>Glob roots the discoverer walks to find <code>SKILL.md</code> files.</td></tr>
+            <tr><td><code>discoveryTargets[]</code></td><td><code>[skill, command, agent, hook]</code></td><td>Which kinds of artefacts to scaffold evals for. Also valid: <code>cli</code>, <code>lib</code>.</td></tr>
+            <tr><td><code>ignore[]</code></td><td><code>[]</code></td><td>Glob patterns to skip during discovery.</td></tr>
+          </tbody>
+        </table>
+
+        <h3 id="static-backend">Static backend</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>static.framework</code></td><td><code>pytest</code></td><td>Static test harness the stamper targets: <code>pytest</code> | <code>vitest</code> | <code>jest</code>.</td></tr>
+          </tbody>
+        </table>
+
+        <h3 id="llm-backend">LLM backend</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>llm.runtime</code></td><td><code>tsx</code></td><td><code>tsx</code> or <code>node</code> — runner runtime for the LLM backend.</td></tr>
+            <tr><td><code>llm.strategy</code></td><td><code>declarative</code></td><td><code>declarative</code> (central <code>evals.json</code> + <code>runner.ts</code>) or <code>code</code> (per-primitive <code>*.test.ts</code> files).</td></tr>
+            <tr><td><code>llm.codeFramework</code></td><td><code>vitest</code></td><td>Only meaningful when <code>strategy=code</code>. <code>vitest</code> or <code>jest</code>. <strong>Must equal</strong> <code>static.framework</code> when both are TS-based.</td></tr>
+            <tr><td><code>llm.model.id</code></td><td><code>composer-2</code></td><td>Default LLM model — <code>composer-2</code> | <code>opus-4.6</code> | <code>sonnet</code>. CLI <code>--model</code> and <code>ZOTO_EVAL_MODEL</code> env var win in that order.</td></tr>
+          </tbody>
+        </table>
+
+        <h3 id="judge-config">Judge</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>judgeModel</code></td><td><code>opus-4.6</code></td><td>Model used by <code>/z-eval-judge</code> for adversarial scoring.</td></tr>
+          </tbody>
+        </table>
+
+        <h3 id="extras">Extras</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>manualChecklists.enabled</code></td><td><code>false</code></td><td>Stamp <code>USER_EVAL_CHECKLISTS.md</code> on create.</td></tr>
+            <tr><td><code>additionalAutomation[]</code></td><td><code>[]</code></td><td>Optional extras such as <code>vitest</code> / <code>jest</code> stamped alongside the baseline static backend. <strong>Not</strong> legacy <code>bats</code> (removed in eval-system v2).</td></tr>
+            <tr><td><code>analyser.concurrency</code></td><td><code>4</code></td><td>Max parallel analyser calls. Range: 1–32.</td></tr>
+            <tr><td><code>analyser.maxCallsPerInvocation</code></td><td><code>50</code></td><td>Hard cost cap per command run. Cache hits do not count.</td></tr>
+            <tr><td><code>runs.retention</code></td><td><code>30</code></td><td>Maximum number of run folders kept under <code>{evalsDir}/_runs/</code>.</td></tr>
+          </tbody>
+        </table>
+
+        <h3 id="update-rules">Update rules</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>update.criticalChangeRules.addedTargetWithoutCoverage</code></td><td><code>true</code></td><td>New uncovered surface area is critical.</td></tr>
+            <tr><td><code>update.criticalChangeRules.removedTargetWithActiveCases</code></td><td><code>true</code></td><td>Dangling generated cases must not pass vacuously.</td></tr>
+            <tr><td><code>update.criticalChangeRules.skillFrontmatterChange</code></td><td><code>true</code></td><td>Triggering / retrieval depend on skill frontmatter.</td></tr>
+            <tr><td><code>update.criticalChangeRules.publicSurfaceChange</code></td><td><code>true</code></td><td>The thing being tested behaves differently.</td></tr>
+            <tr><td><code>update.criticalChangeRules.promptTemplateChange</code></td><td><code>true</code></td><td>Generated prompts cite the template.</td></tr>
+            <tr><td><code>update.preserveUserAuthoredCases</code></td><td><code>true</code> (hard-coded)</td><td>Setting this to <code>false</code> is a validation error.</td></tr>
+            <tr><td><code>update.writeMetaMarker</code></td><td><code>true</code> (hard-coded)</td><td>Setting this to <code>false</code> is a validation error.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="env-vars">Environment variables</h2>
+        <p>
+          <code>/z-eval-create</code> stamps a <code>.env.example</code> placeholder at the repo
+          root containing <code>CURSOR_API_KEY=</code> and a commented <code>ZOTO_EVAL_MODEL=</code>.
+          It is <strong>never overwritten</strong> if one already exists. The runner imports
+          <code>dotenv/config</code> at startup, so values in <code>.env</code> flow into
+          <code>process.env</code> automatically.
+        </p>
+        <table>
+          <thead><tr><th>Variable</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>CURSOR_API_KEY</code></td><td>Required for the LLM backend. Without it, <code>--full</code> exits cleanly.</td></tr>
+            <tr><td><code>ZOTO_EVAL_MODEL</code></td><td>Overrides <code>llm.model.id</code>. CLI <code>--model</code> wins over both.</td></tr>
+          </tbody>
+        </table>
+        <pre><code class="language-bash">cp .env.example .env       # then edit .env locally; .env is gitignored
+pnpm install               # picks up the dotenv devDep
+pnpm run eval:full         # CURSOR_API_KEY is now sourced from .env</code></pre>
+        <p><strong>Never commit <code>.env</code>.</strong> The default repo <code>.gitignore</code> already excludes <code>.env*</code> while allowing <code>.env.example</code>.</p>
+
+        <h2 id="manifest">Manifest layout</h2>
+        <p>The manifest pair under <code>.zoto/eval-system/</code> records the discovery snapshot and an append-only history.</p>
+        <ul>
+          <li><code>.zoto/eval-system/manifest.yml</code> — current state. Validated against <code>templates/schema/manifest.schema.json</code>.</li>
+          <li><code>.zoto/eval-system/manifest.history.yml</code> — append-only list of full snapshots, keyed by <code>git_ref</code> and <code>updated_at</code>.</li>
+        </ul>
+
+        <nav class="page-nav" aria-label="Page navigation">
+          <a class="page-nav-link" href="design.html">
+            <span class="page-nav-label">Previous</span>
+            <span class="page-nav-title">← Design</span>
+          </a>
+          <a class="page-nav-link page-nav-next" href="index.html">
+            <span class="page-nav-label">Next</span>
+            <span class="page-nav-title">Overview →</span>
+          </a>
+        </nav>
+
+      </div>
+      <footer class="site-footer">
+        <p>Eval System v0.2.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
