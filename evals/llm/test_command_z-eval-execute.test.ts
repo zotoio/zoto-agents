@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for command `z-eval-execute`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,108 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "abort-when-eval-system-config-yml-missing",
+    "prompt": "/z-eval-execute",
+    "assertions": [
+      "Assistant output contains the exact sentence: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+      "No zoto-eval-executor subagent Task is spawned for this invocation when `.zoto/eval-system/config.yml` is absent at the repository root."
+    ],
+    "assertion_patterns": [
+      "/z-eval-init",
+      "\\.zoto/eval-system/config\\.yml"
+    ],
+    "expected_output": "The assistant refuses to run evals, prints the initialise instruction naming `/z-eval-init`, and does not launch an executor subagent or shell eval scripts."
+  },
+  {
+    "id": "static-only-run-honours-config-and-writes-run-artefacts",
+    "prompt": "/z-eval-execute",
+    "assertions": [
+      "After `/z-eval-execute`, the newest directory under `evals/_runs/` contains `static.yml` and `report.yml` as siblings describing the static backend and merged summary.",
+      "Shell invocation follows `pnpm run eval` (static-only path) rather than the combined LLM driver when no `--full` flag is supplied.",
+      "Printed aggregates reference static totals consistent with `static.yml` rather than claiming LLM rows when `--full` was not requested."
+    ],
+    "assertion_patterns": [
+      "/z-eval-execute",
+      "pnpm run eval",
+      "static\\.yml"
+    ],
+    "expected_output": "The executor runs the host static eval script, respects `static.framework` from `.zoto/eval-system/config.yml`, streams script output, then surfaces totals tied to static results."
+  },
+  {
+    "id": "full-run-forwards-model-into-executor-task",
+    "prompt": "/z-eval-execute --full --model opus-4.6",
+    "assertions": [
+      "Spawned Task prompt to zoto-eval-executor includes the literal model token opus-4.6 when `--model opus-4.6` was supplied on `/z-eval-execute`.",
+      "Latest `evals/_runs/<timestamp>/` holds `static.yml`, `llm.yml`, and `report.yml` together after a successful `--full` execution.",
+      "After streaming completes, `pnpm run eval:update --check` ran and `llm.yml` gained a warn-only `drift:` overlay summarising manifest freshness.",
+      "Closing assistant summary prints aggregate totals plus an explicit drift line sourced from that post-run check."
+    ],
+    "assertion_patterns": [
+      "--model opus-4\\.6",
+      "evals/_runs/<timestamp>/",
+      "pnpm run eval:update --check"
+    ],
+    "expected_output": "With credentials available, the assistant launches zoto-eval-executor using the execute skill, passes the model id through to the Task prompt, runs LLM plus static backends, then prints merged totals including drift notice."
+  },
+  {
+    "id": "missing-cursor-api-key-triggers-askquestion-before-task",
+    "prompt": "/z-eval-execute --full",
+    "follow_ups": [
+      "Stay on static-only; skip LLM for now."
+    ],
+    "assertions": [
+      "When neither process env nor repo-root `.env` exposes `CURSOR_API_KEY`, `askQuestion` fires before the executor Task with abort versus static-only (`pnpm run eval`) choices.",
+      "Assistant mentions `.env.example` while explaining how operators should supply the key next time.",
+      "The subsequent zoto-eval-executor Task prompt carries an explicit `credential_resolution` field reflecting the operator choice from `askQuestion`.",
+      "After the operator selects static-only fallback, the executed shell path matches static-only `pnpm run eval` rather than attempting LLM suites without a resolved key."
+    ],
+    "assertion_patterns": [
+      "\\.env",
+      "\\.env\\.example",
+      "credential_resolution",
+      "pnpm run eval"
+    ],
+    "expected_output": "Before spawning zoto-eval-executor, the assistant asks whether to abort or fall back to static-only, cites `.env.example` as the recommended key setup, then continues only after encoding that credential decision for the Task prompt."
+  },
+  {
+    "id": "needs-user-input-on-credentials-resumes-once-answered",
+    "prompt": "/z-eval-execute --full",
+    "follow_ups": [
+      "Retry after my answer: abort the LLM portion if credentials stay unresolved."
+    ],
+    "assertions": [
+      "When zoto-eval-executor surfaces `needs_user_input` for credential intent, the assistant issues `askQuestion` instead of silently failing the Task.",
+      "After resuming with the operator answer, the executor finishes without demanding duplicate unresolved credential prompts unless state truly changes."
+    ],
+    "assertion_patterns": [
+      "needs_user_input"
+    ],
+    "expected_output": "If the executor returns `needs_user_input` about credential intent, the assistant prompts once, resumes with the clarified decision, and completes without looping indefinitely."
+  },
+  {
+    "id": "configuration-knobs-respected-without-touching-configure-command",
+    "prompt": "/z-eval-execute",
+    "assertions": [
+      "Executor sequencing references `static.framework`, `llm.strategy`, and conditional `llm.codeFramework` exactly as written in `.zoto/eval-system/config.yml` without issuing `/z-eval-configure` mid-run.",
+      "Documentation reminders remain verbal only: framework or strategy migrations stay delegated to `/z-eval-configure` instead of being rewritten implicitly during execute."
+    ],
+    "assertion_patterns": [
+      "static\\.framework",
+      "/z-eval-configure"
+    ],
+    "expected_output": "During orchestration the assistant reads `.zoto/eval-system/config.yml` so static and LLM backends follow the declared frameworks and strategies rather than inventing new runner layouts inline."
+  }
+];
+const TARGET_ID = "command:z-eval-execute";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("command:z-eval-execute", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +314,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

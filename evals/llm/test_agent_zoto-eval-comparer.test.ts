@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for agent `zoto-eval-comparer`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,54 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "two-run-comparison-emits-canvas-payload-and-full-flat-rows",
+    "prompt": "Use the eval-system comparer to compare two finished harness runs: pass run directory names 20260503051900 and 20260503052015, flatten every case into rows, pull the compare canvas template without edits, then give me the structured payload so the host can open /canvas.",
+    "assertions": [
+      "Every dataset row includes run_id, model, case_id, status, tokens, duration_ms, verbosity, accuracy, confidence, and log_path as defined for compare mode.",
+      "The hand-off payload lists tool /canvas and includes instructions whose text matches plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl byte-for-byte.",
+      "The agent explicitly directs the host agent to forward the payload to /canvas and does not render charts or legends in markdown or ASCII graphics.",
+      "No askQuestion calls appear anywhere in the agent transcript.",
+      "log_path values are present so drill-down can resolve logs relative to the configured evals directory."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "The agent returns a structured hand-off that names /canvas, carries the unmodified compare canvas template text as instructions, includes a flat array of per-case rows from both runs, tells the host agent to route that object to /canvas, and keeps prose free of charts or plots."
+  },
+  {
+    "id": "ambiguous-run-label-raises-needs-user-input-then-completes-after-disambiguation",
+    "prompt": "Run an eval comparison between nightly and stable using the comparer agent; I only wrote nightly for the first run handle.",
+    "follow_ups": [
+      "For the first handle, use the candidate whose run folder sorts lexically before the other nightly match; keep stable as-is and produce the canvas hand-off."
+    ],
+    "assertions": [
+      "When the first run token matches more than one results.yml and the initial task lacks a choice, the agent returns needs_user_input enumerating those candidates and never calls askQuestion.",
+      "After the follow-up narrows the token, the agent emits the flattened dataset and /canvas instructions without omitting rows for aggregation.",
+      "Across both turns, no askQuestion calls appear in the transcript."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "First turn returns needs_user_input naming competing results.yml targets without charts; after the follow-up, the agent emits the same /canvas JSON shape as a clean comparison."
+  },
+  {
+    "id": "three-run-comparison-retains-every-row-without-downsampling",
+    "prompt": "Compare three eval runs end-to-end (handles run-a, run-b, run-c) with the comparer so product can inspect each case across all runs; do not roll up metrics—emit every row.",
+    "assertions": [
+      "The dataset concatenates rows from three resolved runs without averaging, binning, or dropping duplicate case identifiers.",
+      "The structured payload still sets tool to /canvas and carries instructions sourced verbatim from templates/canvas/compare-prompt.md.tmpl alongside the full dataset.",
+      "No askQuestion calls appear in the transcript."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "The agent outputs one combined flat dataset whose row count reflects all cases from all three runs together with the verbatim canvas template wired into the /canvas payload."
+  }
+];
+const TARGET_ID = "agent:zoto-eval-comparer";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("agent:zoto-eval-comparer", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +260,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

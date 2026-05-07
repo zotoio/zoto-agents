@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for command `z-eval-create`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,83 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "uninitialised-workspace-precondition-blocks-generator-spawn",
+    "prompt": "/z-eval-create",
+    "assertions": [
+      "Before any `askQuestion`, discovery, or `zoto-eval-generator` Task, the assistant verified `.zoto/eval-system/config.yml` at the repository root.",
+      "When that file is missing, the assistant returned the exact message: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+      "No `zoto-eval-generator` subagent was spawned and `pnpm run eval:discover` was not invoked while the precondition failed."
+    ],
+    "assertion_patterns": [
+      "askQuestion",
+      "/z-eval-init",
+      "zoto-eval-generator"
+    ],
+    "expected_output": "The assistant stops immediately with the precise initialisation error, cites `/z-eval-init`, and performs no discovery, checklist, or subagent work."
+  },
+  {
+    "id": "configured-workspace-four-checklists-then-full-generator-pipeline",
+    "prompt": "/z-eval-create",
+    "assertions": [
+      "After confirming `.zoto/eval-system/config.yml`, the command ran `askQuestion` to capture approve-or-prune lists for skills, plugin and workspace commands, plugin and workspace agents, and hook bundles (`hook:cursor` when applicable) before spawning any Task.",
+      "Because the config file was already present, the assistant did not prompt a configure-versus-abort choice for a missing eval-system config.",
+      "The spawned Task named `zoto-eval-generator` referenced the `zoto-create-evals` skill and included every operator-approved primitive id in its instructions.",
+      "Inside the generator flow the assistant invoked `pnpm run eval:discover`, stamped static pytest and LLM `@cursor/sdk` scaffolding, ensured each approved skill gained `evals/evals.json`, and ran `pnpm run eval:stamp -- <target-id>` for every approved command, agent, and hook target.",
+      "The assistant reported that `.env.example` already existed and left its contents untouched while still stamping the template when absent in other runs.",
+      "The assistant merged `package.json` scripts and devDependencies (including `dotenv`) and reminded the operator to install packages before executing the suite.",
+      "Fresh `manifest.yml` content plus an append-only row in `manifest.history.yml` recorded every newly stamped target.",
+      "Closing gates ran successfully: `pnpm run eval:list`, `pnpm run eval -- --collect-only`, and `pnpm run eval:update --check` each exited with status 0.",
+      "Optional `USER_EVAL_CHECKLISTS.md` creation, when offered, did not block manifest writes or the validation trio if skipped."
+    ],
+    "assertion_patterns": [
+      "\\.zoto/eval-system/config\\.yml",
+      "zoto-eval-generator",
+      "pnpm run eval:discover",
+      "\\.env\\.example",
+      "package\\.json",
+      "manifest\\.yml",
+      "pnpm run eval:list",
+      "USER_EVAL_CHECKLISTS\\.md"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": ".env.example",
+          "content": "# overlay: proves non-destructive stamping\nPRECOMMIT_SENTINEL=do-not-clobber\n"
+        }
+      ]
+    },
+    "expected_output": "Checklists complete, the generator runs discovery, stamps pytest and LLM suites, updates manifests and package scripts, preserves `.env.example`, and all three validation commands exit zero."
+  },
+  {
+    "id": "generator-needs-clarification-resume-loop-after-askquestion",
+    "prompt": "/z-eval-create",
+    "follow_ups": [
+      "For the paused generator report, answer the outstanding question by approving only `skill:zoto-help-evals` and `command:z-eval-execute` from the lists already shown.",
+      "Resume the `zoto-eval-generator` Task with that approval and ask it to continue stamping the remaining approved hook ids without re-prompting me."
+    ],
+    "assertions": [
+      "After the generator returned `needs_user_input`, the command issued a concrete `askQuestion` instead of silently stopping.",
+      "The assistant resumed the existing `zoto-eval-generator` Task with the supplied answers rather than spawning a duplicate generator run.",
+      "Post-resume stdout or messaging reflected continued stamping progress and ended with the same validation gate trio once work finished."
+    ],
+    "assertion_patterns": [
+      "needs_user_input",
+      "zoto-eval-generator"
+    ],
+    "expected_output": "The assistant surfaces `askQuestion` for the incomplete generator report, records the answers, resumes the same Task, and completes stamping without abandoning prior progress."
+  }
+];
+const TARGET_ID = "command:z-eval-create";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("command:z-eval-create", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +289,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

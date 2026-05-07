@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for agent `zoto-eval-analyser-subagent`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,136 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "json-object-emitted-for-analyse-pipeline",
+    "prompt": "Kick off the primitive-analysis pass for `pnpm run eval:analyse` using this subagent with the current envelope; I need the raw analyser response the SDK will parse.",
+    "assertions": [
+      "The subagent completion parses as a single JSON object whose first non-whitespace character is `{` and whose last non-whitespace character is `}`.",
+      "The parsed root object includes schema_version, analyser_version, model_id, target_id, kind, source_path, source_hash, summary, and cases keys only at the top level."
+    ],
+    "assertion_patterns": [
+      "\\{"
+    ],
+    "expected_output": "The completion is one JSON object that survives extraction and JSON.parse without wrapping prose or markdown fences."
+  },
+  {
+    "id": "envelope-fields-echoed-unmodified",
+    "prompt": "Return the AnalyserPayload for `agent:zoto-eval-analyser-subagent` while preserving every canonical envelope field the caller injected.",
+    "assertions": [
+      "schema_version is the integer 1, not a string.",
+      "analyser_version, model_id, target_id, kind, source_path, and source_hash match the prompt envelope strings verbatim including target_id prefix agent:."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "Pinned metadata matches the supplied envelope exactly so downstream re-assertion succeeds."
+  },
+  {
+    "id": "command-kind-slash-prompt-shape",
+    "prompt": "Analyse `command:zoto-eval-update` at `plugins/vendor/commands/zoto-eval-update.md` for stamping; emit at least one case that mirrors how an operator launches it from the palette.",
+    "assertions": [
+      "At least one case prompt begins with `/zoto-eval-update` followed by arguments or whitespace suitable for the command palette.",
+      "At least one assertion mentions an observable artefact such as manifest rows, emitted questions before writes, or filesystem outputs tied to that command flow."
+    ],
+    "assertion_patterns": [
+      "/zoto-eval-update"
+    ],
+    "expected_output": "Generated cases include slash-command style prompts with realistic arguments."
+  },
+  {
+    "id": "skill-upstream-load-message",
+    "prompt": "Produce analyser rows for `skill:zoto-execute-evals` so the stamped eval reflects skill loading via upstream chat traffic rather than direct slash invocation.",
+    "assertions": [
+      "Every emitted case prompt avoids leading `/` command palette syntax reserved for command primitives.",
+      "Assertions reference externally visible behaviour such as documented step ordering or read-before-write sequencing described for skills."
+    ],
+    "assertion_patterns": [
+      "/"
+    ],
+    "expected_output": "Case prompts read like upstream agent messages that would cause the skill to load."
+  },
+  {
+    "id": "hook-lifecycle-event-phrasing",
+    "prompt": "Analyse `hook:zoto-eval-session-start` and ensure one scenario explicitly anchors on the Cursor lifecycle event that fires the hook bundle.",
+    "assertions": [
+      "At least one case prompt cites a Cursor lifecycle trigger such as session start, hook execution timing, or a concrete edited-path scenario tied to hooks.",
+      "Assertions cite observable outcomes like hook exit status 0, JSON-shaped stdout per hooks contract, or absence of askQuestion emissions from hook binaries."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "At least one case prompt names session-start or hook-phase context instead of end-user slash commands."
+  },
+  {
+    "id": "rule-constrained-user-request",
+    "prompt": "Generate analyser coverage for `rule:zoto-eval-system` where prompts mimic a refactor chat that should activate rule constraints on matched globs.",
+    "assertions": [
+      "At least one case prompt reads like a user-authored editing request without a leading `/` token.",
+      "Assertions mention whether rule enforcement triggers on documented globs or whether assistant replies obey stated constraints."
+    ],
+    "assertion_patterns": [
+      "/"
+    ],
+    "expected_output": "Cases embed natural-language user intents typical of IDE chat rather than operator palette commands."
+  },
+  {
+    "id": "agent-flow-natural-language-driver",
+    "prompt": "When `kind` is agent for `agent:zoto-eval-comparer`, emit prompts phrased as conversational orchestration requests that exercise judge or compare flows.",
+    "assertions": [
+      "Prompts for agent targets avoid slash-command syntax unless quoting operator text inside prose.",
+      "Assertions describe structured payloads such as needs_user_input objects or restrictions like no askQuestion loops where documented."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "Agent-kind cases rely on plain English tasking aimed at the documented agent behaviour."
+  },
+  {
+    "id": "fixture-path-and-justification-pairing",
+    "prompt": "If any generated case needs a workspace overlay, show fixtures.files entries using sandbox-relative paths only and pair them with fixture_justifications lines.",
+    "assertions": [
+      "Every fixtures.files[].path uses sandbox-relative POSIX form without `..` segments and without absolute filesystem prefixes.",
+      "Whenever fixtures.files is non-empty, fixture_justifications exists with the same element count as fixtures.files in identical order."
+    ],
+    "assertion_patterns": [
+      "\\.\\."
+    ],
+    "expected_output": "Fixture sections obey path constraints and justification cardinality rules."
+  },
+  {
+    "id": "omit-fixtures-when-baseline-suffices",
+    "prompt": "Analyse `rule:generic-doc-headers` where baseline checkout alone supplies enough context; avoid inventing per-case overlays.",
+    "assertions": [
+      "No case introduces fixtures.files entries solely to pad payload shape when baseline context is adequate.",
+      "If fixtures are omitted entirely, no fixture_justifications array appears without accompanying files."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "Cases omit fixtures or declare fixtures.files as an empty array without speculative overlays."
+  },
+  {
+    "id": "denylist-token-absence-in-case-text",
+    "prompt": "Run analyser generation for `plugins/acme/rules/style.mdc` and scrub prompts plus expected_output strings so stale template tokens never ship.",
+    "assertions": [
+      "The emitted JSON contains none of the forbidden analyser substrings such as angle-bracket TODO markers or angle-bracket command markers.",
+      "Each expected_output field remains plain English prose without embedding a full JSON envelope inside the description."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "Serialised case strings exclude angle-bracket template tails and other banned literals from the analyser hard rules."
+  },
+  {
+    "id": "realistic-prompts-and-falsifiable-checks",
+    "prompt": "Final review pass: ensure every case prompt could be pasted into Cursor chat or logs and every assertion names a concrete observable.",
+    "assertions": [
+      "Each assertion names at least one observable target such as manifest.yml contents, hook stdout JSON validity, filesystem paths created, exit codes, or parse success of the analyser JSON.",
+      "scenario labels stay short and avoid vague correctness phrases without naming what changed."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "Prompts feel operator-authentic and assertions could be graded against traces or artifacts."
+  }
+];
+const TARGET_ID = "agent:zoto-eval-analyser-subagent";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("agent:zoto-eval-analyser-subagent", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +342,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

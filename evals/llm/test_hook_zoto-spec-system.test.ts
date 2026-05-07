@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for hook `zoto-spec-system`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,44 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "sessionstart-runs-spec-backlog-scan",
+    "prompt": "sessionStart lifecycle in Cursor: the workspace loads with zoto-spec-system enabled and Cursor runs `node hooks/zoto-session-start.mjs` from the plugin directory before chat work begins.",
+    "assertions": [
+      "The sessionStart hook process exited with status 0.",
+      "Combined stdout and stderr contain no Cursor `askQuestion` payloads or other interactive prompts, because hook scripts must stay non-interactive.",
+      "Log or printed output references checking for unprocessed specs, matching the sessionStart hook description declared next to `node hooks/zoto-session-start.mjs` in plugins/zoto-spec-system/hooks/hooks.json."
+    ],
+    "assertion_patterns": [
+      "askQuestion",
+      "node hooks/zoto-session-start\\.mjs"
+    ],
+    "expected_output": "The hook finishes without blocking the session, reporting whether any specs still need attention and pointing the operator at the right follow-up."
+  },
+  {
+    "id": "stop-validates-subtask-pairs-and-drift",
+    "prompt": "stop lifecycle in Cursor: the operator ends the agent turn and Cursor runs `node hooks/zoto-onstop-check.mjs` so subtask checkbox, schema, and regex-derived statuses are compared and light drift can be auto-corrected.",
+    "assertions": [
+      "The stop hook process exposes a boolean success versus failure through its exit code that reflects whether blocking inconsistencies persist after any automatic reconciliation.",
+      "Stdout and stderr stay free of `askQuestion` chatter; any guidance is emitted as plain text or structured logging suitable for a hook runner.",
+      "Output mentions validation of subtask status triples and markdown or YAML drift handling, consistent with the stop hook description paired with `node hooks/zoto-onstop-check.mjs` in plugins/zoto-spec-system/hooks/hooks.json."
+    ],
+    "assertion_patterns": [
+      "askQuestion",
+      "node hooks/zoto-onstop-check\\.mjs"
+    ],
+    "expected_output": "When metadata lines up, the hook exits cleanly; when critical mismatches remain, the hook exits non-zero after printing explicit findings so the operator can fix them manually."
+  }
+];
+const TARGET_ID = "hook:zoto-spec-system";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("hook:zoto-spec-system", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +250,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });

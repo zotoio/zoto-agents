@@ -53,7 +53,6 @@ import {
   diffMutations,
   verifyExpectedFilesystemAgainstDiff,
 } from "./sandbox-helpers.js";
-import { contains } from "./graders/contains.js";
 import { regex } from "./graders/regex.js";
 import { toolCalled } from "./graders/tool-called.js";
 import { buildJudgeContext, llmJudge } from "./graders/llm-judge.js";
@@ -154,7 +153,8 @@ export function slugForCase(scenario: string, idx: number): string {
  *   2. preSnapshot the sandbox.
  *   3. createAgent → sendPrompt → awaitRun via the bridge.
  *   4. postSnapshot, diff → repo_mutations.
- *   5. Run the analyser-derived `contains` graders against the response.
+ *   5. Run the analyser-derived assertion rubric via `llm-judge` (not short
+ *      `contains` needles).
  *   6. Verify `expected_filesystem` against the diff.
  *   7. Compute soft metrics and return a `LlmCaseRecord`.
  *
@@ -282,20 +282,32 @@ export async function runAnalyserCaseInSandbox(
     `repo_mutations: +${repoMutations.added.length} ~${repoMutations.modified.length} -${repoMutations.removed.length}`,
   );
 
-  /* Behaviour assertions: every analyser-level assertion becomes a
-   * `contains` grader against the response (case-insensitive substring
-   * match). Conservative — operators can author stronger graders by
-   * adding a `_meta.generated: false` row to the corresponding evals.json. */
+  /* Behaviour assertions: one rubric-backed llm-judge grades the full assert
+   * list (replaces prefix-only `contains` needles that were trivial to satisfy). */
+  const assertionList = c.assertions ?? [];
   let assertionsMet = 0;
-  for (const assertion of c.assertions ?? []) {
-    const r = contains(
-      { type: "contains", needle: assertion.slice(0, 60), caseInsensitive: true },
+  if (assertionList.length > 0) {
+    const rubric = [
+      "You grade an AI assistant reply. Score how well it satisfies EVERY requirement below (semantic match OK).",
+      "Return 1.0 only when all requirements are clearly met.",
+      "",
+      "REQUIREMENTS:",
+      ...assertionList.map((a, i) => `${i + 1}. ${a}`),
+    ].join("\n");
+    const judgeCtx = buildJudgeContext({ cwd: sandboxRoot });
+    const judgeReport = await llmJudge(
+      {
+        type: "llm-judge",
+        rubric,
+        passThreshold: 0.72,
+      },
       response,
+      judgeCtx,
     );
-    graderReports.push(r);
-    if (r.verdict === "pass") assertionsMet += 1;
+    graderReports.push(judgeReport);
+    assertionsMet = judgeReport.verdict === "pass" ? assertionList.length : 0;
   }
-  if (status === "passed" && c.assertions?.length) {
+  if (status === "passed" && assertionList.length > 0) {
     if (assertionsMet === 0) {
       status = "failed";
     }
@@ -324,9 +336,7 @@ export async function runAnalyserCaseInSandbox(
   const verbosity =
     c.prompt.length > 0 ? response.length / c.prompt.length : 0;
   const accuracy =
-    (c.assertions?.length ?? 0) === 0
-      ? 0
-      : assertionsMet / (c.assertions?.length ?? 1);
+    assertionList.length === 0 ? 0 : assertionsMet / assertionList.length;
   const confidence = round3(0.5 * accuracy + 0.5 * (status === "passed" ? 1 : 0));
 
   const record: LlmCaseRecord = {
@@ -442,6 +452,5 @@ function round3(n: number): number {
   return Math.round(n * 1000) / 1000;
 }
 
-void llmJudge;
 void regex;
 void toolCalled;

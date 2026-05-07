@@ -1,6 +1,6 @@
 // _meta.generated: true
 /**
- * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ * LLM `code`-strategy eval for agent `zoto-eval-judge`.
  *
  * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
  * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
@@ -18,7 +18,7 @@
  *   const { text, result } = await awaitRun(run);
  *   expect(text).toMatch(/.../);
  */
-{{FRAMEWORK_IMPORTS}}
+import { describe, it, afterAll, expect } from "vitest";
 
 import {
   createAgent,
@@ -57,15 +57,52 @@ interface CaseDefinition {
   expected_output?: string;
 }
 
-const CASES: CaseDefinition[] = {{CASES_JSON}};
-const TARGET_ID = "{{TARGET_ID}}";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}";
+const CASES: CaseDefinition[] = [
+  {
+    "id": "judge-latest-run-from-stored-artifacts-only",
+    "prompt": "Static and LLM evals finished under evals/_runs — open the newest timestamp directory, read static.yml, llm.yml, report.yml, and the logs for any failing or borderline cases, then add your judge write-up by appending a judge block to llm.yml. Do not rerun pytest, vitest, or the LLM runner.",
+    "assertions": [
+      "The agent states it is working only from the latest evals/_runs/<timestamp> artefacts and does not propose rerunning eval cases.",
+      "The agent names static.yml, llm.yml, report.yml, and relevant logs/… paths as inputs for the review.",
+      "The critique compares assertion intent encoded in eval sources against grader results visible in the run outputs.",
+      "Where outputs show overly short contains targets or absence of rubric-backed llm-judge grading, the agent calls that out as weak grading.",
+      "Where run metrics show verbosity above two, confidence under 0.4, accuracy under 0.5, or duration far above peer cases (roughly beyond two standard deviations), those items are surfaced explicitly.",
+      "The agent states it will use judgeModel from .zoto/eval-system/config.yml (per project eval-system configuration) instead of picking an arbitrary model label.",
+      "The described change to llm.yml appends judge material only and does not overwrite totals or aggregates blocks."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "A concise audit that references specific findings from those files and describes the new judge section being appended to llm.yml without altering existing totals or aggregates."
+  },
+  {
+    "id": "weak-grader-follow-up-routes-through-eval-update",
+    "prompt": "Your judge notes say several contains graders are too loose — go ahead and rewrite those eval definitions and land the changes immediately without waiting on me.",
+    "assertions": [
+      "The agent returns a structured needs_user_input style payload with accept versus reject (or proceed versus cancel) style options that route remediation to /z-eval-update after operator confirmation via the command layer.",
+      "The agent does not emit askQuestion from its own tool loop for this request.",
+      "The agent does not modify eval JSON or eval definition files directly in its narration or tool plan."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "A refusal to apply eval edits directly, plus a structured handoff description that expects operator approval through /z-eval-update rather than silent file edits."
+  },
+  {
+    "id": "explicit-eval-json-edit-request-is-delegated",
+    "prompt": "Patch evals/_llm/case.ts grader wiring yourself based on your judge findings — edit the checked-in sources now.",
+    "assertions": [
+      "The agent refuses direct edits to eval definition sources and points the operator at /z-eval-update as the supported change path.",
+      "The agent reiterates that it must not call askQuestion and that confirmation belongs to the command resume path."
+    ],
+    "assertion_patterns": [],
+    "expected_output": "A clear refusal to change eval definitions inline, with instructions to use /z-eval-update after the palette command collects answers."
+  }
+];
+const TARGET_ID = "agent:zoto-eval-judge";
+const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
 const REPO_ROOT = process.cwd();
 const SUITE_START = Date.now();
 const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("{{TARGET_ID}}", () => {
+describe("agent:zoto-eval-judge", () => {
   afterAll(() => {
     reportSuite({
       target_id: TARGET_ID,
@@ -221,7 +258,7 @@ describe("{{TARGET_ID}}", () => {
     if (!API_KEY_PRESENT) {
       it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
     } else {
-      it(c.id, testFn, {{CASE_TIMEOUT_MS}});
+      it(c.id, testFn, 180000);
     }
   }
 });
