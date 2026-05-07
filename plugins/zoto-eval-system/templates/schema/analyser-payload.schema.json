@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/analyser-payload.schema.json",
+  "title": "Zoto Eval Analyser Payload",
+  "description": "Strict JSON shape returned by the LLM-driven primitive analyser subagent (subtask 04). The analyser receives a single primitive (skill/command/agent/hook/rule) and must respond with this object — and ONLY this object — so the caller can deterministically map it onto generated eval cases. Every field has a documented intent block so future maintainers (and the LLM itself, when this prompt is regenerated) can stay aligned with the contract.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "analyser_version",
+    "model_id",
+    "target_id",
+    "kind",
+    "source_path",
+    "source_hash",
+    "summary",
+    "cases"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Hard-pinned schema version. Bumped when the analyser payload shape changes in a non-backward-compatible way; consumers MUST refuse payloads with a value other than 1."
+    },
+    "analyser_version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Free-form version string baked into the cache key (alongside `model_id` and `source_hash`). The analyser script publishes a single canonical value; bumping it forces every cached payload to invalidate on the next run, which is the standard knob for changes to the analyser prompt or post-processing logic."
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Concrete Cursor model id used to generate this payload (e.g. `composer-2`, `opus-4.6`, `sonnet`). Mirrors the `_meta.primitive_analysis.model_id` callers use to detect model swaps."
+    },
+    "target_id": {
+      "type": "string",
+      "pattern": "^(skill|command|agent|hook|rule):[^\\s]+$",
+      "description": "Canonical target id (`<kind>:<name>`). MUST match the `kind` field below — consumers cross-validate the prefix against `kind` and reject mismatches."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["skill", "command", "agent", "hook", "rule"],
+      "description": "Primitive kind. Drives which template (subtasks 06-10) consumes this payload. The analyser MUST tailor prompt style and assertion vocabulary to the kind (commands speak `/cmd …`, agents speak natural English requests, hooks speak about phase events, etc.)."
+    },
+    "source_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "POSIX repo-relative path to the source markdown (e.g. `plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md`). Backslashes are forbidden; callers normalise before validation."
+    },
+    "source_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "sha256 of the cache-key tuple `(normalised source content + analyser_version + model_id)`. Bumping the analyser version OR swapping the model invalidates every previous cache entry, which is the intended behaviour."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Short natural-language summary of the analyser's findings — one or two sentences. Stored verbatim in `_meta.primitive_analysis.summary` and used by the updater to compose differential prompts on drift."
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "description": "At least one realistic case per primitive. Each case maps 1:1 onto a stamped eval row in the relevant backend template (subtasks 06-10).",
+      "items": {
+        "type": "object",
+        "required": ["scenario", "prompt", "assertions"],
+        "additionalProperties": false,
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Short label (≤120 chars) describing the scenario this case exercises (e.g. `happy path — operator approves all defaults`). Used as the case `id` slug source by downstream stampers."
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Realistic, copy-pastable user/agent message — what a real human or upstream agent would actually type. For commands: `/<cmd-name> <realistic args>`. For agents: a natural-language request that triggers the documented flow. For skills: an upstream agent message that would cause the skill to load. For hooks: a description of the triggering Cursor lifecycle event. The analyser MUST NOT emit placeholders like `<replace me>`, `your prompt here`, `<command>`, etc."
+          },
+          "follow_ups": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 },
+            "description": "Optional ordered list of natural follow-up turns that exercise multi-turn flows (`askQuestion` answers, refinement prompts, etc.). Omit when the scenario is single-turn. Same realism constraints as `prompt` apply."
+          },
+          "fixtures": {
+            "type": "object",
+            "required": ["files"],
+            "additionalProperties": false,
+            "description": "Per-case fixture overlay applied on top of the repo-wide baseline (subtask 05). Emit ONLY when the analyser determines the case requires per-case workspace state beyond the baseline. When omitted (or when `files: []`), the stamper writes `fixtures.files: []` and refuses to invent overlays elsewhere.",
+            "properties": {
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["path"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Sandbox-relative POSIX path (e.g. `workspace/.zoto/eval-system/config.yml`). Forbidden: absolute paths, `..` segments, env-var expansions, repo-specific identifiers (operator usernames, host names, secrets). Stampers reject violating paths."
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Inline file contents. Mutually exclusive with `from`; one of the two MUST be present. Forbidden: real env-var values, secrets, machine identifiers."
+                    },
+                    "from": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Repo-relative path to copy from at stamp time. Mutually exclusive with `content`. Forbidden: paths that escape the repo root."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "fixture_justifications": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "description": "Free-form rationale lines, one per file in `fixtures.files[]`, explaining why each overlay is required. The stamper preserves this list inside `_meta.primitive_analysis.fixture_justifications` so reviewers can spot fixtures that were added without justification."
+          },
+          "expected_filesystem": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Optional declarative filesystem expectation evaluated by the runner's per-case sandbox snapshot diff. Use sparingly — prefer behavioural assertions over byte-exact filesystem checks.",
+            "properties": {
+              "created": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+              "modified": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+              "removed": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+              "unchanged": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+            }
+          },
+          "expected_output": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Short prose description of what the agent run should produce. Used by the LLM-judge graders as the canonical reference. Plain English; no JSON envelopes, no placeholder vocabulary."
+          },
+          "assertions": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 },
+            "description": "Behaviour-level assertions describing concrete checks against the documented intent. At least one assertion per documented capability of the primitive. Forbidden: vague claims like `behaved correctly`, `worked as expected`, `followed documented sequencing`. Required: concrete, falsifiable statements (e.g. `manifest.yml records at least one target with kind: skill`)."
+          }
+        }
+      }
+    }
+  }
+}

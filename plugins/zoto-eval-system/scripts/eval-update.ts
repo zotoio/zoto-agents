@@ -24,6 +24,8 @@ import { createHash } from "node:crypto";
 import { dirname, join, relative, resolve } from "node:path";
 
 import { discover, manifestFor } from "./eval-discover.js";
+import { loadEvalConfig } from "../src/config-loader.js";
+import YAML from "yaml";
 
 export type Mode =
   | "rediscovery-dry"
@@ -251,17 +253,13 @@ export function runUpdate(opts: RunOptions): {
   deltas: Delta[];
   summary: Record<string, unknown>;
 } {
-  const configPath = join(opts.repoRoot, ".zoto-eval-system", "config.json");
-  const manifestPath = join(opts.repoRoot, ".zoto-eval-system", "manifest.yml");
-  const historyPath = join(opts.repoRoot, ".zoto-eval-system", "manifest.history.yml");
-
-  if (!existsSync(configPath)) {
-    throw new Error("missing .zoto-eval-system/config.json — run /zoto-eval-configure first");
-  }
-  const config = JSON.parse(readFileSync(configPath, "utf-8"));
+  const { config: typedConfig, path: configPath } = loadEvalConfig(opts.repoRoot);
+  const config = typedConfig as unknown as Record<string, unknown>;
+  const manifestPath = join(opts.repoRoot, ".zoto", "eval-system", "manifest.yml");
+  const historyPath = join(opts.repoRoot, ".zoto", "eval-system", "manifest.history.yml");
   const manifest = loadYaml(manifestPath);
   if (!manifest) {
-    throw new Error("missing .zoto-eval-system/manifest.yml — run /zoto-eval-create first");
+    throw new Error("missing .zoto/eval-system/manifest.yml — run /z-eval-create first");
   }
 
   const discoveryConfig = (manifest.discovery_config ?? config) as Record<string, unknown>;

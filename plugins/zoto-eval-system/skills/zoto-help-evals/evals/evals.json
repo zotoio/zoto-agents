@@ -4,27 +4,332 @@
     {
       "id": 1,
       "prompt": "How do I update evals when my code changes?",
-      "expected_output": "The skill loads the plugin README, navigates to the 'Updating evals when code changes' section, and prints it verbatim. askQuestion is used for section selection if ambiguous.",
+      "expected_output": "The skill loads the plugin README, anchors on the 'Updating evals when code changes' section, reads the host repo's manifest.yml to tailor the answer (e.g. names a real target or notes its absence), and composes a paraphrased response with at least one start:end:plugins/zoto-eval-system/README.md citation that includes the _meta.generated contract, --check CI mode, and targeted-vs-rediscovery modes. The skill does not call askQuestion.",
       "files": [],
       "assertions": [
         "The skill read plugins/zoto-eval-system/README.md",
-        "The response contains the 'Updating evals when code changes' section",
-        "The response mentions the _meta.generated contract",
-        "The response mentions the --check CI mode",
-        "The response mentions targeted vs rediscovery modes",
-        "No inferred or rephrased content was substituted for the README text"
+        "The skill attempted to read .zoto/eval-system/manifest.yml (and stated its presence or absence)",
+        "The response paraphrases the 'Updating evals when code changes' section rather than pasting it whole",
+        "The response includes at least one fenced code block whose info string matches the start:end:plugins/zoto-eval-system/README.md code-reference syntax",
+        "The cited README lines actually cover the _meta.generated contract, --check CI mode, and targeted vs rediscovery modes",
+        "The response references a project-specific value derived from manifest.yml (e.g. a target id, target count) OR clearly states the manifest is absent and points to /z-eval-create",
+        "The skill did not call askQuestion"
       ]
     },
     {
       "id": 2,
-      "prompt": "/zoto-eval-help",
-      "expected_output": "A numbered askQuestion listing of all available help sections. No section content is printed until the user chooses.",
+      "prompt": "/z-eval-help",
+      "expected_output": "The /z-eval-help command (not the skill) opens a numbered askQuestion listing of all README ## sections. The skill is only invoked after a section is chosen; until then no section content or tailored answer is rendered.",
       "files": [],
       "assertions": [
-        "askQuestion was used with a numbered list of sections",
+        "The command (not the skill) used askQuestion with a numbered list of sections",
         "The list includes at least: Overview, Quick start, Configuration, LLM backend (@cursor/sdk), Updating evals when code changes, Comparing runs, CI integration, Troubleshooting",
-        "No section body was printed until a selection was made"
+        "No section body, paraphrase, or citation block was emitted before the user selected a section",
+        "The skill itself did not call askQuestion"
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "I just ran /z-eval-create. What does my LLM backend configuration actually look like and where do I put my CURSOR_API_KEY?",
+      "expected_output": "The skill anchors on the 'LLM backend (@cursor/sdk)' section, reads .zoto/eval-system/config.yml to report the user's actual llm.runtime / llm.model.id / llm.strategy values, checks whether .env.example and .env exist (without reading secret values from .env), and produces a tailored answer with start:end citations to the README's LLM backend lines and to the config.json field values. Falls back to needs_user_input only if selected_section is missing.",
+      "files": [
+        ".zoto/eval-system/config.yml",
+        ".env.example"
+      ],
+      "assertions": [
+        "The skill read plugins/zoto-eval-system/README.md and anchored on the 'LLM backend (@cursor/sdk)' section",
+        "The skill read .zoto/eval-system/config.yml and named the user's actual llm.runtime, llm.model.id, and (when present) llm.strategy values",
+        "The skill checked the presence of .env.example and .env without echoing any secret values from .env",
+        "The response includes at least one start:end:plugins/zoto-eval-system/README.md citation covering the .env / CURSOR_API_KEY onboarding steps",
+        "The response paraphrases rather than dumping the full LLM backend section verbatim",
+        "If config.json is absent, the skill says so and points to /z-eval-configure instead of inventing values",
+        "The skill did not call askQuestion"
+      ]
+    }
+  ,
+    {
+      "id": 1,
+      "prompt": "Upstream task for zoto-help-evals after `/z-eval-help`: `help_context.selected_section` matches the README Overview heading, `follow_up` is done, and `user_question` asks what eval-related files and scripts already exist in this checkout. Answer now.",
+      "assertions": [
+        "Claims about this repo’s eval-system layout or npm scripts are justified only by attempted reads of those paths or clearly labeled uncertainty when absent.",
+        "Plugin-contract statements include at least one README excerpt formatted as a fenced block whose header lists numeric line spans then `plugins/zoto-eval-system/README.md`.",
+        "No `askQuestion` tool call originates from this skill turn."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Overview-oriented prose citing README lines with fenced numeric line-span references into `plugins/zoto-eval-system/README.md`, combined with tailored remarks after attempting reads of `.zoto/eval-system/config.yml`, `.zoto/eval-system/manifest.yml`, and `package.json` scripts whose names begin with `eval`, explicitly noting anything unread or missing."
+    },
+    {
+      "id": 2,
+      "prompt": "Upstream task for zoto-help-evals: the operator wants Eval System help but the payload lacks `help_context.selected_section` and no uniquely safe README anchor can be inferred. Respond under Step 2.",
+      "assertions": [
+        "Candidate anchors correspond to distinct README `##` titles rather than generic prose unrelated to the heading menu.",
+        "No `askQuestion` invocation occurs from this skill execution path."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "A structured `needs_user_input` reply enumerating candidate anchors parsed from `##` headings in `plugins/zoto-eval-system/README.md`, without issuing a fully anchored answer or guessing the section."
+    },
+    {
+      "id": 3,
+      "prompt": "Upstream task for zoto-help-evals: `help_context.selected_section` targets the README Configuration section; `user_question` asks which YAML keys govern backends versus discovery in `.zoto/eval-system/config.yml`.",
+      "assertions": [
+        "Specific key semantics appear only after attempting those reads; absent files are acknowledged instead of silently invented.",
+        "README-derived behaviour claims include fenced numeric line-span citations pointing at `plugins/zoto-eval-system/README.md`.",
+        "No skill-emitted `askQuestion` prompts appear in this turn."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Configuration-focused guidance that reads `.zoto/eval-system/config.yml` when available, consults `plugins/zoto-eval-system/templates/schema/config.schema.json` for field semantics after opening it, and cites README lines explaining configuration responsibilities."
+    },
+    {
+      "id": 4,
+      "prompt": "Upstream task for zoto-help-evals: `help_context.selected_section` matches Static backend; `user_question` asks which static test runner is configured and what directories under the configured evals directory matter on disk.",
+      "assertions": [
+        "Framework and eval-directory facts attributed to this workspace trace to observed `config.json` values plus directory listings, never to guessed defaults.",
+        "When README guidance conflicts with observed host configuration, the mismatch is stated plainly while still citing README contract lines with numeric span fences.",
+        "No `askQuestion` calls occur from this skill run."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Answers grounded in eval-system `config.json` fields such as `static.framework` after reading the relevant file per README guidance, followed by a truthful summary of the resolved eval directory contents only after listing that directory, plus README citations describing static backend behaviour."
+    },
+    {
+      "id": 5,
+      "prompt": "Upstream task for zoto-help-evals: `help_context.selected_section` targets the README LLM backend (`@cursor/sdk`) section; `user_question` asks whether env wiring looks ready for SDK-backed runs.",
+      "assertions": [
+        "No `.env` secrets, tokens, or private assignment strings appear in the assistant output—only safe existence checks and README-grounded instructions.",
+        "Dependency mentions reflect actual `package.json` contents observed via read.",
+        "No `askQuestion` usage originates here."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Reads `.env.example` and checks `.env` existence without revealing secret assignments, inspects `package.json` for `@cursor/sdk` and related tooling only after reading it, and cites README LLM-backend guidance with numeric README fences."
+    },
+    {
+      "id": 6,
+      "prompt": "Upstream task for zoto-help-evals: `help_context.selected_section` matches Updating evals; `user_question` asks how discovery settings relate to current manifest targets and what changed most recently.",
+      "assertions": [
+        "Manifest target counts or identifiers never appear without a successful manifest read or an explicit missing-file statement.",
+        "Recent history claims cite the tail entry only after it was actually read.",
+        "README anchors use numeric line-span fences against `plugins/zoto-eval-system/README.md`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Discusses `discovery_config` and `targets[]` only after reading `.zoto/eval-system/manifest.yml` when present, summarizes the latest `.zoto/eval-system/manifest.history.yml` entry only after reading that file, and cites README sections covering manifest updates."
+    },
+    {
+      "id": 7,
+      "prompt": "Upstream task for zoto-help-evals: `help_context.selected_section` is Result schema; `user_question` asks what files describe outputs from the newest stored eval run.",
+      "assertions": [
+        "Any named latest run identifier follows an explicit `evals/_runs/` listing step or a clear statement that no runs exist yet.",
+        "Claims about per-backend YAML artefacts under that run presuppose successful reads or explicitly flag unread paths.",
+        "Numeric README citation fences appear for schema explanations tied to plugin documentation."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Determines the newest run under `evals/_runs/` via directory inspection before naming files, then reads `report.yml` under that run when available and mentions companion `static.yml` / `llm.yml` paths only if reads succeed, all paired with README citations about result layout."
+    },
+    {
+      "id": 8,
+      "prompt": "Upstream task for zoto-help-evals: `help_context.selected_section` matches Run logs; `user_question` asks where to open stderr from the latest eval execution in this workspace.",
+      "assertions": [
+        "No concrete log file paths are asserted without prior listing or read attempts grounded in actual filesystem state.",
+        "README quotations keep the mandated numeric line-span header format referencing `plugins/zoto-eval-system/README.md`.",
+        "There is no skill-side `askQuestion`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Lists `evals/_runs/` before referencing a latest run, inspects the chosen run’s `logs/` subtree when present, and cites README guidance on logging with proper numeric fences."
+    },
+    {
+      "id": 9,
+      "prompt": "Upstream task for zoto-help-evals: `help_context.selected_section` is Comparing runs; `user_question` asks what differs between the two newest eval runs saved locally.",
+      "assertions": [
+        "Both compared run identifiers appear only after showing how they were derived from the runs directory listing.",
+        "If fewer than two runs exist, the assistant states that limitation instead of inventing synthetic IDs.",
+        "README-backed methodology statements include numeric README fences."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Uses ordering derived from an `evals/_runs/` listing to pick two newest IDs before contrasting artefacts or summaries, acknowledges fewer than two runs honestly, and cites README comparison guidance with numeric fences."
+    },
+    {
+      "id": 10,
+      "prompt": "Upstream task for zoto-help-evals: `help_context.selected_section` matches Judge & soft metrics; `user_question` asks which grading model is configured and how soft metrics surfaced in the latest LLM report.",
+      "assertions": [
+        "Grading model statements reflect observed `config.json` contents or explicit read failures without fabrication.",
+        "Soft-metric claims cite only YAML fragments actually retrieved from the latest accessible `llm.yml`, or explain why none exists.",
+        "No confidential env material appears even if `.env` exists elsewhere in the workspace."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Names `judgeModel` from eval-system `config.json` after reading it, inspects the newest `llm.yml` under the latest `evals/_runs/<run-id>/` path after lawful discovery of that run, and ties explanations back to README judge sections with numeric fences."
+    },
+    {
+      "id": 11,
+      "prompt": "Upstream task for zoto-help-evals: `help_context.selected_section` is CI integration; `user_question` asks whether GitHub Actions already invokes this repo’s eval scripts.",
+      "assertions": [
+        "Statements about CI automation reference concrete workflow filenames only after attempted reads or an explicit missing-folder remark.",
+        "Cross-links between workflows and npm scripts reflect observed script names, not guessed commands.",
+        "Skill execution emits no `askQuestion`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Scans `.github/workflows/` YAML files when that folder exists, correlates any discovered jobs with `package.json` `eval*` scripts after reading them, notes honestly when workflows are absent, and cites README CI guidance via numeric fences."
+    },
+    {
+      "id": 12,
+      "prompt": "Upstream task for zoto-help-evals: `help_context.selected_section` is Troubleshooting, `follow_up` is absent, and `user_question` bundles manifest drift, missing runs, and Cursor SDK failures—each tied to different README anchors. Respond per Step 5.",
+      "assertions": [
+        "Section choices offered map to separate Troubleshooting-related anchors rather than silently answering everything without navigation consent.",
+        "There is no skill-emitted `askQuestion` on this turn."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "`needs_user_input` proposing distinct follow-on README sections instead of silently merging unrelated anchors into one narrative."
+    },
+    {
+      "id": 13,
+      "prompt": "User message routed via `rules/zoto-eval-system.mdc`: \"I’m blocked setting up Zoto evals in this repo—what’s already configured and what should I run first?\" The bundled agent task includes `help_context.selected_section` pinned to Overview after `/z-eval-help` preprocessing. Deliver the skill response.",
+      "assertions": [
+        "Repo-state sentences mirror attempted reads or clearly admit gaps instead of guessing manifests or scripts.",
+        "README excerpts appear inside fenced blocks whose headers pair numeric spans with `plugins/zoto-eval-system/README.md`.",
+        "No `askQuestion` calls originate from this skill invocation for routing clarification."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+        "last_updated": "2026-05-07T10:27:28.028Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
+          "analysed_at": "2026-05-07T10:27:28.028Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
+        }
+      },
+      "expected_output": "Overview-first coaching citing README lines with numeric fences while separating README contracts from live readings of `.zoto/eval-system/config.yml`, `.zoto/eval-system/manifest.yml`, and `eval*` scripts, ending with a README-aligned slash-command recommendation that matches observed readiness."
     }
   ]
 }

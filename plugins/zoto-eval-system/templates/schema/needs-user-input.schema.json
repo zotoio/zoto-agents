@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "needs_user_input",
+  "description": "Structured payload returned by subagents/skills when mid-flight user input is required. Commands map each question to askQuestion, then resume the subagent with answers.",
+  "type": "object",
+  "required": ["needs_user_input"],
+  "additionalProperties": false,
+  "properties": {
+    "needs_user_input": {
+      "type": "object",
+      "required": ["reason", "questions"],
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "One-line explanation of why this cannot proceed without user input."
+        },
+        "questions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "prompt", "options"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9_-]*$"
+              },
+              "prompt": {
+                "type": "string",
+                "minLength": 1
+              },
+              "options": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "object",
+                  "required": ["id", "label"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              },
+              "allow_multiple": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

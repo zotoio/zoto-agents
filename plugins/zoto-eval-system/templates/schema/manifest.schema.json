@@ -17,6 +17,8 @@
     "discovery_config": {
       "type": "object",
       "required": ["discoveryTargets", "skillsRoots", "evalsDir"],
+      "additionalProperties": true,
+      "description": "Snapshot of the active config at the moment of the last `zoto-create-evals` / `zoto-update-evals` write. The cleanup engine (subtask 03) compares the live config against this snapshot to detect framework/strategy drift without re-reading historical configs. Older manifests without `static`/`llm` snapshot blocks remain backward-compatible; consumers must tolerate missing values.",
       "properties": {
         "discoveryTargets": {
           "type": "array",
@@ -30,6 +32,32 @@
         "additionalAutomation": {
           "type": "array",
           "items": { "type": "string" }
+        },
+        "static": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Snapshot of the active static-backend config at write time.",
+          "properties": {
+            "framework": {
+              "type": "string",
+              "enum": ["pytest", "vitest", "jest"]
+            }
+          }
+        },
+        "llm": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Snapshot of the active LLM-strategy config at write time.",
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "enum": ["code", "declarative"]
+            },
+            "codeFramework": {
+              "type": "string",
+              "enum": ["vitest", "jest"]
+            }
+          }
         }
       }
     },

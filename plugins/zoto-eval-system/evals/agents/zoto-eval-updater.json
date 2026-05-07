@@ -1,0 +1,199 @@
+{
+  "agent_name": "zoto-eval-updater",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run the eval updater in check-only mode for CI: I need `/z-eval-update --check` to stay fully non-interactive and fail the job when analyser payload parity or critical drift is wrong.",
+      "assertions": [
+        "The plan runs `pnpm exec tsx scripts/check-analyser-payload-parity.ts` before any drift delta computation so `parity_drift` in the report is trustworthy for subtask 12.",
+        "The check-mode plan includes no `askQuestion` calls from the updater agent itself.",
+        "On clean parity and drift the workflow targets exit status 0; when critical drift remains it honours `config.update.checkExitCodeOnCriticalDrift` with default non-zero exit code 2."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+        "last_updated": "2026-05-07T10:59:41.130Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+          "analysed_at": "2026-05-07T10:59:41.130Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The updater agent keeps generated eval artifacts aligned with discovered primitives through non-interactive check and dry-run paths, guarded apply flows that refresh analyser output and dispatch stampers per manifest snapshot, and strict preservation rules for user-authored cases, files, and append-only manifest history."
+        }
+      },
+      "expected_output": "A short execution plan that runs the parity checker first, then summarises drift state and expected exit behaviour without asking interactive questions."
+    },
+    {
+      "id": 2,
+      "prompt": "Before changing anything, run the standard rediscovery pass in dry-run form only—`/z-eval-update` with no `--apply`—and summarise what would change.",
+      "assertions": [
+        "The response lists drift deltas but does not instruct `stampPytestPerPrimitive`, `stampVitestPerPrimitive`, `stampJestPerPrimitive`, `stampLlmCodeStrategy`, or declarative `evals.json` writers to execute.",
+        "No manifest `git_ref`, `updated_at`, or `targets[].content_hash` updates are applied as part of this dry run."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+        "last_updated": "2026-05-07T10:59:41.130Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+          "analysed_at": "2026-05-07T10:59:41.130Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The updater agent keeps generated eval artifacts aligned with discovered primitives through non-interactive check and dry-run paths, guarded apply flows that refresh analyser output and dispatch stampers per manifest snapshot, and strict preservation rules for user-authored cases, files, and append-only manifest history."
+        }
+      },
+      "expected_output": "A delta report describing added, modified, or removed targets without scheduling filesystem writes or stamper invocations."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "We finished `/z-eval-update --apply` in the command palette and accepted the per-change decisions in the Task thread. For each added or modified primitive, refresh analyser output with invalidation, read the active manifest snapshot for frameworks and LLM strategy, regenerate through the matching stamper, then update the manifest metadata and history.",
+      "assertions": [
+        "Unless `--no-analyser` is in play, the plan calls `runAnalyser({ target, invalidate: true })` driven by `pnpm run eval:analyse` for every added or modified target.",
+        "After `readManifestSnapshot()`, static regeneration follows `static.framework` (`pytest` → `regeneratePytest` → `stampPytestPerPrimitive`, `vitest` → `regenerateVitest` → `stampVitestPerPrimitive`, `jest` → `regenerateJest` → `stampJestPerPrimitive`).",
+        "LLM strategy work follows `llm.strategy`, using `regenerateLlmCode` → `stampLlmCodeStrategy` when `code`, and `regenerateLlmDeclarative` with surgical `evals.json` edits when `declarative`.",
+        "The manifest update refreshes `targets[]` hashes, bumps `git_ref` and `updated_at`, and records a new snapshot entry in `manifest.history.yml`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+        "last_updated": "2026-05-07T10:59:41.130Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+          "analysed_at": "2026-05-07T10:59:41.130Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The updater agent keeps generated eval artifacts aligned with discovered primitives through non-interactive check and dry-run paths, guarded apply flows that refresh analyser output and dispatch stampers per manifest snapshot, and strict preservation rules for user-authored cases, files, and append-only manifest history."
+        }
+      },
+      "expected_output": "A sequenced plan that ties analyser refresh, snapshot-driven framework and strategy dispatch, and manifest bookkeeping together."
+    },
+    {
+      "id": 4,
+      "prompt": "Limit the next updater cycle to hook bundles only: use `/z-eval-update --target 'plugins/**/hooks/*.{mjs,ts}'` in dry-run first, then tell me when you would rerun with `--apply` if I approve.",
+      "assertions": [
+        "Drift computation is described as limited to targets resolved from the `--target` glob rather than the full discovery set.",
+        "The initial invocation omits `--apply`, matching the dry-run semantics before a separate apply step."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+        "last_updated": "2026-05-07T10:59:41.130Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+          "analysed_at": "2026-05-07T10:59:41.130Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The updater agent keeps generated eval artifacts aligned with discovered primitives through non-interactive check and dry-run paths, guarded apply flows that refresh analyser output and dispatch stampers per manifest snapshot, and strict preservation rules for user-authored cases, files, and append-only manifest history."
+        }
+      },
+      "expected_output": "Instructions that restrict delta detection to targets whose `target.path` or `target.id` matches the supplied glob while keeping the initial pass read-only."
+    },
+    {
+      "id": 5,
+      "prompt": "On the CI worker with `CI=true`, run the updater using `--no-analyser` so it reuses cached primitive analysis under `.zoto/eval-system/cache/analyser/`. Confirm stderr warns about skipping fresh analysis and note when `update.failOnNoAnalyserInCI: true` should exit 5.",
+      "assertions": [
+        "When `process.env.CI === \"true\"` and `--no-analyser` is used, the plan requires emitting `[CI WARNING]` about bypassing fresh analyser calls.",
+        "If `update.failOnNoAnalyserInCI` is enabled in `.zoto/eval-system/config.yml`, the command path must abort with exit code 5 rather than silently continuing."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+        "last_updated": "2026-05-07T10:59:41.130Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+          "analysed_at": "2026-05-07T10:59:41.130Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The updater agent keeps generated eval artifacts aligned with discovered primitives through non-interactive check and dry-run paths, guarded apply flows that refresh analyser output and dispatch stampers per manifest snapshot, and strict preservation rules for user-authored cases, files, and append-only manifest history."
+        }
+      },
+      "expected_output": "A CI-oriented note that expects a `[CI WARNING]` line on stderr and documents the optional hard-fail exit code when that config flag is enabled."
+    },
+    {
+      "id": 6,
+      "prompt": "A new primitive was added but its workspace still has no eval file that covers it. As the updater agent, `zoto-update-evals` cannot finish—outline how you hand off to `zoto-create-evals` after I explicitly agree to creation.",
+      "assertions": [
+        "The response states that missing coverage routes through `zoto-create-evals` instead of improvising ad-hoc eval files.",
+        "Creation is contingent on explicit user acceptance, matching the documented handoff guardrail."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+        "last_updated": "2026-05-07T10:59:41.130Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+          "analysed_at": "2026-05-07T10:59:41.130Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The updater agent keeps generated eval artifacts aligned with discovered primitives through non-interactive check and dry-run paths, guarded apply flows that refresh analyser output and dispatch stampers per manifest snapshot, and strict preservation rules for user-authored cases, files, and append-only manifest history."
+        }
+      },
+      "expected_output": "A handoff description that names `zoto-create-evals`, waits for clear user consent, and avoids silently fabricating eval files."
+    },
+    {
+      "id": 7,
+      "prompt": "A maintainer asked you to rewrite an existing eval case whose `_meta.generated` flag is absent. Apply the updater rules and refuse the destructive edit.",
+      "assertions": [
+        "The plan aborts with an explicit guard failure instead of mutating cases lacking `_meta.generated === true`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+        "last_updated": "2026-05-07T10:59:41.130Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+          "analysed_at": "2026-05-07T10:59:41.130Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The updater agent keeps generated eval artifacts aligned with discovered primitives through non-interactive check and dry-run paths, guarded apply flows that refresh analyser output and dispatch stampers per manifest snapshot, and strict preservation rules for user-authored cases, files, and append-only manifest history."
+        }
+      },
+      "expected_output": "An explanation that `isGeneratedCase` blocks the change and no case body rewrite is proposed."
+    },
+    {
+      "id": 8,
+      "prompt": "Merge regenerated pytest tests and mixed `evals.json` outputs, but skip overwriting any `*.test.py` missing the generated banner and avoid reserialising entire JSON documents—preserve the order of untouched generated rows.",
+      "assertions": [
+        "Pytest files without `# _meta.generated: True` on line one are skipped with a `manual_merge_required` style warning rather than overwritten.",
+        "Mixed `evals.json` edits go through `surgicallyReplaceGeneratedCases()` backed by `json-source-map`, not a full-file rewrite.",
+        "Unmodified generated cases keep their prior relative ordering in the emitted JSON."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+        "last_updated": "2026-05-07T10:59:41.130Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+          "analysed_at": "2026-05-07T10:59:41.130Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The updater agent keeps generated eval artifacts aligned with discovered primitives through non-interactive check and dry-run paths, guarded apply flows that refresh analyser output and dispatch stampers per manifest snapshot, and strict preservation rules for user-authored cases, files, and append-only manifest history."
+        }
+      },
+      "expected_output": "Guidance that honours file-banner checks, routes `evals.json` through surgical replacement, and keeps stable ordering for untouched generated entries."
+    },
+    {
+      "id": 9,
+      "prompt": "During a full rediscovery, base enumeration on the stored `manifest.discovery_config` snapshot (not the live `config.json`), append another line to `manifest.history.yml` without rewriting earlier entries, and if the palette flow hits an unexpected branch return structured `needs_user_input` instead of calling `askQuestion` yourself.",
+      "assertions": [
+        "Target discovery parameters are read from `manifest.discovery_config` rather than a fresh read of root `config.json`.",
+        "`manifest.history.yml` updates are append-only with no compaction or rewrite of prior history records.",
+        "Unexpected decisions surface as a structured `needs_user_input` payload for the command, and the updater agent does not invoke `askQuestion`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+        "last_updated": "2026-05-07T10:59:41.130Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "99bc7fc8ad547a8dd1c536e460898ec62829046c0f0a2d43e03ae5e3fcdaa224",
+          "analysed_at": "2026-05-07T10:59:41.130Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The updater agent keeps generated eval artifacts aligned with discovered primitives through non-interactive check and dry-run paths, guarded apply flows that refresh analyser output and dispatch stampers per manifest snapshot, and strict preservation rules for user-authored cases, files, and append-only manifest history."
+        }
+      },
+      "expected_output": "A governance plan covering discovery snapshot usage, append-only history handling, and structured deferral to the command runner."
+    }
+  ]
+}

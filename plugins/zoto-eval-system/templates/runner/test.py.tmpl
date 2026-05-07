@@ -59,7 +59,7 @@ def main() -> int:
 
     pytest_bin = shutil.which("pytest")
     if not EVALS_DIR.is_dir():
-        print(f"{YELLOW}No evals/ directory — run /zoto-eval-create first.{NC}")
+        print(f"{YELLOW}No evals/ directory — run /z-eval-create first.{NC}")
         return 0
 
     if not pytest_bin:

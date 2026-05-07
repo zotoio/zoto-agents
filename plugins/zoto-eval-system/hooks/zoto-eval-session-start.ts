@@ -11,8 +11,9 @@
  * Non-blocking. Writes `{ additional_context: "<message>" }` on stdout when
  * anything is worth surfacing; otherwise writes an empty object.
  */
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
+import YAML from "yaml";
 
 const DEFAULT_EVALS_DIR = "evals";
 const STALE_DAYS = 14;
@@ -21,9 +22,10 @@ function emitEmpty(): void {
   process.stdout.write("{}\n");
 }
 
-function loadJson(path: string): unknown {
+function loadYamlConfig(path: string): unknown {
   try {
-    return JSON.parse(readFileSync(path, "utf-8"));
+    const parsed = YAML.parse(readFileSync(path, "utf-8"));
+    return parsed ?? {};
   } catch {
     return undefined;
   }
@@ -94,8 +96,32 @@ function main(): void {
   }
 
   const root = process.cwd();
-  const configPath = join(root, ".zoto-eval-system", "config.json");
-  const cfg = loadJson(configPath) as Record<string, unknown> | undefined;
+
+  // Auto-migrate legacy .zoto-eval-system/ → .zoto/eval-system/
+  const legacyDir = join(root, ".zoto-eval-system");
+  const newDir = join(root, ".zoto", "eval-system");
+  if (existsSync(legacyDir) && !existsSync(newDir)) {
+    try {
+      mkdirSync(dirname(newDir), { recursive: true });
+      renameSync(legacyDir, newDir);
+      const oldCfg = join(newDir, "config.json");
+      const newCfg = join(newDir, "config.yml");
+      if (existsSync(oldCfg) && !existsSync(newCfg)) {
+        try {
+          const json = JSON.parse(readFileSync(oldCfg, "utf-8"));
+          writeFileSync(newCfg, YAML.stringify(json), "utf-8");
+          unlinkSync(oldCfg);
+        } catch {
+          renameSync(oldCfg, newCfg);
+        }
+      }
+    } catch {
+      /* best-effort; readers will handle the fallback */
+    }
+  }
+
+  const configPath = join(root, ".zoto", "eval-system", "config.yml");
+  const cfg = loadYamlConfig(configPath) as Record<string, unknown> | undefined;
   if (!cfg) {
     emitEmpty();
     return;
@@ -106,19 +132,19 @@ function main(): void {
 
   const stale = staleRuns(evalsDir, root);
   if (stale.length > 0) {
-    messages.push(`Eval System: ${stale.length} run(s) older than ${STALE_DAYS} days. Consider /zoto-eval-execute.`);
+    messages.push(`Eval System: ${stale.length} run(s) older than ${STALE_DAYS} days. Consider /z-eval-execute.`);
   }
 
   const misses = missingEvals(root);
   if (misses.length > 0) {
-    messages.push(`Eval System: ${misses.length} skill(s) missing evals.json: ${misses.slice(0, 3).join(", ")}${misses.length > 3 ? ", ..." : ""}. Run /zoto-eval-update.`);
+    messages.push(`Eval System: ${misses.length} skill(s) missing evals.json: ${misses.slice(0, 3).join(", ")}${misses.length > 3 ? ", ..." : ""}. Run /z-eval-update.`);
   }
 
-  const markerPath = join(root, ".zoto-eval-system", ".last-drift-check");
+  const markerPath = join(root, ".zoto", "eval-system", ".last-drift-check");
   if (markerShouldRun(markerPath)) {
-    const manifestPath = join(root, ".zoto-eval-system", "manifest.yml");
+    const manifestPath = join(root, ".zoto", "eval-system", "manifest.yml");
     if (existsSync(manifestPath)) {
-      messages.push("Eval System: run /zoto-eval-update to check for drift (last check >= 1 day ago).");
+      messages.push("Eval System: run /z-eval-update to check for drift (last check >= 1 day ago).");
     }
     touch(markerPath);
   }

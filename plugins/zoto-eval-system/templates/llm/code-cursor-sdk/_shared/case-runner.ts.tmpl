@@ -1,0 +1,447 @@
+// _meta.generated: true
+/**
+ * LLM `code` strategy — per-case runner helpers.
+ *
+ * Stamped at `<host-repo>/evals/llm/_shared/case-runner.ts` by
+ * `scripts/eval-stamp.ts#stampLlmCodePerPrimitive` (subtask 09).
+ *
+ * The per-primitive `*.test.ts` files keep their `it(...)` bodies tiny
+ * by delegating the heavy lifting (sandbox prep, SDK lifecycle, snapshot
+ * diff, grader dispatch, sidecar emission) to this module.
+ *
+ * Public surface
+ * --------------
+ *   loadAnalyserPayload(path)      — read a payload from disk
+ *   runAnalyserCaseInSandbox(args) — execute a single case end-to-end
+ *   emitCaseSidecar(record, log)   — write the per-case sidecar JSON
+ *   slugForCase(scenario, idx)     — deterministic slug
+ *   shouldSkip()                   — true when CURSOR_API_KEY is absent
+ *   aggregateRunFromSidecars(args) — aggregate sidecars → llm.yml
+ *
+ * Sidecar contract
+ * ----------------
+ * The reporter (`_shared/reporters/zoto-llm-reporter.ts`) reads every
+ * `*.json` file under `$ZOTO_EVAL_RUN_SIDECAR_DIR/` after the test run
+ * finishes and aggregates them into `evals/_runs/<runId>/llm.yml`. The
+ * sidecar JSON shape mirrors `LlmCaseRecord` from
+ * `_shared/result-yaml-writer.ts`.
+ */
+import {
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+  existsSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { randomUUID } from "node:crypto";
+
+import {
+  createAgent,
+  closeAgent,
+  sendPrompt,
+  awaitRun,
+  resolveTokens,
+  TOKEN_RESULT_FIELD,
+} from "./sdk-bridge.js";
+import {
+  prepareSandbox,
+  preSnapshot,
+  postSnapshot,
+  diffMutations,
+  verifyExpectedFilesystemAgainstDiff,
+} from "./sandbox-helpers.js";
+import { contains } from "./graders/contains.js";
+import { regex } from "./graders/regex.js";
+import { toolCalled } from "./graders/tool-called.js";
+import { buildJudgeContext, llmJudge } from "./graders/llm-judge.js";
+import {
+  buildLlmReportDocument,
+  writeLlmReport,
+  type LlmCaseRecord,
+  type LlmCaseStatus,
+  type LlmGraderReport,
+  type LlmReportDocument,
+} from "./result-yaml-writer.js";
+
+/* ---------------------------------------------------------------------- */
+/* Analyser payload type (mirrors templates/schema/analyser-payload.json)  */
+/* ---------------------------------------------------------------------- */
+
+export interface AnalyserCaseFixtureFile {
+  path: string;
+  content?: string;
+  from?: string;
+}
+
+export interface AnalyserCaseFixtures {
+  files: AnalyserCaseFixtureFile[];
+}
+
+export interface AnalyserCaseExpectedFilesystem {
+  created?: string[];
+  modified?: string[];
+  removed?: string[];
+  unchanged?: string[];
+}
+
+export interface AnalyserCase {
+  scenario: string;
+  prompt: string;
+  assertions: string[];
+  follow_ups?: string[];
+  fixtures?: AnalyserCaseFixtures;
+  fixture_justifications?: string[];
+  expected_filesystem?: AnalyserCaseExpectedFilesystem;
+  expected_output?: string;
+}
+
+export interface AnalyserPayload {
+  schema_version: 1;
+  analyser_version: string;
+  model_id: string;
+  target_id: string;
+  kind: "command" | "agent" | "hook" | "skill" | "rule";
+  source_path: string;
+  source_hash: string;
+  summary: string;
+  cases: AnalyserCase[];
+}
+
+/* ---------------------------------------------------------------------- */
+/* Public API                                                              */
+/* ---------------------------------------------------------------------- */
+
+export interface RunCaseArgs {
+  payload: AnalyserPayload;
+  caseIndex: number;
+  /** Concrete model id — defaults to PAYLOAD.model_id. */
+  modelId?: string;
+  /** Override repo root (defaults to ZOTO_EVAL_REPO_ROOT or process.cwd). */
+  repoRoot?: string;
+  /** Per-test override for the run id (defaults to ZOTO_EVAL_RUN_ID). */
+  runId?: string;
+}
+
+export interface CaseRunResult {
+  record: LlmCaseRecord;
+  log: string;
+}
+
+export function shouldSkip(): boolean {
+  return !process.env.CURSOR_API_KEY;
+}
+
+export function loadAnalyserPayload(path: string): AnalyserPayload {
+  const raw = readFileSync(path, "utf-8");
+  return JSON.parse(raw) as AnalyserPayload;
+}
+
+export function slugForCase(scenario: string, idx: number): string {
+  const base = scenario
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  return base.length > 0 ? `${idx + 1}-${base}` : `${idx + 1}-case`;
+}
+
+/**
+ * Execute a single analyser case end-to-end:
+ *   1. Allocate a tmp sandbox, copy the baseline + apply overlays.
+ *   2. preSnapshot the sandbox.
+ *   3. createAgent → sendPrompt → awaitRun via the bridge.
+ *   4. postSnapshot, diff → repo_mutations.
+ *   5. Run the analyser-derived `contains` graders against the response.
+ *   6. Verify `expected_filesystem` against the diff.
+ *   7. Compute soft metrics and return a `LlmCaseRecord`.
+ *
+ * The function is deliberately resilient: a thrown error becomes a
+ * `status: "errored"` record so a single misbehaving primitive never
+ * breaks the whole reporter.
+ */
+export async function runAnalyserCaseInSandbox(
+  args: RunCaseArgs,
+): Promise<CaseRunResult> {
+  const repoRoot = args.repoRoot
+    ? resolve(args.repoRoot)
+    : process.env.ZOTO_EVAL_REPO_ROOT
+      ? resolve(process.env.ZOTO_EVAL_REPO_ROOT)
+      : resolve(process.cwd());
+  const runId = args.runId ?? process.env.ZOTO_EVAL_RUN_ID ?? randomUUID();
+  const modelId =
+    args.modelId ??
+    args.payload.model_id ??
+    process.env.ZOTO_EVAL_MODEL ??
+    "composer-2";
+  const c = args.payload.cases[args.caseIndex];
+  if (!c) {
+    throw new Error(
+      `runAnalyserCaseInSandbox: case index ${args.caseIndex} out of range (have ${args.payload.cases.length})`,
+    );
+  }
+
+  const id = `${args.payload.target_id}::${slugForCase(c.scenario, args.caseIndex)}`;
+  const startedAt = Date.now();
+  const log: string[] = [];
+  log.push(`# Case ${id}`);
+  log.push(`prompt: ${c.prompt}`);
+
+  if (shouldSkip()) {
+    log.push("status: skipped (CURSOR_API_KEY missing)");
+    const record: LlmCaseRecord = {
+      id,
+      status: "skipped",
+      duration_ms: Math.max(0, Date.now() - startedAt),
+      grader_reports: [
+        {
+          grader: "code-cursor-sdk",
+          verdict: "warn",
+          detail: "skipped — CURSOR_API_KEY not set",
+        },
+      ],
+    };
+    return { record, log: log.join("\n") };
+  }
+
+  const sandboxRoot = join(
+    tmpdir(),
+    "zoto-eval-llm-code",
+    runId,
+    slugForCase(c.scenario, args.caseIndex),
+  );
+  mkdirSync(sandboxRoot, { recursive: true, mode: 0o755 });
+  const fixtureSummary = prepareSandbox(sandboxRoot, {
+    repoRoot,
+    fixtures: c.fixtures
+      ? {
+          files: c.fixtures.files.map((f) => ({
+            path: f.path,
+            content: f.content,
+            from: f.from,
+          })),
+        }
+      : undefined,
+    allowMissingBaseline: true,
+  });
+  log.push(
+    `sandbox: ${sandboxRoot} (baseline=${fixtureSummary.baselineFiles}, overlays=${fixtureSummary.overlayFiles})`,
+  );
+
+  const before = preSnapshot(sandboxRoot);
+  let response = "";
+  let status: LlmCaseStatus = "passed";
+  const graderReports: LlmGraderReport[] = [];
+  let tokens = 0;
+  let durationMs = 0;
+  let tokenSource: string = TOKEN_RESULT_FIELD;
+
+  try {
+    const agent = await createAgent({ modelId, cwd: sandboxRoot });
+    try {
+      const run = await sendPrompt(agent, c.prompt);
+      const awaited = await awaitRun(run);
+      response = awaited.text;
+      const tokenInfo = resolveTokens(awaited.result, c.prompt, response);
+      tokens = tokenInfo.tokens;
+      tokenSource = tokenInfo.source;
+      durationMs =
+        typeof awaited.result.durationMs === "number"
+          ? awaited.result.durationMs
+          : Math.max(0, Date.now() - startedAt);
+      log.push(`response (${response.length} chars):`);
+      log.push(response.slice(0, 4000));
+      log.push(`tokens: ${tokens} (source=${tokenSource})`);
+
+      if (awaited.result.status !== "finished") {
+        status = "failed";
+        graderReports.push({
+          grader: "code-cursor-sdk",
+          verdict: "fail",
+          detail: `run.wait() status=${awaited.result.status}`,
+        });
+      }
+    } finally {
+      closeAgent(agent);
+    }
+  } catch (e) {
+    status = "errored";
+    graderReports.push({
+      grader: "code-cursor-sdk",
+      verdict: "fail",
+      detail: `agent error: ${(e as Error).message}`,
+    });
+    log.push(`error: ${(e as Error).message}`);
+  }
+
+  const after = postSnapshot(sandboxRoot);
+  const repoMutations = diffMutations(before, after);
+  log.push(
+    `repo_mutations: +${repoMutations.added.length} ~${repoMutations.modified.length} -${repoMutations.removed.length}`,
+  );
+
+  /* Behaviour assertions: every analyser-level assertion becomes a
+   * `contains` grader against the response (case-insensitive substring
+   * match). Conservative — operators can author stronger graders by
+   * adding a `_meta.generated: false` row to the corresponding evals.json. */
+  let assertionsMet = 0;
+  for (const assertion of c.assertions ?? []) {
+    const r = contains(
+      { type: "contains", needle: assertion.slice(0, 60), caseInsensitive: true },
+      response,
+    );
+    graderReports.push(r);
+    if (r.verdict === "pass") assertionsMet += 1;
+  }
+  if (status === "passed" && c.assertions?.length) {
+    if (assertionsMet === 0) {
+      status = "failed";
+    }
+  }
+
+  let filesystemAssertions: LlmCaseRecord["filesystem_assertions"];
+  if (c.expected_filesystem) {
+    const verdict = verifyExpectedFilesystemAgainstDiff(
+      {
+        added: repoMutations.added,
+        modified: repoMutations.modified,
+        removed: repoMutations.removed,
+      },
+      before,
+      after,
+      c.expected_filesystem,
+    );
+    filesystemAssertions = {
+      passed: verdict.failed === 0,
+      failed: verdict.failed > 0,
+      detail: verdict.detail.join("\n"),
+    };
+    if (verdict.failed > 0 && status === "passed") status = "failed";
+  }
+
+  const verbosity =
+    c.prompt.length > 0 ? response.length / c.prompt.length : 0;
+  const accuracy =
+    (c.assertions?.length ?? 0) === 0
+      ? 0
+      : assertionsMet / (c.assertions?.length ?? 1);
+  const confidence = round3(0.5 * accuracy + 0.5 * (status === "passed" ? 1 : 0));
+
+  const record: LlmCaseRecord = {
+    id,
+    status,
+    tokens,
+    duration_ms: durationMs,
+    verbosity: round3(verbosity),
+    accuracy: round3(accuracy),
+    confidence,
+    grader_reports: graderReports,
+    repo_mutations: repoMutations,
+  };
+  if (filesystemAssertions) record.filesystem_assertions = filesystemAssertions;
+
+  return { record, log: log.join("\n") };
+}
+
+/* ---------------------------------------------------------------------- */
+/* Sidecar persistence                                                     */
+/* ---------------------------------------------------------------------- */
+
+export function emitCaseSidecar(
+  record: LlmCaseRecord,
+  log: string,
+  opts?: { sidecarDir?: string; logDir?: string },
+): { sidecarPath: string; logPath: string } {
+  const sidecarDir =
+    opts?.sidecarDir ??
+    process.env.ZOTO_EVAL_RUN_SIDECAR_DIR ??
+    join(tmpdir(), "zoto-eval-llm-code", "sidecars");
+  const logDir =
+    opts?.logDir ??
+    process.env.ZOTO_EVAL_RUN_LOG_DIR ??
+    join(tmpdir(), "zoto-eval-llm-code", "logs");
+  mkdirSync(sidecarDir, { recursive: true, mode: 0o755 });
+  mkdirSync(logDir, { recursive: true, mode: 0o755 });
+  const slug = record.id.replace(/[^a-z0-9_-]+/gi, "_").slice(0, 200);
+  const sidecarPath = join(sidecarDir, `${slug}.json`);
+  const logPath = join(logDir, `${slug}.log`);
+  writeFileSync(logPath, log, { encoding: "utf-8", mode: 0o644 });
+  const stamped: LlmCaseRecord = { ...record, log_path: logPath };
+  writeFileSync(sidecarPath, JSON.stringify(stamped, null, 2), {
+    encoding: "utf-8",
+    mode: 0o644,
+  });
+  return { sidecarPath, logPath };
+}
+
+/**
+ * Aggregate every sidecar JSON in `$ZOTO_EVAL_RUN_SIDECAR_DIR/` into a
+ * `LlmReportDocument` and write it to `evals/_runs/<runId>/llm.yml`.
+ * Used by both the vitest and jest reporters.
+ */
+export function aggregateRunFromSidecars(args: {
+  runId: string;
+  startedAt: string;
+  endedAt: string;
+  model?: string;
+  sidecarDir: string;
+  destPath: string;
+}): LlmReportDocument {
+  const cases = readSidecars(args.sidecarDir);
+  const doc = buildLlmReportDocument({
+    run_id: args.runId,
+    started_at: args.startedAt,
+    ended_at: args.endedAt,
+    model: args.model,
+    cases,
+  });
+  mkdirSync(dirname(args.destPath), { recursive: true, mode: 0o755 });
+  writeLlmReport(args.destPath, doc);
+  return doc;
+}
+
+function readSidecars(sidecarDir: string): LlmCaseRecord[] {
+  if (!existsSync(sidecarDir)) return [];
+  const out: LlmCaseRecord[] = [];
+  const stack = [sidecarDir];
+  while (stack.length) {
+    const cur = stack.pop()!;
+    let names: string[];
+    try {
+      names = readdirSync(cur);
+    } catch {
+      continue;
+    }
+    for (const name of names) {
+      const full = join(cur, name);
+      let st;
+      try {
+        st = statSync(full);
+      } catch {
+        continue;
+      }
+      if (st.isDirectory()) stack.push(full);
+      else if (st.isFile() && full.endsWith(".json")) {
+        try {
+          const parsed = JSON.parse(readFileSync(full, "utf-8")) as LlmCaseRecord;
+          out.push(parsed);
+        } catch {
+          /* malformed sidecar — skip */
+        }
+      }
+    }
+  }
+  return out;
+}
+
+export { buildJudgeContext };
+
+function round3(n: number): number {
+  return Math.round(n * 1000) / 1000;
+}
+
+void llmJudge;
+void regex;
+void toolCalled;

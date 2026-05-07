@@ -1,0 +1,205 @@
+// _meta.generated: true
+/**
+ * LLM `code` strategy — result YAML writer.
+ *
+ * Stamped at `<host-repo>/evals/llm/_shared/result-yaml-writer.ts` by
+ * `scripts/eval-stamp.ts#stampLlmCodePerPrimitive` (subtask 09).
+ *
+ * Writes `evals/_runs/<runId>/llm.yml` validated against
+ * `templates/schema/result.schema.json` (subtask 01) with `backend: "llm"`.
+ *
+ * Why a dedicated writer (and not a shared one with the static backend)?
+ * ----------------------------------------------------------------------
+ * The LLM `code` strategy produces a richer per-case payload than the
+ * static reporter — `tokens`, `verbosity`, `accuracy`, `confidence`,
+ * `repo_mutations`, `grader_reports`, `log_path`. Mixing the static and
+ * LLM writers would lose either type-safety or the optional fields'
+ * "absent vs zero" distinction. Subtask 12 (orchestrator) merges the two
+ * `*.yml` documents into the top-level `report.yml` — that's the right
+ * level for cross-backend deduplication.
+ *
+ * Drop-in compatibility with the declarative LLM strategy
+ * -------------------------------------------------------
+ * Subtask 10 emits the same `llm.yml` shape from `evals/_llm/runner.ts`.
+ * The schema is the contract — both writers MUST produce documents that
+ * the orchestrator (subtask 12) can consume identically.
+ */
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
+
+import { dump } from "js-yaml";
+
+/* ---------------------------------------------------------------------- */
+/* Public types                                                            */
+/* ---------------------------------------------------------------------- */
+
+export type LlmCaseStatus = "passed" | "failed" | "skipped" | "errored";
+
+export interface LlmGraderReport {
+  grader: string;
+  verdict: "pass" | "fail" | "warn";
+  detail?: string;
+}
+
+export interface LlmRepoMutations {
+  added: string[];
+  modified: string[];
+  removed: string[];
+}
+
+export interface LlmCaseRecord {
+  id: string;
+  status: LlmCaseStatus;
+  tokens?: number;
+  duration_ms?: number;
+  verbosity?: number;
+  accuracy?: number;
+  confidence?: number;
+  grader_reports?: LlmGraderReport[];
+  log_path?: string;
+  repo_mutations?: LlmRepoMutations;
+  filesystem_assertions?: {
+    passed: boolean;
+    failed: boolean;
+    detail: string;
+  };
+}
+
+export interface LlmReportInput {
+  run_id: string;
+  started_at: string;
+  ended_at: string;
+  /** Concrete model id (e.g. `composer-2`). */
+  model?: string;
+  cases: LlmCaseRecord[];
+}
+
+export interface LlmReportDocument {
+  schema_version: 1;
+  run_id: string;
+  started_at: string;
+  ended_at: string;
+  backend: "llm";
+  model?: string;
+  totals: {
+    cases: number;
+    passed: number;
+    failed: number;
+    skipped?: number;
+  };
+  aggregates: {
+    tokens_total: number;
+    duration_ms_total: number;
+    verbosity_avg?: number;
+    accuracy_avg?: number;
+    confidence_avg?: number;
+  };
+  report: {
+    framework: "code-cursor-sdk";
+  };
+  cases: LlmCaseRecord[];
+}
+
+/* ---------------------------------------------------------------------- */
+/* Document construction                                                   */
+/* ---------------------------------------------------------------------- */
+
+export function buildLlmReportDocument(
+  input: LlmReportInput,
+): LlmReportDocument {
+  let passed = 0;
+  let failed = 0;
+  let skipped = 0;
+  let tokensTotal = 0;
+  let durationTotal = 0;
+  const verbosities: number[] = [];
+  const accuracies: number[] = [];
+  const confidences: number[] = [];
+
+  for (const c of input.cases) {
+    if (c.status === "passed") passed += 1;
+    else if (c.status === "failed" || c.status === "errored") failed += 1;
+    else if (c.status === "skipped") skipped += 1;
+
+    if (typeof c.tokens === "number") tokensTotal += c.tokens;
+    if (typeof c.duration_ms === "number") durationTotal += c.duration_ms;
+    if (typeof c.verbosity === "number") verbosities.push(c.verbosity);
+    if (typeof c.accuracy === "number") accuracies.push(c.accuracy);
+    if (typeof c.confidence === "number") confidences.push(c.confidence);
+  }
+
+  const aggregates: LlmReportDocument["aggregates"] = {
+    tokens_total: tokensTotal,
+    duration_ms_total: durationTotal,
+  };
+  if (verbosities.length > 0) aggregates.verbosity_avg = round4(mean(verbosities));
+  if (accuracies.length > 0) aggregates.accuracy_avg = round4(mean(accuracies));
+  if (confidences.length > 0) aggregates.confidence_avg = round4(mean(confidences));
+
+  const totals: LlmReportDocument["totals"] = {
+    cases: input.cases.length,
+    passed,
+    failed,
+  };
+  if (skipped > 0) totals.skipped = skipped;
+
+  const doc: LlmReportDocument = {
+    schema_version: 1,
+    run_id: input.run_id,
+    started_at: input.started_at,
+    ended_at: input.ended_at,
+    backend: "llm",
+    totals,
+    aggregates,
+    report: { framework: "code-cursor-sdk" },
+    cases: [...input.cases].sort((a, b) => a.id.localeCompare(b.id)),
+  };
+  if (input.model) doc.model = input.model;
+  return doc;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Serialisation                                                           */
+/* ---------------------------------------------------------------------- */
+
+export function dumpLlmReportYaml(doc: LlmReportDocument): string {
+  return dump(deepSortKeys(doc), {
+    sortKeys: true,
+    lineWidth: 100,
+    noRefs: true,
+    quotingType: '"',
+  });
+}
+
+export function writeLlmReport(absolutePath: string, doc: LlmReportDocument): void {
+  mkdirSync(dirname(absolutePath), { recursive: true, mode: 0o755 });
+  writeFileSync(absolutePath, dumpLlmReportYaml(doc), {
+    encoding: "utf-8",
+    mode: 0o644,
+  });
+}
+
+/* ---------------------------------------------------------------------- */
+/* Helpers                                                                 */
+/* ---------------------------------------------------------------------- */
+
+function mean(xs: number[]): number {
+  if (xs.length === 0) return 0;
+  return xs.reduce((a, b) => a + b, 0) / xs.length;
+}
+
+function round4(n: number): number {
+  return Math.round(n * 10_000) / 10_000;
+}
+
+function deepSortKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map((v) => deepSortKeys(v));
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(value as Record<string, unknown>).sort()) {
+      out[k] = deepSortKeys((value as Record<string, unknown>)[k]);
+    }
+    return out;
+  }
+  return value;
+}

@@ -1,0 +1,50 @@
+// _meta.generated: true
+/**
+ * Vitest configuration for the LLM `code` strategy.
+ *
+ * Stamped at `<host-repo>/evals/llm/vitest.config.ts` by
+ * `scripts/eval-stamp.ts#stampLlmCodePerPrimitive` (subtask 09) when
+ * `llm.codeFramework === "vitest"`.
+ *
+ * Wires the bundled LLM reporter at
+ * `evals/llm/_shared/reporters/zoto-llm-reporter.ts` which writes
+ * `evals/_runs/<runId>/llm.yml` validated against `result.schema.json`
+ * (subtask 01) with `backend: "llm"`.
+ *
+ * Coexists with the static framework's vitest config when
+ * `static.framework === "vitest"`. The configurer enforces the
+ * cross-field rule: when `llm.strategy === "code"`,
+ * `static.framework === llm.codeFramework`. The two configs live in
+ * separate directories (`evals/` for static, `evals/llm/` for LLM) so
+ * they can be invoked independently via the `eval:static:vitest` and
+ * `eval:llm:code` scripts respectively.
+ */
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    globals: false,
+    include: ["evals/llm/**/*.test.ts"],
+    exclude: [
+      "**/node_modules/**",
+      "evals/_runs/**",
+      "evals/fixtures/**",
+      "evals/llm/_shared/**",
+    ],
+    setupFiles: ["evals/llm/_shared/setup.ts"],
+    reporters: [
+      "default",
+      ["./evals/llm/_shared/reporters/zoto-llm-reporter.ts", {}],
+    ],
+    /* LLM cases call out to @cursor/sdk and a real model; per-test
+     * wall-time can hit several minutes on the cold path. The
+     * per-`it(...)` timeout in the test template is 120 000 ms; bump
+     * the global timeout to match so the test runner does not kill the
+     * agent mid-stream. */
+    testTimeout: 180_000,
+    hookTimeout: 60_000,
+    /* LLM cases share state via env vars and per-case sandbox dirs;
+     * forks pool keeps the per-worker cwd predictable. */
+    pool: "forks",
+  },
+});

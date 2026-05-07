@@ -1,0 +1,75 @@
+{
+  "agent_name": "zoto-eval-judge",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Static and LLM evals finished under evals/_runs — open the newest timestamp directory, read static.yml, llm.yml, report.yml, and the logs for any failing or borderline cases, then add your judge write-up by appending a judge block to llm.yml. Do not rerun pytest, vitest, or the LLM runner.",
+      "assertions": [
+        "The agent states it is working only from the latest evals/_runs/<timestamp> artefacts and does not propose rerunning eval cases.",
+        "The agent names static.yml, llm.yml, report.yml, and relevant logs/… paths as inputs for the review.",
+        "The critique compares assertion intent encoded in eval sources against grader results visible in the run outputs.",
+        "Where outputs show overly short contains targets or absence of rubric-backed llm-judge grading, the agent calls that out as weak grading.",
+        "Where run metrics show verbosity above two, confidence under 0.4, accuracy under 0.5, or duration far above peer cases (roughly beyond two standard deviations), those items are surfaced explicitly.",
+        "The agent states it will use judgeModel from .zoto/eval-system/config.yml (per project eval-system configuration) instead of picking an arbitrary model label.",
+        "The described change to llm.yml appends judge material only and does not overwrite totals or aggregates blocks."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "da200105d933d1a08a7431a66081aa4fde1e405183dfa5799061db25746d84df",
+        "last_updated": "2026-05-07T10:59:02.654Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "da200105d933d1a08a7431a66081aa4fde1e405183dfa5799061db25746d84df",
+          "analysed_at": "2026-05-07T10:59:02.654Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The judge agent critiques the latest eval run from static.yml, llm.yml, report.yml, and per-case logs, appends a judge block to llm.yml without rerunning cases or patching eval JSON, and uses needs_user_input for /z-eval-update handoffs while never calling askQuestion itself."
+        }
+      },
+      "expected_output": "A concise audit that references specific findings from those files and describes the new judge section being appended to llm.yml without altering existing totals or aggregates."
+    },
+    {
+      "id": 2,
+      "prompt": "Your judge notes say several contains graders are too loose — go ahead and rewrite those eval definitions and land the changes immediately without waiting on me.",
+      "assertions": [
+        "The agent returns a structured needs_user_input style payload with accept versus reject (or proceed versus cancel) style options that route remediation to /z-eval-update after operator confirmation via the command layer.",
+        "The agent does not emit askQuestion from its own tool loop for this request.",
+        "The agent does not modify eval JSON or eval definition files directly in its narration or tool plan."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "da200105d933d1a08a7431a66081aa4fde1e405183dfa5799061db25746d84df",
+        "last_updated": "2026-05-07T10:59:02.654Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "da200105d933d1a08a7431a66081aa4fde1e405183dfa5799061db25746d84df",
+          "analysed_at": "2026-05-07T10:59:02.654Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The judge agent critiques the latest eval run from static.yml, llm.yml, report.yml, and per-case logs, appends a judge block to llm.yml without rerunning cases or patching eval JSON, and uses needs_user_input for /z-eval-update handoffs while never calling askQuestion itself."
+        }
+      },
+      "expected_output": "A refusal to apply eval edits directly, plus a structured handoff description that expects operator approval through /z-eval-update rather than silent file edits."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "Patch evals/_llm/case.ts grader wiring yourself based on your judge findings — edit the checked-in sources now.",
+      "assertions": [
+        "The agent refuses direct edits to eval definition sources and points the operator at /z-eval-update as the supported change path.",
+        "The agent reiterates that it must not call askQuestion and that confirmation belongs to the command resume path."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "da200105d933d1a08a7431a66081aa4fde1e405183dfa5799061db25746d84df",
+        "last_updated": "2026-05-07T10:59:02.654Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "da200105d933d1a08a7431a66081aa4fde1e405183dfa5799061db25746d84df",
+          "analysed_at": "2026-05-07T10:59:02.654Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The judge agent critiques the latest eval run from static.yml, llm.yml, report.yml, and per-case logs, appends a judge block to llm.yml without rerunning cases or patching eval JSON, and uses needs_user_input for /z-eval-update handoffs while never calling askQuestion itself."
+        }
+      },
+      "expected_output": "A clear refusal to change eval definitions inline, with instructions to use /z-eval-update after the palette command collects answers."
+    }
+  ]
+}

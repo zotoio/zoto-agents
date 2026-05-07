@@ -1,0 +1,116 @@
+// _meta.generated: true
+/**
+ * Re-export of the canonical `llm-judge` grader plus a thin SDK-bridge
+ * judge factory.
+ *
+ * Stamped at `<host-repo>/evals/llm/_shared/graders/llm-judge.ts` by
+ * subtask 09's stamper. The grader implementation lives at
+ * `evals/_llm/graders/llm-judge.ts`. This re-export adds
+ * `buildJudgeContext()` — a small helper that builds the `judge` callable
+ * the grader needs by dispatching through the bridge's `createAgent` /
+ * `awaitRun` lifecycle. The configured `judgeModel` (from
+ * `.zoto/eval-system/config.yml#/judgeModel`) is read at runtime so a
+ * config rotation does not require regenerating the templates.
+ */
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import {
+  createAgent,
+  closeAgent,
+  sendPrompt,
+  awaitRun,
+} from "../sdk-bridge.js";
+import type { LlmJudgeContext } from "../../../_llm/graders/llm-judge.js";
+
+export { llmJudge } from "../../../_llm/graders/llm-judge.js";
+export type { LlmJudgeGraderConfig, LlmJudgeContext } from "../../../_llm/graders/llm-judge.js";
+
+const DEFAULT_JUDGE_MODEL = "opus-4.6";
+
+interface LlmConfigShape {
+  judgeModel?: string;
+}
+
+function readJudgeModel(): string {
+  const repoRoot = process.env.ZOTO_EVAL_REPO_ROOT
+    ? resolve(process.env.ZOTO_EVAL_REPO_ROOT)
+    : resolve(process.cwd());
+  const cfgPath = resolve(repoRoot, ".zoto", "eval-system", "config.json");
+  if (!existsSync(cfgPath)) return DEFAULT_JUDGE_MODEL;
+  try {
+    const j = JSON.parse(readFileSync(cfgPath, "utf-8")) as LlmConfigShape;
+    if (typeof j.judgeModel === "string" && j.judgeModel.trim().length > 0) {
+      return j.judgeModel;
+    }
+  } catch {
+    /* fall through */
+  }
+  return DEFAULT_JUDGE_MODEL;
+}
+
+/**
+ * Build a `LlmJudgeContext` whose `judge(...)` callable dispatches to the
+ * configured judge model via the bridge. The judge agent is created and
+ * disposed per call — small but acceptable cost given how rare judge
+ * invocations are inside a normal LLM eval run.
+ */
+export function buildJudgeContext(opts?: {
+  apiKey?: string;
+  cwd?: string;
+}): LlmJudgeContext {
+  return {
+    async judge({ prompt, model }) {
+      const apiKey = opts?.apiKey ?? process.env.CURSOR_API_KEY;
+      if (!apiKey) {
+        throw new Error(
+          "CURSOR_API_KEY is not set; the LLM judge cannot run. Set the env var or run without an llm-judge grader.",
+        );
+      }
+      const judgeModel = model ?? readJudgeModel();
+      const agent = await createAgent({
+        apiKey,
+        modelId: judgeModel,
+        cwd: opts?.cwd ?? process.cwd(),
+      });
+      try {
+        const run = await sendPrompt(agent, prompt);
+        const { text } = await awaitRun(run);
+        return parseJudgeJson(text);
+      } finally {
+        closeAgent(agent);
+      }
+    },
+  };
+}
+
+function parseJudgeJson(text: string): { score: number; detail: string } {
+  const trimmed = text.trim();
+  const open = trimmed.indexOf("{");
+  const close = trimmed.lastIndexOf("}");
+  if (open === -1 || close === -1 || close <= open) {
+    return {
+      score: 0,
+      detail: `judge returned non-JSON output: ${trimmed.slice(0, 200)}`,
+    };
+  }
+  try {
+    const obj = JSON.parse(trimmed.slice(open, close + 1)) as {
+      score?: unknown;
+      detail?: unknown;
+    };
+    const score = typeof obj.score === "number" ? clamp01(obj.score) : 0;
+    const detail = typeof obj.detail === "string" ? obj.detail : "";
+    return { score, detail };
+  } catch (e) {
+    return {
+      score: 0,
+      detail: `judge JSON parse failed: ${(e as Error).message}`,
+    };
+  }
+}
+
+function clamp01(n: number): number {
+  if (Number.isNaN(n)) return 0;
+  return Math.min(1, Math.max(0, n));
+}

@@ -1,0 +1,83 @@
+// _meta.generated: true
+/**
+ * Custom vitest reporter for the LLM `code` strategy.
+ *
+ * Stamped at `<host-repo>/evals/llm/_shared/reporters/zoto-llm-reporter.ts`
+ * by `scripts/eval-stamp.ts#stampLlmCodePerPrimitive` (subtask 09) when
+ * `llm.codeFramework === "vitest"`.
+ *
+ * Aggregation pattern
+ * -------------------
+ * Per-primitive `*.test.ts` files emit a sidecar JSON file per case under
+ * `$ZOTO_EVAL_RUN_SIDECAR_DIR/` (defaults to
+ * `evals/_runs/<runId>/_pending/llm-cases/`). At run end this reporter
+ * walks the sidecar directory and aggregates every JSON document into a
+ * single `evals/_runs/<runId>/llm.yml` matching `result.schema.json`.
+ *
+ * The sidecar pattern keeps the reporter framework-agnostic (jest uses
+ * the same case-runner sidecar contract) and works in worker-pooled
+ * runs where in-process registries would not.
+ */
+import { existsSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+
+import type { Reporter, Vitest } from "vitest/node";
+
+import { aggregateRunFromSidecars } from "../case-runner.js";
+
+const REPO_ROOT = process.env.ZOTO_EVAL_REPO_ROOT
+  ? resolve(process.env.ZOTO_EVAL_REPO_ROOT)
+  : resolve(process.cwd());
+const RUN_DIR_REL = "evals/_runs";
+
+export default class ZotoLlmReporter implements Reporter {
+  private startedAt = "";
+  private ctx: Vitest | null = null;
+
+  onInit(ctx: Vitest): void {
+    this.ctx = ctx;
+    this.startedAt = new Date().toISOString();
+  }
+
+  onFinished(): void {
+    const endedAt = new Date().toISOString();
+    const runId = process.env.ZOTO_EVAL_RUN_ID ?? computeRunId(this.startedAt || endedAt);
+    const sidecarDir =
+      process.env.ZOTO_EVAL_RUN_SIDECAR_DIR ??
+      join(REPO_ROOT, RUN_DIR_REL, runId, "_pending", "llm-cases");
+    const dest = join(REPO_ROOT, RUN_DIR_REL, runId, "llm.yml");
+    const model = readModelFromConfig() ?? process.env.ZOTO_EVAL_MODEL;
+
+    const doc = aggregateRunFromSidecars({
+      runId,
+      startedAt: this.startedAt || endedAt,
+      endedAt,
+      model,
+      sidecarDir,
+      destPath: dest,
+    });
+
+    const message = `[zoto-llm-reporter] wrote ${dest} (cases=${doc.totals.cases}, passed=${doc.totals.passed}, failed=${doc.totals.failed})`;
+    if (this.ctx?.logger) this.ctx.logger.log(message);
+    else process.stdout.write(`${message}\n`);
+  }
+}
+
+export function computeRunId(startedAt: string): string {
+  return startedAt
+    .replace(/\..*$/, "")
+    .replace(/[-:Z]/g, "");
+}
+
+function readModelFromConfig(): string | undefined {
+  const cfgPath = join(REPO_ROOT, ".zoto", "eval-system", "config.json");
+  if (!existsSync(cfgPath)) return undefined;
+  try {
+    const j = JSON.parse(readFileSync(cfgPath, "utf-8")) as {
+      llm?: { model?: { id?: string } };
+    };
+    return j.llm?.model?.id;
+  } catch {
+    return undefined;
+  }
+}
