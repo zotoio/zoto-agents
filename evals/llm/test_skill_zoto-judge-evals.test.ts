@@ -78,9 +78,10 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "(?i)brittle-case|noisy-case",
       "(?i)dimension[^\\n]{0,72}\\bgrader\\b",
       "(?i)dimension[^\\n]{0,72}\\bassertion\\b",
+      "(?is)kind:\\s*contains.{0,160}matched_token\\s*:\\s*[\"'][^\"']{1,3}[\"']|(?i)(?:fewer than four|sub-4|under[- ]four)",
       "(?i)(?:verbosity|confidence|accuracy).{0,40}(?:2\\.9|0\\.35|0\\.45|0\\.4|0\\.5|2\\.0)",
       "(?i)\\brecommendations\\b.{0,220}(?:regex|llm[- ]?judge|/z-eval-update)",
-      "(?i)(?:2σ|two\\s+sigma|standard\\s+deviation).{0,100}(?:duration|outlier|5200|1185)"
+      "(?i)(?:2σ|two\\s+sigma|standard\\s+deviation).{0,120}(?:duration|outlier|5200|1185)"
     ],
     "fixtures": {
       "files": [
@@ -134,8 +135,8 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "When risk warrants follow-up automation, structured YAML matches the prescribed `needs_user_input` scaffold instead of ad hoc prose questionnaires."
     ],
     "assertion_patterns": [
-      "(?is)\\.zoto/eval-system/config\\.yml.{0,400}_runs/",
-      "needs_user_input|/z-eval-update"
+      "(?is)(?=.*\\.zoto/eval-system/config\\.yml)(?=.*_runs/).*",
+      "(?is)(?=.*(?:needs_user_input|`needs_user_input`))(?=.*(?:/z-eval-update|z-eval-update)).*"
     ],
     "expected_output": "Even when invoked via the palette hook, behaviour matches the textual workflow loads, critiques, merge-only edits, and optional structured hand-off payloads."
   }

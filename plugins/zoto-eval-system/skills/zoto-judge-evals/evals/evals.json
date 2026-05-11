@@ -16,13 +16,13 @@
     },
     {
       "id": 2,
-      "prompt": "Run /z-eval-judge on a llm.yml where several contains graders match only 2-character strings.",
-      "expected_output": "The judge flags the weak graders and, via askQuestion, offers to run /z-eval-update on the affected skills.",
+      "prompt": "Run /z-eval-judge on a llm.yml where brittle-case lists several `contains` graders whose `matched_token` needles are only two characters each (loose substring checks).",
+      "expected_output": "The judge flags those grader rows, ties recommendations to regex or llm-judge style scorers, and surfaces a structured needs_user_input hand-off toward /z-eval-update instead of editing eval sources inline.",
       "files": [],
       "assertions": [
         "At least one finding has dimension: grader for each flagged case",
-        "The detail on each grader finding names the weak string or grader type",
-        "askQuestion was used to offer handoff to /z-eval-update",
+        "The detail on each grader finding quotes the matched_token value or states it is shorter than four characters of effective evidence",
+        "needs_user_input (or equivalent structured questions/options) routes remediation through /z-eval-update without silent edits to eval registrations",
         "No evals.json files were modified by this skill directly"
       ]
     },
