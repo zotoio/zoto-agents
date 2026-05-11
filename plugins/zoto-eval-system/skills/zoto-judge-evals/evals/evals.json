@@ -51,11 +51,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-        "last_updated": "2026-05-07T10:31:20.293Z",
+        "last_updated": "2026-05-08T11:45:37.014Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-          "analysed_at": "2026-05-07T10:31:20.293Z",
+          "analysed_at": "2026-05-08T11:45:37.014Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases exercise post-hoc scan of the freshest `_runs` bundle, sceptical grading heuristics, append-only enrichment of `llm.yml`, explicit failure when nothing is runnable yet, and updater handoffs expressed only as YAML `needs_user_input` rather than interactive prompts from this skill."
         }
@@ -73,11 +73,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-        "last_updated": "2026-05-07T10:31:20.293Z",
+        "last_updated": "2026-05-08T11:45:37.014Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-          "analysed_at": "2026-05-07T10:31:20.293Z",
+          "analysed_at": "2026-05-08T11:45:37.014Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases exercise post-hoc scan of the freshest `_runs` bundle, sceptical grading heuristics, append-only enrichment of `llm.yml`, explicit failure when nothing is runnable yet, and updater handoffs expressed only as YAML `needs_user_input` rather than interactive prompts from this skill.",
           "fixture_justifications": [
@@ -114,17 +114,17 @@
       "_meta": {
         "generated": true,
         "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-        "last_updated": "2026-05-07T10:31:20.293Z",
+        "last_updated": "2026-05-08T11:45:37.014Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-          "analysed_at": "2026-05-07T10:31:20.293Z",
+          "analysed_at": "2026-05-08T11:45:37.014Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases exercise post-hoc scan of the freshest `_runs` bundle, sceptical grading heuristics, append-only enrichment of `llm.yml`, explicit failure when nothing is runnable yet, and updater handoffs expressed only as YAML `needs_user_input` rather than interactive prompts from this skill.",
           "fixture_justifications": [
             "Provides the configuration file cited by the skill so `evalsDir` resolves to `evals`.",
             "Offers static backend totals the skill merges with llm-derived signals.",
-            "Seeds contradictory assertion coverage versus grader transcripts plus risky soft metrics and a two-letter contains match for heuristic review.",
+            "Seeds contradictory assertion coverage versus grader transcripts plus risky soft metrics and several sub-four-character contains graders for heuristic review.",
             "Supplies merged rollup YAML the workflow reads alongside per-backend files.",
             "Captures runnable log evidence the skill cross-checks against structured metrics."
           ]
@@ -142,7 +142,7 @@
           },
           {
             "path": "workspace/evals/_runs/20260201T090000Z/llm.yml",
-            "content": "totals:\n  cases: 2\naggregates:\n  mean_duration_ms: 1200\n  stddev_duration_ms: 95\n\ncases:\n  noisy-case:\n    verbosity: 2.9\n    confidence: 0.35\n    accuracy: 0.45\n    duration_ms: 5200\n  brittle-case:\n    graders:\n      - kind: contains\n        matched_token: \"ai\"\n    duration_ms: 1185\nassertions_checked:\n  noisy-case:\n    - id: parity\n      satisfied: false\n"
+            "content": "totals:\n  cases: 2\naggregates:\n  mean_duration_ms: 1200\n  stddev_duration_ms: 95\n\ncases:\n  noisy-case:\n    verbosity: 2.9\n    confidence: 0.35\n    accuracy: 0.45\n    duration_ms: 5200\n  brittle-case:\n    graders:\n      - kind: contains\n        matched_token: \"ai\"\n      - kind: contains\n        matched_token: \"to\"\n      - kind: contains\n        matched_token: \"no\"\n    duration_ms: 1185\nassertions_checked:\n  noisy-case:\n    - id: parity\n      satisfied: false\n"
           },
           {
             "path": "workspace/evals/_runs/20260201T090000Z/report.yml",
@@ -168,11 +168,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-        "last_updated": "2026-05-07T10:31:20.293Z",
+        "last_updated": "2026-05-08T11:45:37.014Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-          "analysed_at": "2026-05-07T10:31:20.293Z",
+          "analysed_at": "2026-05-08T11:45:37.014Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases exercise post-hoc scan of the freshest `_runs` bundle, sceptical grading heuristics, append-only enrichment of `llm.yml`, explicit failure when nothing is runnable yet, and updater handoffs expressed only as YAML `needs_user_input` rather than interactive prompts from this skill."
         }
@@ -190,11 +190,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-        "last_updated": "2026-05-07T10:31:20.293Z",
+        "last_updated": "2026-05-08T11:45:37.014Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-          "analysed_at": "2026-05-07T10:31:20.293Z",
+          "analysed_at": "2026-05-08T11:45:37.014Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases exercise post-hoc scan of the freshest `_runs` bundle, sceptical grading heuristics, append-only enrichment of `llm.yml`, explicit failure when nothing is runnable yet, and updater handoffs expressed only as YAML `needs_user_input` rather than interactive prompts from this skill."
         }

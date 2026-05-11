@@ -10,54 +10,13 @@
  * `evals/_llm/_user-case-guards.ts#isGeneratedFile(path, { strict: true })`
  * to decide whether this file is safe to replace or delete. Edit the
  * template, not this emitted file.
- *
- * Canonical SDK pattern (routed through `_shared/sdk-bridge.ts`):
- *
- *   const agent = await createAgent({ modelId, cwd });
- *   const run = await sendPrompt(agent, prompt);
- *   const { text, result } = await awaitRun(run);
- *   expect(text).toMatch(/.../);
  */
 import { describe, it, afterAll, expect } from "vitest";
 
-import {
-  createAgent,
-  sendPrompt,
-  awaitRun,
-  closeAgent,
-  resolveTokens,
-} from "./_shared/sdk-bridge.js";
-import {
-  buildSandbox,
-  diffSandbox,
-  postSnapshot,
-  preSnapshot,
-} from "./_shared/sandbox-helpers.js";
-import { reportCase, reportSuite } from "./_shared/zoto-llm-reporter.js";
-import { contains } from "./_shared/graders/contains.js";
-import { regex } from "./_shared/graders/regex.js";
-import { toolCalled } from "./_shared/graders/tool-called.js";
-import { llmJudge } from "./_shared/graders/llm-judge.js";
-import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
+import { defineLlmCodeEval } from "./_shared/run-code-strategy-suite.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
-
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "post-run-adjudication-pulls-config-and-merges-judge-notes",
     "prompt": "Cursor just finished wiring the newest LLM eval batch. Pull up the adversarial judge evals guidance, open the freshest `_runs` slice under our configured evals folder, ingest the three YAML aggregates plus the raw case logs, and append a sceptical critique without rerun.",
@@ -71,8 +30,9 @@ const CASES: CaseDefinition[] = [
     "assertion_patterns": [
       "\\.zoto/eval-system/config\\.yml",
       "\\{evalsDir\\}/_runs/",
-      "judge",
-      "recommendations"
+      "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
+      "\\bjudge\\b.{0,220}\\bfindings\\b|\\bfindings\\b.{0,220}\\bjudge\\b",
+      "\\brecommendations\\b.{0,120}(?:grader|/z-eval-update|eval-update|regex|llm)"
     ],
     "expected_output": "The agent cites the resolved run timestamp, summarizes cross-case risks, updates only the trailing judge section in `llm.yml`, leaves prior totals untouched, and never schedules another evaluation pass."
   },
@@ -85,9 +45,9 @@ const CASES: CaseDefinition[] = [
       "The agent avoids inventing sandbox paths outside the declared `evalsDir` hierarchy."
     ],
     "assertion_patterns": [
-      "\\{evalsDir\\}/_runs/",
-      "judge",
-      "evalsDir"
+      "/z-eval-execute",
+      "(?i)(?:\\{evalsDir\\}/_runs/|evals/_runs).{0,200}(?:no|missing|without|empty|never).{0,120}(?:timestamp|run directory|eligible)",
+      "(?i)(?:does not|do not|won't|refuses to).{0,80}(?:append|judge|\\byaml\\b)"
     ],
     "fixtures": {
       "files": [
@@ -115,11 +75,12 @@ const CASES: CaseDefinition[] = [
       "The resulting `llm.yml` retains the preceding `totals` and `aggregates` verbatim while nesting the appended `judge` content afterward."
     ],
     "assertion_patterns": [
-      "findings",
-      "findings",
-      "findings",
-      "recommendations",
-      "llm\\.yml"
+      "(?i)brittle-case|noisy-case",
+      "(?i)dimension[^\\n]{0,72}\\bgrader\\b",
+      "(?i)dimension[^\\n]{0,72}\\bassertion\\b",
+      "(?i)(?:verbosity|confidence|accuracy).{0,40}(?:2\\.9|0\\.35|0\\.45|0\\.4|0\\.5|2\\.0)",
+      "(?i)\\brecommendations\\b.{0,220}(?:regex|llm[- ]?judge|/z-eval-update)",
+      "(?i)(?:2σ|two\\s+sigma|standard\\s+deviation).{0,100}(?:duration|outlier|5200|1185)"
     ],
     "fixtures": {
       "files": [
@@ -133,7 +94,7 @@ const CASES: CaseDefinition[] = [
         },
         {
           "path": "workspace/evals/_runs/20260201T090000Z/llm.yml",
-          "content": "totals:\n  cases: 2\naggregates:\n  mean_duration_ms: 1200\n  stddev_duration_ms: 95\n\ncases:\n  noisy-case:\n    verbosity: 2.9\n    confidence: 0.35\n    accuracy: 0.45\n    duration_ms: 5200\n  brittle-case:\n    graders:\n      - kind: contains\n        matched_token: \"ai\"\n    duration_ms: 1185\nassertions_checked:\n  noisy-case:\n    - id: parity\n      satisfied: false\n"
+          "content": "totals:\n  cases: 2\naggregates:\n  mean_duration_ms: 1200\n  stddev_duration_ms: 95\n\ncases:\n  noisy-case:\n    verbosity: 2.9\n    confidence: 0.35\n    accuracy: 0.45\n    duration_ms: 5200\n  brittle-case:\n    graders:\n      - kind: contains\n        matched_token: \"ai\"\n      - kind: contains\n        matched_token: \"to\"\n      - kind: contains\n        matched_token: \"no\"\n    duration_ms: 1185\nassertions_checked:\n  noisy-case:\n    - id: parity\n      satisfied: false\n"
         },
         {
           "path": "workspace/evals/_runs/20260201T090000Z/report.yml",
@@ -157,10 +118,10 @@ const CASES: CaseDefinition[] = [
       "No `plugins/**/evals/evals.json` files nor other eval registrations are rewritten during this step; escalation stays descriptive."
     ],
     "assertion_patterns": [
-      "needs_user_input\\.reason",
-      "askQuestion",
-      "/z-eval-update",
-      "plugins/\\*\\*/evals/evals\\.json"
+      "needs_user_input\\s*:\\s*(?:\\n|$)|`needs_user_input`|needs_user_input\\.reason",
+      "(?i)\\bid:\\s*handoff\\b",
+      "/z-eval-update|z-eval-update",
+      "(?i)plugins/\\*\\*/evals/evals\\.json|evals/evals\\.json"
     ],
     "expected_output": "The agent returns a YAML `needs_user_input` fragment with enumerated options covering batch approval, supervised updates, or cancellation, referencing affected skill targets implicitly or explicitly."
   },
@@ -173,189 +134,21 @@ const CASES: CaseDefinition[] = [
       "When risk warrants follow-up automation, structured YAML matches the prescribed `needs_user_input` scaffold instead of ad hoc prose questionnaires."
     ],
     "assertion_patterns": [
-      "\\.zoto/eval-system/config\\.yml",
-      "needs_user_input"
+      "(?is)\\.zoto/eval-system/config\\.yml.{0,400}_runs/",
+      "needs_user_input|/z-eval-update"
     ],
     "expected_output": "Even when invoked via the palette hook, behaviour matches the textual workflow loads, critiques, merge-only edits, and optional structured hand-off payloads."
   }
 ];
-const TARGET_ID = "skill:zoto-judge-evals";
-const MODEL_ID = process.env.ZOTO_EVAL_MODEL ?? "composer-2";
-const JUDGE_MODEL = process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
-const REPO_ROOT = process.cwd();
-const SUITE_START = Date.now();
-const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-describe("skill:zoto-judge-evals", () => {
-  afterAll(() => {
-    reportSuite({
-      target_id: TARGET_ID,
-      started_at: new Date(SUITE_START).toISOString(),
-      ended_at: new Date().toISOString(),
-      model: MODEL_ID,
-    });
-  });
-
-  for (const c of CASES) {
-    const testFn = async (): Promise<void> => {
-      const caseStart = Date.now();
-      const sandbox = buildSandbox({
-        runId: TARGET_ID,
-        caseId: c.id,
-        repoRoot: REPO_ROOT,
-        fixtures: c.fixtures as never,
-      });
-
-      const before = preSnapshot(sandbox.rootDir);
-      const agent = await createAgent({ modelId: MODEL_ID, cwd: sandbox.rootDir });
-
-      let text = "";
-      let tokens = 0;
-      let tokenSource = "approximate:chars/4";
-      let status: "passed" | "failed" | "errored" = "passed";
-      const reports: GraderReport[] = [];
-      try {
-        const run = await sendPrompt(agent, c.prompt);
-        const awaited = await awaitRun(run);
-        text = awaited.text;
-        const resolved = resolveTokens(awaited.result, c.prompt, text);
-        tokens = resolved.tokens;
-        tokenSource = resolved.source;
-
-        for (const followUp of c.follow_ups ?? []) {
-          const followRun = await sendPrompt(agent, followUp);
-          const followAwaited = await awaitRun(followRun);
-          text += "\n" + followAwaited.text;
-          tokens += resolveTokens(followAwaited.result, followUp, followAwaited.text).tokens;
-        }
-
-        for (const g of c.graders ?? []) {
-          const gtype = (g as { type?: string }).type;
-          if (gtype === "contains") reports.push(contains(g as never, text));
-          else if (gtype === "regex") reports.push(regex(g as never, text));
-          else if (gtype === "tool-called") reports.push(toolCalled(g as never, []));
-          else if (gtype === "llm-judge") {
-            reports.push(
-              await llmJudge(g as never, text, {
-                judge: async ({ prompt }) => {
-                  const judgeAgent = await createAgent({ modelId: JUDGE_MODEL, cwd: sandbox.rootDir });
-                  try {
-                    const jr = await sendPrompt(judgeAgent, prompt);
-                    const ja = await awaitRun(jr);
-                    return parseJudgeScore(ja.text);
-                  } finally {
-                    closeAgent(judgeAgent);
-                  }
-                },
-              }),
-            );
-          }
-        }
-
-        /* Enriched assertion list: one rubric-backed judge covers every analyser
-         * requirement (avoids loose short `contains` needles on assertion text). */
-        if (c.assertions.length > 0) {
-          const rubric = [
-            "You grade an AI agent's final natural-language reply.",
-            "Score how well the RESPONSE semantically satisfies EVERY requirement below; paraphrases count.",
-            "Return score 1.0 only when all requirements are clearly satisfied; lower scores when any important requirement is missing or contradicted.",
-            "",
-            "REQUIREMENTS:",
-            ...c.assertions.map((a, i) => `${i + 1}. ${a}`),
-          ].join("\n");
-          reports.push(
-            await llmJudge(
-              {
-                type: "llm-judge",
-                rubric,
-                passThreshold: 0.72,
-              },
-              text,
-              {
-                judge: async ({ prompt }) => {
-                  const judgeAgent = await createAgent({ modelId: JUDGE_MODEL, cwd: sandbox.rootDir });
-                  try {
-                    const jr = await sendPrompt(judgeAgent, prompt);
-                    const ja = await awaitRun(jr);
-                    return parseJudgeScore(ja.text);
-                  } finally {
-                    closeAgent(judgeAgent);
-                  }
-                },
-              },
-            ),
-          );
-        }
-
-        for (const pattern of c.assertion_patterns ?? []) {
-          expect(text).toMatch(new RegExp(pattern));
-        }
-
-        const failed = reports.some((r) => r.verdict === "fail");
-        status = failed ? "failed" : "passed";
-      } catch (err) {
-        status = "errored";
-        reports.push({
-          grader: "runtime",
-          verdict: "fail",
-          detail: (err as Error).message,
-        });
-        throw err;
-      } finally {
-        closeAgent(agent);
-        const after = postSnapshot(sandbox.rootDir);
-        const mutations = diffSandbox(before, after);
-        const caseEnd = Date.now();
-        reportCase({
-          target_id: TARGET_ID,
-          case: {
-            id: c.id,
-            status,
-            tokens,
-            duration_ms: caseEnd - caseStart,
-            verbosity:
-              c.prompt.length === 0
-                ? 0
-                : Math.round((text.length / Math.max(1, c.prompt.length)) * 1000) / 1000,
-            accuracy:
-              reports.length === 0
-                ? 0
-                : Math.round(
-                    (reports.filter((r) => r.verdict === "pass").length / reports.length) * 1000,
-                  ) / 1000,
-            confidence:
-              reports.length === 0
-                ? 0
-                : Math.round(
-                    (reports.filter((r) => r.verdict !== "fail").length / reports.length) * 1000,
-                  ) / 1000,
-            grader_reports: reports,
-            repo_mutations: mutations,
-            token_source: tokenSource,
-            expected_output: c.expected_output,
-            assertions: c.assertions,
-          },
-        });
-      }
-    };
-
-    if (!API_KEY_PRESENT) {
-      it.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
-    } else {
-      it(c.id, testFn, 180000);
-    }
-  }
+defineLlmCodeEval({
+  targetId: "skill:zoto-judge-evals",
+  cases: CASES,
+  modelId: process.env.ZOTO_EVAL_MODEL ?? "composer-2",
+  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6",
+  caseTimeoutMs: 180000,
+  describe,
+  it,
+  afterAll,
+  expect,
 });
-
-function parseJudgeScore(raw: string): { score: number; detail: string } {
-  const match = raw.match(/\{[\s\S]*\}/);
-  if (!match) return { score: 0, detail: `unparseable judge response: ${raw.slice(0, 200)}` };
-  try {
-    const obj = JSON.parse(match[0]) as { score?: unknown; detail?: unknown };
-    const score = typeof obj.score === "number" ? Math.max(0, Math.min(1, obj.score)) : 0;
-    const detail = typeof obj.detail === "string" ? obj.detail : "";
-    return { score, detail };
-  } catch (err) {
-    return { score: 0, detail: `judge JSON parse failure: ${(err as Error).message}` };
-  }
-}
