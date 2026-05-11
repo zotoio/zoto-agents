@@ -32,7 +32,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "\\{evalsDir\\}/_runs/",
       "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
       "\\bjudge\\b.{0,220}\\bfindings\\b|\\bfindings\\b.{0,220}\\bjudge\\b",
-      "\\brecommendations\\b.{0,120}(?:grader|/z-eval-update|eval-update|regex|llm)"
+      "\\brecommendations\\b.{0,160}(?:grader\\s+upgrade|/z-eval-update|eval-update|\\bregex\\b|llm[- ]?judge)"
     ],
     "expected_output": "The agent cites the resolved run timestamp, summarizes cross-case risks, updates only the trailing judge section in `llm.yml`, leaves prior totals untouched, and never schedules another evaluation pass."
   },
@@ -75,10 +75,10 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "The resulting `llm.yml` retains the preceding `totals` and `aggregates` verbatim while nesting the appended `judge` content afterward."
     ],
     "assertion_patterns": [
-      "(?i)brittle-case|noisy-case",
+      "(?is)(?=.*\\b(?:brittle-case|noisy-case)\\b)(?=.*\\bfindings\\b).*",
       "(?i)dimension[^\\n]{0,72}\\bgrader\\b",
       "(?i)dimension[^\\n]{0,72}\\bassertion\\b",
-      "(?is)kind:\\s*contains.{0,160}matched_token\\s*:\\s*[\"'][^\"']{1,3}[\"']|(?i)(?:fewer than four|sub-4|under[- ]four)",
+      "(?is)kind:\\s*contains.{0,200}matched_token\\s*:\\s*[\"'][^\"']{1,3}[\"']|(?i)(?:\\bmatched_token\\b|\\bcontains\\s+grader\\b|kind:\\s*contains).{0,220}\\b(?:fewer than four|two[- ]character|[12][- ]char|sub-4|under[- ]four|short(?:er)?\\s+needle)\\b",
       "(?i)(?:verbosity|confidence|accuracy).{0,40}(?:2\\.9|0\\.35|0\\.45|0\\.4|0\\.5|2\\.0)",
       "(?i)\\brecommendations\\b.{0,220}(?:regex|llm[- ]?judge|/z-eval-update)",
       "(?i)(?:2σ|two\\s+sigma|standard\\s+deviation).{0,120}(?:duration|outlier|5200|1185)"
@@ -135,7 +135,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "When risk warrants follow-up automation, structured YAML matches the prescribed `needs_user_input` scaffold instead of ad hoc prose questionnaires."
     ],
     "assertion_patterns": [
-      "(?is)(?=.*\\.zoto/eval-system/config\\.yml)(?=.*_runs/).*",
+      "(?is)(?=.*\\.zoto/eval-system/config\\.yml)(?=.*(?:evals/_runs/|\\{evalsDir\\}/_runs/)).*",
       "(?is)(?=.*(?:needs_user_input|`needs_user_input`))(?=.*(?:/z-eval-update|z-eval-update)).*"
     ],
     "expected_output": "Even when invoked via the palette hook, behaviour matches the textual workflow loads, critiques, merge-only edits, and optional structured hand-off payloads."
