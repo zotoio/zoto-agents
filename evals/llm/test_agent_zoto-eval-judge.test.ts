@@ -30,9 +30,9 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "The described change to llm.yml appends judge material only and does not overwrite totals or aggregates blocks."
     ],
     "assertion_patterns": [
-      "evals/_runs|_runs/",
+      "(?i)evals/_runs/|evals/_runs\\b|\\{evalsDir\\}/_runs/",
       "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
-      "(?i)\\bjudge\\b.{0,260}\\b(?:totals|aggregates|grader|contains|matched_token)\\b|\\b(?:totals|aggregates)\\b.{0,260}\\bjudge\\b"
+      "(?i)\\bjudge\\b.{0,280}(?:\\b(?:totals|aggregates|grader|matched_token)\\b|contains\\s+grader|kind:\\s*contains)|\\b(?:totals|aggregates)\\b.{0,280}\\bjudge\\b"
     ],
     "expected_output": "A concise audit that references specific findings from those files and describes the new judge section being appended to llm.yml without altering existing totals or aggregates."
   },
@@ -47,6 +47,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
     "assertion_patterns": [
       "/z-eval-update",
       "(?is)(?=.*\\bneeds_user_input\\b)(?=.*\\b(?:questions|options)\\b)(?=.*(?:/z-eval-update|z-eval-update)).*",
+      "(?i)(?:too\\s+loose|brittle).{0,220}(?:contains|matched_token|\\bgrader\\b)|(?:matched_token|contains\\s+grader|kind:\\s*contains).{0,220}(?:too\\s+loose|tighten|stricter)",
       "(?i)\\b(?:assertion_patterns|matched_token|contains\\s+grader)\\b.{0,240}(?:tighten|stricter|longer|regex|llm[- ]?judge|needle|rubric)",
       "(?i)(?:will not|won't|without|does not|do not|must not|refuses).{0,140}(?:direct|inline|silently).{0,100}(?:edit|modify|rewrite|patch).{0,100}(?:eval|test_skill|evals\\.json|case\\.ts)",
       "(?i)(?:\\baskQuestion\\b.{0,120}(?:not|won't|must not|avoid|without)|(?:won't|must not|avoid|not invoke|does not invoke).{0,150}\\baskQuestion\\b)"
