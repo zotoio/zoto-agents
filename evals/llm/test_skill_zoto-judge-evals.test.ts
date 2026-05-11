@@ -76,7 +76,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
     ],
     "assertion_patterns": [
       "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:noisy-case|brittle-case)\\b).*",
-      "(?i)\\bdimension:\\s*grader\\b|kind:\\s*contains|matched_token:\\s*\"(?:ai|to|no)\"",
+      "(?is)(?=.*\\bfindings\\b)(?=.*\\bdimension:\\s*grader\\b)(?=.*\\bbrittle-case\\b)(?=.*matched_token\\s*:\\s*\"(?:ai|to|no)\").*",
       "(?i)\\brecommendations\\b.{0,280}(?:regex|llm[- ]?judge)",
       "(?is)(?=.*\\bverbosity\\b|\\bconfidence\\b|\\baccuracy\\b)(?=.*\\bfindings\\b).*",
       "(?is)(?=.*\\btotals\\b)(?=.*\\baggregates\\b)(?=.*\\bjudge\\b)(?=.*(?:llm\\.yml|llm\\s+yaml)).*"
