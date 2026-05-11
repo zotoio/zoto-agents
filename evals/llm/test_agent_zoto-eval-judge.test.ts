@@ -31,9 +31,8 @@ const CASES: CodeStrategyCaseDefinition[] = [
     ],
     "assertion_patterns": [
       "evals/_runs|_runs/",
-      "static\\.yml",
-      "llm\\.yml",
-      "(?i)\\bjudge\\b.{0,200}\\b(?:totals|aggregates|grader|contains)\\b|\\b(?:totals|aggregates)\\b.{0,200}\\bjudge\\b"
+      "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
+      "(?i)\\bjudge\\b.{0,260}\\b(?:totals|aggregates|grader|contains|matched_token)\\b|\\b(?:totals|aggregates)\\b.{0,260}\\bjudge\\b"
     ],
     "expected_output": "A concise audit that references specific findings from those files and describes the new judge section being appended to llm.yml without altering existing totals or aggregates."
   },
@@ -46,9 +45,11 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "The agent does not modify eval JSON or eval definition files directly in its narration or tool plan."
     ],
     "assertion_patterns": [
-      "/z-eval-update|z-eval-update",
-      "needs_user_input|handoff|accept-all|walk",
-      "(?i)(?:will not|won't|without|does not|do not|must not|refuses).{0,120}(?:direct|inline|silently).{0,80}(?:edit|modify|rewrite|patch).{0,80}(?:eval|test_skill|evals\\.json|case\\.ts)"
+      "/z-eval-update",
+      "(?is)(?=.*\\bneeds_user_input\\b)(?=.*\\b(?:questions|options)\\b)(?=.*(?:/z-eval-update|z-eval-update)).*",
+      "(?i)\\b(?:assertion_patterns|matched_token|contains\\s+grader)\\b.{0,240}(?:tighten|stricter|longer|regex|llm[- ]?judge|needle|rubric)",
+      "(?i)(?:will not|won't|without|does not|do not|must not|refuses).{0,140}(?:direct|inline|silently).{0,100}(?:edit|modify|rewrite|patch).{0,100}(?:eval|test_skill|evals\\.json|case\\.ts)",
+      "(?i)(?:\\baskQuestion\\b.{0,120}(?:not|won't|must not|avoid|without)|(?:won't|must not|avoid|not invoke|does not invoke).{0,150}\\baskQuestion\\b)"
     ],
     "expected_output": "A refusal to apply eval edits directly, plus a structured handoff description that expects operator approval through /z-eval-update rather than silent file edits."
   },
@@ -62,7 +63,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
     "assertion_patterns": [
       "/z-eval-update|z-eval-update",
       "(?i)(?:refuses|won't|will not|do not|does not|must not|instead).{0,160}(?:evals/_llm|eval definition|source|patch|edit).{0,120}(?:inline|direct|yourself|checked-in)",
-      "(?i)askQuestion|command resume|palette"
+      "(?is)(?=.*(?:\\baskQuestion\\b|command resume))(?=.*(?:/z-eval-update|palette|z-eval-update)).*"
     ],
     "expected_output": "A clear refusal to change eval definitions inline, with instructions to use /z-eval-update after the palette command collects answers."
   }
