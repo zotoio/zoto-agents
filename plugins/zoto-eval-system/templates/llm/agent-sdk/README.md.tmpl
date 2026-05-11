@@ -42,8 +42,11 @@ The `declarative` strategy reads cases that the LLM analyser
   // the analyser justified the extra files.
   "fixtures": { "files": [{ "path": "extra.md", "content": "..." }] },
 
-  // Optional graders. Re-uses contains/regex/tool-called/llm-judge.
-  "graders": [{ "type": "contains", "needle": "manifest.yml" }],
+  // Optional graders. Prefer regex or llm-judge for precision; generated
+  // cases reject `contains` needles shorter than 18 trimmed characters.
+  "graders": [
+    { "type": "regex", "pattern": "\\bmanifest\\.yml\\b", "flags": "i" }
+  ],
 
   "_meta": {
     "generated": true,
@@ -77,6 +80,7 @@ the runner returns exit code 1 BEFORE any SDK call:
 |------|----------------|
 | `prompt` is a non-placeholder string ≥ 8 chars | `prompt is empty` / `prompt is too short` / `prompt contains placeholder marker` |
 | `assertions[]` is non-empty and every entry is a non-empty string | `case has no assertions; declarative runner requires ≥1` |
+| Generated case: each `contains` grader `needle` (trimmed) ≥ 18 chars | `needle is shorter than 18 characters … use a longer phrase, regex, or llm-judge` |
 | Generated case carries a complete `_meta.primitive_analysis` block | `_meta.primitive_analysis missing on a generated case` / `_meta.primitive_analysis missing required fields: …` |
 
 This makes drift cheap to detect: any case that lost its analyser
