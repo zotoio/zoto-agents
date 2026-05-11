@@ -26,7 +26,7 @@ import {
   loadEvalFile,
   validateEnriched,
   type EvalCase,
-} from "./case.js";
+} from "../../plugins/zoto-eval-system/engine/case.js";
 
 interface StepResult {
   name: string;
@@ -279,6 +279,63 @@ try {
       }
     },
   );
+
+  /* ------------------------------------------------------------------- */
+  /* Grader list validation (declarative runner wiring)                   */
+  /* ------------------------------------------------------------------- */
+  step("rejects generated case with unknown grader type", () => {
+    const c = enrichedCase("bad-grader-type", {
+      graders: [{ type: "nope", foo: 1 } as unknown as EvalCase["graders"]],
+    });
+    const v = validateEnriched(c);
+    if (v.ok) {
+      throw new Error("case with unknown grader type was unexpectedly accepted");
+    }
+    if (!/unknown type "nope"/i.test(v.reason ?? "")) {
+      throw new Error(`expected unknown-type reason, got: ${v.reason}`);
+    }
+  });
+
+  step("rejects generated case with too-short contains needle", () => {
+    const c = enrichedCase("short-needle", {
+      graders: [{ type: "contains", needle: "ok" }],
+    });
+    const v = validateEnriched(c);
+    if (v.ok) {
+      throw new Error("short contains needle was unexpectedly accepted");
+    }
+    if (!/shorter than 18 characters/i.test(v.reason ?? "")) {
+      throw new Error(`expected short-needle reason, got: ${v.reason}`);
+    }
+  });
+
+  step("user-authored case may use a short contains needle", () => {
+    const c: EvalCase = {
+      id: "user-short-needle",
+      prompt: "User-authored prompt that's still real and contains no placeholder.",
+      assertions: ["Behavioural assertion."],
+      graders: [{ type: "contains", needle: "ok" }],
+    };
+    const v = validateEnriched(c);
+    if (!v.ok) {
+      throw new Error(`user short needle unexpectedly rejected: ${v.reason}`);
+    }
+  });
+
+  step("accepts generated case with well-formed graders", () => {
+    const c = enrichedCase("graders-ok", {
+      graders: [
+        { type: "contains", needle: "adequate phrase for grading" },
+        { type: "regex", pattern: "\\d+", flags: "i", expect: "match" },
+        { type: "tool-called", tool: "Read", minCount: 1 },
+        { type: "llm-judge", rubric: "Response is helpful.", passThreshold: 0.5 },
+      ],
+    });
+    const v = validateEnriched(c);
+    if (!v.ok) {
+      throw new Error(`well-formed graders unexpectedly rejected: ${v.reason}`);
+    }
+  });
 } finally {
   rmSync(root, { recursive: true, force: true });
 }
