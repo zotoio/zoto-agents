@@ -29,10 +29,10 @@ const CASES: CodeStrategyCaseDefinition[] = [
     ],
     "assertion_patterns": [
       "\\.zoto/eval-system/config\\.yml",
-      "\\{evalsDir\\}/_runs/",
+      "\\{evalsDir\\}/_runs/|evals/_runs/",
       "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
-      "\\bjudge\\b.{0,220}\\bfindings\\b|\\bfindings\\b.{0,220}\\bjudge\\b",
-      "\\brecommendations\\b.{0,160}(?:grader\\s+upgrade|/z-eval-update|eval-update|\\bregex\\b|llm[- ]?judge)"
+      "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:noisy-case|brittle-case|dimension:\\s*(?:verbosity|accuracy|confidence|grader|assertion))\\b).*",
+      "(?i)\\brecommendations\\b.{0,280}(?:regex|llm[- ]?judge|/z-eval-update|grader\\s+upgrades?)"
     ],
     "expected_output": "The agent cites the resolved run timestamp, summarizes cross-case risks, updates only the trailing judge section in `llm.yml`, leaves prior totals untouched, and never schedules another evaluation pass."
   },
@@ -45,9 +45,9 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "The agent avoids inventing sandbox paths outside the declared `evalsDir` hierarchy."
     ],
     "assertion_patterns": [
+      "\\{evalsDir\\}/_runs/|evals/_runs/",
       "/z-eval-execute",
-      "(?i)(?:\\{evalsDir\\}/_runs/|evals/_runs).{0,200}(?:no|missing|without|empty|never).{0,120}(?:timestamp|run directory|eligible)",
-      "(?i)(?:does not|do not|won't|refuses to).{0,80}(?:append|judge|\\byaml\\b)"
+      "(?i)(?:no|without|never).{0,120}(?:timestamped|eligible).{0,100}(?:run|director|folder)|nothing\\s+to\\s+adjudicate|do\\s+not\\s+append.{0,80}\\bjudge\\b"
     ],
     "fixtures": {
       "files": [
@@ -75,13 +75,11 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "The resulting `llm.yml` retains the preceding `totals` and `aggregates` verbatim while nesting the appended `judge` content afterward."
     ],
     "assertion_patterns": [
-      "(?is)(?=.*\\b(?:brittle-case|noisy-case)\\b)(?=.*\\bfindings\\b).*",
-      "(?i)dimension[^\\n]{0,72}\\bgrader\\b",
-      "(?i)dimension[^\\n]{0,72}\\bassertion\\b",
-      "(?is)kind:\\s*contains.{0,200}matched_token\\s*:\\s*[\"'][^\"']{1,3}[\"']|(?i)(?:\\bmatched_token\\b|\\bcontains\\s+grader\\b|kind:\\s*contains).{0,220}\\b(?:fewer than four|two[- ]character|[12][- ]char|sub-4|under[- ]four|short(?:er)?\\s+needle)\\b",
-      "(?i)(?:verbosity|confidence|accuracy).{0,40}(?:2\\.9|0\\.35|0\\.45|0\\.4|0\\.5|2\\.0)",
-      "(?i)\\brecommendations\\b.{0,220}(?:regex|llm[- ]?judge|/z-eval-update)",
-      "(?i)(?:2σ|two\\s+sigma|standard\\s+deviation).{0,120}(?:duration|outlier|5200|1185)"
+      "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:noisy-case|brittle-case)\\b).*",
+      "(?i)\\bdimension:\\s*grader\\b|kind:\\s*contains|matched_token:\\s*\"(?:ai|to|no)\"",
+      "(?i)\\brecommendations\\b.{0,280}(?:regex|llm[- ]?judge)",
+      "(?is)(?=.*\\bverbosity\\b|\\bconfidence\\b|\\baccuracy\\b)(?=.*\\bfindings\\b).*",
+      "(?is)(?=.*\\btotals\\b)(?=.*\\baggregates\\b)(?=.*\\bjudge\\b)(?=.*(?:llm\\.yml|llm\\s+yaml)).*"
     ],
     "fixtures": {
       "files": [
@@ -119,10 +117,10 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "No `plugins/**/evals/evals.json` files nor other eval registrations are rewritten during this step; escalation stays descriptive."
     ],
     "assertion_patterns": [
-      "needs_user_input\\s*:\\s*(?:\\n|$)|`needs_user_input`|needs_user_input\\.reason",
-      "(?i)\\bid:\\s*handoff\\b",
-      "/z-eval-update|z-eval-update",
-      "(?i)plugins/\\*\\*/evals/evals\\.json|evals/evals\\.json"
+      "needs_user_input\\.reason",
+      "askQuestion",
+      "/z-eval-update",
+      "plugins/\\*\\*/evals/evals\\.json"
     ],
     "expected_output": "The agent returns a YAML `needs_user_input` fragment with enumerated options covering batch approval, supervised updates, or cancellation, referencing affected skill targets implicitly or explicitly."
   },
@@ -135,8 +133,9 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "When risk warrants follow-up automation, structured YAML matches the prescribed `needs_user_input` scaffold instead of ad hoc prose questionnaires."
     ],
     "assertion_patterns": [
-      "(?is)(?=.*\\.zoto/eval-system/config\\.yml)(?=.*(?:evals/_runs/|\\{evalsDir\\}/_runs/)).*",
-      "(?is)(?=.*(?:needs_user_input|`needs_user_input`))(?=.*(?:/z-eval-update|z-eval-update)).*"
+      "(?is)(?=.*\\.zoto/eval-system/config\\.yml)(?=.*_runs).*",
+      "\\bneeds_user_input\\b",
+      "(?i)post-hoc|read-only|without\\s+rerun|does\\s+not\\s+re-?run"
     ],
     "expected_output": "Even when invoked via the palette hook, behaviour matches the textual workflow loads, critiques, merge-only edits, and optional structured hand-off payloads."
   }

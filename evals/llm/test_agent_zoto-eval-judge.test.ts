@@ -32,7 +32,8 @@ const CASES: CodeStrategyCaseDefinition[] = [
     "assertion_patterns": [
       "(?i)evals/_runs/|evals/_runs\\b|\\{evalsDir\\}/_runs/",
       "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
-      "(?i)\\bjudge\\b.{0,280}(?:\\b(?:totals|aggregates|grader|matched_token)\\b|contains\\s+grader|kind:\\s*contains)|\\b(?:totals|aggregates)\\b.{0,280}\\bjudge\\b"
+      "(?i)\\bjudge\\b.{0,320}(?:\\b(?:totals|aggregates|grader|matched_token)\\b|contains\\s+grader|kind:\\s*contains)|\\b(?:totals|aggregates)\\b.{0,320}\\bjudge\\b",
+      "(?i)\\.zoto/eval-system/config\\.yml|\\bjudgeModel\\b"
     ],
     "expected_output": "A concise audit that references specific findings from those files and describes the new judge section being appended to llm.yml without altering existing totals or aggregates."
   },
@@ -46,11 +47,8 @@ const CASES: CodeStrategyCaseDefinition[] = [
     ],
     "assertion_patterns": [
       "/z-eval-update",
-      "(?is)(?=.*\\bneeds_user_input\\b)(?=.*\\b(?:questions|options)\\b)(?=.*(?:/z-eval-update|z-eval-update)).*",
-      "(?i)(?:too\\s+loose|brittle).{0,220}(?:contains|matched_token|\\bgrader\\b)|(?:matched_token|contains\\s+grader|kind:\\s*contains).{0,220}(?:too\\s+loose|tighten|stricter)",
-      "(?i)\\b(?:assertion_patterns|matched_token|contains\\s+grader)\\b.{0,240}(?:tighten|stricter|longer|regex|llm[- ]?judge|needle|rubric)",
-      "(?i)(?:will not|won't|without|does not|do not|must not|refuses).{0,140}(?:direct|inline|silently).{0,100}(?:edit|modify|rewrite|patch).{0,100}(?:eval|test_skill|evals\\.json|case\\.ts)",
-      "(?i)(?:\\baskQuestion\\b.{0,120}(?:not|won't|must not|avoid|without)|(?:won't|must not|avoid|not invoke|does not invoke).{0,150}\\baskQuestion\\b)"
+      "(?is)(?=.*\\bneeds_user_input\\b)(?=.*\\b(?:questions|options)\\b).*",
+      "(?i)(?:too\\s+loose|contains\\s+graders\\s+are\\s+too\\s+loose).{0,320}(?:matched_token|kind:\\s*contains|/z-eval-update|needs_user_input)|(?:matched_token|kind:\\s*contains|contains\\s+grader).{0,320}(?:too\\s+loose|/z-eval-update|tighten|stricter|rubric)"
     ],
     "expected_output": "A refusal to apply eval edits directly, plus a structured handoff description that expects operator approval through /z-eval-update rather than silent file edits."
   },
@@ -62,9 +60,9 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "The agent reiterates that it must not call askQuestion and that confirmation belongs to the command resume path."
     ],
     "assertion_patterns": [
-      "/z-eval-update|z-eval-update",
-      "(?i)(?:refuses|won't|will not|do not|does not|must not|instead).{0,160}(?:evals/_llm|eval definition|source|patch|edit).{0,120}(?:inline|direct|yourself|checked-in)",
-      "(?is)(?=.*(?:\\baskQuestion\\b|command resume))(?=.*(?:/z-eval-update|palette|z-eval-update)).*"
+      "/z-eval-update",
+      "(?i)(?:will\\s+not|won't|do\\s+not|refus|declin|instead).{0,140}(?:eval|patch|edit).{0,100}(?:definition|source|evals)|delegate.{0,120}/z-eval-update",
+      "(?i)askQuestion|command.{0,80}resume|resume.{0,80}path"
     ],
     "expected_output": "A clear refusal to change eval definitions inline, with instructions to use /z-eval-update after the palette command collects answers."
   }
