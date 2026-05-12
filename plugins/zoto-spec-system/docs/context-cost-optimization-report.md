@@ -344,7 +344,7 @@ Backward compatibility:
 
 Rationale:
 
-CRUX is useful after the source contract is deduplicated. Compressing duplicated prose before deduplication would preserve avoidable waste.
+Semantic compression is useful after the source contract is deduplicated. Compressing duplicated prose before deduplication would preserve avoidable waste.
 
 ## Recommended roadmap
 
