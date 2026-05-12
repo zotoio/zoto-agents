@@ -33,15 +33,15 @@
     {
       "id": 3,
       "prompt": "Run /zoto-spec-execute on specs/20260402-test-infra/. This spec has 6 subtasks, phase 1 has 4 parallel subtasks, and the config sets parallelLimit to 2.",
-      "expected_output": "Phase 1 subtasks are batched into groups of 2 (respecting parallelLimit), not all 4 at once. Each batch completes before the next starts.",
+      "expected_output": "Phase 1 runs with at most 2 active execution subagents at once, then starts the next ready subtask as soon as a slot opens. It does not launch all 4 at once and does not wait for fixed batches when a slot is idle.",
       "files": [],
       "assertions": [
         "The parallelLimit from config is read and respected",
-        "Phase 1 subtasks are batched into groups no larger than the parallelLimit",
-        "Each batch within a phase completes before the next batch starts",
+        "Phase 1 uses slot-filling scheduling with no more active execution subagents than parallelLimit",
+        "The next ready subtask starts as soon as an execution slot opens",
         "Dependencies are never violated — no subtask starts before its dependencies complete",
         "Failed subtasks prevent dependent subtasks from starting",
-        "The execution report accurately reflects batching and parallel execution"
+        "The execution report accurately reflects slot-filling and parallel execution"
       ]
     }
   ]

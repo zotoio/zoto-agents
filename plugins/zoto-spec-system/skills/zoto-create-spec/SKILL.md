@@ -13,8 +13,10 @@ Read `.zoto-spec-system/config.json` for repository settings:
 
 - **`specsDir`** — directory for spec files (default: `specs`). Used as `{specsDir}` throughout this skill.
 - **`unitOfWork`** — term for work items in user-facing messages (default: `spec`). Use this term when referring to units of work in prompts and summaries shown to the user.
+- **`spec.parallelLimit`** — maximum concurrent execution subagents (default: `8`). Use this to shape phases.
+- **`spec.preferredModel`** — preferred model for spawned agents when supported (default: `composer-2`).
 
-If the config file is missing, use defaults for both fields.
+If the config file is missing, use defaults for all fields.
 
 ## When to Use
 
@@ -41,7 +43,17 @@ Before creating any files, build the dependency graph:
 4. **Group into phases**: Subtasks with no unresolved dependencies form a phase. Within a phase, tasks can run in parallel. A new phase starts when all prior-phase tasks are complete
 5. **Validate**: No circular dependencies. Every dependency target exists. No subtask depends on a higher-numbered subtask
 
-### Step 5: Assign Subagents
+### Step 5: Optimize for End-to-End Execution Time
+
+Before writing files, apply these top five optimization rules:
+
+1. **Critical path first**: Keep the dependency graph as shallow as correctness allows. Add dependencies only for required outputs, migrations, generated artifacts, or shared contracts.
+2. **Right-size subtasks**: Make each subtask independently executable by one agent with one ownership area, a small changed-file set, 2-5 concrete deliverables, and an explicit targeted test. Split broad mixed-domain work; merge tiny coordination-only tasks.
+3. **Fill parallel capacity**: Pack independent subtasks into each phase up to `spec.parallelLimit`. Avoid long single-agent phases unless the work is inherently sequential.
+4. **Prefer `composer-2`**: Use `spec.preferredModel` or agent frontmatter to prefer `composer-2` for creation, execution, and judging when supported. Record fallback choices in Key Decisions.
+5. **Reduce context and test fan-out**: Give each subtask exact paths, interfaces, and targeted checks. Defer global test suites and broad quality sweeps to final verification.
+
+### Step 6: Assign Subagents
 Assign based on work type:
 
 | Work Type | Recommended Subagent |
@@ -52,7 +64,7 @@ Assign based on work type:
 
 If your environment enables optional memory-extension agents, you may also assign memory-related work to those agents when appropriate; otherwise keep assignments to the three rows above.
 
-### Step 6: Create Spec Files
+### Step 7: Create Spec Files
 
 After dependencies and agents are determined, create the spec directory and files:
 
@@ -60,7 +72,7 @@ After dependencies and agents are determined, create the spec directory and file
 2. **Write index file**: `spec-[feature-name]-[yyyymmdd].md` with status `Draft`, overview, key decisions, requirements, Subtask Manifest table, dependency graph (mermaid), execution order by phase, and Definition of Done checklist
 3. **Write subtask files**: One per subtask, following the subtask template from the `zoto-spec-generator` agent. Each file's Metadata section must include the assigned subagent and dependency list matching the index manifest
 
-### Step 7: Review and Finalize
+### Step 8: Review and Finalize
 
 Present the complete spec to the user for review:
 
@@ -71,9 +83,9 @@ Present the complete spec to the user for review:
 
 Wait for user approval before proceeding to the automatic judge review.
 
-### Step 8: Automatic Judge Review
+### Step 9: Automatic Judge Review
 
-After user approval in Step 7:
+After user approval in Step 8:
 
 1. Spawn a **fresh `zoto-spec-judge` subagent** to independently assess the spec using the `zoto-judge-spec` skill
 2. The judge produces an assessment file in the spec directory
