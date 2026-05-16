@@ -32,7 +32,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
     "assertion_patterns": [
       "(?i)evals/_runs/|evals/_runs\\b|\\{evalsDir\\}/_runs/",
       "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
-      "(?is)(?=.*\\bjudge\\b)(?=.*(?:\\bmatched_token\\b|short\\s+contains|overly\\s+short|weak\\s+grading|loose\\s+substring|rubric|llm[- ]?judge)).*",
+      "(?is)(?=.*\\bjudge\\b)(?:(?=.*(?:\\bmatched_token\\b|kind:\\s*contains))(?=.*(?:short|overly\\s+short|loose\\s+substring|brittle\\s+contains|weak\\s+contains|two[- ]char|fewer\\s+than\\s+four|sub-?four))|(?=.*llm[- ]?judge)(?=.*(?:no\\s+rubric|rubric.+(?:missing|absent)|(?:missing|absent|without).+rubric|without\\s+a\\s+rubric))).*",
       "(?is)(?=.*\\b(?:totals|aggregates)\\b)(?=.*\\bjudge\\b).*",
       "(?i)\\.zoto/eval-system/config\\.yml|\\bjudgeModel\\b"
     ],
@@ -49,7 +49,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
     "assertion_patterns": [
       "/z-eval-update",
       "(?is)(?=.*\\bneeds_user_input\\b)(?=.*\\b(?:questions|options)\\b).*",
-      "(?is)(?=.*(?:too\\s+loose|brittle\\s+contains|weak\\s+contains|loose\\s+substring))(?=.*\\bneeds_user_input\\b)(?=.*(?:/z-eval-update|\\bz-eval-update\\b))(?=.*(?:matched_token|kind:\\s*contains|contains\\s+grader|eval\\s+definit)).*"
+      "(?is)(?=.*(?:too\\s+loose|brittle\\s+contains|weak\\s+contains|loose\\s+substring))(?=.*\\bneeds_user_input\\b)(?=.*(?:/z-eval-update|\\bz-eval-update\\b))(?=.*\\bmatched_token\\b)(?=.*kind:\\s*contains).*"
     ],
     "expected_output": "A refusal to apply eval edits directly, plus a structured handoff description that expects operator approval through /z-eval-update rather than silent file edits."
   },
