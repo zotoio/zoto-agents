@@ -76,9 +76,9 @@ const CASES: CodeStrategyCaseDefinition[] = [
     ],
     "assertion_patterns": [
       "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:noisy-case|brittle-case)\\b).*",
-      "(?is)(?=.*\\bfindings\\b)(?=.*\\bdimension:\\s*grader\\b)(?=.*\\bbrittle-case\\b)(?=.*matched_token\\s*:\\s*\"(?:ai|to|no)\").*",
+      "(?is)(?=.*\\bfindings\\b)(?=.*\\bdimension:\\s*grader\\b)(?=.*\\bbrittle-case\\b)(?=.*matched_token\\s*:\\s*\"f0\")(?=.*matched_token\\s*:\\s*\"1x\")(?=.*matched_token\\s*:\\s*\"z\").*",
       "(?is)(?=.*\\bfindings\\b)(?=.*\\bdimension:\\s*assertion\\b)(?=.*\\bnoisy-case\\b)(?=.*(?:parity|corroborat|assertion_parity|grader_contains|satisfied:\\s*false)).*",
-      "(?is)(?=.*\\brecommendations\\b)(?=.*(?:regex|llm[- ]?judge))(?=.*(?:grader|assertion_pattern|contains\\s+grader)).*",
+      "(?is)(?=.*\\brecommendations\\b)(?=.*(?:regex|llm[- ]?judge))(?=.*(?:grader|/z-eval-update|assertion_pattern|eval\\s+definition|contains\\s+grader)).*",
       "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:verbosity|confidence|accuracy)\\b)(?=.*(?:2\\.9|0\\.35|0\\.45|>\\s*2|2\\.0|0\\.4|0\\.5|threshold|two\\s+sigma)).*",
       "(?is)(?=.*\\bfindings\\b)(?=.*(?:5200|1185|mean_duration|stddev|sigma|outlier|two\\s+sigma)).*",
       "(?is)(?=.*\\btotals\\b)(?=.*\\baggregates\\b)(?=.*\\bjudge\\b)(?=.*(?:llm\\.yml|llm\\s+yaml)).*"
@@ -95,7 +95,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
         },
         {
           "path": "workspace/evals/_runs/20260201T090000Z/llm.yml",
-          "content": "totals:\n  cases: 2\naggregates:\n  mean_duration_ms: 1200\n  stddev_duration_ms: 95\n\ncases:\n  noisy-case:\n    verbosity: 2.9\n    confidence: 0.35\n    accuracy: 0.45\n    duration_ms: 5200\n  brittle-case:\n    graders:\n      - kind: contains\n        matched_token: \"ai\"\n      - kind: contains\n        matched_token: \"to\"\n      - kind: contains\n        matched_token: \"no\"\n    duration_ms: 1185\nassertions_checked:\n  noisy-case:\n    - id: parity\n      satisfied: false\n"
+          "content": "totals:\n  cases: 2\naggregates:\n  mean_duration_ms: 1200\n  stddev_duration_ms: 95\n\ncases:\n  noisy-case:\n    verbosity: 2.9\n    confidence: 0.35\n    accuracy: 0.45\n    duration_ms: 5200\n  brittle-case:\n    graders:\n      - kind: contains\n        matched_token: \"f0\"\n      - kind: contains\n        matched_token: \"1x\"\n      - kind: contains\n        matched_token: \"z\"\n    duration_ms: 1185\nassertions_checked:\n  noisy-case:\n    - id: parity\n      satisfied: false\n"
         },
         {
           "path": "workspace/evals/_runs/20260201T090000Z/report.yml",
