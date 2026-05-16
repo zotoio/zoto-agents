@@ -19,6 +19,11 @@
       "name": "zoto-eval-system",
       "source": "plugins/zoto-eval-system",
       "description": "Stamp static (pytest) and LLM (@cursor/sdk) eval suites side-by-side, detect drift when AI primitives change and update evals with user confirmation, compare runs across models on /canvas. Surgical update on git diff, sovereign user-authored cases."
+    },
+    {
+      "name": "zoto-cursor-top",
+      "source": "plugins/zoto-cursor-top",
+      "description": "Live updating htop-style CLI that shows every Cursor agent on this machine, with expandable parent-to-subagent hierarchy and scrolling log tails"
     }
   ]
 }

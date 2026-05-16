@@ -1,0 +1,33 @@
+{
+  "name": "@zoto-agents/zoto-cursor-top",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Live updating htop-style CLI that shows all agents across every Cursor process on this machine, with expandable parent-to-subagent hierarchy.",
+  "type": "module",
+  "bin": {
+    "cursor-top": "./bin/cursor-top.mjs"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "validate": "tsx scripts/validate-plugin.ts",
+    "start": "tsx src/cli.ts",
+    "demo": "tsx src/cli.ts --demo",
+    "install-local": "tsx scripts/install-local.ts",
+    "uninstall-local": "tsx scripts/uninstall-local.ts"
+  },
+  "dependencies": {
+    "ink": "^7.0.3",
+    "react": "^19.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.8.0",
+    "@types/react": "^19.2.14",
+    "ink-testing-library": "^4.0.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.22.0",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.6"
+  }
+}
