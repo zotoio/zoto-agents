@@ -21,7 +21,8 @@
       "files": [],
       "assertions": [
         "At least one finding has dimension: grader for each flagged case",
-        "The detail on each grader finding quotes the matched_token value or states it is shorter than four characters of effective evidence",
+        "The detail on each grader finding quotes each matched_token needle (or equivalent quoted substring) and ties it to fewer than four characters of meaningful evidence",
+        "Recommendations contrast loose `contains`/`matched_token` substring checks with regex matchers or llm-judge scorers instead of vague \"edit eval definitions\" wording alone",
         "needs_user_input (or equivalent structured questions/options) routes remediation through /z-eval-update without silent edits to eval registrations",
         "No evals.json files were modified by this skill directly"
       ]
@@ -107,7 +108,7 @@
         "The agent records at least one `findings` row whose `dimension` equals assertion when eval assertions lack matching grader corroboration for the same case.",
         "The agent records a `findings` row whose `dimension` equals grader when a contains grader depends on fewer than four characters of evidence.",
         "The agent records `findings` tied to verbosity above 2.0, confidence under 0.4, and accuracy under 0.5 when those thresholds appear for any case.",
-        "When brittle contains graders are flagged the subsequent `recommendations` steer operators toward richer scorer stacks such as regex matchers or llm-backed judges consistent with the skill playbook.",
+        "When brittle contains graders are flagged the subsequent `recommendations` cite `matched_token` or `kind: contains` risk explicitly and steer operators toward regex matchers or llm-backed judges rather than generic assertion tweaks alone.",
         "When durations are interpretable versus the suite mean, anomalies beyond two sigma are surfaced as severity warn or flag instead of silently passing.",
         "The resulting `llm.yml` retains the preceding `totals` and `aggregates` verbatim while nesting the appended `judge` content afterward."
       ],
