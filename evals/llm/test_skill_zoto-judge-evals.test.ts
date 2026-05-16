@@ -32,7 +32,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "\\{evalsDir\\}/_runs/|evals/_runs/",
       "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
       "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:noisy-case|brittle-case)\\b)(?=.*\\bdimension:\\s*(?:verbosity|accuracy|confidence|grader|assertion)\\b).*",
-      "(?is)(?=.*\\brecommendations\\b)(?:(?=.*\\/z-eval-update)(?=.*(?:grader|assertions?|scores?))|(?=.*(?:regex|llm[- ]?judge))(?=.*grader)(?=.*(?:\\bcontains\\b|matched_token|kind:\\s*contains))(?=.*(?:brittle|substring|needle|sub-?four|four\\s+char))).*"
+      "(?is)(?=.*\\brecommendations\\b)(?:(?=.*\\/z-eval-update)(?=.*(?:grader|assertions?|scores?))(?=.*(?:matched_token|kind:\\s*contains))|(?=.*(?:regex|llm[- ]?judge))(?=.*grader)(?=.*(?:matched_token|kind:\\s*contains))(?=.*(?:brittle|substring|needle|sub-?four|four\\s+char|two[- ]char))).*"
     ],
     "expected_output": "The agent cites the resolved run timestamp, summarizes cross-case risks, updates only the trailing judge section in `llm.yml`, leaves prior totals untouched, and never schedules another evaluation pass."
   },
@@ -78,7 +78,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:noisy-case|brittle-case)\\b).*",
       "(?is)(?=.*\\bfindings\\b)(?=.*\\bdimension:\\s*grader\\b)(?=.*\\bbrittle-case\\b)(?=.*matched_token\\s*:\\s*\"f0\")(?=.*matched_token\\s*:\\s*\"1x\")(?=.*matched_token\\s*:\\s*\"z\").*",
       "(?is)(?=.*\\bfindings\\b)(?=.*\\bdimension:\\s*assertion\\b)(?=.*\\bnoisy-case\\b)(?=.*(?:parity|corroborat|assertion_parity|grader_contains|satisfied:\\s*false)).*",
-      "(?is)(?=.*\\brecommendations\\b)(?:(?=.*\\/z-eval-update)(?=.*(?:contains|matched_token|kind:\\s*contains))(?=.*(?:grader|assertion))|(?=.*(?:regex|llm[- ]?judge))(?=.*grader)(?=.*(?:\\bcontains\\b|matched_token))(?=.*(?:brittle|substring|needle|sub-?four|four\\s+char))).*",
+      "(?is)(?=.*\\brecommendations\\b)(?:(?=.*\\/z-eval-update)(?=.*(?:matched_token|kind:\\s*contains))(?=.*(?:grader|assertion))|(?=.*(?:regex|llm[- ]?judge))(?=.*grader)(?=.*(?:matched_token|kind:\\s*contains))(?=.*(?:brittle|substring|needle|sub-?four|four\\s+char|two[- ]char))).*",
       "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:verbosity|confidence|accuracy)\\b)(?=.*(?:2\\.9|0\\.35|0\\.45|>?\\s*2\\.?0|\\bconfidence\\s*<|\\baccuracy\\s*<|\\bverbosity\\s*>|below\\s+0\\.?4|above\\s+2|two\\s+sigma|\\bmetrics\\b.+\\bcase\\b)).*",
       "(?is)(?=.*\\bfindings\\b)(?=.*(?:5200|1185|mean_duration|stddev|sigma|outlier|two\\s+sigma)).*",
       "(?is)(?=.*\\btotals\\b)(?=.*\\baggregates\\b)(?=.*\\bjudge\\b)(?=.*(?:llm\\.yml|llm\\s+yaml)).*"
@@ -119,10 +119,9 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "No `plugins/**/evals/evals.json` files nor other eval registrations are rewritten during this step; escalation stays descriptive."
     ],
     "assertion_patterns": [
-      "needs_user_input\\.reason",
-      "askQuestion",
-      "/z-eval-update",
-      "plugins/\\*\\*/evals/evals\\.json"
+      "(?is)(?=.*needs_user_input\\.reason)(?=.*(?:/z-eval-update|\\bz-eval-update\\b))(?=.*\\b(?:questions|options)\\b)(?=.*\\b(?:handoff|delegat|approve|batch)\\b).*",
+      "(?is)(?=.*\\baskQuestion\\b)(?=.*(?:not|never|won't|do\\s+not|without|avoid|forbidden|must\\s+not)).*",
+      "(?is)(?=.*(?:plugins/\\*\\*/evals/evals\\.json|plugins/[^\\s]{1,120}/evals/evals\\.json))(?=.*(?:not|never|won't|without|no\\s+rewrite|unchanged|descriptive\\s+only)).*"
     ],
     "expected_output": "The agent returns a YAML `needs_user_input` fragment with enumerated options covering batch approval, supervised updates, or cancellation, referencing affected skill targets implicitly or explicitly."
   },
