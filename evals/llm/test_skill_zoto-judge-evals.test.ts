@@ -77,8 +77,10 @@ const CASES: CodeStrategyCaseDefinition[] = [
     "assertion_patterns": [
       "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:noisy-case|brittle-case)\\b).*",
       "(?is)(?=.*\\bfindings\\b)(?=.*\\bdimension:\\s*grader\\b)(?=.*\\bbrittle-case\\b)(?=.*matched_token\\s*:\\s*\"(?:ai|to|no)\").*",
+      "(?is)(?=.*\\bfindings\\b)(?=.*\\bdimension:\\s*assertion\\b)(?=.*\\bnoisy-case\\b)(?=.*(?:parity|corroborat|assertion_parity|grader_contains|satisfied:\\s*false)).*",
       "(?i)\\brecommendations\\b.{0,280}(?:regex|llm[- ]?judge)",
-      "(?is)(?=.*\\bverbosity\\b|\\bconfidence\\b|\\baccuracy\\b)(?=.*\\bfindings\\b).*",
+      "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:verbosity|confidence|accuracy)\\b)(?=.*(?:2\\.9|0\\.35|0\\.45|>\\s*2|2\\.0|0\\.4|0\\.5|threshold|two\\s+sigma)).*",
+      "(?is)(?=.*\\bfindings\\b)(?=.*(?:5200|1185|mean_duration|stddev|sigma|outlier|two\\s+sigma)).*",
       "(?is)(?=.*\\btotals\\b)(?=.*\\baggregates\\b)(?=.*\\bjudge\\b)(?=.*(?:llm\\.yml|llm\\s+yaml)).*"
     ],
     "fixtures": {
