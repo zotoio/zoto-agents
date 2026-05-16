@@ -25,7 +25,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "No `zoto-eval-judge` subagent or `zoto-judge-evals` skill workflow starts and `llm.yml` under any `evals/_runs/` path is untouched."
     ],
     "assertion_patterns": [
-      "/z-eval-init",
+      "(?is)(?=.*(?:/z-eval-init|\\bz-eval-init\\b))(?=.*(?:eval\\s+system|not\\s+initiali[sz]ed|config\\.yml)).*",
       "(?i)eval system is not initiali[sz]ed|`/z-eval-init`|config\\.yml"
     ],
     "expected_output": "A single refusal that tells the operator to initialise the eval system first, without opening run directories or editing YAML under evals."
@@ -40,8 +40,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "`workspace/evals/_runs/20260507120000Z/static.yml` and `workspace/evals/_runs/20260507120000Z/report.yml` are not deleted or replaced wholesale; only `llm.yml` receives the documented append-only edit."
     ],
     "assertion_patterns": [
-      "/z-eval-judge",
-      "zoto-eval-judge|zoto-judge-evals",
+      "(?is)(?=.*(?:/z-eval-judge|\\bz-eval-judge\\b))(?=.*(?:zoto-eval-judge|zoto-judge-evals)).*",
       "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
       "20260507120000Z.*llm\\.yml|llm\\.yml.*20260507120000Z"
     ],
@@ -83,10 +82,9 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "Throughout the loop, `workspace/evals/_runs/20260507120000Z/llm.yml` still receives the append-only `judge` block expected from the analysis pass."
     ],
     "assertion_patterns": [
-      "/z-eval-judge",
-      "/z-eval-update",
-      "(?i)askQuestion",
-      "workspace/evals/_runs/20260507120000Z/llm\\.yml"
+      "(?is)(?=.*(?:/z-eval-judge|\\bz-eval-judge\\b))(?=.*(?:zoto-eval-judge|zoto-judge-evals|subagent)).*",
+      "(?is)(?=.*(?:/z-eval-update|\\bz-eval-update\\b))(?=.*askQuestion).*",
+      "(?i)workspace/evals/_runs/20260507120000Z/llm\\.yml"
     ],
     "fixtures": {
       "files": [
