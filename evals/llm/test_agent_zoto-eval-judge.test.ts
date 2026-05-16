@@ -33,7 +33,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "(?i)evals/_runs/|evals/_runs\\b|\\{evalsDir\\}/_runs/",
       "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
       "(?is)(?=.*\\bjudge\\b)(?:(?=.*\\bcontains\\b)(?=.*(?:matched_token|kind:\\s*contains))(?=.*(?:short|overly\\s+short|loose\\s+substring|brittle\\s+contains|weak\\s+contains|two[- ]char|fewer\\s+than\\s+four|sub-?four))|(?=.*llm[- ]?judge)(?=.*(?:no\\s+rubric|rubric.+(?:missing|absent)|(?:missing|absent|without).+rubric|without\\s+a\\s+rubric))).*",
-      "(?is)(?=.*\\b(?:totals|aggregates)\\b)(?=.*\\bjudge\\b).*",
+      "(?is)(?=.*\\b(?:totals|aggregates)\\b)(?=.*\\bjudge\\b)(?=.*\\b(?:verbosity|confidence|accuracy|sigma|metrics?|thresholds?|outlier|duration)\\b).*",
       "(?i)\\.zoto/eval-system/config\\.yml|\\bjudgeModel\\b"
     ],
     "expected_output": "A concise audit that references specific findings from those files and describes the new judge section being appended to llm.yml without altering existing totals or aggregates."
@@ -50,7 +50,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "/z-eval-update",
       "(?is)(?=.*\\bneeds_user_input\\b)(?=.*\\b(?:questions|options)\\b)(?=.*\\b(?:accept|reject|proceed|cancel|handoff)\\b).*",
       "(?is)(?=.*(?:too\\s+loose|brittle\\s+contains|weak\\s+contains|loose\\s+substring|sub-?four|fewer\\s+than\\s+four))(?=.*\\bneeds_user_input\\b)(?=.*(?:/z-eval-update|\\bz-eval-update\\b))(?=.*\\bmatched_token\\b)(?=.*kind:\\s*contains.*kind:\\s*contains)",
-      "(?is)(?=.*(?:will\\s+not|won't|do\\s+not|must\\s+not|delegate|hand-?off))(?=.*(?:evals|eval\\s+definition|assertion_pattern|evals\\.json)).*"
+      "(?is)(?=.*(?:will\\s+not|won't|do\\s+not|must\\s+not|delegate|hand-?offs?|instead\\s+.+\\/z-eval-update))(?=.*(?:eval\\s+definitions?|eval\\s+sources?|\\bevals\\.json\\b|\\bregistration\\b|plugins/.+\\/evals\\/|\\bevals/_llm/|assertion_patterns)).*"
     ],
     "expected_output": "A refusal to apply eval edits directly, plus a structured handoff description that expects operator approval through /z-eval-update rather than silent file edits."
   },

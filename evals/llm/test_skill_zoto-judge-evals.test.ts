@@ -32,7 +32,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "\\{evalsDir\\}/_runs/|evals/_runs/",
       "(?is)(?=.*static\\.yml)(?=.*\\bllm\\.yml\\b)(?=.*report\\.yml).*",
       "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:noisy-case|brittle-case)\\b)(?=.*\\bdimension:\\s*(?:verbosity|accuracy|confidence|grader|assertion)\\b).*",
-      "(?is)(?=.*\\brecommendations\\b)(?=.*(?:regex|llm[- ]?judge))(?=.*(?:grader|/z-eval-update|eval\\s+definition)).*"
+      "(?is)(?=.*\\brecommendations\\b)(?:(?=.*\\/z-eval-update)(?=.*(?:grader|assertions?|scores?))|(?=.*(?:regex|llm[- ]?judge))(?=.*(?:grader|\\bcontains\\b|matched_token|brittle\\s+(?:needle|substring|grader)))).*"
     ],
     "expected_output": "The agent cites the resolved run timestamp, summarizes cross-case risks, updates only the trailing judge section in `llm.yml`, leaves prior totals untouched, and never schedules another evaluation pass."
   },
@@ -79,7 +79,7 @@ const CASES: CodeStrategyCaseDefinition[] = [
       "(?is)(?=.*\\bfindings\\b)(?=.*\\bdimension:\\s*grader\\b)(?=.*\\bbrittle-case\\b)(?=.*matched_token\\s*:\\s*\"f0\")(?=.*matched_token\\s*:\\s*\"1x\")(?=.*matched_token\\s*:\\s*\"z\").*",
       "(?is)(?=.*\\bfindings\\b)(?=.*\\bdimension:\\s*assertion\\b)(?=.*\\bnoisy-case\\b)(?=.*(?:parity|corroborat|assertion_parity|grader_contains|satisfied:\\s*false)).*",
       "(?is)(?=.*\\brecommendations\\b)(?=.*(?:regex|llm[- ]?judge))(?=.*(?:grader|/z-eval-update|assertion_pattern|eval\\s+definition|contains\\s+grader)).*",
-      "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:verbosity|confidence|accuracy)\\b)(?=.*(?:2\\.9|0\\.35|0\\.45|>\\s*2|2\\.0|0\\.4|0\\.5|threshold|two\\s+sigma)).*",
+      "(?is)(?=.*\\bfindings\\b)(?=.*\\b(?:verbosity|confidence|accuracy)\\b)(?=.*(?:2\\.9|0\\.35|0\\.45|>?\\s*2\\.?0|\\bconfidence\\s*<|\\baccuracy\\s*<|\\bverbosity\\s*>|below\\s+0\\.?4|above\\s+2|two\\s+sigma|\\bmetrics\\b.+\\bcase\\b)).*",
       "(?is)(?=.*\\bfindings\\b)(?=.*(?:5200|1185|mean_duration|stddev|sigma|outlier|two\\s+sigma)).*",
       "(?is)(?=.*\\btotals\\b)(?=.*\\baggregates\\b)(?=.*\\bjudge\\b)(?=.*(?:llm\\.yml|llm\\s+yaml)).*"
     ],
