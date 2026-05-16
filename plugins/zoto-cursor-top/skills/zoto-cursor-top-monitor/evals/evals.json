@@ -1,0 +1,42 @@
+{
+  "skill_name": "zoto-cursor-top-monitor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Show me everything Cursor is doing on my machine right now - I want a live view that updates every second and shows subagents under their parent agents.",
+      "expected_output": "The assistant invokes the cursor-top CLI in its default interactive mode and explains how to expand/collapse the hierarchy. It does not modify any Cursor data.",
+      "files": [],
+      "assertions": [
+        "The assistant runs `cursor-top` (interactive mode) or instructs the user to run it",
+        "The assistant explains the keyboard shortcuts for expand, collapse, and quit",
+        "The assistant mentions that each row shows model, repo, start time, and the last 3 log lines",
+        "The assistant does not modify any Cursor data directory",
+        "The default refresh interval (1 second) is mentioned or used unmodified"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I'd like to drop a snapshot of the current Cursor agents into a status report - give me a one-shot output I can paste in.",
+      "expected_output": "The assistant runs cursor-top with --once (and optionally --json) so the command exits after one frame, and explains the difference between the two output modes.",
+      "files": [],
+      "assertions": [
+        "The assistant uses `--once` to render a single frame",
+        "The assistant offers `--json` as an alternative machine-readable mode",
+        "The assistant clarifies that the CLI exits cleanly so it can be embedded in a report",
+        "The assistant does not start interactive mode (no need for keyboard navigation in this scenario)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want to take a screenshot of cursor-top for documentation but I don't currently have any Cursor sessions running. How do I make the UI look populated?",
+      "expected_output": "The assistant launches cursor-top in demo mode so the user sees a populated, scrolling fixture without needing any real Cursor processes.",
+      "files": [],
+      "assertions": [
+        "The assistant uses the `--demo` flag",
+        "The assistant explains that demo mode uses synthetic data and that log lines scroll on every tick",
+        "The assistant notes that demo data is not coming from real Cursor processes",
+        "The assistant does not require the user to start a Cursor session first"
+      ]
+    }
+  ]
+}
