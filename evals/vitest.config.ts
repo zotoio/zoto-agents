@@ -40,6 +40,7 @@ export default defineConfig({
       "_runs/**",
       "fixtures/**",
       "_llm/**",
+      "llm/**",
     ],
     setupFiles: ["./setup.ts"],
     reporters: [

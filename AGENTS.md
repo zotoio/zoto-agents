@@ -48,6 +48,10 @@ When building or executing engineering specs in this repository, **always use th
 
 **Do not default to `generalPurpose`** — every subtask in a spec should map to the most appropriate CRUX agent above.
 
+### Eval Strategy for Agents
+
+This repository uses the **`code`** LLM eval strategy (`llm.strategy: code` in `.zoto/eval-system/config.yml`). When writing or running LLM evals, use `pnpm run eval:llm:code` (Vitest). The full dual-strategy reference — including when to prefer declarative JSON vs code-based tests — lives in [`plugins/zoto-eval-system/README.md`](plugins/zoto-eval-system/README.md#llm-eval-strategies-declarative--code).
+
 ### Live Status During Spec Execution
 
 - During **`/z-spec-execute`**, every spawned subagent owns its **`{specsDir}/<spec>/status/subtask-NN-....status.{md,yml}`** pair. The executor's aggregator rebuilds the spec-root **`status.{md,yml}`** on every change. Read these files before asking about progress.
