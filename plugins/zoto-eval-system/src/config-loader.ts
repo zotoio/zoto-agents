@@ -51,6 +51,7 @@ export interface EvalSystemConfig {
     historyPath: string;
     rediscoverWithSameDefaults: boolean;
     checkExitCodeOnCriticalDrift: number;
+    failOnNoAnalyserInCI: boolean;
   };
 }
 

@@ -1,6 +1,6 @@
 {
-  "command_name": "z-eval-init",
-  "evals": [
+  "target_id": "command:z-eval-init",
+  "cases": [
     {
       "id": 1,
       "prompt": "/z-eval-init",
@@ -12,11 +12,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
-        "last_updated": "2026-05-07T10:44:49.474Z",
+        "last_updated": "2026-05-16T13:28:58.576Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
-          "analysed_at": "2026-05-07T10:44:49.474Z",
+          "analysed_at": "2026-05-16T13:28:58.576Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The init command materialises `.zoto/eval-system/config.yml` from the bundled YAML template with full defaults commented out, blocks accidental overwrites unless `--force` is supplied, and ends with one confirmation line that points maintainers at the JSON schema and `/z-eval-configure` while staying clear of every other eval workflow."
         }
@@ -34,11 +34,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
-        "last_updated": "2026-05-07T10:44:49.474Z",
+        "last_updated": "2026-05-16T13:28:58.576Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
-          "analysed_at": "2026-05-07T10:44:49.474Z",
+          "analysed_at": "2026-05-16T13:28:58.576Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The init command materialises `.zoto/eval-system/config.yml` from the bundled YAML template with full defaults commented out, blocks accidental overwrites unless `--force` is supplied, and ends with one confirmation line that points maintainers at the JSON schema and `/z-eval-configure` while staying clear of every other eval workflow.",
           "fixture_justifications": [
@@ -67,11 +67,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
-        "last_updated": "2026-05-07T10:44:49.474Z",
+        "last_updated": "2026-05-16T13:28:58.576Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
-          "analysed_at": "2026-05-07T10:44:49.474Z",
+          "analysed_at": "2026-05-16T13:28:58.576Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The init command materialises `.zoto/eval-system/config.yml` from the bundled YAML template with full defaults commented out, blocks accidental overwrites unless `--force` is supplied, and ends with one confirmation line that points maintainers at the JSON schema and `/z-eval-configure` while staying clear of every other eval workflow.",
           "fixture_justifications": [
@@ -99,11 +99,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
-        "last_updated": "2026-05-07T10:44:49.474Z",
+        "last_updated": "2026-05-16T13:28:58.576Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
-          "analysed_at": "2026-05-07T10:44:49.474Z",
+          "analysed_at": "2026-05-16T13:28:58.576Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The init command materialises `.zoto/eval-system/config.yml` from the bundled YAML template with full defaults commented out, blocks accidental overwrites unless `--force` is supplied, and ends with one confirmation line that points maintainers at the JSON schema and `/z-eval-configure` while staying clear of every other eval workflow."
         }
@@ -119,16 +119,17 @@
       "_meta": {
         "generated": true,
         "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
-        "last_updated": "2026-05-07T10:44:49.474Z",
+        "last_updated": "2026-05-16T13:28:58.576Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
-          "analysed_at": "2026-05-07T10:44:49.474Z",
+          "analysed_at": "2026-05-16T13:28:58.576Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The init command materialises `.zoto/eval-system/config.yml` from the bundled YAML template with full defaults commented out, blocks accidental overwrites unless `--force` is supplied, and ends with one confirmation line that points maintainers at the JSON schema and `/z-eval-configure` while staying clear of every other eval workflow."
         }
       },
       "expected_output": "A failure message that preserves the operating-system permission error returned from mkdir or write, without substituting a generic success string."
     }
-  ]
+  ],
+  "command_name": "z-eval-init"
 }

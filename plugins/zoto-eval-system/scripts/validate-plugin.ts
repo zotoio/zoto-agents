@@ -5,7 +5,7 @@
  * Enforces, among other things:
  *  - No references to @cursor/february or cursor-agent.
  *  - No leftover _live / eval:live identifiers (rename is complete).
- *  - All commands/skills use the zoto- prefix.
+ *  - Commands use the `z-eval-*` / `z-` filename prefix; skills use `zoto-`.
  *  - Every skill has ≥ 2 eval cases, each with assertions.
  *  - hooks.json scripts exist on disk.
  *  - templates/schema/*.json compile under ajv.
@@ -146,11 +146,11 @@ function checkNamingConventions(): CheckResult[] {
   const cmdDir = join(REPO_ROOT, "commands");
   if (isDir(cmdDir)) {
     for (const f of readdirSync(cmdDir).filter((n) => n.endsWith(".md"))) {
-      const ok = f.startsWith("zoto-");
+      const ok = /^z-/.test(f);
       results.push({
         name: `cmd_prefix_${f}`,
         passed: ok,
-        detail: `${f} ${ok ? "has" : "MISSING"} zoto- prefix`,
+        detail: `${f} ${ok ? "has" : "MISSING"} z- prefix`,
       });
     }
   }

@@ -22,6 +22,8 @@ import "dotenv/config";
 
 import { afterAll, beforeAll, beforeEach, expect } from "@jest/globals";
 
+// Uses the shim at `_llm/sandbox.ts` (re-exports from the canonical engine)
+// because the `#eval-engine/*` Vitest alias is unavailable in Jest configs.
 import { caseSlug, createSandbox } from "./_llm/sandbox.ts";
 
 const RUN_ID = (() => {

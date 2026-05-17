@@ -1,6 +1,6 @@
 {
-  "agent_name": "zoto-eval-analyser-subagent",
-  "evals": [
+  "target_id": "agent:zoto-eval-analyser-subagent",
+  "cases": [
     {
       "id": 1,
       "prompt": "Kick off the primitive-analysis pass for `pnpm run eval:analyse` using this subagent with the current envelope; I need the raw analyser response the SDK will parse.",
@@ -11,11 +11,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
@@ -32,11 +32,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
@@ -54,11 +54,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
@@ -75,11 +75,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
@@ -96,11 +96,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
@@ -117,11 +117,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
@@ -138,11 +138,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
@@ -159,11 +159,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
@@ -180,11 +180,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
@@ -201,11 +201,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
@@ -222,16 +222,17 @@
       "_meta": {
         "generated": true,
         "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-        "last_updated": "2026-05-07T10:55:12.772Z",
+        "last_updated": "2026-05-16T13:28:58.796Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
-          "analysed_at": "2026-05-07T10:55:12.772Z",
+          "analysed_at": "2026-05-16T13:28:58.796Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text."
         }
       },
       "expected_output": "Prompts feel operator-authentic and assertions could be graded against traces or artifacts."
     }
-  ]
+  ],
+  "agent_name": "zoto-eval-analyser-subagent"
 }

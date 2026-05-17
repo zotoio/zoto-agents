@@ -1,6 +1,6 @@
 ---
 name: z-eval-compare
-description: Cross-run analysis across two or more runs. Command-owned askQuestion when run IDs are ambiguous; comparer returns needs_user_input. Emits flat dataset and /canvas hand-off.
+description: Cross-run analysis across two or more runs. When run fragments match multiple `_runs/` folders and the invocation is undifferentiated, the comparer returns `needs_user_input` enumerating candidates — surface that payload verbatim; **do not** run `askQuestion`. Emits flat dataset and /canvas hand-off once paths resolve.
 ---
 
 # z-eval-compare
@@ -29,18 +29,19 @@ Do not synthesize a default config and do not proceed.
 
 ### Pre-collect (before Task)
 
-After parsing arguments:
+After parsing arguments, pass **each identifier through unchanged** into the Task prompt (including fragments like `20260503`).
 
-1. If any identifier maps to **multiple** candidate run directories / `report.yml` paths, run `askQuestion` to pick exactly one per argument.
-2. Pass disambiguated paths / run folder names in the Task prompt.
+**Do not** call `askQuestion` to disambiguate run folders here — the comparer resolves or returns structured `needs_user_input`.
 
 ### Spawn subagent
 
 Spawn a `zoto-eval-comparer` subagent that uses the `zoto-compare-evals` skill.
 
-### Resume loop
+### Ambiguous run resolution (**no askQuestion**, **no resume**)
 
-If the subagent still reports ambiguity (`needs_user_input`), run `askQuestion`, then **resume**.
+If the subagent returns `needs_user_input` because one or more run arguments matched **multiple** directories under `{evalsDir}/_runs/`, output that structured block **verbatim** for the operator (YAML or JSON conforming to `templates/schema/needs-user-input.schema.json`). Explain that comparisons stay blocked until `/z-eval-compare` is re-run with **disambiguated** run basenames.
+
+**Do not** invoke `askQuestion` or `resume` for this outcome — `/z-eval-compare` lists candidates inline and stops.
 
 ### What happens
 

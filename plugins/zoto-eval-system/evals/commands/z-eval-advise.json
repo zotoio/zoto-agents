@@ -1,227 +1,107 @@
 {
-  "command_name": "z-eval-advise",
-  "evals": [
+  "target_id": "command:z-eval-advise",
+  "cases": [
     {
       "id": 1,
-      "prompt": "/z-eval-advise zoto-eval-system",
+      "prompt": "Drive the 'z-eval-advise' command through its primary documented flow.\nAssume repository already passes template validation gates.\nHost plugin root for this primitive: workspace/plugins/zoto-eval-system/",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "# =============================================================================\n# Zoto Eval System — .zoto/eval-system/config.yml\n# =============================================================================\n# Every key below is shown alongside its internal default. Lines starting with\n# `#` are inactive — uncomment to override. Lines without `#` are this repo's\n# active overrides (preserved from the prior .zoto-eval-system/config.json).\n#\n# Schema: plugins/zoto-eval-system/templates/schema/config.schema.json\n# =============================================================================\n\n\n# ─────────────────────────────  discovery  ───────────────────────────────────\n# evalsDir: evals\n# skillsRoots:\n#   - .cursor/skills\n#   - skills\n#   - plugins/*/skills\n# discoveryTargets:\n#   - skill\n#   - command\n#   - agent\n#   - hook\n\n# Active override: skip CRUX primitives in this repo.\nignore:\n  - \".cursor/skills/crux-*\"\n  - \".cursor/commands/crux-*.md\"\n  - \".cursor/agents/crux-cursor-*.md\"\n  - \".cursor/hooks/crux-*\"\n\n\n# ──────────────────────────────  backends  ───────────────────────────────────\n# Active overrides: this repo runs vitest for static evals and the `code`\n# strategy (per-primitive *.test.ts files) for LLM evals.\nstatic:\n  framework: vitest          # default: pytest\n\nllm:\n  # runtime: tsx\n  strategy: code             # default: declarative\n  codeFramework: vitest\n  model:\n    id: composer-2\n\n\n# ────────────────────────────────  judge  ────────────────────────────────────\njudgeModel: opus-4.6\n\n\n# ────────────────────────────  manual checklists  ────────────────────────────\n# manualChecklists:\n#   enabled: false\n\n\n# ────────────────────────────  extra automation  ─────────────────────────────\n# additionalAutomation: []\n\n\n# ───────────────────────────────  analyser  ──────────────────────────────────\n# analyser:\n#   concurrency: 4\n#   maxCallsPerInvocation: 50\n\n\n# ───────────────────────────  run retention (gc)  ────────────────────────────\n# runs:\n#   retention: 30\n\n\n# ────────────────────────────────  update  ───────────────────────────────────\n# update:\n#   criticalChangeRules:\n#     addedTargetWithoutCoverage: true\n#     removedTargetWithActiveCases: true\n#     skillFrontmatterChange: true\n#     publicSurfaceChange: true\n#     promptTemplateChange: true\n#   preserveUserAuthoredCases: true       # hard-coded contract — do not change\n#   writeMetaMarker: true                 # hard-coded contract — do not change\n#   manifestPath: .zoto/eval-system/manifest.yml\n#   historyPath: .zoto/eval-system/manifest.history.yml\n#   rediscoverWithSameDefaults: true\n#   checkExitCodeOnCriticalDrift: 2\n"
+          },
+          {
+            "path": "workspace/plugins/zoto-eval-system/commands/z-eval-advise.md",
+            "content": "---\nname: z-eval-advise\ndescription: Pre-hoc eval coverage adviser. Assesses gaps across five dimensions (trigger-phrase, schema, regression, citation, checklist) and recommends actions. Command-owned askQuestion drives multi-turn interaction at two breakpoints (drill-down selection, action recommendations); zoto-eval-adviser subagent surfaces needs_user_input. Hands off accepted recommendations to /z-eval-create or /z-eval-update.\n---\n\n# z-eval-advise\n\nAssesses eval suite coverage gaps — answering \"what tests are missing?\" rather than \"how did the last run perform?\" Scans source definitions and eval files against five quality dimensions, then recommends targeted actions to close gaps.\n\n## Usage\n\n```\n/z-eval-advise                      # full scan — scope picker via askQuestion\n/z-eval-advise <plugin-name>        # scope to a specific plugin\n/z-eval-advise <skill-name>         # scope to a specific skill\n```\n\n## Instructions\n\n### Precondition\n\nBefore doing anything else, verify that **`.zoto/eval-system/config.yml`** exists at the repository root. If it does not, abort with the exact message:\n\n> Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.\n\nDo not synthesize a default config and do not proceed.\n\n### Pre-collect (before Task)\n\n1. If a `<plugin-name>` or `<skill-name>` argument is provided, resolve it to a target glob (e.g. `plugins/zoto-eval-system/skills/zoto-help-evals/**`).\n2. If no argument is provided, run `askQuestion` with scope options:\n   - **Full scan** — analyse all targets in the manifest.\n   - **Specific plugin** — analyse all targets within a named plugin (present list of detected plugins).\n   - **Specific skill** — analyse a single skill target (present list of manifest skill targets).\n3. Build `advise_context: { scope: \"full\" | \"targeted\", target_glob: <string | null> }` for the subagent.\n\n### Spawn subagent\n\nSpawn a `zoto-eval-adviser` subagent that uses the `zoto-advise-evals` skill, passing:\n\n- The resolved `advise_context` (scope + target glob).\n- Path to config: `.zoto/eval-system/config.yml`.\n- Path to manifest: `.zoto/eval-system/manifest.yml`.\n\n### Resume loop (multi-turn)\n\nThe adviser subagent has two breakpoints that return `needs_user_input`. Handle each in turn:\n\n**Breakpoint 1 — Summary drill-down** (after initial gap scan):\n\nThe subagent returns a gap summary across all five dimensions with per-dimension severity scores. It includes `needs_user_input` with drill-down options.\n\n1. Present the summary to the user via `askQuestion`, showing:\n   - Per-dimension severity (ok / warn / critical) with target counts.\n   - Options: drill into specific dimensions, all dimensions with gaps, or skip to recommendations.\n2. **Resume** the subagent with the user's drill-down selections.\n\n**Breakpoint 2 — Action recommendations** (after detailed analysis):\n\nThe subagent returns detailed per-target findings and a list of deterministic recommendations. It includes `needs_user_input` with action options.\n\n1. Present recommendations to the user via `askQuestion`, showing:\n   - Numbered list of proposed actions (create new evals, add assertions, strengthen graders).\n   - Options: accept all, walk each individually, create-only, update-only, or no action.\n2. If \"walk each individually\" is selected, iterate through recommendations with per-item accept/skip via additional `askQuestion` calls, then **resume** with the final accepted list.\n3. Otherwise, **resume** the subagent with the selected action set.\n\n### Handoff routing\n\nAfter the adviser returns the final report with accepted recommendations, the **command** (not the subagent) executes handoffs:\n\n1. Group accepted recommendations by handoff command:\n   - Recommendations with `action: create` → `/z-eval-create`.\n   - Recommendations with `action: update` → `/z-eval-update --target <glob> --apply`.\n2. If both create and update targets exist, run **create first** (since update requires existing eval files), then update.\n3. Pass accepted recommendations as structured context to the target command:\n\n```yaml\nadviser_handoff:\n  source: /z-eval-advise\n  accepted_recommendations:\n    - id: <slug>\n      target_id: <manifest target id>\n      dimension: <dimension-id>\n      action: create | update\n  create_targets:\n    - <target_id>\n  update_targets:\n    - glob: <target path glob>\n      reason: <short description>\n```\n\n4. If \"no action\" is selected, present the report summary and exit without handoff.\n\n### What happens\n\n1. Precondition check — config exists.\n2. Scope collected (argument or `askQuestion`).\n3. Subagent loads manifest + config, reads source definitions and eval files.\n4. Scores five gap dimensions: trigger-phrase coverage, schema validation coverage, regression baseline coverage, citation verification, checklist completeness.\n5. Returns summary → command presents drill-down options (Breakpoint 1).\n6. Deepens analysis on selected dimensions → returns recommendations (Breakpoint 2).\n7. User selects which recommendations to apply.\n8. Command routes accepted recommendations to `/z-eval-create` and/or `/z-eval-update`.\n\n## Related\n\n- `zoto-eval-adviser` agent — the adviser specialist (read-only, two-breakpoint pattern).\n- `zoto-advise-evals` skill — five-dimension gap analysis workflow.\n- `/z-eval-create` — handoff target when targets need initial eval scaffolding.\n- `/z-eval-update` — handoff target when existing evals need strengthening or new assertions.\n- `/z-eval-judge` — complementary post-hoc analysis (assesses run quality, not coverage breadth).\n"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": [
+          "workspace/.zoto/eval-system/config.yml",
+          "workspace/.zoto/eval-system/manifest.yml",
+          "workspace/z-eval-init",
+          "workspace/z-eval-judge"
+        ],
+        "modified": [
+          "workspace/.zoto/eval-system/manifest.yml",
+          "workspace/package.json",
+          "workspace/z-eval-create",
+          "workspace/z-eval-update"
+        ],
+        "unchanged": [
+          "documented invariant paths until explicit mutate"
+        ]
+      },
+      "expected_output": "askQuestion checkpoints completed once; generator task spawned with enumerated approvals.",
       "assertions": [
-        "Before any scope `askQuestion` or subagent spawn, the command MUST verify `.zoto/eval-system/config.yml` exists at the repository root and MUST NOT synthesize a default config when it is present.",
-        "With `zoto-eval-system` on the command line the command MUST resolve `advise_context` to targeted scope with a non-null `target_glob` under that plugin and MUST pass both the config path and `.zoto/eval-system/manifest.yml` into the `zoto-eval-adviser` Task wired to the `zoto-advise-evals` skill.",
-        "After the first subagent pause carrying `needs_user_input` for summary drill-down, the command MUST emit `askQuestion` that lists trigger-phrase, schema, regression, citation, and checklist severities as ok, warn, or critical with target counts, then MUST resume the subagent with the operator’s chosen dimensions.",
-        "After the second subagent pause carrying `needs_user_input` for actions, the command MUST emit `askQuestion` with numbered recommendations spanning create and update work, then MUST resume with the accepted set.",
-        "When accepted recommendations include both `action: create` and `action: update`, the command MUST invoke `/z-eval-create` before any `/z-eval-update --target <glob> --apply` since updates expect existing eval files.",
-        "The routed handoff MUST include `adviser_handoff.source` set to `/z-eval-advise`, an `accepted_recommendations` array whose entries carry `id`, `target_id`, `dimension`, and `action`, plus `create_targets` and `update_targets` sections matching the accepted mix."
+        "Primitive 'z-eval-advise' followed documented sequencing for command targets",
+        "Hybrids respected: command-layer askQuestion only when declaring command ownership elsewhere",
+        "Referenced paths from the corpus were honoured without silent destructive overrides"
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-        "last_updated": "2026-05-07T10:38:55.063Z",
+        "source_hash": "72f3ec88f3cfa78d8585d959e2e53e34753900e7f4e1391d68dc706ed591a21e",
+        "primitive_analysis_hash": "584c7e116b4ceba40d046a2e3c6f24f60b509d73248378e60f7496f79722e83d",
+        "last_updated": "2026-05-11T04:53:00.943Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-          "analysed_at": "2026-05-07T10:38:55.063Z",
+          "analysed_at": "2026-05-11T04:53:00.994Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command refuses to run without `.zoto/eval-system/config.yml`, collects analyse scope from a typed plugin or skill argument or from palette `askQuestion` choices, runs the `zoto-eval-adviser` subagent with the `zoto-advise-evals` workflow across two `needs_user_input` breakpoints, then hands accepted create and update work to `/z-eval-create` and `/z-eval-update --target … --apply` with create routed before update when both apply."
         }
-      },
-      "expected_output": "The run confirms the workspace eval config, scopes analysis to the zoto-eval-system plugin tree, shows per-dimension severities for trigger phrases, schema checks, regression baselines, citations, and checklists, then after acceptance forwards a structured handoff where `/z-eval-create` runs before `/z-eval-update --target … --apply`.",
-      "follow_ups": [
-        "Drill into trigger-phrase coverage and schema validation coverage only",
-        "Accept the listed create recommendation and the listed update recommendation together"
-      ]
+      }
     },
     {
       "id": 2,
-      "prompt": "/z-eval-advise zoto-help-evals",
+      "prompt": "Operator omits checklist detail for z-eval-advise: require command-owned recovery.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "# =============================================================================\n# Zoto Eval System — .zoto/eval-system/config.yml\n# =============================================================================\n# Every key below is shown alongside its internal default. Lines starting with\n# `#` are inactive — uncomment to override. Lines without `#` are this repo's\n# active overrides (preserved from the prior .zoto-eval-system/config.json).\n#\n# Schema: plugins/zoto-eval-system/templates/schema/config.schema.json\n# =============================================================================\n\n\n# ─────────────────────────────  discovery  ───────────────────────────────────\n# evalsDir: evals\n# skillsRoots:\n#   - .cursor/skills\n#   - skills\n#   - plugins/*/skills\n# discoveryTargets:\n#   - skill\n#   - command\n#   - agent\n#   - hook\n\n# Active override: skip CRUX primitives in this repo.\nignore:\n  - \".cursor/skills/crux-*\"\n  - \".cursor/commands/crux-*.md\"\n  - \".cursor/agents/crux-cursor-*.md\"\n  - \".cursor/hooks/crux-*\"\n\n\n# ──────────────────────────────  backends  ───────────────────────────────────\n# Active overrides: this repo runs vitest for static evals and the `code`\n# strategy (per-primitive *.test.ts files) for LLM evals.\nstatic:\n  framework: vitest          # default: pytest\n\nllm:\n  # runtime: tsx\n  strategy: code             # default: declarative\n  codeFramework: vitest\n  model:\n    id: composer-2\n\n\n# ────────────────────────────────  judge  ────────────────────────────────────\njudgeModel: opus-4.6\n\n\n# ────────────────────────────  manual checklists  ────────────────────────────\n# manualChecklists:\n#   enabled: false\n\n\n# ────────────────────────────  extra automation  ─────────────────────────────\n# additionalAutomation: []\n\n\n# ───────────────────────────────  analyser  ──────────────────────────────────\n# analyser:\n#   concurrency: 4\n#   maxCallsPerInvocation: 50\n\n\n# ───────────────────────────  run retention (gc)  ────────────────────────────\n# runs:\n#   retention: 30\n\n\n# ────────────────────────────────  update  ───────────────────────────────────\n# update:\n#   criticalChangeRules:\n#     addedTargetWithoutCoverage: true\n#     removedTargetWithActiveCases: true\n#     skillFrontmatterChange: true\n#     publicSurfaceChange: true\n#     promptTemplateChange: true\n#   preserveUserAuthoredCases: true       # hard-coded contract — do not change\n#   writeMetaMarker: true                 # hard-coded contract — do not change\n#   manifestPath: .zoto/eval-system/manifest.yml\n#   historyPath: .zoto/eval-system/manifest.history.yml\n#   rediscoverWithSameDefaults: true\n#   checkExitCodeOnCriticalDrift: 2\n"
+          },
+          {
+            "path": "workspace/plugins/zoto-eval-system/commands/z-eval-advise.md",
+            "content": "---\nname: z-eval-advise\ndescription: Pre-hoc eval coverage adviser. Assesses gaps across five dimensions (trigger-phrase, schema, regression, citation, checklist) and recommends actions. Command-owned askQuestion drives multi-turn interaction at two breakpoints (drill-down selection, action recommendations); zoto-eval-adviser subagent surfaces needs_user_input. Hands off accepted recommendations to /z-eval-create or /z-eval-update.\n---\n\n# z-eval-advise\n\nAssesses eval suite coverage gaps — answering \"what tests are missing?\" rather than \"how did the last run perform?\" Scans source definitions and eval files against five quality dimensions, then recommends targeted actions to close gaps.\n\n## Usage\n\n```\n/z-eval-advise                      # full scan — scope picker via askQuestion\n/z-eval-advise <plugin-name>        # scope to a specific plugin\n/z-eval-advise <skill-name>         # scope to a specific skill\n```\n\n## Instructions\n\n### Precondition\n\nBefore doing anything else, verify that **`.zoto/eval-system/config.yml`** exists at the repository root. If it does not, abort with the exact message:\n\n> Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.\n\nDo not synthesize a default config and do not proceed.\n\n### Pre-collect (before Task)\n\n1. If a `<plugin-name>` or `<skill-name>` argument is provided, resolve it to a target glob (e.g. `plugins/zoto-eval-system/skills/zoto-help-evals/**`).\n2. If no argument is provided, run `askQuestion` with scope options:\n   - **Full scan** — analyse all targets in the manifest.\n   - **Specific plugin** — analyse all targets within a named plugin (present list of detected plugins).\n   - **Specific skill** — analyse a single skill target (present list of manifest skill targets).\n3. Build `advise_context: { scope: \"full\" | \"targeted\", target_glob: <string | null> }` for the subagent.\n\n### Spawn subagent\n\nSpawn a `zoto-eval-adviser` subagent that uses the `zoto-advise-evals` skill, passing:\n\n- The resolved `advise_context` (scope + target glob).\n- Path to config: `.zoto/eval-system/config.yml`.\n- Path to manifest: `.zoto/eval-system/manifest.yml`.\n\n### Resume loop (multi-turn)\n\nThe adviser subagent has two breakpoints that return `needs_user_input`. Handle each in turn:\n\n**Breakpoint 1 — Summary drill-down** (after initial gap scan):\n\nThe subagent returns a gap summary across all five dimensions with per-dimension severity scores. It includes `needs_user_input` with drill-down options.\n\n1. Present the summary to the user via `askQuestion`, showing:\n   - Per-dimension severity (ok / warn / critical) with target counts.\n   - Options: drill into specific dimensions, all dimensions with gaps, or skip to recommendations.\n2. **Resume** the subagent with the user's drill-down selections.\n\n**Breakpoint 2 — Action recommendations** (after detailed analysis):\n\nThe subagent returns detailed per-target findings and a list of deterministic recommendations. It includes `needs_user_input` with action options.\n\n1. Present recommendations to the user via `askQuestion`, showing:\n   - Numbered list of proposed actions (create new evals, add assertions, strengthen graders).\n   - Options: accept all, walk each individually, create-only, update-only, or no action.\n2. If \"walk each individually\" is selected, iterate through recommendations with per-item accept/skip via additional `askQuestion` calls, then **resume** with the final accepted list.\n3. Otherwise, **resume** the subagent with the selected action set.\n\n### Handoff routing\n\nAfter the adviser returns the final report with accepted recommendations, the **command** (not the subagent) executes handoffs:\n\n1. Group accepted recommendations by handoff command:\n   - Recommendations with `action: create` → `/z-eval-create`.\n   - Recommendations with `action: update` → `/z-eval-update --target <glob> --apply`.\n2. If both create and update targets exist, run **create first** (since update requires existing eval files), then update.\n3. Pass accepted recommendations as structured context to the target command:\n\n```yaml\nadviser_handoff:\n  source: /z-eval-advise\n  accepted_recommendations:\n    - id: <slug>\n      target_id: <manifest target id>\n      dimension: <dimension-id>\n      action: create | update\n  create_targets:\n    - <target_id>\n  update_targets:\n    - glob: <target path glob>\n      reason: <short description>\n```\n\n4. If \"no action\" is selected, present the report summary and exit without handoff.\n\n### What happens\n\n1. Precondition check — config exists.\n2. Scope collected (argument or `askQuestion`).\n3. Subagent loads manifest + config, reads source definitions and eval files.\n4. Scores five gap dimensions: trigger-phrase coverage, schema validation coverage, regression baseline coverage, citation verification, checklist completeness.\n5. Returns summary → command presents drill-down options (Breakpoint 1).\n6. Deepens analysis on selected dimensions → returns recommendations (Breakpoint 2).\n7. User selects which recommendations to apply.\n8. Command routes accepted recommendations to `/z-eval-create` and/or `/z-eval-update`.\n\n## Related\n\n- `zoto-eval-adviser` agent — the adviser specialist (read-only, two-breakpoint pattern).\n- `zoto-advise-evals` skill — five-dimension gap analysis workflow.\n- `/z-eval-create` — handoff target when targets need initial eval scaffolding.\n- `/z-eval-update` — handoff target when existing evals need strengthening or new assertions.\n- `/z-eval-judge` — complementary post-hoc analysis (assesses run quality, not coverage breadth).\n"
+          },
+          {
+            "path": "workspace/tmp/ambiguous-request.txt",
+            "content": "// thin context\n"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": [],
+        "modified": [
+          "workspace/.zoto/eval-system/manifest.yml",
+          "workspace/package.json"
+        ],
+        "unchanged": [
+          "documented invariant paths until explicit mutate",
+          "workspace/plugins/zoto-eval-system/commands/z-eval-advise.md"
+        ]
+      },
+      "expected_output": "Deterministic escalation path without overwriting protected assets.",
       "assertions": [
-        "The command MUST treat `zoto-help-evals` as a single-skill selection, building `advise_context` with targeted scope and a `target_glob` that isolates that skill’s files per the manifest.",
-        "The spawned `zoto-eval-adviser` MUST load `zoto-advise-evals`, read `.zoto/eval-system/config.yml` and `.zoto/eval-system/manifest.yml`, and produce an initial summary mentioning trigger-phrase coverage, schema validation coverage, regression baseline coverage, citation verification, and checklist completeness."
+        "Ambiguous prompts returned clarifying guidance or YAML needs_user_input without guessing filenames",
+        "No silent selection among mutually exclusive branching paths absent explicit approval tokens"
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-        "last_updated": "2026-05-07T10:38:55.063Z",
+        "source_hash": "72f3ec88f3cfa78d8585d959e2e53e34753900e7f4e1391d68dc706ed591a21e",
+        "primitive_analysis_hash": "584c7e116b4ceba40d046a2e3c6f24f60b509d73248378e60f7496f79722e83d",
+        "last_updated": "2026-05-11T04:53:00.943Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-          "analysed_at": "2026-05-07T10:38:55.063Z",
+          "analysed_at": "2026-05-11T04:53:00.994Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command refuses to run without `.zoto/eval-system/config.yml`, collects analyse scope from a typed plugin or skill argument or from palette `askQuestion` choices, runs the `zoto-eval-adviser` subagent with the `zoto-advise-evals` workflow across two `needs_user_input` breakpoints, then hands accepted create and update work to `/z-eval-create` and `/z-eval-update --target … --apply` with create routed before update when both apply."
         }
-      },
-      "expected_output": "The command keeps the eval config check, constrains scanning to the zoto-help-evals skill target, and the adviser still scores all five gap dimensions before any breakpoint."
+      }
     }
-  ,
-    {
-      "id": 3,
-      "prompt": "/z-eval-advise",
-      "assertions": [
-        "Because no plugin or skill argument was given, the command MUST first run `askQuestion` offering full-manifest scan, picking a specific detected plugin, and picking a specific manifest skill target before building `advise_context`.",
-        "When the operator selects the full-scan option, `advise_context.scope` MUST be `full` and `target_glob` MUST be null before the `zoto-eval-adviser` Task starts."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-        "last_updated": "2026-05-07T10:38:55.063Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-          "analysed_at": "2026-05-07T10:38:55.063Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command refuses to run without `.zoto/eval-system/config.yml`, collects analyse scope from a typed plugin or skill argument or from palette `askQuestion` choices, runs the `zoto-eval-adviser` subagent with the `zoto-advise-evals` workflow across two `needs_user_input` breakpoints, then hands accepted create and update work to `/z-eval-create` and `/z-eval-update --target … --apply` with create routed before update when both apply."
-        }
-      },
-      "expected_output": "Palette `askQuestion` resolves to a full-manifest scope, `advise_context` marks scope as full with a null `target_glob`, and the adviser run proceeds against every manifest entry.",
-      "follow_ups": [
-        "Full scan — analyse every target listed in the manifest"
-      ]
-    },
-    {
-      "id": 4,
-      "prompt": "/z-eval-advise",
-      "assertions": [
-        "The scope `askQuestion` MUST enumerate detected plugins and, after choosing `zoto-eval-system`, the command MUST set `advise_context` to targeted scope with a glob covering that plugin without requiring a second command invocation."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-        "last_updated": "2026-05-07T10:38:55.063Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-          "analysed_at": "2026-05-07T10:38:55.063Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command refuses to run without `.zoto/eval-system/config.yml`, collects analyse scope from a typed plugin or skill argument or from palette `askQuestion` choices, runs the `zoto-eval-adviser` subagent with the `zoto-advise-evals` workflow across two `needs_user_input` breakpoints, then hands accepted create and update work to `/z-eval-create` and `/z-eval-update --target … --apply` with create routed before update when both apply."
-        }
-      },
-      "expected_output": "The palette narrows analysis to the chosen plugin folder tree while retaining the same adviser tooling and config paths.",
-      "follow_ups": [
-        "Specific plugin — zoto-eval-system"
-      ]
-    },
-    {
-      "id": 5,
-      "prompt": "/z-eval-advise",
-      "assertions": [
-        "After the operator selects a specific manifest skill, the command MUST mirror the `/z-eval-advise zoto-help-evals` argument path by targeting only that skill’s glob in `advise_context`."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-        "last_updated": "2026-05-07T10:38:55.063Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-          "analysed_at": "2026-05-07T10:38:55.063Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command refuses to run without `.zoto/eval-system/config.yml`, collects analyse scope from a typed plugin or skill argument or from palette `askQuestion` choices, runs the `zoto-eval-adviser` subagent with the `zoto-advise-evals` workflow across two `needs_user_input` breakpoints, then hands accepted create and update work to `/z-eval-create` and `/z-eval-update --target … --apply` with create routed before update when both apply."
-        }
-      },
-      "expected_output": "The palette constrains the adviser to a single skill target taken straight from `manifest.yml` entries.",
-      "follow_ups": [
-        "Specific skill — zoto-help-evals"
-      ]
-    },
-    {
-      "id": 6,
-      "prompt": "/z-eval-advise zoto-eval-system",
-      "assertions": [
-        "At breakpoint one the command MUST still offer drill-down choices but MUST honour a skip request by resuming the subagent toward recommendations without insisting on per-dimension follow-ups.",
-        "When the operator picks no action at breakpoint two, the command MUST present the final report and MUST NOT spawn `/z-eval-create`, `/z-eval-update`, or emit further handoff `askQuestion` rounds."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-        "last_updated": "2026-05-07T10:38:55.063Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-          "analysed_at": "2026-05-07T10:38:55.063Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command refuses to run without `.zoto/eval-system/config.yml`, collects analyse scope from a typed plugin or skill argument or from palette `askQuestion` choices, runs the `zoto-eval-adviser` subagent with the `zoto-advise-evals` workflow across two `needs_user_input` breakpoints, then hands accepted create and update work to `/z-eval-create` and `/z-eval-update --target … --apply` with create routed before update when both apply."
-        }
-      },
-      "expected_output": "The command still surfaces severities once, resumes past breakpoint one without extra dimension passes, and ends after breakpoint two without calling `/z-eval-create` or `/z-eval-update`.",
-      "follow_ups": [
-        "Skip straight to action recommendations without deeper dimension drill-down",
-        "No action — keep the report only"
-      ]
-    },
-    {
-      "id": 7,
-      "prompt": "/z-eval-advise zoto-eval-system",
-      "assertions": [
-        "Choosing walk-each mode MUST trigger sequential `askQuestion` prompts so every recommendation is accepted or skipped individually before the command resumes `zoto-eval-adviser` with the trimmed list.",
-        "The resumed payload MUST exclude skipped recommendations from `accepted_recommendations` while keeping explicit identifiers for those that were approved."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-        "last_updated": "2026-05-07T10:38:55.063Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-          "analysed_at": "2026-05-07T10:38:55.063Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command refuses to run without `.zoto/eval-system/config.yml`, collects analyse scope from a typed plugin or skill argument or from palette `askQuestion` choices, runs the `zoto-eval-adviser` subagent with the `zoto-advise-evals` workflow across two `needs_user_input` breakpoints, then hands accepted create and update work to `/z-eval-create` and `/z-eval-update --target … --apply` with create routed before update when both apply."
-        }
-      },
-      "expected_output": "Each recommendation receives its own accept-or-skip prompt, and the subagent resumes with only the accepted entries in the final list.",
-      "follow_ups": [
-        "Walk each recommendation individually",
-        "Accept the first proposed action",
-        "Skip the second proposed action"
-      ]
-    },
-    {
-      "id": 8,
-      "prompt": "/z-eval-advise zoto-eval-system",
-      "assertions": [
-        "After the operator selects create-only handling, the command MUST resume the subagent with only create actions and MUST hand off exclusively to `/z-eval-create` without invoking `/z-eval-update --target … --apply`.",
-        "`adviser_handoff.create_targets` MUST list each accepted create `target_id` and `update_targets` MUST be empty or omitted when no update actions were approved."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-        "last_updated": "2026-05-07T10:38:55.063Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-          "analysed_at": "2026-05-07T10:38:55.063Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command refuses to run without `.zoto/eval-system/config.yml`, collects analyse scope from a typed plugin or skill argument or from palette `askQuestion` choices, runs the `zoto-eval-adviser` subagent with the `zoto-advise-evals` workflow across two `needs_user_input` breakpoints, then hands accepted create and update work to `/z-eval-create` and `/z-eval-update --target … --apply` with create routed before update when both apply."
-        }
-      },
-      "expected_output": "Accepted work runs solely through `/z-eval-create` with `adviser_handoff` lists that omit update batches.",
-      "follow_ups": [
-        "Skip additional drill-down",
-        "Create-only — apply scaffolding recommendations but no update passes"
-      ]
-    },
-    {
-      "id": 9,
-      "prompt": "/z-eval-advise zoto-eval-system",
-      "assertions": [
-        "After the operator selects update-only handling, the command MUST resume with update actions alone and MUST invoke `/z-eval-update` with `--target` globs plus `--apply` for each accepted update batch.",
-        "The command MUST NOT call `/z-eval-create` when every accepted recommendation carries `action: update`, and `adviser_handoff.update_targets` MUST include glob plus reason fields for each batch."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-        "last_updated": "2026-05-07T10:38:55.063Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "41957f1aad2940a7936d758b88a734f3a6f5e4b6199d083f40fe31ebacb21d2b",
-          "analysed_at": "2026-05-07T10:38:55.063Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command refuses to run without `.zoto/eval-system/config.yml`, collects analyse scope from a typed plugin or skill argument or from palette `askQuestion` choices, runs the `zoto-eval-adviser` subagent with the `zoto-advise-evals` workflow across two `needs_user_input` breakpoints, then hands accepted create and update work to `/z-eval-create` and `/z-eval-update --target … --apply` with create routed before update when both apply."
-        }
-      },
-      "expected_output": "Accepted work routes only to `/z-eval-update --target … --apply` while leaving `/z-eval-create` unused.",
-      "follow_ups": [
-        "Skip additional drill-down",
-        "Update-only — strengthen existing evals and skip new scaffolding"
-      ]
-    }
-  ]
+  ],
+  "command_name": "z-eval-advise"
 }

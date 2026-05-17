@@ -58,18 +58,18 @@ Every invocation ALWAYS stamps both backends (no opt‑out):
 - Copy `templates/schema/result.schema.json` to `{evalsDir}/_llm/result.schema.json`.
 - Copy `templates/env/.env.example.tmpl` to `.env.example` at the repo root **only if `.env.example` does not already exist**. If it does, do not overwrite — instead surface a one-line note in the final report so operators can confirm `CURSOR_API_KEY=` is present. Never write `.env` itself.
 
-Skills still consume `skills/<name>/evals/evals.json` via **`templates/skill-evals/evals.json.tmpl`** inside each approved skill folder. **`eval-stamp.ts` refuses `skill:*`** — optional `pnpm run eval:analyse -- skill:<name>` supplies suggested `fixtures`, but integrations stay skill-local.
+Skills still consume `skills/<name>/evals/evals.json` via **`templates/skill-evals/evals.json.tmpl`** inside each approved skill folder. **`eval-stamp.ts` refuses most `skill:*` ids** (exit code 2) — optional `pnpm run eval:analyse -- skill:<name>` supplies hints, then operators merge manually or copy the template. **Exception:** `skill:zoto-eval-tooling` is allowlisted (`CENTRAL_STAMP_SKILL_ALLOWLIST` in `scripts/eval-stamp.ts`); refresh it with analyse then **`pnpm run eval:stamp -- skill:zoto-eval-tooling`** so rows come straight from the cached analyser payload.
 
 ### Step 4a: Analyse each approved central target & stamp fixtures
 
-Repeat only for **command/agent/hook** targets that survived the Step 3 ignore filter (still excluding `skill:*`, which relies on templated prompts + manual merges):
+Repeat for **command/agent/hook** targets that survived the Step 3 ignore filter. For **`skill:zoto-eval-tooling` only**, also run analyse + stamp against that skill id using the same two commands below (other skills skip stamp and rely on the template workflow from Step 4).
 
 ```bash
 pnpm run eval:analyse -- <target-id> [--pretty]
 pnpm run eval:stamp -- <target-id> [--dry-run]
 ```
 
-`target-id`: `command:<name>`, `agent:<slug>`, `hook:<plugin>`, **`hook:cursor-workspace`** for `.cursor/hooks.json` / `.cursor/hooks/hooks.json` (canonical id). The legacy alias **`hook:cursor`** still resolves to the same bundle but prints a deprecation warning — prefer **`hook:cursor-workspace`** everywhere.
+`target-id`: `command:<name>`, `agent:<slug>`, `hook:<plugin>`, **`hook:cursor-workspace`** for `.cursor/hooks.json` / `.cursor/hooks/hooks.json` (canonical id), or **`skill:zoto-eval-tooling`** when refreshing that allowlisted skill’s `evals/evals.json`. The legacy alias **`hook:cursor`** still resolves to the same bundle but prints a deprecation warning — prefer **`hook:cursor-workspace`** everywhere.
 
 **Central roots**
 

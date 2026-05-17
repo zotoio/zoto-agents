@@ -54,4 +54,5 @@ The skill MUST cite the README using the code-reference syntax `start:end:plugin
 ## Related
 
 - `zoto-help-evals` skill — the documented workflow.
+- `/z-eval-start`, `/z-eval-jump`, `/z-eval-operator`, `/z-eval-workflow` — lifecycle routing when the operator only needs “which slash command next” without README-grounded citations (each of `/z-eval-start`, `/z-eval-jump`, and `/z-eval-operator` delegates to `/z-eval-workflow` after the init gate); deep how-to answers stay with `zoto-help-evals`.
 - `rules/zoto-eval-system.mdc` — the routing rule that invokes this skill for help-intent.

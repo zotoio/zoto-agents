@@ -69,7 +69,13 @@
 
 
 # ────────────────────────────────  update  ───────────────────────────────────
-# Drift-detection rules consumed by /z-eval-update.
+# Drift-detection rules consumed by /z-eval-update. On CI workers set
+# `CI=true` and pass `--no-analyser` (or omit it — CI defaults match
+# `--no-analyser`) so primitives reuse `.zoto/eval-system/cache/analyser/`.
+# Stderr prints `[CI WARNING] skipping fresh primitive analysis …` whenever
+# cached analysis applies in CI. Set `failOnNoAnalyserInCI: true` below to abort
+# with exit code `5` immediately after that stderr line (same as forbidding any
+# cached-only analyser run in CI).
 # update:
 #   criticalChangeRules:
 #     addedTargetWithoutCoverage: true
@@ -83,3 +89,4 @@
 #   historyPath: .zoto/eval-system/manifest.history.yml
 #   rediscoverWithSameDefaults: true
 #   checkExitCodeOnCriticalDrift: 2       # min 1, max 255
+#   failOnNoAnalyserInCI: false          # true → CI + `--no-analyser`/`CI=true` exits 5 after stderr warning

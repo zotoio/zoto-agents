@@ -43,12 +43,12 @@
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-        "last_updated": "2026-05-07T10:18:00.000Z",
+        "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+        "last_updated": "2026-05-16T13:28:58.304Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-          "analysed_at": "2026-05-07T10:18:00.000Z",
+          "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+          "analysed_at": "2026-05-16T13:28:58.304Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Turns /z-eval-configure answers into an atomically written, AJV-validated .zoto/eval-system/config.yml plus a cleanup-plan snapshot diff, stamps analyser invalidation when framework or LLM strategy shifts, appends manifest history for audits, and never calls askQuestion or eval cleanup itself."
         }
@@ -65,12 +65,12 @@
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-        "last_updated": "2026-05-07T10:18:00.000Z",
+        "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+        "last_updated": "2026-05-16T13:28:58.305Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-          "analysed_at": "2026-05-07T10:18:00.000Z",
+          "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+          "analysed_at": "2026-05-16T13:28:58.305Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Turns /z-eval-configure answers into an atomically written, AJV-validated .zoto/eval-system/config.yml plus a cleanup-plan snapshot diff, stamps analyser invalidation when framework or LLM strategy shifts, appends manifest history for audits, and never calls askQuestion or eval cleanup itself."
         }
@@ -90,12 +90,12 @@
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-        "last_updated": "2026-05-07T10:18:00.000Z",
+        "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+        "last_updated": "2026-05-16T13:28:58.305Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-          "analysed_at": "2026-05-07T10:18:00.000Z",
+          "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+          "analysed_at": "2026-05-16T13:28:58.305Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Turns /z-eval-configure answers into an atomically written, AJV-validated .zoto/eval-system/config.yml plus a cleanup-plan snapshot diff, stamps analyser invalidation when framework or LLM strategy shifts, appends manifest history for audits, and never calls askQuestion or eval cleanup itself.",
           "fixture_justifications": [
@@ -130,12 +130,12 @@
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-        "last_updated": "2026-05-07T10:18:00.000Z",
+        "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+        "last_updated": "2026-05-16T13:28:58.305Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-          "analysed_at": "2026-05-07T10:18:00.000Z",
+          "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+          "analysed_at": "2026-05-16T13:28:58.305Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Turns /z-eval-configure answers into an atomically written, AJV-validated .zoto/eval-system/config.yml plus a cleanup-plan snapshot diff, stamps analyser invalidation when framework or LLM strategy shifts, appends manifest history for audits, and never calls askQuestion or eval cleanup itself.",
           "fixture_justifications": [
@@ -168,12 +168,12 @@
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-        "last_updated": "2026-05-07T10:18:00.000Z",
+        "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+        "last_updated": "2026-05-16T13:28:58.305Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-          "analysed_at": "2026-05-07T10:18:00.000Z",
+          "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+          "analysed_at": "2026-05-16T13:28:58.305Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Turns /z-eval-configure answers into an atomically written, AJV-validated .zoto/eval-system/config.yml plus a cleanup-plan snapshot diff, stamps analyser invalidation when framework or LLM strategy shifts, appends manifest history for audits, and never calls askQuestion or eval cleanup itself."
         }
@@ -191,12 +191,12 @@
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-        "last_updated": "2026-05-07T10:18:00.000Z",
+        "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+        "last_updated": "2026-05-16T13:28:58.307Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-          "analysed_at": "2026-05-07T10:18:00.000Z",
+          "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+          "analysed_at": "2026-05-16T13:28:58.307Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Turns /z-eval-configure answers into an atomically written, AJV-validated .zoto/eval-system/config.yml plus a cleanup-plan snapshot diff, stamps analyser invalidation when framework or LLM strategy shifts, appends manifest history for audits, and never calls askQuestion or eval cleanup itself.",
           "fixture_justifications": [
@@ -236,12 +236,12 @@
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-        "last_updated": "2026-05-07T10:18:00.000Z",
+        "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+        "last_updated": "2026-05-16T13:28:58.307Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "37e91cf493ece0a83a4e04faef0bb0d50c8734edff565d1ddd2ad5a0fe0380e4",
-          "analysed_at": "2026-05-07T10:18:00.000Z",
+          "source_hash": "9469af412d099942bed1ac2d924f732acdd24b17ed58a07997b77fc47ec4e240",
+          "analysed_at": "2026-05-16T13:28:58.307Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Turns /z-eval-configure answers into an atomically written, AJV-validated .zoto/eval-system/config.yml plus a cleanup-plan snapshot diff, stamps analyser invalidation when framework or LLM strategy shifts, appends manifest history for audits, and never calls askQuestion or eval cleanup itself.",
           "fixture_justifications": [

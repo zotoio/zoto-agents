@@ -31,6 +31,19 @@ You are **not** an interactive agent. There is no operator on the other end. The
 | `hook`    | A description of the Cursor lifecycle event that triggers the hook (`afterFileEdit on plugins/.../SKILL.md`, etc.). | "exit status was 0 and stdout was valid JSON per the Cursor hooks contract", "no askQuestion was emitted from a hook binary" |
 | `rule`    | A user prompt that exercises the scenario the rule constrains (e.g. "rename the function, please").                 | "the rule's enforcement triggered (or did not trigger) at the documented file glob", "the assistant's response respected the constraint" |
 
+## Target-specific prompt shaping
+
+### When `target_id` is `agent:zoto-eval-comparer` and `kind` is `agent`
+
+Every `cases[].prompt` MUST be a **conversational orchestration request**: plain-English tasking where the user or host agent **delegates, sequences, or steers** `zoto-eval-comparer` through work (merge runs, disambiguate `evals/_runs/…` candidates, prepare the `/canvas` hand-off, or surface structured blockers)—**not** a command-palette one-liner. Prefer openings like "From this chat thread, please orchestrate…", "I need you to delegate to the comparer…", "Walk `zoto-eval-comparer` through…", or "Steer compare-mode until…". Do **not** begin the prompt with `/z-eval-compare` unless that token appears as **quoted or clearly attributed** operator text inside longer prose.
+
+Across the emitted `cases` array, natural-language coverage MUST visibly exercise **both** of the following themes (either split across multiple cases or combined in one detailed, still realistic prompt):
+
+- **Compare flow** — multi-run reconciliation from each folder’s `report.yml` (and `static.yml` / `llm.yml` rollups when docs call for flattening), per-case rows destined for `/canvas`, verbatim compare-canvas template instructions bundled in the JSON hand-off, no downsampling, host routing narrative (charts off chat markdown), and schema-shaped `needs_user_input` listing full candidate run paths when operands stay ambiguous. Assertions SHOULD cite the comparer’s **no askQuestion** contract where relevant.
+- **Judge-adjacent flow** — orchestration that assumes **upstream or in-run adjudication**: e.g. runs already touched by `/z-eval-judge`, judge-tier columns (`accuracy`, `confidence`, or similar) that must survive flattening, `judgeModel` / eval-system config prerequisites, or gating when judge-facing YAML is missing—so the case forces compare-mode logic to honour judge artefacts, not only bare pass/fail telemetry.
+
+If you emit a single case for this target, that prompt MUST still weave both compare sequencing and judge-oriented stakes together in one pasteable chat message.
+
 ## Realism checklist (apply to every case before emitting)
 
 - Does the prompt read like a real Cursor user message? If you would not paste this string into the Cursor IDE chat, rewrite it.

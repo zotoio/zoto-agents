@@ -1,137 +1,102 @@
 {
-  "command_name": "z-eval-judge",
-  "evals": [
+  "target_id": "command:z-eval-judge",
+  "cases": [
     {
       "id": 1,
-      "prompt": "/z-eval-judge",
+      "prompt": "Drive the 'z-eval-judge' command through its primary documented flow.\nAssume repository already passes template validation gates.\nHost plugin root for this primitive: workspace/plugins/zoto-eval-system/",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/plugins/zoto-eval-system/commands/z-eval-judge.md",
+            "content": "---\nname: z-eval-judge\ndescription: Adversarial post-hoc analysis of the most recent eval run. Command-owned askQuestion for handoff to /z-eval-update; judge subagent surfaces needs_user_input. Enriches llm.yml with a judge block.\n---\n\n# z-eval-judge\n\nSecond-opinion judge for the most recent eval run. The judge does not re-run cases; it reads run artefacts and per-case logs and annotates.\n\n## File layout / reads\n\nTargets the latest `{evalsDir}/_runs/<ts>/`. The judge workflow loads **`static.yml`** and **`llm.yml`** for per-backend signals and **`report.yml`** for the merged summary, plus `logs/<case>.log` for transcripts. Writes the `judge:` overlay back into **`llm.yml`** (append-only).\n\n## Usage\n\n```\n/z-eval-judge\n```\n\n## Instructions\n\n### Precondition\n\nBefore doing anything else, verify that **`.zoto/eval-system/config.yml`** exists at the repository root. If it does not, abort with the exact message:\n\n> Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.\n\nDo not synthesize a default config and do not proceed.\n\n### Pre-collect\n\nUsually none upfront — the judge skill emits `needs_user_input` when proposing `/z-eval-update` handoff.\n\n### Spawn subagent\n\nSpawn a `zoto-eval-judge` subagent that uses the `zoto-judge-evals` skill.\n\n### Resume loop\n\nWhen the report contains `needs_user_input` for handoff options, run `askQuestion`, then **resume** with the selected option.\n\n### What happens\n\n1. Locate the most recent run directory under `{evalsDir}/_runs/`.\n2. Load **`static.yml`**, **`llm.yml`**, and merged **`report.yml`**, plus per-case logs under `logs/`.\n3. Analyse coverage, grader strength, and soft-metric anomalies.\n4. Append a `judge:` block to `llm.yml`.\n5. If weak graders or under-covered assertions are found, the subagent returns `needs_user_input`; **you** offer `/z-eval-update` via `askQuestion`, then resume.\n\n## Related\n\n- `zoto-eval-judge` agent — the judge specialist.\n- `zoto-judge-evals` skill — the documented workflow.\n- `/z-eval-execute` — produces the run artefacts judged here.\n- `/z-eval-update` — handoff target when weak coverage is detected.\n"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": [
+          "workspace/.zoto/eval-system/config.yml",
+          "workspace/.zoto/eval-system/manifest.yml",
+          "workspace/z-eval-execute",
+          "workspace/z-eval-init"
+        ],
+        "modified": [
+          "workspace/evalsDir/_runs/",
+          "workspace/llm.yml",
+          "workspace/logs/",
+          "workspace/package.json",
+          "workspace/report.yml",
+          "workspace/static.yml",
+          "workspace/z-eval-update"
+        ],
+        "unchanged": [
+          "documented invariant paths until explicit mutate"
+        ]
+      },
+      "expected_output": "askQuestion checkpoints completed once; generator task spawned with enumerated approvals.",
       "assertions": [
-        "The assistant message is exactly: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
-        "No `zoto-eval-judge` subagent or `zoto-judge-evals` skill workflow starts and `llm.yml` under any `evals/_runs/` path is untouched."
+        "Primitive 'z-eval-judge' followed documented sequencing for command targets",
+        "Hybrids respected: command-layer askQuestion only when declaring command ownership elsewhere",
+        "Referenced paths from the corpus were honoured without silent destructive overrides"
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
-        "last_updated": "2026-05-07T10:45:35.848Z",
+        "source_hash": "7654646bb17b9133a4a1597dfac3a6a804fbb3bff851a593f873cb279f6b0174",
+        "primitive_analysis_hash": "6c34d5c2663ebf208d022df235978481fa4d553b8be67db3dbaed799b4ec55b0",
+        "last_updated": "2026-05-11T04:55:59.369Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
-          "analysed_at": "2026-05-07T10:45:35.848Z",
+          "analysed_at": "2026-05-11T04:55:59.480Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command refuses work until `.zoto/eval-system/config.yml` exists, otherwise it drives a `zoto-eval-judge` subagent through the latest `evals/_runs/<ts>/` artefacts, appends a `judge:` block into `llm.yml`, and uses `askQuestion` plus resume when the judge signals `needs_user_input` for a `/z-eval-update` handoff."
         }
-      },
-      "expected_output": "A single refusal that tells the operator to initialise the eval system first, without opening run directories or editing YAML under evals."
+      }
     },
     {
       "id": 2,
-      "prompt": "/z-eval-judge",
-      "assertions": [
-        "After `/z-eval-judge`, `workspace/evals/_runs/20260507120000Z/llm.yml` contains a newly appended top-level `judge` mapping that was absent in the fixture.",
-        "The command run spawns a `zoto-eval-judge` subagent wired to the `zoto-judge-evals` skill before mutating `llm.yml`.",
-        "The judge narrative references signals that could only come from `static.yml`, `llm.yml`, `report.yml`, and `logs/case-a.log` together (for instance citing the passing total and the logged turn text).",
-        "`workspace/evals/_runs/20260507120000Z/static.yml` and `workspace/evals/_runs/20260507120000Z/report.yml` are not deleted or replaced wholesale; only `llm.yml` receives the documented append-only edit."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
-        "last_updated": "2026-05-07T10:45:35.848Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
-          "analysed_at": "2026-05-07T10:45:35.848Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command refuses work until `.zoto/eval-system/config.yml` exists, otherwise it drives a `zoto-eval-judge` subagent through the latest `evals/_runs/<ts>/` artefacts, appends a `judge:` block into `llm.yml`, and uses `askQuestion` plus resume when the judge signals `needs_user_input` for a `/z-eval-update` handoff.",
-          "fixture_justifications": [
-            "Provides the repository-root config file the command must confirm before any judge work.",
-            "Supplies static backend totals the judge must load from the newest run folder.",
-            "Seeds `llm.yml` without a `judge` key so an append-only overlay is externally visible.",
-            "Supplies merged report data the judge must read alongside per-backend YAML.",
-            "Provides a per-case transcript file under `logs/` the judge must consult."
-          ]
-        }
-      },
+      "prompt": "Operator omits checklist detail for z-eval-judge: require command-owned recovery.",
       "fixtures": {
         "files": [
           {
-            "path": "workspace/.zoto/eval-system/config.yml",
-            "content": "evalsDir: evals\n"
+            "path": "workspace/plugins/zoto-eval-system/commands/z-eval-judge.md",
+            "content": "---\nname: z-eval-judge\ndescription: Adversarial post-hoc analysis of the most recent eval run. Command-owned askQuestion for handoff to /z-eval-update; judge subagent surfaces needs_user_input. Enriches llm.yml with a judge block.\n---\n\n# z-eval-judge\n\nSecond-opinion judge for the most recent eval run. The judge does not re-run cases; it reads run artefacts and per-case logs and annotates.\n\n## File layout / reads\n\nTargets the latest `{evalsDir}/_runs/<ts>/`. The judge workflow loads **`static.yml`** and **`llm.yml`** for per-backend signals and **`report.yml`** for the merged summary, plus `logs/<case>.log` for transcripts. Writes the `judge:` overlay back into **`llm.yml`** (append-only).\n\n## Usage\n\n```\n/z-eval-judge\n```\n\n## Instructions\n\n### Precondition\n\nBefore doing anything else, verify that **`.zoto/eval-system/config.yml`** exists at the repository root. If it does not, abort with the exact message:\n\n> Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.\n\nDo not synthesize a default config and do not proceed.\n\n### Pre-collect\n\nUsually none upfront — the judge skill emits `needs_user_input` when proposing `/z-eval-update` handoff.\n\n### Spawn subagent\n\nSpawn a `zoto-eval-judge` subagent that uses the `zoto-judge-evals` skill.\n\n### Resume loop\n\nWhen the report contains `needs_user_input` for handoff options, run `askQuestion`, then **resume** with the selected option.\n\n### What happens\n\n1. Locate the most recent run directory under `{evalsDir}/_runs/`.\n2. Load **`static.yml`**, **`llm.yml`**, and merged **`report.yml`**, plus per-case logs under `logs/`.\n3. Analyse coverage, grader strength, and soft-metric anomalies.\n4. Append a `judge:` block to `llm.yml`.\n5. If weak graders or under-covered assertions are found, the subagent returns `needs_user_input`; **you** offer `/z-eval-update` via `askQuestion`, then resume.\n\n## Related\n\n- `zoto-eval-judge` agent — the judge specialist.\n- `zoto-judge-evals` skill — the documented workflow.\n- `/z-eval-execute` — produces the run artefacts judged here.\n- `/z-eval-update` — handoff target when weak coverage is detected.\n"
           },
           {
-            "path": "workspace/evals/_runs/20260507120000Z/static.yml",
-            "content": "totals:\n  passed: 1\n  failed: 0\n"
-          },
-          {
-            "path": "workspace/evals/_runs/20260507120000Z/llm.yml",
-            "content": "runs:\n  primary:\n    cases:\n      - id: case-a\n        verdict: pass\n"
-          },
-          {
-            "path": "workspace/evals/_runs/20260507120000Z/report.yml",
-            "content": "totals:\n  passed: 1\n  failed: 0\n"
-          },
-          {
-            "path": "workspace/evals/_runs/20260507120000Z/logs/case-a.log",
-            "content": "turn 0: assistant summarised coverage\n"
+            "path": "workspace/tmp/ambiguous-request.txt",
+            "content": "// thin context\n"
           }
         ]
       },
-      "expected_output": "The subagent finishes analysis, `llm.yml` in that run folder contains a new `judge` section summarising findings from the loaded artefacts, and `static.yml` plus `report.yml` stay consistent with a read-only pass."
-    }
-  ,
-    {
-      "id": 3,
-      "prompt": "/z-eval-judge",
+      "expected_filesystem": {
+        "created": [],
+        "modified": [
+          "workspace/evalsDir/_runs/",
+          "workspace/llm.yml"
+        ],
+        "unchanged": [
+          "documented invariant paths until explicit mutate",
+          "workspace/plugins/zoto-eval-system/commands/z-eval-judge.md"
+        ]
+      },
+      "expected_output": "Deterministic escalation path without overwriting protected assets.",
       "assertions": [
-        "Immediately after `/z-eval-judge` while `report.yml` advertises `needs_user_input` for `/z-eval-update`, the assistant calls `askQuestion` whose choices name that command.",
-        "After the follow-up answer selecting `/z-eval-update`, the assistant resumes with the chosen handoff and does not emit the identical `askQuestion` card again on the next turn.",
-        "Throughout the loop, `workspace/evals/_runs/20260507120000Z/llm.yml` still receives the append-only `judge` block expected from the analysis pass."
+        "Ambiguous prompts returned clarifying guidance or YAML needs_user_input without guessing filenames",
+        "No silent selection among mutually exclusive branching paths absent explicit approval tokens"
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
-        "last_updated": "2026-05-07T10:45:35.848Z",
+        "source_hash": "7654646bb17b9133a4a1597dfac3a6a804fbb3bff851a593f873cb279f6b0174",
+        "primitive_analysis_hash": "6c34d5c2663ebf208d022df235978481fa4d553b8be67db3dbaed799b4ec55b0",
+        "last_updated": "2026-05-11T04:55:59.369Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
-          "analysed_at": "2026-05-07T10:45:35.848Z",
+          "analysed_at": "2026-05-11T04:55:59.480Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "The command refuses work until `.zoto/eval-system/config.yml` exists, otherwise it drives a `zoto-eval-judge` subagent through the latest `evals/_runs/<ts>/` artefacts, appends a `judge:` block into `llm.yml`, and uses `askQuestion` plus resume when the judge signals `needs_user_input` for a `/z-eval-update` handoff.",
-          "fixture_justifications": [
-            "Binds `evalsDir` so the command resolves `_runs` under `workspace/evals`.",
-            "Static totals show failure so the merged story matches log evidence.",
-            "Shows a failing case with an overly strict regex grader to justify `needs_user_input`.",
-            "Merged report carries `needs_user_input` pointing at `/z-eval-update`, exercising the resume contract.",
-            "Log text backs the reported failure for transcript review."
-          ]
+          "summary": "The command refuses work until `.zoto/eval-system/config.yml` exists, otherwise it drives a `zoto-eval-judge` subagent through the latest `evals/_runs/<ts>/` artefacts, appends a `judge:` block into `llm.yml`, and uses `askQuestion` plus resume when the judge signals `needs_user_input` for a `/z-eval-update` handoff."
         }
-      },
-      "fixtures": {
-        "files": [
-          {
-            "path": "workspace/.zoto/eval-system/config.yml",
-            "content": "evalsDir: evals\n"
-          },
-          {
-            "path": "workspace/evals/_runs/20260507120000Z/static.yml",
-            "content": "totals:\n  passed: 0\n  failed: 1\n"
-          },
-          {
-            "path": "workspace/evals/_runs/20260507120000Z/llm.yml",
-            "content": "runs:\n  primary:\n    cases:\n      - id: case-b\n        verdict: fail\n        graders:\n          - type: regex\n            pattern: \"^$\"\n"
-          },
-          {
-            "path": "workspace/evals/_runs/20260507120000Z/report.yml",
-            "content": "needs_user_input:\n  kind: handoff\n  propose_command: /z-eval-update\n  detail: Regex grader cannot substantiate the assertion.\ntotals:\n  passed: 0\n  failed: 1\n"
-          },
-          {
-            "path": "workspace/evals/_runs/20260507120000Z/logs/case-b.log",
-            "content": "turn 0: assistant noted brittle grading\n"
-          }
-        ]
-      },
-      "expected_output": "First turn surfaces `askQuestion` options that include `/z-eval-update`; after the operator picks that path, the assistant resumes the judge flow without repeating the same prompt.",
-      "follow_ups": [
-        "Choose the handoff option that runs `/z-eval-update` next."
-      ]
+      }
     }
-  ]
+  ],
+  "command_name": "z-eval-judge"
 }
