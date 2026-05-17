@@ -97,6 +97,65 @@ export interface CreateAgentOptions {
 }
 
 /**
+ * Maps abstract model labels used throughout the eval system
+ * (`opus-4.6`, `sonnet`, etc.) to the concrete model ids accepted by
+ * `@cursor/sdk` `Agent.create({ model: { id } })`.
+ *
+ * Background: the eval-system config schema and stamped test files use
+ * short, version-stable labels (e.g. `opus-4.6`) so that bumping the
+ * underlying provider model doesn't require a sweep across dozens of
+ * generated `*.test.ts` files. The SDK, however, expects the provider's
+ * literal id (e.g. `claude-opus-4-6`). This table is the single
+ * translation point — update it when a provider renames a model.
+ *
+ * Override at runtime via `ZOTO_EVAL_MODEL_ALIASES`, a JSON object
+ * mapping abstract labels to concrete ids, e.g.
+ *   ZOTO_EVAL_MODEL_ALIASES='{"opus-4.6":"claude-opus-4-7"}'
+ *
+ * Unknown labels pass through unchanged so concrete ids
+ * (`claude-opus-4-7`, `composer-2`, etc.) keep working without any
+ * rewrite.
+ */
+const DEFAULT_MODEL_ALIASES: Record<string, string> = {
+  "opus-4.6": "claude-opus-4-6",
+  "opus-4.7": "claude-opus-4-7",
+  "sonnet": "claude-sonnet-4-6",
+  "sonnet-4.6": "claude-sonnet-4-6",
+};
+
+let cachedAliases: Record<string, string> | null = null;
+
+function loadModelAliases(): Record<string, string> {
+  if (cachedAliases) return cachedAliases;
+  const env = process.env.ZOTO_EVAL_MODEL_ALIASES;
+  if (!env) {
+    cachedAliases = { ...DEFAULT_MODEL_ALIASES };
+    return cachedAliases;
+  }
+  try {
+    const parsed = JSON.parse(env) as Record<string, unknown>;
+    const merged: Record<string, string> = { ...DEFAULT_MODEL_ALIASES };
+    for (const [k, v] of Object.entries(parsed)) {
+      if (typeof v === "string" && v.length > 0) merged[k] = v;
+    }
+    cachedAliases = merged;
+  } catch {
+    cachedAliases = { ...DEFAULT_MODEL_ALIASES };
+  }
+  return cachedAliases;
+}
+
+/**
+ * Translate an abstract model label (`opus-4.6`) to the concrete API id
+ * (`claude-opus-4-6`). Returns the input unchanged if no alias matches.
+ * Exported so reporters and logs can show the resolved id.
+ */
+export function resolveModelId(modelId: string): string {
+  const aliases = loadModelAliases();
+  return aliases[modelId] ?? modelId;
+}
+
+/**
  * Canonical agent-creation call. Consumers must never call
  * `Agent.create(...)` directly; routing through this function guarantees
  * the next SDK breaking change only needs a single patch here.
@@ -113,7 +172,7 @@ export async function createAgent(opts: CreateAgentOptions): Promise<SDKAgent> {
   }
   return Agent.create({
     apiKey,
-    model: { id: opts.modelId },
+    model: { id: resolveModelId(opts.modelId) },
     local: { cwd: opts.cwd },
   });
 }

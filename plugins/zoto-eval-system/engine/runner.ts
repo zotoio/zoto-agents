@@ -47,7 +47,10 @@ import {
   readdirSync,
   statSync,
 } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __engine_dir = dirname(fileURLToPath(import.meta.url));
 
 import YAML from "yaml";
 
@@ -65,7 +68,7 @@ import { toolCalled } from "./graders/tool-called.js";
 import { llmJudge } from "./graders/llm-judge.js";
 import type { GraderReport } from "./graders/common.js";
 import type { SnapshotDiff } from "./sandbox.js";
-import { loadEvalConfig } from "../../plugins/zoto-eval-system/src/config-loader.js";
+import { loadEvalConfig } from "../src/config-loader.js";
 import {
   createSandbox,
   diffSnapshots,
@@ -688,7 +691,7 @@ async function main(): Promise<number> {
 
   const endedAt = new Date().toISOString();
 
-  const schemaPath = join(REPO_ROOT, "evals", "_llm", "result.schema.json");
+  const schemaPath = join(__engine_dir, "result.schema.json");
   const out = writeResults({
     runId,
     evalsDir,

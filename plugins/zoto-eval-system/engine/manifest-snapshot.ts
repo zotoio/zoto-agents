@@ -10,7 +10,7 @@
  *     so the dry-run plan and the executed plan agree byte-for-byte.
  *
  * The canonical source is `.zoto/eval-system/manifest.yml ->
- * discovery_config.{static,llm}` (added in subtask 01). When the manifest is
+ * discovery_config.{static, llm, discoveryTargets}` (added in subtask 01). When the manifest is
  * missing or pre-dates subtask 01, this module falls back to filesystem
  * fingerprints:
  *
@@ -29,6 +29,8 @@ import { join } from "node:path";
 
 import YAML from "yaml";
 
+import { toolingPhantomEvalCataloguePath } from "./discovery-filters.js";
+
 export type StaticFramework = "pytest" | "vitest" | "jest";
 export type LlmStrategy = "code" | "declarative";
 export type CodeFramework = "vitest" | "jest";
@@ -39,9 +41,20 @@ export interface ManifestSnapshot {
   static: { framework?: StaticFramework };
   llm: { strategy?: LlmStrategy; codeFramework?: CodeFramework };
   /**
-   * Flat list of every `eval_files[]` path referenced by manifest targets.
-   * Used by the cleanup engine (subtask 03) to enumerate stamped files
-   * candidate for deletion when the framework/strategy switches.
+   * kinds from manifest `discovery_config.discoveryTargets` when recorded —
+   * the catalogue snapshot (may be broader than the operator's active YAML).
+   */
+  discoveryTargets?: string[];
+  /**
+   * Effective kinds for drift / cleanup planning: raw `config.yml`
+   * `discoveryTargets` when that key is present (narrowing wins), otherwise
+   * the manifest-recorded `discoveryTargets`. Aligns with `eval-update`.
+   */
+  effectiveDiscoveryTargets?: string[];
+  /**
+   * Flat list of every `eval_files[]` path referenced by manifest targets,
+   * minus tooling-only catalogue noise (`*.eval.json`, stale plugin `evals/*.json`
+   * rows). Used by cleanup / configure to enumerate real stamped assets.
    */
   evalFiles: string[];
   /**
@@ -56,12 +69,58 @@ interface ManifestShape {
   discovery_config?: {
     static?: { framework?: StaticFramework };
     llm?: { strategy?: LlmStrategy; codeFramework?: CodeFramework };
+    discoveryTargets?: unknown;
   };
   targets?: Array<{ eval_files?: string[] }>;
 }
 
+function normalizedDiscoveryTargets(
+  dc: ManifestShape["discovery_config"] | undefined,
+): string[] | undefined {
+  const raw = dc?.discoveryTargets;
+  if (!Array.isArray(raw)) return undefined;
+  const strings = raw.filter(
+    (x): x is string => typeof x === "string" && x.trim().length > 0,
+  );
+  return strings.length > 0 ? strings : undefined;
+}
+
 function manifestPath(repoRoot: string): string {
   return join(repoRoot, ".zoto", "eval-system", "manifest.yml");
+}
+
+const CONFIG_PATH_SEGMENTS = [".zoto", "eval-system", "config.yml"] as const;
+
+/**
+ * Raw read of `discoveryTargets` from `.zoto/eval-system/config.yml` only when
+ * the key is present — mirrors `engine/update.ts` so narrowing in YAML wins
+ * over a stale `manifest.discovery_config` list.
+ */
+export function loadRawConfigDiscoveryTargets(repoRoot: string): string[] | undefined {
+  const path = join(repoRoot, ...CONFIG_PATH_SEGMENTS);
+  if (!existsSync(path)) return undefined;
+  try {
+    const raw = YAML.parse(readFileSync(path, "utf-8")) as Record<string, unknown> | null;
+    if (
+      !raw ||
+      typeof raw !== "object" ||
+      !Object.prototype.hasOwnProperty.call(raw, "discoveryTargets")
+    ) {
+      return undefined;
+    }
+    const dt = raw.discoveryTargets;
+    if (!Array.isArray(dt)) return undefined;
+    const strings = dt.filter(
+      (x): x is string => typeof x === "string" && x.trim().length > 0,
+    );
+    return strings.length > 0 ? strings : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function filterToolingPhantomEvalPaths(paths: string[]): string[] {
+  return paths.filter((f) => !toolingPhantomEvalCataloguePath(f));
 }
 
 function detectStaticFromFilesystem(
@@ -92,6 +151,8 @@ function detectStaticFromFilesystem(
 export function readManifestSnapshot(
   repoRoot: string = process.cwd(),
 ): ManifestSnapshot {
+  const rawDiscoveryOverride = loadRawConfigDiscoveryTargets(repoRoot);
+
   const path = manifestPath(repoRoot);
   if (existsSync(path)) {
     let parsed: ManifestShape | null = null;
@@ -103,14 +164,18 @@ export function readManifestSnapshot(
 
     if (parsed) {
       const dc = parsed.discovery_config ?? {};
-      const evalFiles: string[] = [];
+      const evalFilesRaw: string[] = [];
       for (const t of parsed.targets ?? []) {
         for (const f of t.eval_files ?? []) {
-          if (typeof f === "string" && f.length > 0) evalFiles.push(f);
+          if (typeof f === "string" && f.length > 0) evalFilesRaw.push(f);
         }
       }
+      const evalFiles = filterToolingPhantomEvalPaths(evalFilesRaw);
       const hasStatic = Boolean(dc.static?.framework);
       const hasLlm = Boolean(dc.llm?.strategy) || Boolean(dc.llm?.codeFramework);
+
+      const discoveryTargets = normalizedDiscoveryTargets(dc);
+      const effectiveDiscoveryTargets = rawDiscoveryOverride ?? discoveryTargets;
 
       if (hasStatic || hasLlm) {
         return {
@@ -119,6 +184,8 @@ export function readManifestSnapshot(
             strategy: dc.llm?.strategy,
             codeFramework: dc.llm?.codeFramework,
           },
+          discoveryTargets,
+          effectiveDiscoveryTargets,
           evalFiles,
           source: "manifest",
         };
@@ -130,6 +197,8 @@ export function readManifestSnapshot(
       return {
         static: { framework: fsHit?.framework },
         llm: {},
+        discoveryTargets,
+        effectiveDiscoveryTargets,
         evalFiles,
         source: fsHit ? "filesystem" : "missing",
       };
@@ -141,6 +210,7 @@ export function readManifestSnapshot(
   return {
     static: { framework: fsHit?.framework },
     llm: {},
+    effectiveDiscoveryTargets: rawDiscoveryOverride,
     evalFiles: [],
     source: fsHit ? "filesystem" : "missing",
   };

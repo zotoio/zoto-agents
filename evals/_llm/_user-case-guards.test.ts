@@ -23,7 +23,7 @@ import {
   isGeneratedCase,
   isGeneratedFile,
   isUserAuthoredCase,
-} from "./_user-case-guards.js";
+} from "../../plugins/zoto-eval-system/engine/_user-case-guards.js";
 
 type Result = { name: string; ok: boolean; detail?: string };
 

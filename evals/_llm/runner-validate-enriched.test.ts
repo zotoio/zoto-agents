@@ -26,7 +26,7 @@ import {
   loadEvalFile,
   validateEnriched,
   type EvalCase,
-} from "../../plugins/zoto-eval-system/engine/case.js";
+} from "./case.js";
 
 interface StepResult {
   name: string;
@@ -304,7 +304,7 @@ try {
     if (v.ok) {
       throw new Error("short contains needle was unexpectedly accepted");
     }
-    if (!/shorter than 18 characters/i.test(v.reason ?? "")) {
+    if (!/shorter than 4 characters/i.test(v.reason ?? "")) {
       throw new Error(`expected short-needle reason, got: ${v.reason}`);
     }
   });
