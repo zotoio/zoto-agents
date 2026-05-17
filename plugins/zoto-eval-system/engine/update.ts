@@ -23,12 +23,16 @@
  *                                                                LlmDeclarative}
  *
  * Each framework helper:
- *   - Resolves an `AnalyserPayload` (fresh via `runAnalyser`, cached when
- *     `--no-analyser`).
+ *   - Resolves an `AnalyserPayload` (fresh via `runAnalyser`, cached under
+ *     `--no-analyser` or when `CI=true` defaults to cached payloads unless
+ *     overridden with `--with-analyser`).
  *   - Calls `isGeneratedFile(path)` before overwriting any test file.
  *   - For declarative `evals.json`, calls `isGeneratedCase(c)` first and
  *     uses `json-source-map` to surgically replace generated rows while
- *     leaving user-authored rows byte-identical.
+ *     leaving user-authored rows byte-identical. Rows whose stamped payload
+ *     is `isDeepStrictEqual` to the existing value skip replacement. No
+ *     generated rows yet implies a user-only file — injecting machine cases
+ *     requires `--overwrite` (mirroring test-file guards).
  *   - Returns a structured report; the dispatcher aggregates and updates
  *     the manifest + appends to `manifest.history.yml`.
  *
@@ -37,9 +41,12 @@
  */
 import {
   appendFileSync,
+  closeSync,
   existsSync,
   mkdirSync,
+  openSync,
   readFileSync,
+  readSync,
   readdirSync,
   statSync,
   writeFileSync,
@@ -47,6 +54,7 @@ import {
 import { execSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { dirname, join, relative, resolve } from "node:path";
+import { isDeepStrictEqual } from "node:util";
 
 import YAML from "yaml";
 import { minimatch } from "minimatch";
@@ -55,8 +63,14 @@ import jsonMap from "json-source-map";
 import type { EvalCase, EvalFile } from "./case.js";
 import { casesOf, loadEvalFile } from "./case.js";
 import { isGeneratedCase, isGeneratedFile } from "./_user-case-guards.js";
-import { loadEvalConfig } from "../../plugins/zoto-eval-system/src/config-loader.js";
+import { loadEvalConfig } from "../src/config-loader.js";
 import {
+  filterTargetsByDiscoveryIgnores,
+  filterTargetsByDiscoveryKinds,
+  toolingPhantomEvalCataloguePath,
+} from "./discovery-filters.js";
+import {
+  loadRawConfigDiscoveryTargets,
   readManifestSnapshot,
   type ManifestSnapshot,
 } from "./manifest-snapshot.js";
@@ -64,7 +78,7 @@ import {
   runAnalyser,
   AnalyserError,
   type AnalyserPayload,
-} from "../../scripts/eval-analyse.ts";
+} from "../../../scripts/eval-analyse.ts";
 import {
   buildDeclarativeStampedCase,
   stampJestPerPrimitive,
@@ -74,11 +88,9 @@ import {
   stampVitestPerPrimitive,
   type LlmCodeFramework,
   type PrimitiveMeta,
-} from "../../scripts/eval-stamp.ts";
+} from "../../../scripts/eval-stamp.ts";
 
 const REPO_ROOT = resolve(process.cwd());
-const MANIFEST_PATH = join(REPO_ROOT, ".zoto", "eval-system", "manifest.yml");
-const HISTORY_PATH = join(REPO_ROOT, ".zoto", "eval-system", "manifest.history.yml");
 const ANALYSER_CACHE_DIR_REL = ".zoto/eval-system/cache/analyser";
 
 export type Mode =
@@ -110,13 +122,21 @@ export interface ParsedArgs {
   mode: Mode;
   glob: string | null;
   noAnalyser: boolean;
+  /** When true, regenerates overwrite files missing the `_meta.generated` guard. */
+  overwrite: boolean;
 }
 
 export function parseArgs(argv: string[]): ParsedArgs {
   const args = argv.slice();
   const apply = args.includes("--apply");
   const check = args.includes("--check");
-  const noAnalyser = args.includes("--no-analyser");
+  const explicitWithAnalyser = args.includes("--with-analyser");
+  const explicitNoAnalyser = args.includes("--no-analyser");
+  const ciDefaultsToCachedAnalyser =
+    process.env.CI === "true" && !explicitWithAnalyser;
+  const noAnalyser =
+    !explicitWithAnalyser && (explicitNoAnalyser || ciDefaultsToCachedAnalyser);
+  const overwrite = args.includes("--overwrite");
 
   // --target <glob> form
   let glob: string | null = null;
@@ -137,11 +157,21 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (positional.length > 0) glob = positional[0] ?? null;
   }
 
-  if (check) return { mode: "check", glob, noAnalyser };
+  if (check) return { mode: "check", glob, noAnalyser, overwrite };
   if (glob) {
-    return { mode: apply ? "targeted-apply" : "targeted-dry", glob, noAnalyser };
+    return {
+      mode: apply ? "targeted-apply" : "targeted-dry",
+      glob,
+      noAnalyser,
+      overwrite,
+    };
   }
-  return { mode: apply ? "rediscovery-apply" : "rediscovery-dry", glob: null, noAnalyser };
+  return {
+    mode: apply ? "rediscovery-apply" : "rediscovery-dry",
+    glob: null,
+    noAnalyser,
+    overwrite,
+  };
 }
 
 function sha256(s: string): string {
@@ -152,9 +182,24 @@ function normaliseContent(s: string): string {
   return s.replace(/\r\n/g, "\n").replace(/\s+\n/g, "\n").trim();
 }
 
-function loadManifest(): Record<string, unknown> | null {
-  if (!existsSync(MANIFEST_PATH)) return null;
-  return YAML.parse(readFileSync(MANIFEST_PATH, "utf-8")) as Record<string, unknown>;
+function resolveUpdatePaths(repoRoot: string): { manifestPath: string; historyPath: string } {
+  try {
+    const { config: typed } = loadEvalConfig(repoRoot);
+    return {
+      manifestPath: join(repoRoot, typed.update.manifestPath),
+      historyPath: join(repoRoot, typed.update.historyPath),
+    };
+  } catch {
+    return {
+      manifestPath: join(repoRoot, ".zoto", "eval-system", "manifest.yml"),
+      historyPath: join(repoRoot, ".zoto", "eval-system", "manifest.history.yml"),
+    };
+  }
+}
+
+function loadManifestAt(manifestPath: string): Record<string, unknown> | null {
+  if (!existsSync(manifestPath)) return null;
+  return YAML.parse(readFileSync(manifestPath, "utf-8")) as Record<string, unknown>;
 }
 
 function headSha(): string {
@@ -179,28 +224,53 @@ function loadIgnorePatterns(config: Record<string, unknown>): string[] {
   return raw.filter((x): x is string => typeof x === "string" && x.trim().length > 0);
 }
 
-/** Mirrors scripts/eval-discover.ts — match repo-relative path or its parent dir against one glob. */
-function pathMatchesIgnoreGlob(pathPosix: string, pattern: string): boolean {
-  const opts = { dot: true as const };
-  const pat = pattern.trim();
-  if (!pat) return false;
-  const n = pathPosix.replace(/\\/g, "/").replace(/^\/+/, "").replace(/^\.\//, "");
-  if (minimatch(n, pat, opts)) return true;
-  const slash = n.lastIndexOf("/");
-  if (slash <= 0) return false;
-  const parentDir = n.slice(0, slash);
-  return minimatch(parentDir, pat, opts);
+function isPlainObject(x: unknown): x is Record<string, unknown> {
+  return typeof x === "object" && x !== null && !Array.isArray(x);
 }
 
-function filterTargetsByIgnores(
-  targets: TargetSnapshot[],
-  ignorePatterns: string[],
-): TargetSnapshot[] {
-  if (!ignorePatterns.length) return targets;
-  return targets.filter((t) => {
-    const p = t.path.replace(/\\/g, "/");
-    return !ignorePatterns.some((pat) => pathMatchesIgnoreGlob(p, pat));
-  });
+/**
+ * Full-catalog modes (check / rediscovery without `--target`) pin discovery ignores to
+ * `manifest.discovery_config` only — same as `scripts/eval-update.ts`. An absent or empty
+ * `ignore` in the snapshot means no ignore patterns (live `config.yml` is not consulted).
+ */
+function discoveryIgnoreForUpdate(
+  manifest: Record<string, unknown>,
+  liveConfig: Record<string, unknown>,
+  fullCatalog: boolean,
+): string[] {
+  if (fullCatalog) {
+    const dc = manifest.discovery_config;
+    return isPlainObject(dc) ? loadIgnorePatterns(dc) : [];
+  }
+  return loadIgnorePatterns(liveConfig);
+}
+
+/**
+ * Append-only multi-doc YAML: extend the file at EOF only — never parse, rewrite, or
+ * truncate prior documents (separator derived from the last byte, not a full read).
+ */
+function appendManifestHistorySnapshot(absPath: string, doc: Record<string, unknown>): void {
+  const yamlBody = YAML.stringify(doc);
+  mkdirSync(dirname(absPath), { recursive: true });
+  if (!existsSync(absPath)) {
+    appendFileSync(absPath, `---\n${yamlBody}`, "utf-8");
+    return;
+  }
+  const st = statSync(absPath);
+  let sep: string;
+  if (st.size === 0) {
+    sep = "---\n";
+  } else {
+    const fd = openSync(absPath, "r");
+    try {
+      const buf = Buffer.alloc(1);
+      readSync(fd, buf, 0, 1, st.size - 1);
+      sep = buf[0] === 0x0a ? "---\n" : "\n---\n";
+    } finally {
+      closeSync(fd);
+    }
+  }
+  appendFileSync(absPath, `${sep}${yamlBody}`, "utf-8");
 }
 
 interface TargetSnapshot {
@@ -589,7 +659,9 @@ export function computeDeltas(
 
 function containsGenerated(evalFile: string): boolean {
   const abs = resolve(REPO_ROOT, evalFile);
-  if (!existsSync(abs)) return false;
+  if (!existsSync(abs)) {
+    return !toolingPhantomEvalCataloguePath(evalFile);
+  }
   try {
     const f = loadEvalFile(abs);
     return casesOf(f).some((c) => c._meta?.generated === true);
@@ -725,9 +797,10 @@ function guardedFileWrite(
   path: string,
   op: () => string[],
   context: string,
+  overwrite: boolean,
 ): void {
   const existsAlready = existsSync(path);
-  if (existsAlready && !isGeneratedFile(path)) {
+  if (existsAlready && !overwrite && !isGeneratedFile(path)) {
     report.files_preserved.push(path);
     report.notes.push(
       `manual_merge_required: ${context} would overwrite user-authored ${relative(REPO_ROOT, path)} (no _meta.generated marker)`,
@@ -745,6 +818,10 @@ export interface RegenerationCommonOpts {
   config: Record<string, unknown>;
   snapshot: ManifestSnapshot;
   dryRun?: boolean;
+  /** Skip user-authored file guard (maps to CLI `--overwrite`). */
+  overwrite?: boolean;
+  /** When true, declarative merges carry forward `primitive_analysis.invalidate` from existing rows. */
+  noAnalyser?: boolean;
 }
 
 /**
@@ -777,6 +854,7 @@ export function regeneratePytest(opts: RegenerationCommonOpts): RegenerationRepo
       return r.written ? [r.outPath] : [];
     },
     "regeneratePytest",
+    Boolean(opts.overwrite),
   );
   return report;
 }
@@ -808,6 +886,7 @@ export function regenerateVitest(opts: RegenerationCommonOpts): RegenerationRepo
       return r.written;
     },
     "regenerateVitest",
+    Boolean(opts.overwrite),
   );
   return report;
 }
@@ -836,6 +915,7 @@ export function regenerateJest(opts: RegenerationCommonOpts): RegenerationReport
       return r.written;
     },
     "regenerateJest",
+    Boolean(opts.overwrite),
   );
   return report;
 }
@@ -881,8 +961,54 @@ export function regenerateLlmCode(opts: RegenerationCommonOpts): RegenerationRep
       return r.written;
     },
     "regenerateLlmCode",
+    Boolean(opts.overwrite),
   );
   return report;
+}
+
+/**
+ * When reloading from cached analyser payloads (`--no-analyser`),
+ * `_meta.primitive_analysis.invalidate` is config-driven state maintained on
+ * the eval row itself — propagate it onto freshly stamped replacements.
+ */
+function mergePrimitiveAnalysisInvalidateFromExisting(
+  rawEvalJson: string,
+  stampedRows: unknown[],
+): void {
+  let parsed: { evals?: unknown[]; cases?: unknown[] };
+  try {
+    parsed = JSON.parse(rawEvalJson) as { evals?: unknown[]; cases?: unknown[] };
+  } catch {
+    return;
+  }
+  const arr = parsed.evals ?? parsed.cases ?? [];
+  let genOrdinal = 0;
+  for (const row of arr) {
+    if (!isGeneratedCase(row as EvalCase)) continue;
+    if (genOrdinal >= stampedRows.length) break;
+    const pa = (row as EvalCase)._meta?.primitive_analysis as
+      | { invalidate?: boolean }
+      | undefined;
+    if (pa?.invalidate === true) {
+      const st = stampedRows[genOrdinal] as {
+        _meta?: { primitive_analysis?: Record<string, unknown> };
+      };
+      if (st?._meta?.primitive_analysis) {
+        st._meta.primitive_analysis.invalidate = true;
+      }
+    }
+    genOrdinal++;
+  }
+}
+
+/** True when the on-disk declarative JSON already contains at least one generated case. */
+function declarativeEvalJsonHasGeneratedRow(raw: string): boolean {
+  try {
+    const data = JSON.parse(raw) as EvalFile;
+    return casesOf(data).some((c) => isGeneratedCase(c));
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -928,6 +1054,9 @@ export function regenerateLlmDeclarative(
 
   // Mixed-file path: surgical replacement preserving user-authored rows.
   const raw = readFileSync(abs, "utf-8");
+  if (opts.noAnalyser) {
+    mergePrimitiveAnalysisInvalidateFromExisting(raw, stamped);
+  }
   const result = surgicallyReplaceGeneratedCases(raw, stamped);
   report.cases_replaced = result.replaced;
   report.cases_added = result.added;
@@ -939,8 +1068,22 @@ export function regenerateLlmDeclarative(
     );
   }
   if (result.text !== raw) {
-    if (!opts.dryRun) writeFileSync(abs, result.text, "utf-8");
-    report.files_written.push(abs);
+    const wouldInjectIntoUserOnly =
+      stamped.length > 0 &&
+      !declarativeEvalJsonHasGeneratedRow(raw) &&
+      !opts.overwrite;
+    if (wouldInjectIntoUserOnly) {
+      report.files_preserved.push(abs);
+      report.notes.push(
+        `manual_merge_required: declarative eval would add generated cases to user-authored-only ${relative(opts.hostRepoRoot, abs)} (pass --overwrite)`,
+      );
+    } else if (opts.dryRun) {
+      report.notes.push(`dry-run: would update ${relative(opts.hostRepoRoot, abs)}`);
+      report.files_written.push(abs);
+    } else {
+      writeFileSync(abs, result.text, "utf-8");
+      report.files_written.push(abs);
+    }
   }
   return report;
 }
@@ -997,7 +1140,9 @@ interface SurgicalReplaceResult {
  * `evals.json` text buffer. User-authored cases are preserved
  * byte-identically. Uses `json-source-map` to locate value-byte ranges
  * so the file's whitespace, ordering, and comments-around-arrays remain
- * intact for unchanged regions.
+ * intact for unchanged regions. A generated row that already matches the
+ * incoming stamp (deep equality) is left as-is — no `JSON.stringify`
+ * round-trip — so stable rows keep their exact formatting and position.
  */
 export function surgicallyReplaceGeneratedCases(
   rawText: string,
@@ -1032,12 +1177,16 @@ export function surgicallyReplaceGeneratedCases(
 
   let out = rawText;
   const replaceCount = Math.min(generatedIdxs.length, stampedRows.length);
+  let replaced = 0;
 
   // Replace existing generated cases (descending so byte positions don't shift).
   for (let r = replaceCount - 1; r >= 0; r--) {
     const idx = generatedIdxs[r];
     const ptr = parsed.pointers[`/${arrKey}/${idx}`];
     if (!ptr) continue;
+    if (isDeepStrictEqual(arr[idx], stampedRows[r])) {
+      continue;
+    }
     const linePrefix = (() => {
       const pre = out.slice(0, ptr.value.pos);
       const lastNl = pre.lastIndexOf("\n");
@@ -1048,6 +1197,7 @@ export function surgicallyReplaceGeneratedCases(
       .map((line, lineIdx) => (lineIdx === 0 ? line : linePrefix + line))
       .join("\n");
     out = out.slice(0, ptr.value.pos) + newJson + out.slice(ptr.valueEnd.pos);
+    replaced++;
   }
 
   // Append new generated rows when the analyser produced more cases.
@@ -1120,7 +1270,7 @@ export function surgicallyReplaceGeneratedCases(
 
   return {
     text: out,
-    replaced: replaceCount,
+    replaced,
     added,
     removed,
     userPreserved,
@@ -1194,13 +1344,53 @@ interface ParityCheckResult {
   detail?: unknown;
 }
 
-function runParityCheck(): ParityCheckResult {
+/** Same relative path documented for `/z-eval-update --check` (TS↔Python analyser parity). */
+const ANALYSER_PARITY_SCRIPT_REL = join("scripts", "check-analyser-payload-parity.ts");
+
+function parityHarnessPresent(repoRoot: string): boolean {
+  return existsSync(join(repoRoot, ANALYSER_PARITY_SCRIPT_REL));
+}
+
+function analyserParityGateRequired(): boolean {
+  return (
+    process.env.ZOTO_EVAL_CHECK_STRICT_ANALYSER_PARITY === "1" ||
+    process.env.CI === "true" ||
+    process.env.CONTINUOUS_INTEGRATION === "true" ||
+    process.env.GITHUB_ACTIONS === "true" ||
+    process.env.GITLAB_CI === "true" ||
+    process.env.BUILDKITE === "true"
+  );
+}
+
+/**
+ * Mirrors `scripts/eval-update.ts`: non-interactive (no stdin, PNPM_NONINTERACTIVE),
+ * runs before drift so CI logs never blend analyser-parity failures with manifest deltas.
+ */
+function runParityCheck(repoRoot: string): ParityCheckResult {
+  if (!parityHarnessPresent(repoRoot)) {
+    if (analyserParityGateRequired()) {
+      return {
+        status: "error",
+        summary:
+          "scripts/check-analyser-payload-parity.ts missing — required for `/z-eval-update --check` when CI/CD is detected or ZOTO_EVAL_CHECK_STRICT_ANALYSER_PARITY=1",
+      };
+    }
+    return { status: "ok", summary: "skipped-no-parity-harness" };
+  }
   try {
-    const r = spawnSync("pnpm", ["run", "-s", "eval:analyser-parity-check"], {
-      cwd: REPO_ROOT,
+    const r = spawnSync("pnpm", ["exec", "tsx", ANALYSER_PARITY_SCRIPT_REL], {
+      cwd: repoRoot,
       encoding: "utf-8",
+      stdio: ["ignore", "pipe", "pipe"],
+      env: {
+        ...process.env,
+        PNPM_NONINTERACTIVE: "1",
+        npm_config_yes: "true",
+        COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+      },
     });
     const out = (r.stdout ?? "").trim();
+    const err = (r.stderr ?? "").trim();
     if (r.status === 0) {
       try {
         return { status: "ok", detail: JSON.parse(out) };
@@ -1208,10 +1398,12 @@ function runParityCheck(): ParityCheckResult {
         return { status: "ok", summary: out };
       }
     }
+    const summary = [out, err].filter((s) => s.length > 0).join("\n");
     return {
       status: r.status === null ? "error" : "drift",
-      summary: out,
-      detail: (r.stderr ?? "").trim(),
+      summary:
+        summary.length > 0 ? summary : `parity subprocess exited ${r.signal ?? r.status}`,
+      detail: err,
     };
   } catch (e) {
     return { status: "error", summary: (e as Error).message };
@@ -1224,13 +1416,43 @@ function runParityCheck(): ParityCheckResult {
 
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2));
-  const config = loadConfig();
-  const manifest = loadManifest();
 
-  // CI-loud warning for --no-analyser. Optional escalation via config.
+  /**
+   * `--check`: analyser payload parity gate first — before config read, `--no-analyser`
+   * stderr, manifest read, or drift — matching `scripts/eval-update.ts` and `/z-eval-update`.
+   */
+  if (args.mode === "check") {
+    const parity = runParityCheck(REPO_ROOT);
+    if (parity.status !== "ok") {
+      const config = loadConfig();
+      const exitCodeOnCriticalDrift = Number(
+        (config.update as Record<string, unknown> | undefined)?.checkExitCodeOnCriticalDrift ??
+          2,
+      );
+      console.log(
+        JSON.stringify({
+          status: "parity",
+          checked: 0,
+          critical_count: 0,
+          parity_drift: parity,
+        }),
+      );
+      console.error(JSON.stringify(parity));
+      return exitCodeOnCriticalDrift;
+    }
+  }
+
+  const config = loadConfig();
+  const exitCodeOnCriticalDrift = Number(
+    (config.update as Record<string, unknown> | undefined)?.checkExitCodeOnCriticalDrift ??
+      2,
+  );
+
+  // CI-loud warning when analysis is skipped in favour of the cache (--no-analyser
+  // flag or CI default). Optional escalation via config.
   if (args.noAnalyser && process.env.CI === "true") {
     process.stderr.write(
-      "[CI WARNING] --no-analyser used in CI; cached analyser payloads may be stale and produce drift\n",
+      "[CI WARNING] skipping fresh primitive analysis in CI; reusing payloads from .zoto/eval-system/cache/analyser/\n",
     );
     const updateCfg = (config.update ?? {}) as Record<string, unknown>;
     if (updateCfg.failOnNoAnalyserInCI === true) {
@@ -1241,18 +1463,62 @@ async function main(): Promise<number> {
     }
   }
 
+  const { manifestPath, historyPath } = resolveUpdatePaths(REPO_ROOT);
+  const manifest = loadManifestAt(manifestPath);
+
   if (!manifest) {
     if (args.mode === "check") {
-      console.log(JSON.stringify({ status: "no-manifest" }));
-      return 0;
+      console.log(
+        JSON.stringify({
+          status: "no-manifest",
+          checked: 0,
+          critical_count: 0,
+          parity_drift: null,
+        }),
+      );
+      return exitCodeOnCriticalDrift;
     }
     console.error("Run /z-eval-create first.");
     return 1;
   }
 
-  const discoveryConfig = manifest.discovery_config ?? config;
-  let current = discoverTargets(discoveryConfig as Record<string, unknown>);
-  current = filterTargetsByIgnores(current, loadIgnorePatterns(config));
+  const isTargetedScope = Boolean(args.glob);
+  const fullCatalog = !isTargetedScope;
+  let discoveryForEnumerate: Record<string, unknown>;
+  if (fullCatalog) {
+    const dc = manifest.discovery_config;
+    if (!isPlainObject(dc)) {
+      const payload = {
+        status: "missing_manifest_discovery_config",
+        checked: 0,
+        critical_count: 0,
+        parity_drift: null,
+        note: "Full rediscovery uses manifest.discovery_config only; live eval config is not merged for enumeration.",
+      };
+      if (args.mode === "check") {
+        console.log(JSON.stringify(payload));
+        return exitCodeOnCriticalDrift;
+      }
+      console.error(JSON.stringify(payload));
+      return 1;
+    }
+    discoveryForEnumerate = dc;
+  } else {
+    discoveryForEnumerate = config as Record<string, unknown>;
+  }
+
+  const canon = readManifestSnapshot(REPO_ROOT);
+  const ignorePatterns = discoveryIgnoreForUpdate(manifest, config, fullCatalog);
+
+  let manifestBaseline = ((manifest.targets as TargetSnapshot[]) ?? []).slice();
+  manifestBaseline = filterTargetsByDiscoveryIgnores(manifestBaseline, ignorePatterns);
+  manifestBaseline = filterTargetsByDiscoveryKinds(
+    manifestBaseline,
+    canon.discoveryTargets,
+  );
+
+  let current = discoverTargets(discoveryForEnumerate);
+  current = filterTargetsByDiscoveryIgnores(current, ignorePatterns);
 
   // Apply --target / positional glob
   if (args.glob) {
@@ -1264,21 +1530,18 @@ async function main(): Promise<number> {
     );
   }
 
-  const deltas = computeDeltas(manifest, current, config);
+  const manifestForDelta = { ...manifest, targets: manifestBaseline };
+  const deltas = computeDeltas(manifestForDelta, current, config);
   const critical = deltas.filter((d) => d.critical);
 
   if (args.mode === "check") {
-    const parity = runParityCheck();
-    const exitCode = Number(
-      (config.update as Record<string, unknown> | undefined)
-        ?.checkExitCodeOnCriticalDrift ?? 2,
-    );
     const driftBlock = critical.map((d) => d);
-    if (critical.length === 0 && parity.status === "ok") {
+    if (critical.length === 0) {
       console.log(
         JSON.stringify({
           status: "clean",
           checked: current.length,
+          critical_count: 0,
           parity_drift: null,
         }),
       );
@@ -1294,19 +1557,17 @@ async function main(): Promise<number> {
     if (summaryLine) console.log(summaryLine);
     console.log(
       JSON.stringify({
-        status: critical.length > 0 ? "drift" : "clean",
+        status: "drift",
         checked: current.length,
-        parity_drift: parity.status === "ok" ? null : parity,
+        critical_count: critical.length,
+        parity_drift: null,
         deltas: driftBlock,
       }),
     );
     for (const d of critical) {
       console.error(JSON.stringify(d));
     }
-    if (critical.length > 0 || parity.status === "drift") {
-      return exitCode;
-    }
-    return 0;
+    return exitCodeOnCriticalDrift;
   }
 
   if (args.mode === "rediscovery-dry" || args.mode === "targeted-dry") {
@@ -1317,8 +1578,8 @@ async function main(): Promise<number> {
     return 0;
   }
 
-  // Apply mode — actual regeneration
-  const snapshot = readManifestSnapshot(REPO_ROOT);
+  // Apply mode — actual regeneration (per drifted target: invalidated analyser
+  // refresh → fresh manifest snapshot for framework + LLM strategy → stampers).
   const driftedTargets = current.filter((t) => {
     const d = deltas.find((x) => x.target_id === t.id);
     return d && (d.kind === "added" || d.kind === "modified");
@@ -1367,6 +1628,8 @@ async function main(): Promise<number> {
       }
     }
 
+    const snapshot = readManifestSnapshot(REPO_ROOT);
+
     const reports = await dispatchRegeneration({
       hostRepoRoot: REPO_ROOT,
       payload,
@@ -1374,12 +1637,14 @@ async function main(): Promise<number> {
       config,
       snapshot,
       dryRun: false,
+      overwrite: args.overwrite,
+      noAnalyser: args.noAnalyser,
     });
     for (const r of reports) allReports.push(r);
   }
 
   // Update manifest with refreshed content_hashes (current discovery view)
-  // and append a new snapshot to history.
+  // and append one multi-doc chunk to history (never rewrite prior entries).
   const newSnapshot: Record<string, unknown> = {
     schema_version: 1,
     created_at: manifest.created_at,
@@ -1389,8 +1654,10 @@ async function main(): Promise<number> {
     discovery_config: manifest.discovery_config,
     targets: current,
   };
-  writeFileSync(MANIFEST_PATH, YAML.stringify(newSnapshot), "utf-8");
-  appendFileSync(HISTORY_PATH, "---\n" + YAML.stringify(newSnapshot), "utf-8");
+  mkdirSync(dirname(manifestPath), { recursive: true });
+  writeFileSync(manifestPath, YAML.stringify(newSnapshot), "utf-8");
+  mkdirSync(dirname(historyPath), { recursive: true });
+  appendManifestHistorySnapshot(historyPath, newSnapshot);
 
   const filesWritten = allReports.flatMap((r) => r.files_written);
   const filesPreserved = allReports.flatMap((r) => r.files_preserved);

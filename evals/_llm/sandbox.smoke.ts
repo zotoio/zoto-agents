@@ -29,7 +29,7 @@ import { join, posix, relative, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
-import { prepareSandbox, resolveBaselineDir } from "./sandbox.ts";
+import { prepareSandbox, resolveBaselineDir } from "../../plugins/zoto-eval-system/engine/sandbox.ts";
 import { stampBaselineFixtures } from "../../scripts/eval-stamp.ts";
 
 const REPO_ROOT = resolve(process.cwd());

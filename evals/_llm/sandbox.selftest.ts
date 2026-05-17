@@ -9,13 +9,12 @@ import { join } from "node:path";
 
 import {
   createSandbox,
-  diffRepoSnapshots,
-  materializeFixtures,
-  mutationsOutsidePrefixes,
+  diffSnapshots,
+  prepareSandbox,
   snapshotRepo,
-  snapshotSandbox,
-  verifyExpectedFilesystem,
-} from "./sandbox.js";
+  snapshotDir,
+  verifyExpectedFilesystemAgainstDiff,
+} from "../../plugins/zoto-eval-system/engine/sandbox.js";
 
 function main(): void {
   const repo = mkdtempSync(join(tmpdir(), "zoto-eval-repo-"));
@@ -25,26 +24,24 @@ function main(): void {
   writeFileSync(join(repo, "b.txt"), "2", "utf-8");
   writeFileSync(join(repo, "a.txt"), "3", "utf-8");
   const after = snapshotRepo(repo, []);
-  const d = diffRepoSnapshots(before, after);
+  const d = diffSnapshots(before, after);
   assert.ok(d.added.includes("b.txt"));
   assert.ok(d.modified.includes("a.txt"));
 
-  const v = mutationsOutsidePrefixes(d, ["never-match"]);
-  assert.ok(v.includes("a.txt") || v.includes("b.txt"));
-
   const h = createSandbox("selftest-run", "case-1");
-  materializeFixtures(
-    h,
-    { files: [{ path: "x/y.txt", content: "hello" }] },
-    repo,
-  );
-  const sb0 = snapshotSandbox(h);
-  writeFileSync(join(h.rootDir, "x", "y.txt"), "hello!", "utf-8");
-  const sb1 = snapshotSandbox(h);
-  const fsr = verifyExpectedFilesystem(h, sb0, sb1, {
-    modified: ["x/y.txt"],
+  prepareSandbox(h.rootDir, {
+    repoRoot: repo,
+    allowMissingBaseline: true,
+    fixtures: { files: [{ path: "x/y.txt", content: "hello" }] },
   });
-  assert.equal(fsr.passed, true);
+  const sb0 = snapshotDir(h.rootDir);
+  writeFileSync(join(h.rootDir, "x", "y.txt"), "hello!", "utf-8");
+  const sb1 = snapshotDir(h.rootDir);
+  const dd = diffSnapshots(sb0, sb1);
+  const fsr = verifyExpectedFilesystemAgainstDiff(
+    dd, sb0, sb1, { modified: ["x/y.txt"] },
+  );
+  assert.equal(fsr.failed, 0);
 
   console.log(JSON.stringify({ ok: true }));
 }
