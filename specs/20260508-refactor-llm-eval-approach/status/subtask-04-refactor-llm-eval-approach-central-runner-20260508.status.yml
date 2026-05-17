@@ -1,0 +1,77 @@
+schema_version: 1
+subtask_id: "04"
+feature: Refactor LLM eval approach
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-08T10:34:00Z
+last_heartbeat: 2026-05-08T10:48:06.755Z
+completed_at: 2026-05-08T10:42:00Z
+checklist:
+  - id: D01
+    text: "New harness module with stable API: `runLlmCodeSuite` / `defineLlmCodeEval` (exact name chosen for clarity)"
+    done: true
+    evidence_path: evals/llm/_shared/run-code-strategy-suite.ts
+  - id: D02
+    text: Harness uses existing `_shared/sdk-bridge.ts`, `sandbox-helpers.ts`, `zoto-llm-reporter.ts`, `graders/*` without forking grader logic
+    done: true
+    evidence_path: evals/llm/_shared/run-code-strategy-suite.ts
+  - id: D03
+    text: "**CURSOR_API_KEY** skip behavior preserved (match current per-test `it.skip` pattern)"
+    done: true
+    evidence_path: evals/llm/_shared/run-code-strategy-suite.ts
+  - id: D04
+    text: One migrated test file proves parity (same assertions count / behavior) before bulk migration deferred to subtask 06
+    done: true
+    evidence_path: evals/llm/test_agent_zoto-eval-comparer.test.ts
+artifacts:
+  - path: evals/llm/_shared/run-code-strategy-suite.ts
+    kind: created
+    note: Centralized harness module exporting `defineLlmCodeEval()` — replaces ~180 lines of boilerplate per test file
+  - path: evals/llm/test_agent_zoto-eval-comparer.test.ts
+    kind: modified
+    note: "Proof migration: 280 lines → 70 lines using the centralized harness, all 3 cases pass"
+errors: []
+notes: |
+  Harness API: `defineLlmCodeEval(config)` in `evals/llm/_shared/run-code-strategy-suite.ts`.
+  Config accepts targetId, cases, modelId, judgeModel, caseTimeoutMs, plus vitest framework bindings (describe, it, afterAll, expect).
+  Framework-agnostic: vitest globals passed in by caller, not imported directly by the harness.
+  Proof test ran 3/3 cases to pass in 269s (live CURSOR_API_KEY validation, not just skip-mode).
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-08T10:46:00Z
+    notes: |
+      All four Deliverables Checklist items and both Definition of Done items independently confirmed against disk.
+
+      D01 — `evals/llm/_shared/run-code-strategy-suite.ts` exists (335 lines), exports `defineLlmCodeEval`,
+      `LlmCodeEvalConfig`, and `TestFramework`. Stable, well-typed API.
+
+      D02 — Harness imports and delegates to existing `_shared/sdk-bridge.ts`, `sandbox-helpers.ts`,
+      `zoto-llm-reporter.ts`, and all four grader modules (`contains`, `regex`, `tool-called`, `llm-judge`).
+      No forked grader logic — dispatch mirrors the original template pattern exactly.
+
+      D03 — `CURSOR_API_KEY` skip behavior preserved verbatim: `Boolean(process.env.CURSOR_API_KEY)` gates
+      `testIt.skip(...)` vs `testIt(...)` on lines 113/136-138 of the harness.
+
+      D04 — `test_agent_zoto-eval-comparer.test.ts` reduced from 280 to 69 lines (75% reduction). Imports
+      `defineLlmCodeEval` from the harness. All 3 case IDs and their assertions are byte-identical to the
+      pre-migration version (confirmed via `git diff`). `_meta.generated: true` first-line contract preserved.
+
+      DoD01 — Subtask execution notes document a passing Vitest run (3/3 cases, 269s, live API key). No
+      independent re-run performed (would require live CURSOR_API_KEY); evidence accepted from agent session log.
+
+      DoD02 — Module header comment (lines 1-36) documents purpose, usage pattern, import graph, design
+      decisions (framework agnosticism, token accounting, skip semantics, shared graders).
+
+      Linter: zero errors on both modified files.
+
+      Minor observation (nice_to_have): judge agent `cwd` in harness uses `process.cwd()` instead of
+      `sandbox.rootDir` from the original. Non-functional for judge-only scoring but worth aligning
+      during bulk migration (subtask 06).
+    fix_list:
+      - item: D02-judge-cwd
+        gap: Judge agent cwd uses process.cwd() instead of sandbox.rootDir; original template used sandbox.rootDir
+        recommended_path: evals/llm/_shared/run-code-strategy-suite.ts
+        severity: nice_to_have

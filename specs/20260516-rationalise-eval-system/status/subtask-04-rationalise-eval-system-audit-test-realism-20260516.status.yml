@@ -1,0 +1,60 @@
+schema_version: 1
+subtask_id: "04"
+feature: Rationalise Eval System
+assigned_agent: crux-platform-architect
+model: composer-2-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-16T12:50:00Z"
+last_heartbeat: "2026-05-17T01:06:00Z"
+completed_at: "2026-05-17T01:06:00Z"
+checklist:
+  - id: D01
+    text: "Pick 5–7 files spanning kinds (at least one each: command, agent, skill, hook)."
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-test-realism-rationalise-eval-system-20260516.md"
+  - id: D02
+    text: "For each file, record in the audit doc:"
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-test-realism-rationalise-eval-system-20260516.md"
+  - id: D03
+    text: Compile a per-rating summary table at the top of the audit doc.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-test-realism-rationalise-eval-system-20260516.md"
+  - id: D04
+    text: "List specific follow-up items in priority order."
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-test-realism-rationalise-eval-system-20260516.md"
+  - id: D05
+    text: Write audit-test-realism-rationalise-eval-system-20260516.md in the spec directory.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-test-realism-rationalise-eval-system-20260516.md"
+artifacts:
+  - path: "specs/20260516-rationalise-eval-system/audit-test-realism-rationalise-eval-system-20260516.md"
+    kind: created
+    note: "Test realism audit covering 7 files, 37 cases, 10 follow-up items across 3 priority tiers"
+errors: []
+notes: >-
+  All 7 files audited (3 commands, 2 agents, 1 skill, 1 hook). 37 total cases reviewed.
+  10 follow-up items across 3 priority tiers. Summary: Realistic/Strong/Obvious 3+2+7,
+  Mixed 4+3+0, Synthetic/Weak/Opaque 0+2+0. Cross-cutting: zero graders[] across all 37 cases.
+  No code/test files modified. Judge fix-list round 2 applied: corrected line counts for 6 of 7
+  audited files (5 were 15 lines too high, 1 was 1 line too high). z-eval-update case IDs and
+  aggregate totals were already accurate from the prior fix round.
+extra:
+  resume_note: "Fix round 3: corrected D02-judge-pattern-count residual error (3→4 in per-case row, 11→12 in aggregate, 85→86 in grand total)."
+  judge:
+    verdict: "verified"
+    at: "2026-05-17T01:07:00Z"
+    notes: >-
+      Final re-verification after three fix rounds. All prior issues confirmed resolved:
+      (1) Case IDs — all 8 z-eval-update case IDs verified against source file.
+      (2) Line counts — wc -l on all 7 files matches audit (318, 332, 83, 322, 127, 328, 347).
+      (3) Assertion patterns — weak-grader-follow-up-routes-through-eval-update has 4 patterns, matching audit.
+      (4) Aggregate totals — column sums independently recomputed from per-case source counts: cases=37,
+      assertions=110, patterns=86, graders=0, follow_ups=8-of-37. All match.
+      (5) D01-D05 deliverables confirmed present and accurate. DoD01-DoD06 all satisfied: 7 files audited
+      (3 commands, 2 agents, 1 skill, 1 hook), every case has ratings and counts, summary totals match
+      detail, follow-up items are concrete with file+case-id+fix, audit doc exists in spec directory,
+      no code/test files modified.
+    fix_list: []

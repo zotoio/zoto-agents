@@ -1,0 +1,115 @@
+# Spec 20260508-refactor-llm-eval-approach — aggregate live status
+
+<!-- status:overview:start -->
+| Key | Value |
+|-----|-------|
+| spec_id | 20260508-refactor-llm-eval-approach |
+| phase | 0 |
+| aggregate_state | completed |
+| started_at | 2026-05-08T10:06:37.319Z |
+| updated_at | 2026-05-08T11:14:32.103Z |
+
+**config_reloaded**
+_None._
+<!-- status:overview:end -->
+
+<!-- status:progress:start -->
+| Metric | Count |
+|--------|-------|
+| Total | 6 |
+| Completed | 6 |
+| In progress | 0 |
+| Blocked | 0 |
+| Failed | 0 |
+<!-- status:progress:end -->
+
+<!-- status:subtasks:start -->
+| Subtask | State | Status (yml) | Last heartbeat |
+|---------|-------|--------------|----------------|
+| 01 | completed | `specs/20260508-refactor-llm-eval-approach/status/subtask-01-refactor-llm-eval-approach-audit-architecture-20260508.status.yml` | 2026-05-08T10:13:43.389Z |
+| 02 | completed | `specs/20260508-refactor-llm-eval-approach/status/subtask-02-refactor-llm-eval-approach-docs-patterns-20260508.status.yml` | 2026-05-08T10:18:31.429Z |
+| 03 | completed | `specs/20260508-refactor-llm-eval-approach/status/subtask-03-refactor-llm-eval-approach-shared-types-20260508.status.yml` | 2026-05-08T10:27:18.785Z |
+| 04 | completed | `specs/20260508-refactor-llm-eval-approach/status/subtask-04-refactor-llm-eval-approach-central-runner-20260508.status.yml` | 2026-05-08T10:48:06.755Z |
+| 05 | completed | `specs/20260508-refactor-llm-eval-approach/status/subtask-05-refactor-llm-eval-approach-plugin-templates-20260508.status.yml` | 2026-05-08T10:56:47.698Z |
+| 06 | completed | `specs/20260508-refactor-llm-eval-approach/status/subtask-06-refactor-llm-eval-approach-exemplar-taxonomy-20260508.status.yml` | 2026-05-08T11:11:39.764Z |
+<!-- status:subtasks:end -->
+
+<!-- status:blockers:start -->
+_None._
+<!-- status:blockers:end -->
+
+<!-- status:definition-of-done:start -->
+- [x] **DOD01** — All subtasks completed
+- [x] **DOD02** — `pnpm test` / plugin validators pass for touched packages (62/62 eval-system tests pass)
+- [x] **DOD03** — No new linter errors in modified files
+- [x] **DOD04** — `evals/llm` tests no longer duplicate the full SDK runner loop (shared harness in use — zero inline `CaseDefinition` remaining)
+- [x] **DOD05** — Declarative and code-strategy documented in plugin README with correct script names
+- [x] **DOD06** — `zoto-spec-judge` assessment at `assessment-refactor-llm-eval-approach-20260508.md` (user-approved 2026-05-08)
+<!-- status:definition-of-done:end -->
+
+<!-- status:events:start -->
+- **2026-05-08T10:06:37.319Z** `rebuild` — Aggregated 6 subtask source(s); digest 5240e0c2…
+- **2026-05-08T10:06:38.854Z** `rebuild` — Aggregated 6 subtask source(s); digest 223fd7bc…
+- **2026-05-08T10:08:10.789Z** `rebuild` — Aggregated 6 subtask source(s); digest 9323e94e…
+- **2026-05-08T10:08:12.302Z** `rebuild` — Aggregated 6 subtask source(s); digest eb483c68…
+- **2026-05-08T10:08:13.811Z** `rebuild` — Aggregated 6 subtask source(s); digest 5d23eece…
+- **2026-05-08T10:10:38.372Z** `rebuild` — Aggregated 6 subtask source(s); digest 961544c3…
+- **2026-05-08T10:10:39.880Z** `rebuild` — Aggregated 6 subtask source(s); digest 59e89b81…
+- **2026-05-08T10:10:41.388Z** `rebuild` — Aggregated 6 subtask source(s); digest defe7685…
+- **2026-05-08T10:13:36.074Z** `rebuild` — Aggregated 6 subtask source(s); digest 5888457f…
+- **2026-05-08T10:13:43.619Z** `rebuild` — Aggregated 6 subtask source(s); digest ca317eaf…
+- **2026-05-08T10:14:37.843Z** `rebuild` — Aggregated 6 subtask source(s); digest a899b213…
+- **2026-05-08T10:16:14.223Z** `rebuild` — Aggregated 6 subtask source(s); digest 8e6efdff…
+- **2026-05-08T10:16:15.732Z** `rebuild` — Aggregated 6 subtask source(s); digest 7c1ce03d…
+- **2026-05-08T10:16:23.302Z** `rebuild` — Aggregated 6 subtask source(s); digest 5a701ce0…
+- **2026-05-08T10:16:33.846Z** `rebuild` — Aggregated 6 subtask source(s); digest 8a991833…
+- **2026-05-08T10:16:35.357Z** `rebuild` — Aggregated 6 subtask source(s); digest 3de696b5…
+- **2026-05-08T10:17:50.679Z** `rebuild` — Aggregated 6 subtask source(s); digest 30ef7dad…
+- **2026-05-08T10:17:52.187Z** `rebuild` — Aggregated 6 subtask source(s); digest 72363f84…
+- **2026-05-08T10:17:58.215Z** `rebuild` — Aggregated 6 subtask source(s); digest bf860219…
+- **2026-05-08T10:18:32.865Z** `rebuild` — Aggregated 6 subtask source(s); digest db5bfa95…
+- **2026-05-08T10:22:56.656Z** `rebuild` — Aggregated 6 subtask source(s); digest 8ce6a926…
+- **2026-05-08T10:23:22.272Z** `rebuild` — Aggregated 6 subtask source(s); digest 3806da6a…
+- **2026-05-08T10:23:29.810Z** `rebuild` — Aggregated 6 subtask source(s); digest 49d0f526…
+- **2026-05-08T10:24:24.070Z** `rebuild` — Aggregated 6 subtask source(s); digest 09842081…
+- **2026-05-08T10:24:25.580Z** `rebuild` — Aggregated 6 subtask source(s); digest a01b9690…
+- **2026-05-08T10:24:31.610Z** `rebuild` — Aggregated 6 subtask source(s); digest 68960bc7…
+- **2026-05-08T10:27:08.423Z** `rebuild` — Aggregated 6 subtask source(s); digest 4d6924df…
+- **2026-05-08T10:27:18.977Z** `rebuild` — Aggregated 6 subtask source(s); digest 8bf828a8…
+- **2026-05-08T10:27:31.040Z** `rebuild` — Aggregated 6 subtask source(s); digest a560815a…
+- **2026-05-08T10:33:26.791Z** `rebuild` — Aggregated 6 subtask source(s); digest 57403092…
+- **2026-05-08T10:35:24.407Z** `rebuild` — Aggregated 6 subtask source(s); digest bd3eb4ac…
+- **2026-05-08T10:35:25.924Z** `rebuild` — Aggregated 6 subtask source(s); digest b55c941b…
+- **2026-05-08T10:35:37.989Z** `rebuild` — Aggregated 6 subtask source(s); digest 40b9a532…
+- **2026-05-08T10:42:20.785Z** `rebuild` — Aggregated 6 subtask source(s); digest aa79cc55…
+- **2026-05-08T10:42:22.293Z** `rebuild` — Aggregated 6 subtask source(s); digest 11ecbcdb…
+- **2026-05-08T10:42:29.831Z** `rebuild` — Aggregated 6 subtask source(s); digest ae8fa7ec…
+- **2026-05-08T10:47:54.045Z** `rebuild` — Aggregated 6 subtask source(s); digest 0337aa92…
+- **2026-05-08T10:48:07.631Z** `rebuild` — Aggregated 6 subtask source(s); digest bcc82a92…
+- **2026-05-08T10:48:49.871Z** `rebuild` — Aggregated 6 subtask source(s); digest b69f8c46…
+- **2026-05-08T10:50:26.388Z** `rebuild` — Aggregated 6 subtask source(s); digest 4ebbcd49…
+- **2026-05-08T10:50:27.900Z** `rebuild` — Aggregated 6 subtask source(s); digest d7ecec1b…
+- **2026-05-08T10:52:05.963Z** `rebuild` — Aggregated 6 subtask source(s); digest 6b190c71…
+- **2026-05-08T10:53:09.333Z** `rebuild` — Aggregated 6 subtask source(s); digest 2e3678a1…
+- **2026-05-08T10:53:10.843Z** `rebuild` — Aggregated 6 subtask source(s); digest b1c2aa46…
+- **2026-05-08T10:53:24.420Z** `rebuild` — Aggregated 6 subtask source(s); digest 7f724d51…
+- **2026-05-08T10:54:36.846Z** `rebuild` — Aggregated 6 subtask source(s); digest 5bbb1554…
+- **2026-05-08T10:56:33.003Z** `rebuild` — Aggregated 6 subtask source(s); digest def329cf…
+- **2026-05-08T10:56:48.089Z** `rebuild` — Aggregated 6 subtask source(s); digest 9ea6507a…
+- **2026-05-08T10:59:21.977Z** `rebuild` — Aggregated 6 subtask source(s); digest accc2037…
+- **2026-05-08T10:59:23.487Z** `rebuild` — Aggregated 6 subtask source(s); digest bea6ff21…
+- **2026-05-08T11:07:03.475Z** `source_validation_warn` — Schema validation failed for specs/20260508-refactor-llm-eval-approach/status/subtask-06-refactor-llm-eval-approach-exemplar-taxonomy-20260508.status.yml
+- **2026-05-08T11:07:03.475Z** `rebuild` — Aggregated 5 subtask source(s); digest 3beb1118…
+- **2026-05-08T11:07:05.014Z** `source_validation_warn` — Schema validation failed for specs/20260508-refactor-llm-eval-approach/status/subtask-06-refactor-llm-eval-approach-exemplar-taxonomy-20260508.status.yml
+- **2026-05-08T11:07:05.014Z** `rebuild` — Aggregated 5 subtask source(s); digest 061a91ae…
+- **2026-05-08T11:07:35.614Z** `rebuild` — Aggregated 6 subtask source(s); digest c7ae2573…
+- **2026-05-08T11:07:37.141Z** `rebuild` — Aggregated 6 subtask source(s); digest 8c888a0f…
+- **2026-05-08T11:07:44.802Z** `rebuild` — Aggregated 6 subtask source(s); digest 5dec209e…
+- **2026-05-08T11:08:34.981Z** `rebuild` — Aggregated 6 subtask source(s); digest fc749ba8…
+- **2026-05-08T11:09:11.480Z** `rebuild` — Aggregated 6 subtask source(s); digest a324464e…
+- **2026-05-08T11:11:30.741Z** `rebuild` — Aggregated 6 subtask source(s); digest cb9fba1d…
+- **2026-05-08T11:11:39.820Z** `rebuild` — Aggregated 6 subtask source(s); digest a29cdf8b…
+- **2026-05-08T11:12:46.368Z** `rebuild` — Aggregated 6 subtask source(s); digest b1945538…
+- **2026-05-08T11:13:12.072Z** `rebuild` — Aggregated 6 subtask source(s); digest 6528d968…
+- **2026-05-08T11:14:32.103Z** `rebuild` — Aggregated 6 subtask source(s); digest 0ee65ad5…
+<!-- status:events:end -->

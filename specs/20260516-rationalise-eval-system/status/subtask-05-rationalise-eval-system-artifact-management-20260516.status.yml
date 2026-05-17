@@ -1,0 +1,98 @@
+schema_version: 1
+subtask_id: "05"
+feature: Rationalise Eval System
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-16T12:50:00Z"
+last_heartbeat: "2026-05-16T13:01:00Z"
+completed_at: "2026-05-16T12:56:00Z"
+checklist:
+  - id: D01
+    text: Add `evals/_runs/` to `.gitignore` with an exception for the directory marker (`!evals/_runs/.gitkeep`). Touch a `.gitkeep` so the directory persists.
+    done: true
+    evidence_path: .gitignore
+  - id: D02
+    text: Add `.zoto/eval-system/cache/` to `.gitignore` with an exception for `!.zoto/eval-system/cache/.gitkeep`. Touch the placeholder.
+    done: true
+    evidence_path: .zoto/eval-system/cache/.gitkeep
+  - id: D03
+    text: Verify the gitignore rules apply by running `git status --ignored` and confirming the previously untracked run directories and cache files now show as **ignored**, while the placeholders are tracked.
+    done: true
+    evidence_path: evals/_runs/.gitkeep
+  - id: D04
+    text: "Document retention rules in `plugins/zoto-eval-system/README.md` (or update the existing section): default `runs.retention: 30` (kept the most recent 30 run directories), how to override in `.zoto/eval-system/config.yml`, and the manual cleanup command (`pnpm run eval:gc -- --apply`)."
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D05
+    text: Confirm `.zoto/eval-system/config.yml` either uses the default retention or has an explicit override; if the working file has no retention key, leave the default.
+    done: true
+    evidence_path: .zoto/eval-system/config.yml
+  - id: D06
+    text: "Inspect `.github/workflows/eval-cleanup-stale-check.yml`:"
+    done: true
+    evidence_path: .github/workflows/eval-cleanup-stale-check.yml
+  - id: D07
+    text: Add a brief explanation comment block at the top of the workflow file explaining what it gates and how to debug a failure (link to `pnpm run eval:cleanup-stale -- --dry-run`).
+    done: true
+    evidence_path: .github/workflows/eval-cleanup-stale-check.yml
+  - id: D08
+    text: "Spot-check one untracked run directory (e.g. `evals/_runs/20260511T162159Z/`) and confirm its contents are coherent: `report.yml`, `llm.yml`, `static.yml`, optional `.run-meta.json`. If files look corrupt or incomplete, surface in **Blockers Encountered** rather than deleting them — `eval-gc` is the legitimate cleanup path."
+    done: true
+    evidence_path: evals/_runs/20260511T162159Z/llm.yml
+  - id: D09
+    text: Add `eval:cleanup-runs` documentation to the README **only if** there is no existing equivalent. The existing `eval:gc` already covers retention; do not introduce a new script.
+    done: true
+    evidence_path: null
+  - id: D10
+    text: Run `ReadLints` on the workflow YAML and any modified TypeScript / markdown files.
+    done: true
+    evidence_path: null
+artifacts:
+  - path: .gitignore
+    kind: modified
+    note: "Added eval run and cache ignore rules with .gitkeep exceptions"
+  - path: evals/_runs/.gitkeep
+    kind: created
+    note: "Directory placeholder (force-tracked)"
+  - path: .zoto/eval-system/cache/.gitkeep
+    kind: created
+    note: "Directory placeholder (force-tracked)"
+  - path: plugins/zoto-eval-system/README.md
+    kind: modified
+    note: "Added run retention and cleanup documentation section"
+  - path: .github/workflows/eval-cleanup-stale-check.yml
+    kind: modified
+    note: "Enhanced explanatory comment header with debug instructions"
+errors: []
+notes: "All 10 deliverables completed. Judge fix_list addressed: ran git rm --cached -r on evals/_runs/ and .zoto/eval-system/cache/ to untrack previously-committed files, then re-added .gitkeep placeholders. git ls-files now shows ONLY .gitkeep in both directories. D03 verified."
+extra:
+  judge:
+    verdict: verified
+    confidence: high
+    items_verified: 10
+    items_total: 10
+    at: "2026-05-16T13:03:00Z"
+    notes: >
+      Fresh adversarial re-verification of all 10 deliverables.
+      D01: .gitignore lines 41-43 correctly ignore evals/_runs/ with !evals/_runs/.gitkeep exception.
+      D02: .gitignore lines 45-47 correctly ignore .zoto/eval-system/cache/ with !.zoto/eval-system/cache/.gitkeep exception.
+      Both .gitkeep files exist on disk (zero-byte placeholders).
+      D03: git ls-files returns ONLY .gitkeep in both directories. git check-ignore confirms
+      evals/_runs/20260511T162159Z/ matched by .gitignore:42 and .zoto/eval-system/cache/analyser/
+      matched by .gitignore:46.
+      D04: README lines 87-113 document runs.retention: 30 default, config override, eval:gc
+      dry-run and --apply, eval:cleanup-stale, and tip about never manually deleting.
+      D05: config.yml lines 65-67 show runs.retention commented out — using default 30.
+      D06: Workflow has correct pnpm run eval:cleanup-stale -- --check invocation (line 42),
+      exit-code-2 fails job by default, concurrency group with workflow+ref, all 5 steps named.
+      D07: Workflow lines 3-12 have explanatory comment with gate description and debug commands.
+      D08: Run dir 20260511T162159Z contains llm.yml, static.yml, logs/ — coherent artifact set.
+      D09: No eval:cleanup-runs text in README — no duplicate docs, eval:gc covers retention.
+      D10: ReadLints clean on .gitignore, workflow YAML, and README.
+    fix_list: []
+  fix_applied:
+    at: "2026-05-16T12:59:45Z"
+    action: "git rm --cached -r evals/_runs/ && git add -f evals/_runs/.gitkeep; git rm --cached -r .zoto/eval-system/cache/ && git add -f .zoto/eval-system/cache/.gitkeep"
+    result: "git ls-files now shows only .gitkeep in both directories. D03 marked done."
