@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "sessionstart-runs-spec-backlog-scan",
     "prompt": "sessionStart lifecycle in Cursor: the workspace loads with zoto-spec-system enabled and Cursor runs `node hooks/zoto-session-start.mjs` from the plugin directory before chat work begins.",

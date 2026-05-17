@@ -28,8 +28,8 @@ import { dirname, join, relative } from "node:path";
 
 import YAML from "yaml";
 
-import type { GraderReport } from "../_shared/graders/common.js";
-import type { SnapshotDiff } from "../_shared/sandbox-helpers.js";
+import type { GraderReport } from "#eval-engine/graders/common.js";
+import type { SnapshotDiff } from "./sandbox-helpers.js";
 
 export interface ReportedCase {
   id: string;

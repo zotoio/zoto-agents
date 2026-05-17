@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "json-object-emitted-for-analyse-pipeline",
     "prompt": "Kick off the primitive-analysis pass for `pnpm run eval:analyse` using this subagent with the current envelope; I need the raw analyser response the SDK will parse.",
@@ -108,11 +93,11 @@ const CASES: CaseDefinition[] = [
     "id": "hook-lifecycle-event-phrasing",
     "prompt": "Analyse `hook:zoto-eval-session-start` and ensure one scenario explicitly anchors on the Cursor lifecycle event that fires the hook bundle.",
     "assertions": [
-      "At least one case prompt cites a Cursor lifecycle trigger such as session start, hook execution timing, or a concrete edited-path scenario tied to hooks.",
-      "Assertions cite observable outcomes like hook exit status 0, JSON-shaped stdout per hooks contract, or absence of askQuestion emissions from hook binaries."
+      "At least one emitted case prompt states that Cursor's `sessionStart` hook phase runs `node hooks/zoto-eval-session-start.mjs` — the same phase keyed as `hooks.sessionStart` in the plugin `hooks.json` bundle — rather than only describing filesystem preconditions without naming the lifecycle trigger.",
+      "Assertions cite observable outcomes like hook exit status 0, JSON-shaped stdout per Cursor hooks contract, or absence of askQuestion emissions from hook binaries."
     ],
-    "assertion_patterns": [],
-    "expected_output": "At least one case prompt names session-start or hook-phase context instead of end-user slash commands."
+    "assertion_patterns": ["sessionStart"],
+    "expected_output": "At least one case prompt names the `sessionStart` lifecycle phase that invokes this hook entry so eval readers see which Cursor hook event wires the bundle."
   },
   {
     "id": "rule-constrained-user-request",
@@ -130,11 +115,12 @@ const CASES: CaseDefinition[] = [
     "id": "agent-flow-natural-language-driver",
     "prompt": "When `kind` is agent for `agent:zoto-eval-comparer`, emit prompts phrased as conversational orchestration requests that exercise judge or compare flows.",
     "assertions": [
-      "Prompts for agent targets avoid slash-command syntax unless quoting operator text inside prose.",
-      "Assertions describe structured payloads such as needs_user_input objects or restrictions like no askQuestion loops where documented."
+      "Every emitted `cases[].prompt` for `agent:zoto-eval-comparer` reads as conversational orchestration—delegating, sequencing, or steering `zoto-eval-comparer` via chat-shaped plain English—not as a bare palette one-liner; no prompt may begin with `/z-eval-compare` unless that token is quoted or clearly attributed operator text inside longer prose.",
+      "Across emitted cases, compare-mode stakes appear explicitly (for example reconciling multiple `evals/_runs/...` snapshots via `report.yml`, preparing a `/canvas` JSON hand-off, full-path `needs_user_input` disambiguation when operands collide, or honouring the comparer no-`askQuestion` contract in assertions).",
+      "Across emitted cases, judge-adjacent stakes appear explicitly (for example `/z-eval-judge` adjudicated rows, judge-tier columns like `accuracy` or `confidence` surviving flattening, or `judgeModel` / eval-system config prerequisites gating compare work)."
     ],
     "assertion_patterns": [],
-    "expected_output": "Agent-kind cases rely on plain English tasking aimed at the documented agent behaviour."
+    "expected_output": "Analyser JSON shows comparer targets driven by orchestration-style prompts that force both compare sequencing and judge-aware reconciliation themes, with assertions that cite structured blockers or observables instead of slash-led invocations."
   },
   {
     "id": "fixture-path-and-justification-pairing",

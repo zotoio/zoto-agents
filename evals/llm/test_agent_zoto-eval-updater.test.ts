@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "check-mode-runs-parity-gate-before-drift",
     "prompt": "Run the eval updater in check-only mode for CI: I need `/z-eval-update --check` to stay fully non-interactive and fail the job when analyser payload parity or critical drift is wrong.",
@@ -118,10 +103,10 @@ const CASES: CaseDefinition[] = [
   },
   {
     "id": "cached-analyser-path-in-ci",
-    "prompt": "On the CI worker with `CI=true`, run the updater using `--no-analyser` so it reuses cached primitive analysis under `.zoto/eval-system/cache/analyser/`. Confirm stderr warns about skipping fresh analysis and note when `update.failOnNoAnalyserInCI: true` should exit 5.",
+    "prompt": "On the CI worker with `CI=true`, run the updater so it reuses cached primitive analysis under `.zoto/eval-system/cache/analyser/` (explicit `--no-analyser`, or omit `--with-analyser` since CI defaults to cached payloads). Confirm stderr warns about skipping fresh analysis and note when `update.failOnNoAnalyserInCI: true` exits 5.",
     "assertions": [
-      "When `process.env.CI === \"true\"` and `--no-analyser` is used, the plan requires emitting `[CI WARNING]` about bypassing fresh analyser calls.",
-      "If `update.failOnNoAnalyserInCI` is enabled in `.zoto/eval-system/config.yml`, the command path must abort with exit code 5 rather than silently continuing."
+      "When `process.env.CI === \"true\"`, cached-analysis mode (`--no-analyser` or omitting `--with-analyser` so CI defaults to cache reuse) requires emitting `[CI WARNING]` referencing skipped fresh primitive analysis.",
+      "If `update.failOnNoAnalyserInCI` is enabled in `.zoto/eval-system/config.yml`, cached-analysis CI runs must abort with exit code `5` after the stderr banner instead of continuing."
     ],
     "assertion_patterns": [
       "process\\.env\\.CI === \"true\"",

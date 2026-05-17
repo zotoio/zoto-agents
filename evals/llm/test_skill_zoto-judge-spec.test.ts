@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "repository-wide-judge-run-writes-dated-assessment-under-specsdir",
     "prompt": "We have not singled out one initiative file. Load the zoto-judge-spec skill and run a full repository assessment: survey the tree with an explore subagent, run read-only quality checks that match what is actually in the repo, score all six dimensions with weighted overall, and write the markdown report under the specs directory from .zoto/spec-system/config.yml using the assessment-repo-YYYYMMDD filename pattern.",

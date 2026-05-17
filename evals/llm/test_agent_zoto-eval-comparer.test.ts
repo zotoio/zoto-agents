@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "two-run-comparison-emits-canvas-payload-and-full-flat-rows",
     "prompt": "Use the eval-system comparer to compare two finished harness runs: pass run directory names 20260503051900 and 20260503052015, flatten every case into rows, pull the compare canvas template without edits, then give me the structured payload so the host can open /canvas.",
