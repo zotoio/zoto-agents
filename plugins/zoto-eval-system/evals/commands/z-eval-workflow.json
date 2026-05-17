@@ -12,11 +12,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents."
         }
@@ -36,11 +36,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents."
         }
@@ -60,11 +60,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents.",
           "fixture_justifications": [
@@ -96,11 +96,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents.",
           "fixture_justifications": [
@@ -132,11 +132,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents.",
           "fixture_justifications": [
@@ -169,11 +169,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents.",
           "fixture_justifications": [
@@ -210,11 +210,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents.",
           "fixture_justifications": [
@@ -251,11 +251,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents.",
           "fixture_justifications": [
@@ -292,11 +292,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents.",
           "fixture_justifications": [
@@ -333,11 +333,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents.",
           "fixture_justifications": [
@@ -369,11 +369,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-        "last_updated": "2026-05-16T13:28:58.757Z",
+        "last_updated": "2026-05-17T13:36:46.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3fec7dcb11a5788b67cb45addc011d651a22cc48ebc0aab21924c14ce0983f0d",
-          "analysed_at": "2026-05-16T13:28:58.757Z",
+          "analysed_at": "2026-05-17T13:36:46.761Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing eval config, emits a single ordered askQuestion that maps lifecycle stages to slash commands, optionally prepends an incomplete-manifest warning, then resolves with short bullets and a paste-ready invocation without writes or subagents.",
           "fixture_justifications": [

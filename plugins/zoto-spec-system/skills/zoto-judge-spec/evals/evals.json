@@ -61,11 +61,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "c740aed33a35fc05ad6c26b487771851a169c173243d8e72fbb81e0b7b74bb37",
-        "last_updated": "2026-05-08T11:45:37.022Z",
+        "last_updated": "2026-05-17T13:36:46.654Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "c740aed33a35fc05ad6c26b487771851a169c173243d8e72fbb81e0b7b74bb37",
-          "analysed_at": "2026-05-08T11:45:37.022Z",
+          "analysed_at": "2026-05-17T13:36:46.654Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage spans full-repository versus targeted spec assessments with manifest, graph, and risk auditing, then verifies the post-report repair offer and both acceptance and refusal paths while enforcing read-only assessment and spec-only edit scope."
         }
@@ -88,11 +88,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "c740aed33a35fc05ad6c26b487771851a169c173243d8e72fbb81e0b7b74bb37",
-        "last_updated": "2026-05-08T11:45:37.022Z",
+        "last_updated": "2026-05-17T13:36:46.654Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "c740aed33a35fc05ad6c26b487771851a169c173243d8e72fbb81e0b7b74bb37",
-          "analysed_at": "2026-05-08T11:45:37.022Z",
+          "analysed_at": "2026-05-17T13:36:46.654Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage spans full-repository versus targeted spec assessments with manifest, graph, and risk auditing, then verifies the post-report repair offer and both acceptance and refusal paths while enforcing read-only assessment and spec-only edit scope.",
           "fixture_justifications": [
@@ -139,11 +139,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "c740aed33a35fc05ad6c26b487771851a169c173243d8e72fbb81e0b7b74bb37",
-        "last_updated": "2026-05-08T11:45:37.022Z",
+        "last_updated": "2026-05-17T13:36:46.654Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "c740aed33a35fc05ad6c26b487771851a169c173243d8e72fbb81e0b7b74bb37",
-          "analysed_at": "2026-05-08T11:45:37.022Z",
+          "analysed_at": "2026-05-17T13:36:46.654Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage spans full-repository versus targeted spec assessments with manifest, graph, and risk auditing, then verifies the post-report repair offer and both acceptance and refusal paths while enforcing read-only assessment and spec-only edit scope.",
           "fixture_justifications": [
@@ -191,11 +191,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "c740aed33a35fc05ad6c26b487771851a169c173243d8e72fbb81e0b7b74bb37",
-        "last_updated": "2026-05-08T11:45:37.022Z",
+        "last_updated": "2026-05-17T13:36:46.654Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "c740aed33a35fc05ad6c26b487771851a169c173243d8e72fbb81e0b7b74bb37",
-          "analysed_at": "2026-05-08T11:45:37.022Z",
+          "analysed_at": "2026-05-17T13:36:46.654Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Eval coverage spans full-repository versus targeted spec assessments with manifest, graph, and risk auditing, then verifies the post-report repair offer and both acceptance and refusal paths while enforcing read-only assessment and spec-only edit scope.",
           "fixture_justifications": [
