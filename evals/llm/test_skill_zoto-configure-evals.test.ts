@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "declarative-rollout-after-configure-gathers-answers",
     "prompt": "/z-eval-configure finished: overwrite if needed; evalsDir evals; skillsRoots [\".cursor/skills\",\"skills\",\"plugins/*/skills\"]; discoveryTargets [\"skill\",\"command\",\"agent\",\"hook\"]; static.framework pytest; llm.runtime tsx; llm.model.id composer-2; llm.strategy declarative; llm.codeFramework vitest; judgeModel opus-4.6; manualChecklists.enabled true; additionalAutomation []; ignore []; update.criticalChangeRules all true. Apply zoto-configure-evals now.",

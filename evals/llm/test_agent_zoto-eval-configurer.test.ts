@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "manifest-snapshot-happy-path-cleanup-ready",
     "prompt": "Spin up zoto-eval-configurer from /z-eval-configure with overwrite already settled in the task: static.framework vitest, llm.strategy code, llm.codeFramework vitest, preserveUserAuthoredCases true, writeMetaMarker true. The task payload bundles old_snapshot with source manifest reflecting the prior config so you can diff and return the cleanup_plan to the command. Summarise effective settings and steer me toward /z-eval-create unless cleanup totals require confirmation.",
@@ -141,10 +126,11 @@ const CASES: CaseDefinition[] = [
     "id": "disallowed-meta-flag-rejection",
     "prompt": "Upstream command mistakenly supplies preserveUserAuthoredCases false in the bundled answers; insist the configured agent rejects that contract breakage before writing configs.",
     "assertions": [
-      "Assistant output refuses to honour false preserveUserAuthoredCases requests and reaffirms mandated true stamping."
+      "Assistant output refuses to honour false preserveUserAuthoredCases requests and reaffirms mandated true stamping.",
+      "The narration states or clearly implies no `.zoto/eval-system/config.yml` write and no `cleanup_plan` emission for this run when rejecting the bundled false flag — the refusal happens before persisting configs."
     ],
     "assertion_patterns": [],
-    "expected_output": "Structured refusal explaining both meta flags remain hard-true governance without mutating manifests or emitting cleanup confirmations."
+    "expected_output": "Structured refusal explaining both meta flags remain hard-true governance, explicitly before any config write, without mutating manifests or emitting cleanup confirmations."
   },
   {
     "id": "audit-append-only-scope",

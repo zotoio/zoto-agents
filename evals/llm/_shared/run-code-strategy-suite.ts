@@ -1,0 +1,434 @@
+/**
+ * Centralized LLM `code`-strategy eval harness.
+ *
+ * Eliminates the ~180-line boilerplate loop duplicated across every
+ * stamped `test_*.test.ts` file. A thin test file imports this module,
+ * defines its `CASES` array and env constants, then calls
+ * `defineLlmCodeEval(config)` to wire up the full `describe` block.
+ *
+ * ## Usage (thin test file pattern)
+ *
+ * ```ts
+ * import { describe, it, afterAll, expect } from "vitest";
+ * import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
+ * import { defineLlmCodeEval } from "./_shared/run-code-strategy-suite.js";
+ *
+ * const CASES: CodeStrategyCaseDefinition[] = [ ... ];
+ *
+ * defineLlmCodeEval({
+ *   targetId: "agent:zoto-eval-comparer",
+ *   cases: CASES,
+ *   describe, it, afterAll, expect,
+ * });
+ * ```
+ *
+ * ## Design decisions
+ *
+ * - Vitest globals (`describe`, `it`, `afterAll`, `expect`) are passed in
+ *   by the caller so the harness remains framework-agnostic (vitest or
+ *   jest) and doesn't force `globals: true` in the vitest config.
+ * - Token accounting (`resolveTokens`) and `afterAll`→`reportSuite`
+ *   semantics are preserved exactly.
+ * - The `CURSOR_API_KEY` skip pattern matches the existing per-test
+ *   `it.skip` behavior verbatim.
+ * - Grader dispatch, `parseJudgeScore`, and the assertion rubric are
+ *   shared (no forked logic).
+ */
+import type { CodeStrategyCaseDefinition } from "./code-strategy-case.js";
+import {
+  createAgent,
+  sendPrompt,
+  awaitRun,
+  closeAgent,
+  resolveTokens,
+} from "#eval-engine/sdk-bridge.js";
+import {
+  buildSandbox,
+  diffSandbox,
+  postSnapshot,
+  preSnapshot,
+} from "./sandbox-helpers.js";
+import { reportCase, reportSuite } from "./zoto-llm-reporter.js";
+import { contains } from "#eval-engine/graders/contains.js";
+import { regex } from "#eval-engine/graders/regex.js";
+import { toolCalled } from "#eval-engine/graders/tool-called.js";
+import { llmJudge } from "#eval-engine/graders/llm-judge.js";
+import type { GraderReport } from "#eval-engine/graders/common.js";
+
+/* ---------------------------------------------------------------------- */
+/* Public API                                                              */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * Vitest (or jest) framework primitives injected by the thin test file.
+ * Keeps this module decoupled from any specific test runner.
+ */
+export interface TestFramework {
+  describe: (name: string, fn: () => void) => void;
+  it: ((name: string, fn: () => Promise<void>, timeout?: number) => void) & {
+    skip: (name: string, fn: () => void) => void;
+  };
+  afterAll: (fn: () => void) => void;
+  expect: (val: unknown) => { toMatch: (re: RegExp) => void };
+}
+
+export interface LlmCodeEvalConfig {
+  /** Suite target identifier, e.g. `"agent:zoto-eval-comparer"`. */
+  targetId: string;
+  /** Array of case definitions (the CASES blob from the stamped file). */
+  cases: CodeStrategyCaseDefinition[];
+  /** Model to use for the agent under test. Defaults to `ZOTO_EVAL_MODEL` or `"composer-2"`. */
+  modelId?: string;
+  /** Model to use for the LLM judge. Defaults to `ZOTO_EVAL_JUDGE_MODEL` or `"opus-4.6"`. */
+  judgeModel?: string;
+  /**
+   * Per-case Vitest timeout in milliseconds for **light** cases. Heavy
+   * cases (>= `heavyAssertionThreshold` assertions, or any `follow_ups`)
+   * automatically receive `caseTimeoutMs * heavyTimeoutMultiplier`.
+   * Defaults to `180_000`.
+   */
+  caseTimeoutMs?: number;
+  /**
+   * Number of assertions at which a case is considered "heavy" and
+   * receives the multiplied timeout. Defaults to `9`.
+   * Override repo-wide via `ZOTO_EVAL_HEAVY_THRESHOLD`.
+   */
+  heavyAssertionThreshold?: number;
+  /**
+   * Multiplier applied to `caseTimeoutMs` for heavy cases. Defaults to
+   * `2`. Override repo-wide via `ZOTO_EVAL_HEAVY_MULTIPLIER`.
+   */
+  heavyTimeoutMultiplier?: number;
+  /** Vitest/jest framework bindings. */
+  describe: TestFramework["describe"];
+  it: TestFramework["it"];
+  afterAll: TestFramework["afterAll"];
+  expect: TestFramework["expect"];
+}
+
+/**
+ * Decide whether a case should receive the heavy-tier timeout. Heavy =
+ * either crosses the assertion threshold OR uses follow-up turns (which
+ * double the subject-agent wall time).
+ */
+function isHeavyCase(
+  c: CodeStrategyCaseDefinition,
+  heavyAssertionThreshold: number,
+): boolean {
+  const assertionCount = c.assertions?.length ?? 0;
+  const followUpCount = c.follow_ups?.length ?? 0;
+  return assertionCount >= heavyAssertionThreshold || followUpCount > 0;
+}
+
+/**
+ * Wire up a complete `describe` block for one target's code-strategy
+ * LLM eval suite. This is the primary entry point — call it once from
+ * each thin test file.
+ */
+export function defineLlmCodeEval(config: LlmCodeEvalConfig): void {
+  const {
+    targetId,
+    cases,
+    describe: desc,
+    it: testIt,
+    afterAll: after,
+    expect: assertExpect,
+  } = config;
+
+  const MODEL_ID = config.modelId ?? process.env.ZOTO_EVAL_MODEL ?? "composer-2";
+  const JUDGE_MODEL = config.judgeModel ?? process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6";
+  const CASE_TIMEOUT = config.caseTimeoutMs ?? 300_000;
+  const HEAVY_THRESHOLD =
+    config.heavyAssertionThreshold ??
+    parseIntEnv("ZOTO_EVAL_HEAVY_THRESHOLD", 9);
+  const HEAVY_MULTIPLIER =
+    config.heavyTimeoutMultiplier ??
+    parseFloatEnv("ZOTO_EVAL_HEAVY_MULTIPLIER", 2);
+  const REPO_ROOT = process.cwd();
+  const SUITE_START = Date.now();
+  const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
+
+  desc(targetId, () => {
+    after(() => {
+      reportSuite({
+        target_id: targetId,
+        started_at: new Date(SUITE_START).toISOString(),
+        ended_at: new Date().toISOString(),
+        model: MODEL_ID,
+      });
+    });
+
+    for (const c of cases) {
+      const testFn = async (): Promise<void> => {
+        await runCase(c, {
+          targetId,
+          modelId: MODEL_ID,
+          judgeModel: JUDGE_MODEL,
+          repoRoot: REPO_ROOT,
+          expect: assertExpect,
+        });
+      };
+
+      const heavy = isHeavyCase(c, HEAVY_THRESHOLD);
+      const perCaseTimeout = heavy
+        ? Math.round(CASE_TIMEOUT * HEAVY_MULTIPLIER)
+        : CASE_TIMEOUT;
+
+      if (!API_KEY_PRESENT) {
+        testIt.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
+      } else {
+        const label = heavy ? `${c.id} [heavy]` : c.id;
+        testIt(label, testFn, perCaseTimeout);
+      }
+    }
+  });
+}
+
+function parseIntEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+function parseFloatEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  const n = parseFloat(raw);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Internal: single-case runner                                            */
+/* ---------------------------------------------------------------------- */
+
+interface RunCaseOpts {
+  targetId: string;
+  modelId: string;
+  judgeModel: string;
+  repoRoot: string;
+  expect: TestFramework["expect"];
+}
+
+async function runCase(
+  c: CodeStrategyCaseDefinition,
+  opts: RunCaseOpts,
+): Promise<void> {
+  const caseStart = Date.now();
+  const sandbox = buildSandbox({
+    runId: opts.targetId,
+    caseId: c.id,
+    repoRoot: opts.repoRoot,
+    fixtures: c.fixtures as never,
+  });
+
+  const before = preSnapshot(sandbox.rootDir);
+  const agent = await createAgent({ modelId: opts.modelId, cwd: sandbox.rootDir });
+
+  let text = "";
+  let tokens = 0;
+  let tokenSource = "approximate:chars/4";
+  let status: "passed" | "failed" | "errored" = "passed";
+  const reports: GraderReport[] = [];
+
+  try {
+    const run = await sendPrompt(agent, c.prompt);
+    const awaited = await awaitRun(run);
+    text = awaited.text;
+    const resolved = resolveTokens(awaited.result, c.prompt, text);
+    tokens = resolved.tokens;
+    tokenSource = resolved.source;
+
+    for (const followUp of c.follow_ups ?? []) {
+      const followRun = await sendPrompt(agent, followUp);
+      const followAwaited = await awaitRun(followRun);
+      text += "\n" + followAwaited.text;
+      tokens += resolveTokens(followAwaited.result, followUp, followAwaited.text).tokens;
+    }
+
+    // Cheap objective checks run first so an obvious failure can
+    // short-circuit the expensive assertion judge below.
+    for (const pattern of c.assertion_patterns ?? []) {
+      reports.push(regex({ type: "regex", pattern, flags: "s" }, text));
+    }
+
+    await dispatchExplicitGraders(c, text, reports, opts);
+
+    // The assertion-derived rubric judge is the most expensive grader
+    // (one full LLM call against the judge model). Skip it when an
+    // objective grader has already failed — the case is going to fail
+    // either way, and skipping reclaims the judge wall-time for the
+    // per-case timeout budget. Users can disable the short-circuit with
+    // `ZOTO_EVAL_NO_JUDGE_SHORTCIRCUIT=1` if they want full diagnostics.
+    const objectiveFailed = reports.some((r) => r.verdict === "fail");
+    const shortCircuitDisabled =
+      process.env.ZOTO_EVAL_NO_JUDGE_SHORTCIRCUIT === "1";
+
+    if (c.assertions.length > 0) {
+      if (objectiveFailed && !shortCircuitDisabled) {
+        reports.push({
+          grader: "llm-judge",
+          verdict: "warn",
+          detail: `assertion judge skipped — objective grader/pattern already failed (${c.assertions.length} assertions not evaluated; set ZOTO_EVAL_NO_JUDGE_SHORTCIRCUIT=1 to force)`,
+        });
+      } else {
+        await dispatchAssertionJudge(c, text, reports, opts);
+      }
+    }
+
+    const failed = reports.some((r) => r.verdict === "fail");
+    status = failed ? "failed" : "passed";
+  } catch (err) {
+    status = "errored";
+    reports.push({
+      grader: "runtime",
+      verdict: "fail",
+      detail: (err as Error).message,
+    });
+    throw err;
+  } finally {
+    await closeAgent(agent);
+    const after = postSnapshot(sandbox.rootDir);
+    const mutations = diffSandbox(before, after);
+    const caseEnd = Date.now();
+    reportCase({
+      target_id: opts.targetId,
+      case: {
+        id: c.id,
+        status,
+        tokens,
+        duration_ms: caseEnd - caseStart,
+        verbosity:
+          c.prompt.length === 0
+            ? 0
+            : Math.round((text.length / Math.max(1, c.prompt.length)) * 1000) / 1000,
+        accuracy:
+          reports.length === 0
+            ? 0
+            : Math.round(
+                (reports.filter((r) => r.verdict === "pass").length / reports.length) * 1000,
+              ) / 1000,
+        confidence:
+          reports.length === 0
+            ? 0
+            : Math.round(
+                (reports.filter((r) => r.verdict !== "fail").length / reports.length) * 1000,
+              ) / 1000,
+        grader_reports: reports,
+        repo_mutations: mutations,
+        token_source: tokenSource,
+        expected_output: c.expected_output,
+        assertions: c.assertions,
+      },
+    });
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Internal: grader dispatch                                               */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * Runs the explicit grader list declared on the case (cheap regex /
+ * contains / tool-called, plus any user-specified `llm-judge` rubrics).
+ * The implicit assertion-derived rubric is dispatched separately by
+ * `dispatchAssertionJudge` so the runner can short-circuit it when an
+ * objective grader has already failed.
+ */
+async function dispatchExplicitGraders(
+  c: CodeStrategyCaseDefinition,
+  text: string,
+  reports: GraderReport[],
+  opts: RunCaseOpts,
+): Promise<void> {
+  for (const g of c.graders ?? []) {
+    const gtype = (g as { type?: string }).type;
+    if (gtype === "contains") reports.push(contains(g as never, text));
+    else if (gtype === "regex") reports.push(regex(g as never, text));
+    else if (gtype === "tool-called") reports.push(toolCalled(g as never, []));
+    else if (gtype === "llm-judge") {
+      reports.push(
+        await llmJudge(g as never, text, {
+          judge: async ({ prompt }) => {
+            const judgeAgent = await createAgent({
+              modelId: opts.judgeModel,
+              cwd: opts.repoRoot,
+            });
+            try {
+              const jr = await sendPrompt(judgeAgent, prompt);
+              const ja = await awaitRun(jr);
+              return parseJudgeScore(ja.text);
+            } finally {
+              await closeAgent(judgeAgent);
+            }
+          },
+        }),
+      );
+    }
+  }
+}
+
+/**
+ * Runs the implicit assertion-derived rubric. Pulled out of
+ * `dispatchExplicitGraders` so callers can decide whether to invoke it
+ * (e.g. skip when an objective grader has already produced a `fail`
+ * verdict, reclaiming ~one judge LLM call's worth of wall time).
+ */
+async function dispatchAssertionJudge(
+  c: CodeStrategyCaseDefinition,
+  text: string,
+  reports: GraderReport[],
+  opts: RunCaseOpts,
+): Promise<void> {
+  if (c.assertions.length === 0) return;
+  const rubric = [
+    "You grade an AI agent's final natural-language reply.",
+    "Score how well the RESPONSE semantically satisfies EVERY requirement below; paraphrases count.",
+    "Return score 1.0 only when all requirements are clearly satisfied; lower scores when any important requirement is missing or contradicted.",
+    "",
+    "REQUIREMENTS:",
+    ...c.assertions.map((a, i) => `${i + 1}. ${a}`),
+  ].join("\n");
+  reports.push(
+    await llmJudge(
+      {
+        type: "llm-judge",
+        rubric,
+        passThreshold: 0.72,
+      },
+      text,
+      {
+        judge: async ({ prompt }) => {
+          const judgeAgent = await createAgent({
+            modelId: opts.judgeModel,
+            cwd: opts.repoRoot,
+          });
+          try {
+            const jr = await sendPrompt(judgeAgent, prompt);
+            const ja = await awaitRun(jr);
+            return parseJudgeScore(ja.text);
+          } finally {
+            await closeAgent(judgeAgent);
+          }
+        },
+      },
+    ),
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Internal: judge response parser                                         */
+/* ---------------------------------------------------------------------- */
+
+function parseJudgeScore(raw: string): { score: number; detail: string } {
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) return { score: 0, detail: `unparseable judge response: ${raw.slice(0, 200)}` };
+  try {
+    const obj = JSON.parse(match[0]) as { score?: unknown; detail?: unknown };
+    const score = typeof obj.score === "number" ? Math.max(0, Math.min(1, obj.score)) : 0;
+    const detail = typeof obj.detail === "string" ? obj.detail : "";
+    return { score, detail };
+  } catch (err) {
+    return { score: 0, detail: `judge JSON parse failure: ${(err as Error).message}` };
+  }
+}

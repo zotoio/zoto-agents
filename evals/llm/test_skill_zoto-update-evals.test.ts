@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "dry-run-reload-uses-manifest-backed-discovery-without-writes",
     "prompt": "We finished editing a SKILL.md under the configured skills root and want only a sanity pass before approving anything. Following zoto-update-evals, spell out exactly what `/z-eval-update` with no extra flags reads first, whether it writes anywhere, which discovery settings it must obey, and why eval-analyse / eval-stamp ignore ignore globs from pnpm eval:discover unless replicated manually.",
@@ -147,8 +132,8 @@ const CASES: CaseDefinition[] = [
     "prompt": "`--no-analyser` plus `--apply` just landed in CI for speed. Explain where payloads load from on disk, the stderr banner emitted when `CI=true`, and how `update.failOnNoAnalyserInCI` escalates failures.",
     "assertions": [
       "Bypassing LLM refreshes loads analyser artefacts from deterministic JSON files rooted at `.zoto/eval-system/cache/analyser/` whose filenames derive from each primitive SHA-256 source hash digest.",
-      "When both `process.env.CI === \"true\"` and `--no-analyser` run, stderr logs `[CI WARNING] --no-analyser`.",
-      "Setting `update.failOnNoAnalyserInCI: true` terminates the updater with exit code `5` under those CI cached runs."
+      "When `process.env.CI === \"true\"` and cached payloads are reused (explicit `--no-analyser`, or omitting `--with-analyser` so CI defaults to cache reuse), stderr logs `[CI WARNING]` referencing skipped fresh primitive analysis.",
+      "Setting `update.failOnNoAnalyserInCI: true` terminates the updater with exit code `5` during those CI cached-analysis runs immediately after emitting the stderr warning."
     ],
     "assertion_patterns": [
       "\\.zoto/eval-system/cache/analyser/",
@@ -183,7 +168,7 @@ const CASES: CaseDefinition[] = [
       "`isGeneratedFile` refuses overwriting `*.test.ts`, `*.test.js`, or `*.test.py` files lacking the literal first-line `_meta.generated` marker, logging `manual_merge_required` and listing skips under `files_preserved`.",
       "Declarative merges route through parsers like `json-source-map` with `surgicallyReplaceGeneratedCases()` rather than rewriting entire JSON documents when only generated sections change.",
       "Generated TypeScript/JavaScript markers use `// _meta.generated: true` while Python equivalents use `# _meta.generated: True` on line one.",
-      "Unit expectations in `scripts/__tests__/eval-update-guards.test.ts` assert user rows stay untouched, unmarked tests survive, marked tests regenerate, and CI cached analyser stderr matches the guarded warning substring."
+      "Unit expectations in `scripts/__tests__/eval-update-guards.test.ts` assert user rows stay untouched, unmarked tests survive, marked tests regenerate, and CI cached analyser stderr matches the guarded skips-fresh warning substring."
     ],
     "assertion_patterns": [
       "isGeneratedCase",

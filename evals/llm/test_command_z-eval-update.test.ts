@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "abort-when-eval-system-configuration-file-is-absent",
     "prompt": "/z-eval-update",
@@ -157,7 +142,7 @@ const CASES: CaseDefinition[] = [
     ],
     "assertions": [
       "The updater MUST skip `runAnalyser({ invalidate: true })` and reuse `_meta.primitive_analysis` blobs from `.zoto/eval-system/cache/analyser/` instead of issuing fresh LLM calls.",
-      "When `process.env.CI` equals the literal string `true`, stderr MUST include the documented `[CI WARNING] --no-analyser used in CI; cached analyser payloads may be stale and produce drift` banner.",
+      "When `process.env.CI` equals the literal string `true`, stderr MUST include the documented `[CI WARNING] skipping fresh primitive analysis in CI` banner naming `.zoto/eval-system/cache/analyser/`.",
       "If `update.failOnNoAnalyserInCI` is enabled while CI is active, the command MUST abort early with exit code 5 instead of regenerating."
     ],
     "assertion_patterns": [

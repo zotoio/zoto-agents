@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "mode-1-verified-subtask-after-spec-execute",
     "prompt": "zoto-spec-executor invoked you after subtask 02 closed: read specs/active-feature/subtasks/subtask-02-auth-flow-20260507.md together with specs/active-feature/status/subtask-02-auth-flow-20260507.status.yml, reconcile checklist.done against the workspace, merge extra.judge with verdict verified and an empty fix_list after independent filesystem checks, re-render the paired status markdown using spec-status-roundtrip md-from-yml only, run spec-onstop-check.ts --human for that spec directory and repo root, then report verified back to the executor.",

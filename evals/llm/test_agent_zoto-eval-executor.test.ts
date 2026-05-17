@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "static-harness-emits-judge-ready-run-artifacts",
     "prompt": "Run the configured static eval lane now—the path that behaves like `/z-eval-execute` without `--full`. I need the split `static.yml` output plus the merged `report.yml` populated under today’s fresh `evals/_runs/<timestamp>/` bundle so downstream judge and compare steps can ingest the snapshot. Respect whatever `static.framework`, `llm.strategy`, and `llm.codeFramework` are pinned in `.zoto/eval-system/config.yml`; do not escalate into the LLM backend for this turn. After the orchestrated harness finishes, run the mandated drift bookkeeping pass tied to `zoto-update-evals`.",

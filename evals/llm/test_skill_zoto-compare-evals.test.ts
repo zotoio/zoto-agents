@@ -39,25 +39,10 @@ import { regex } from "./_shared/graders/regex.js";
 import { toolCalled } from "./_shared/graders/tool-called.js";
 import { llmJudge } from "./_shared/graders/llm-judge.js";
 import type { GraderReport } from "./_shared/graders/common.js";
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
 
-interface CaseDefinition {
-  id: string;
-  prompt: string;
-  follow_ups?: string[];
-  assertions: string[];
-  assertion_patterns?: string[];
-  graders?: Array<Record<string, unknown>>;
-  fixtures?: { files?: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-}
 
-const CASES: CaseDefinition[] = [
+const CASES: CodeStrategyCaseDefinition[] = [
   {
     "id": "two-resolved-runs-yield-full-dataset-and-canvas-json",
     "prompt": "/z-eval-compare already narrowed this to runs 20260115090000 and 20260115090100 under the configured evals directory. Load each report.yml as the primary source, pull case-level fields from sibling static.yml and llm.yml where the flatten needs them, read templates/canvas/compare-prompt.md.tmpl without editing it, emit the single stdout object with tool /canvas plus instructions copied from that template and a dataset row for every underlying case from both runs (no dropping or binning), include log_path values shaped like _runs/<run-id>/logs/<case>.log, then instruct the host to forward that object to /canvas and keep charts out of the chat transcript.",
