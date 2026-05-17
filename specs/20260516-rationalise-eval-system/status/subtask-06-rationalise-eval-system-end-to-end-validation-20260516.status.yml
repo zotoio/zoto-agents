@@ -1,0 +1,88 @@
+schema_version: 1
+subtask_id: "06"
+feature: Rationalise Eval System
+assigned_agent: crux-software-engineer
+model: claude-4.6-sonnet-medium-thinking
+token_budget: 200000
+state: completed
+started_at: "2026-05-17T15:11:00+10:00"
+last_heartbeat: "2026-05-17T15:19:00+10:00"
+completed_at: "2026-05-17T15:19:00+10:00"
+checklist:
+  - id: D01
+    text: Run `pnpm run validate-template` and capture the result (pass/fail + any output).
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D02
+    text: Run `pnpm run validate-skills` and capture the result.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D03
+    text: Run `pnpm run eval:list` (no flags) — confirm the discovery output enumerates the expected primitives without errors.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D04
+    text: Run `pnpm run eval:analyser-parity-check` — confirms the Python `types.py` mirror still matches the TypeScript analyser payload.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D05
+    text: Run `pnpm run eval:sandbox-selftest` — confirms `evals/_llm/sandbox.selftest.ts` runs cleanly via the shim.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D06
+    text: Run `pnpm exec tsx evals/_llm/sdk-bridge.selftest.ts` — confirms the bridge surface probe passes.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D07
+    text: Run `pnpm run eval:cleanup-stale -- --check` — must exit 0 (no drift). Capture the JSON output.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D08
+    text: Run `pnpm run eval:llm:code` (Vitest, code-strategy LLM tests).
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D09
+    text: Run `pnpm exec tsc -p plugins/zoto-eval-system` (or equivalent) to catch any broken imports in the engine.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D10
+    text: Run smoke imports for engine barrel and shared runner.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D11
+    text: Verify the audit documents from subtasks 01 and 04 exist and are non-empty.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D12
+    text: "Compile `validation-rationalise-eval-system-20260516.md` with a row per check."
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+  - id: D13
+    text: If any check fails, add a Blockers Encountered entry naming the failing check and the recommended owning subtask.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+artifacts:
+  - path: "specs/20260516-rationalise-eval-system/validation-rationalise-eval-system-20260516.md"
+    kind: created
+    note: "Validation report with 11 checks, verdict FAIL (pre-existing issues only, no regressions)"
+errors: []
+notes: >
+  All 13 deliverables completed. Verdict: FAIL (strict DoD compliance) — 3 checks have non-zero
+  exits (sdk-bridge selftest 7/13, tsc 17 Ajv errors, #eval-engine alias scope). All failures are
+  demonstrably pre-existing and not regressions from this spec. Core eval system is structurally
+  coherent: validators pass, discovery works (47 files / 247 primitives), sandbox runs, no stale
+  drift, all 43 LLM suites discover and skip correctly (253 tests), engine barrel imports cleanly.
+extra:
+  judge:
+    verdict: "verified"
+    at: "2026-05-17T01:23:00+10:00"
+    notes: >
+      All 13 deliverables independently confirmed against the file system. Re-ran 7/11 checks
+      (validate-skills, eval:list, analyser-parity-check, sandbox-selftest, sdk-bridge-selftest,
+      engine tsc, cleanup-stale --check) — all reproduce the reported exit codes exactly.
+      Validation report has correct structure (per-check table, verdict, blockers section).
+      Both audit documents verified on disk (240 + 187 lines). The 3 failures (sdk-bridge 7/13,
+      tsc 17 Ajv errors, #eval-engine alias scope) are confirmed pre-existing by independent re-runs.
+      Minor observation: subtask spec markdown was modified with execution notes (standard spec system
+      practice) but strictly exceeds DoD05 scope — not a blocking issue.
+    fix_list: []

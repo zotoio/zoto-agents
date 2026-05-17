@@ -1,0 +1,253 @@
+schema_version: 1
+spec_id: 20260508-refactor-llm-eval-approach
+phase: 0
+aggregate_state: completed
+started_at: 2026-05-08T10:06:37.319Z
+updated_at: 2026-05-08T11:14:32.103Z
+aggregate_progress:
+  total: 6
+  completed: 6
+  in_progress: 0
+  blocked: 0
+  failed: 0
+subtasks:
+  - subtask_id: "01"
+    state: completed
+    status_path: specs/20260508-refactor-llm-eval-approach/status/subtask-01-refactor-llm-eval-approach-audit-architecture-20260508.status.yml
+    last_heartbeat: 2026-05-08T10:13:43.389Z
+  - subtask_id: "02"
+    state: completed
+    status_path: specs/20260508-refactor-llm-eval-approach/status/subtask-02-refactor-llm-eval-approach-docs-patterns-20260508.status.yml
+    last_heartbeat: 2026-05-08T10:18:31.429Z
+  - subtask_id: "03"
+    state: completed
+    status_path: specs/20260508-refactor-llm-eval-approach/status/subtask-03-refactor-llm-eval-approach-shared-types-20260508.status.yml
+    last_heartbeat: 2026-05-08T10:27:18.785Z
+  - subtask_id: "04"
+    state: completed
+    status_path: specs/20260508-refactor-llm-eval-approach/status/subtask-04-refactor-llm-eval-approach-central-runner-20260508.status.yml
+    last_heartbeat: 2026-05-08T10:48:06.755Z
+  - subtask_id: "05"
+    state: completed
+    status_path: specs/20260508-refactor-llm-eval-approach/status/subtask-05-refactor-llm-eval-approach-plugin-templates-20260508.status.yml
+    last_heartbeat: 2026-05-08T10:56:47.698Z
+  - subtask_id: "06"
+    state: completed
+    status_path: specs/20260508-refactor-llm-eval-approach/status/subtask-06-refactor-llm-eval-approach-exemplar-taxonomy-20260508.status.yml
+    last_heartbeat: 2026-05-08T11:11:39.764Z
+blockers: []
+definition_of_done_status:
+  - id: DOD01
+    text: All subtasks completed
+    done: true
+  - id: DOD02
+    text: "`pnpm test` / plugin validators pass for touched packages (62/62 eval-system tests pass)"
+    done: true
+  - id: DOD03
+    text: No new linter errors in modified files
+    done: true
+  - id: DOD04
+    text: "`evals/llm` tests no longer duplicate the full SDK runner loop (shared harness in use — zero inline `CaseDefinition` remaining)"
+    done: true
+  - id: DOD05
+    text: Declarative and code-strategy documented in plugin README with correct script names
+    done: true
+  - id: DOD06
+    text: "`zoto-spec-judge` assessment at `assessment-refactor-llm-eval-approach-20260508.md` (user-approved 2026-05-08)"
+    done: true
+config_reloaded: []
+events:
+  - at: 2026-05-08T10:06:37.319Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 5240e0c2…
+  - at: 2026-05-08T10:06:38.854Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 223fd7bc…
+  - at: 2026-05-08T10:08:10.789Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 9323e94e…
+  - at: 2026-05-08T10:08:12.302Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest eb483c68…
+  - at: 2026-05-08T10:08:13.811Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 5d23eece…
+  - at: 2026-05-08T10:10:38.372Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 961544c3…
+  - at: 2026-05-08T10:10:39.880Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 59e89b81…
+  - at: 2026-05-08T10:10:41.388Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest defe7685…
+  - at: 2026-05-08T10:13:36.074Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 5888457f…
+  - at: 2026-05-08T10:13:43.619Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest ca317eaf…
+  - at: 2026-05-08T10:14:37.843Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest a899b213…
+  - at: 2026-05-08T10:16:14.223Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 8e6efdff…
+  - at: 2026-05-08T10:16:15.732Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 7c1ce03d…
+  - at: 2026-05-08T10:16:23.302Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 5a701ce0…
+  - at: 2026-05-08T10:16:33.846Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 8a991833…
+  - at: 2026-05-08T10:16:35.357Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 3de696b5…
+  - at: 2026-05-08T10:17:50.679Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 30ef7dad…
+  - at: 2026-05-08T10:17:52.187Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 72363f84…
+  - at: 2026-05-08T10:17:58.215Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest bf860219…
+  - at: 2026-05-08T10:18:32.865Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest db5bfa95…
+  - at: 2026-05-08T10:22:56.656Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 8ce6a926…
+  - at: 2026-05-08T10:23:22.272Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 3806da6a…
+  - at: 2026-05-08T10:23:29.810Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 49d0f526…
+  - at: 2026-05-08T10:24:24.070Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 09842081…
+  - at: 2026-05-08T10:24:25.580Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest a01b9690…
+  - at: 2026-05-08T10:24:31.610Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 68960bc7…
+  - at: 2026-05-08T10:27:08.423Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 4d6924df…
+  - at: 2026-05-08T10:27:18.977Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 8bf828a8…
+  - at: 2026-05-08T10:27:31.040Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest a560815a…
+  - at: 2026-05-08T10:33:26.791Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 57403092…
+  - at: 2026-05-08T10:35:24.407Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest bd3eb4ac…
+  - at: 2026-05-08T10:35:25.924Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest b55c941b…
+  - at: 2026-05-08T10:35:37.989Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 40b9a532…
+  - at: 2026-05-08T10:42:20.785Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest aa79cc55…
+  - at: 2026-05-08T10:42:22.293Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 11ecbcdb…
+  - at: 2026-05-08T10:42:29.831Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest ae8fa7ec…
+  - at: 2026-05-08T10:47:54.045Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 0337aa92…
+  - at: 2026-05-08T10:48:07.631Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest bcc82a92…
+  - at: 2026-05-08T10:48:49.871Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest b69f8c46…
+  - at: 2026-05-08T10:50:26.388Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 4ebbcd49…
+  - at: 2026-05-08T10:50:27.900Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest d7ecec1b…
+  - at: 2026-05-08T10:52:05.963Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 6b190c71…
+  - at: 2026-05-08T10:53:09.333Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 2e3678a1…
+  - at: 2026-05-08T10:53:10.843Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest b1c2aa46…
+  - at: 2026-05-08T10:53:24.420Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 7f724d51…
+  - at: 2026-05-08T10:54:36.846Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 5bbb1554…
+  - at: 2026-05-08T10:56:33.003Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest def329cf…
+  - at: 2026-05-08T10:56:48.089Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 9ea6507a…
+  - at: 2026-05-08T10:59:21.977Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest accc2037…
+  - at: 2026-05-08T10:59:23.487Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest bea6ff21…
+  - at: 2026-05-08T11:07:03.475Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260508-refactor-llm-eval-approach/status/subtask-06-refactor-llm-eval-approach-exemplar-taxonomy-20260508.status.yml
+  - at: 2026-05-08T11:07:03.475Z
+    kind: rebuild
+    message: Aggregated 5 subtask source(s); digest 3beb1118…
+  - at: 2026-05-08T11:07:05.014Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260508-refactor-llm-eval-approach/status/subtask-06-refactor-llm-eval-approach-exemplar-taxonomy-20260508.status.yml
+  - at: 2026-05-08T11:07:05.014Z
+    kind: rebuild
+    message: Aggregated 5 subtask source(s); digest 061a91ae…
+  - at: 2026-05-08T11:07:35.614Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest c7ae2573…
+  - at: 2026-05-08T11:07:37.141Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 8c888a0f…
+  - at: 2026-05-08T11:07:44.802Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 5dec209e…
+  - at: 2026-05-08T11:08:34.981Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest fc749ba8…
+  - at: 2026-05-08T11:09:11.480Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest a324464e…
+  - at: 2026-05-08T11:11:30.741Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest cb9fba1d…
+  - at: 2026-05-08T11:11:39.820Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest a29cdf8b…
+  - at: 2026-05-08T11:12:46.368Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest b1945538…
+  - at: 2026-05-08T11:13:12.072Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 6528d968…
+  - at: 2026-05-08T11:14:32.103Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 0ee65ad5…
+extra:
+  aggregator_digest: 0ee65ad51c980b1d6f00aa5137c5c16ccf478eaa8c6f9f43bf762fb51a3f5ff2

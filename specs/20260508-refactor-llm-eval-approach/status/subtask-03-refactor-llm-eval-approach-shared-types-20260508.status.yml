@@ -1,0 +1,63 @@
+schema_version: 1
+subtask_id: "03"
+feature: Refactor LLM eval approach
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-08T20:16:00+10:00
+last_heartbeat: 2026-05-08T10:27:18.785Z
+completed_at: 2026-05-08T20:24:00+10:00
+checklist:
+  - id: D01
+    text: New or extended module(s), e.g. `evals/llm/_shared/code-strategy-case.ts` (name adjustable) exporting the case type used by Vitest tests **and** re-using or narrowing `DeclarativeGraderConfig` where possible
+    done: true
+    evidence_path: evals/llm/_shared/code-strategy-case.ts
+  - id: D02
+    text: If needed, thin **re-export** from `evals/_llm/case.ts` or a shared `evals/_llm/shared-types.ts` to avoid circular imports—document the graph in a comment
+    done: true
+    evidence_path: evals/llm/_shared/sdk-bridge.ts
+  - id: D03
+    text: Update **one** representative `evals/llm/test_*.test.ts` to consume the shared type (proof of concept) OR defer bulk migration to subtask 06 if subtask 04 needs the harness first—coordinate so no double mass-edit
+    done: true
+    evidence_path: evals/llm/_shared/code-strategy-case.proof.ts
+  - id: D04
+    text: Typecheck passes (`pnpm exec tsc --noEmit` or repo-standard equivalent if present)
+    done: true
+    evidence_path: null
+artifacts:
+  - path: evals/llm/_shared/code-strategy-case.ts
+    kind: created
+    note: Shared CodeStrategyCaseDefinition type, imports CaseFixtures/CaseExpectedFilesystem from evals/_llm/case.ts
+  - path: evals/_llm/analyser-payload.ts
+    kind: created
+    note: Canonical AnalyserPayload type family — single source of truth extracted from scripts/eval-analyse.ts
+  - path: evals/llm/_shared/sdk-bridge.ts
+    kind: modified
+    note: Replaced 215-line verbatim copy with thin re-export from evals/_llm/sdk-bridge.ts
+  - path: evals/llm/_shared/_user-case-guards.ts
+    kind: modified
+    note: Replaced 153-line verbatim copy with thin re-export from evals/_llm/_user-case-guards.ts
+  - path: scripts/eval-analyse.ts
+    kind: modified
+    note: Replaced inline AnalyserPayload type definitions with import+re-export from evals/_llm/analyser-payload.ts
+  - path: evals/llm/_shared/code-strategy-case.proof.ts
+    kind: created
+    note: Compile-time proof that CodeStrategyCaseDefinition is drop-in for inline CaseDefinition (deletable after subtask 06)
+errors: []
+notes: |
+  D03 chose the "proof of concept" path using a non-generated file rather
+  than modifying a `_meta.generated: true` stamped test file directly.
+  All 37 stamped test_*.test.ts files remain untouched — template update
+  is subtask 05's job, bulk re-stamp is subtask 06's job.
+
+  Coordination for subtasks 04-06:
+  - Subtask 04 (central runner): can import AnalyserPayload from evals/_llm/analyser-payload.ts directly.
+  - Subtask 05 (templates): update per-primitive-test.ts.tmpl to replace inline CaseDefinition with `import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js"`.
+  - Subtask 06 (bulk migration): re-stamp all 37 test files using updated template.
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-08T20:25:00+10:00
+    notes: "All four deliverables independently confirmed against disk. D01: code-strategy-case.ts exports CodeStrategyCaseDefinition importing CaseFixtures/CaseExpectedFilesystem from evals/_llm/case.ts — confirmed. D02: sdk-bridge.ts (34 lines) and _user-case-guards.ts (28 lines) are thin re-exports from canonical modules — all re-exported symbols verified present in sources. analyser-payload.ts created with canonical types; scripts/eval-analyse.ts imports and re-exports them. D03: compile-time proof file demonstrates drop-in compatibility; no _meta.generated test files were modified (git diff confirms zero test_*.test.ts changes). D04: targeted typecheck passes clean on all 5 deliverable files. Definition of Done: no duplicate inline CaseDefinition in new/edited files; no _meta.generated stamped files modified. 5 pre-existing linter errors in scripts/eval-analyse.ts confirmed present on base branch — not introduced by this subtask."
+    fix_list: []

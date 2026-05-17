@@ -1,0 +1,43 @@
+schema_version: 1
+subtask_id: "01"
+feature: Refactor LLM eval approach
+assigned_agent: crux-platform-architect
+model: composer-2-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-08T20:07:00+10:00
+last_heartbeat: 2026-05-08T10:13:43.389Z
+completed_at: 2026-05-08T20:15:00+10:00
+checklist:
+  - id: D01
+    text: "Written inventory table: **declarative JSON paths** (`plugins/zoto-eval-system/evals/**/*.json`), **code tests** (`evals/llm/test_*.test.ts`), **shared helpers** (`evals/llm/_shared/*`, `evals/_llm/*`), **scripts** (`eval-stamp`, `eval-discover`, `eval-analyse`, `eval-update`)"
+    done: true
+    evidence_path: specs/20260508-refactor-llm-eval-approach/subtask-01-refactor-llm-eval-approach-audit-architecture-20260508.md
+  - id: D02
+    text: "Explicit **dual-strategy contract**: when to add/update JSON vs Vitest; how `eval:llm:declarative` vs `eval:llm:code` map to user workflows (`package.json` scripts)"
+    done: true
+    evidence_path: specs/20260508-refactor-llm-eval-approach/subtask-01-refactor-llm-eval-approach-audit-architecture-20260508.md
+  - id: D03
+    text: "**Open questions** list for subtasks 03–06 (e.g. whether `EvalCase` and code-strategy case types should merge vs alias, table-driven codegen limits)"
+    done: true
+    evidence_path: specs/20260508-refactor-llm-eval-approach/subtask-01-refactor-llm-eval-approach-audit-architecture-20260508.md
+  - id: D04
+    text: No code changes in this subtask (read-only audit)
+    done: true
+    evidence_path: null
+artifacts:
+  - path: specs/20260508-refactor-llm-eval-approach/subtask-01-refactor-llm-eval-approach-audit-architecture-20260508.md
+    kind: modified
+    note: Added full Execution Notes with inventory table, dual-strategy contract, open questions, and duplication analysis
+errors: []
+notes: Read-only audit completed. All 4 deliverables written to subtask Execution Notes.
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-08T20:11:00+10:00
+    notes: "All four deliverables independently confirmed against the filesystem. D01 inventory: 19 JSON files (exact match), 37 test files (exact match), all shared helpers and scripts verified on disk, sdk-bridge.ts and _user-case-guards.ts confirmed as verbatim copies via diff, grader files confirmed in both locations (5+5=10). Minor inaccuracy: kind breakdown claims skill=11/command=15/agent=8/hook=3 but actual counts are skill=11/command=13/agent=12/hook=1 — total (37) is correct and all individual files are accurately listed elsewhere. D02 dual-strategy contract: config.yml confirms strategy=code and codeFramework=vitest, package.json scripts eval:llm:code and eval:llm:declarative verified, assertNoConflictingLlmStrategy guard confirmed in eval-stamp.ts, CaseDefinition interface at template line 43. D03 open questions: six well-structured questions (Q1–Q6) covering subtasks 03–06 with concrete options and trade-offs. D04 no code changes: only artifact is the subtask markdown itself; no source/test/config files modified."
+    fix_list:
+      - item: D01 kind breakdown
+        gap: Table claims skill=11, command=15, agent=8, hook=3 but filesystem shows skill=11, command=13, agent=12, hook=1
+        recommended_path: specs/20260508-refactor-llm-eval-approach/subtask-01-refactor-llm-eval-approach-audit-architecture-20260508.md
+        severity: nice_to_have
