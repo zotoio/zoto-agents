@@ -78,7 +78,7 @@ export function buildJudgeContext(opts?: {
         const { text } = await awaitRun(run);
         return parseJudgeJson(text);
       } finally {
-        closeAgent(agent);
+        await closeAgent(agent);
       }
     },
   };

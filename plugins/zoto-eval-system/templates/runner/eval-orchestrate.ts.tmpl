@@ -271,6 +271,8 @@ export interface OrchestrateOpts {
   spawnRunner?: (
     script: string,
     env: NodeJS.ProcessEnv,
+    /** When set (LLM backend only), real runner passes `pnpm run … -- --model <id>`. */
+    modelCli?: string,
   ) => { exitCode: number; stdout?: string; stderr?: string };
   /** Test seam: stub the drift hook child process. */
   spawnDrift?: (env: NodeJS.ProcessEnv) => {
@@ -286,8 +288,13 @@ export interface OrchestrateOpts {
 function spawnRunnerScript(
   script: string,
   env: NodeJS.ProcessEnv,
+  modelCli?: string,
 ): { exitCode: number; stdout?: string; stderr?: string } {
-  const r = spawnSync("pnpm", ["run", script], {
+  const pnpmArgs =
+    modelCli !== undefined && modelCli !== ""
+      ? (["run", script, "--", "--model", modelCli] as const)
+      : (["run", script] as const);
+  const r = spawnSync("pnpm", [...pnpmArgs], {
     cwd: REPO_ROOT,
     env,
     encoding: "utf-8",
@@ -520,7 +527,7 @@ export async function orchestrate(
       ZOTO_EVAL_LLM_STRATEGY: cfg.llmStrategy,
       ZOTO_EVAL_LLM_CODE_FRAMEWORK: cfg.llmCodeFramework,
     };
-    const result = spawnFn(script, llmEnv);
+    const result = spawnFn(script, llmEnv, args.model);
     llmOutcome = {
       ranScript: script,
       exitCode: result.exitCode,

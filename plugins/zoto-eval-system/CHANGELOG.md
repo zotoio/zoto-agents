@@ -6,9 +6,13 @@ All notable changes to the Eval System plugin will be documented in this file.
 
 ### Changed
 - Renamed slash commands from `/zoto-eval-*` to `/z-eval-*`. The old `/zoto-eval-*` names have been removed.
+- **LLM code-strategy template refactored to thin-file pattern.** `templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl` reduced from ~240 lines to ~30 lines. The inlined `CaseDefinition` interface and the full runner loop are replaced by imports from `_shared/code-strategy-case.ts` (shared types, subtask 03) and `_shared/run-code-strategy-suite.ts` (central harness, subtask 04). Stamped test files now call `defineLlmCodeEval()` instead of duplicating the describe/it/grader dispatch. All existing template placeholders (`{{CASES_JSON}}`, `{{TARGET_ID}}`, `{{MODEL_ID}}`, etc.) are preserved; no changes required in `eval-stamp.ts` substitution logic.
 
 ### Added
-- `zoto-eval-adviser` agent for interactive eval coverage gap analysis
+- `/z-eval-start` slash command — operator-facing jump into the evaluator lifecycle; delegates to `commands/z-eval-workflow.md` after the init gate (read-only; no subagents)
+- `/z-eval-jump` slash command — same read-only delegation as `/z-eval-start` for docs and runbooks that prefer a “jump” verb
+- `/z-eval-operator` slash command — same read-only delegation as `/z-eval-start` for runbooks and ops-facing docs
+- `/z-eval-workflow` slash command — single `askQuestion` lifecycle router to the right `/z-eval-*` command (read-only; no subagents)
 - `zoto-advise-evals` skill implementing five-dimension gap taxonomy
 - `/z-eval-advise` command with multi-turn askQuestion interaction
 

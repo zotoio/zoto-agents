@@ -1,6 +1,6 @@
 ---
 name: zoto-configure-evals
-description: Writes .zoto/eval-system/config.yml from field values pre-collected by /z-eval-configure (command-owned askQuestion). Validates against templates/schema/config.schema.json. Diffs the chosen config against the manifest snapshot (discovery_config.static.framework / discovery_config.llm.strategy / discovery_config.llm.codeFramework), produces a cleanup_plan validated against templates/schema/cleanup-plan.schema.json, and stamps _meta.primitive_analysis.invalidate=true on every cached primitive analysis when framework or strategy changes. Never calls askQuestion — returns needs_user_input if validation cannot proceed without user clarification.
+description: Writes .zoto/eval-system/config.yml from field values pre-collected by /z-eval-configure (command-owned askQuestion). Refuses bundled update.preserveUserAuthoredCases:false or update.writeMetaMarker:false (including nested payload mirrors) before any manifest read or config write. Validates against templates/schema/config.schema.json. Diffs the chosen config against the manifest snapshot (discovery_config.static.framework / discovery_config.llm.strategy / discovery_config.llm.codeFramework), produces a cleanup_plan validated against templates/schema/cleanup-plan.schema.json, and stamps _meta.primitive_analysis.invalidate=true on every cached primitive analysis when framework or strategy changes. Never calls askQuestion — returns needs_user_input if validation cannot proceed without user clarification.
 ---
 
 # Configure Evals
@@ -40,6 +40,25 @@ Use this skill when:
 
 ## Workflow
 
+### Step 0: Immutable `update` flags — refuse before any read/write
+
+Inspect the bundled answers **before** reading the manifest snapshot, **before** merging fields below, and **before** writing `.zoto/eval-system/config.yml`, appending `manifest.history.yml`, emitting a `cleanup_plan`, or stamping `_meta.primitive_analysis.invalidate`.
+
+Commands nest questionnaire output differently; check every mirror that appears in the Task payload, including:
+
+- `update.preserveUserAuthoredCases` / `update.writeMetaMarker`
+- The same keys at the **top level** when `/z-eval-configure` flattens answers
+- Nested wrappers such as `answers.update.*`, `bundledAnswers.update.*`, or `configureAnswers.update.*` when the orchestrator forwarded a sub-object
+
+If **either** flag is present and **`false`**, that is an upstream contract breach — both values are hard-coded **`true`** and are not operator-configurable:
+
+- Respond with an explicit refusal (do **not** silently coerce to `true` and continue).
+- **Do not** write `config.yml`, **do not** append manifest history, **do not** emit a `cleanup_plan`, **do not** stamp analyser invalidate flags — stop after the refusal so the command can repair the payload.
+
+Absent keys are fine (defaults remain `true`). Only an explicit **`false`** triggers refusal.
+
+After this gate passes, continue.
+
 ### Step 1: Consume the command payload
 
 Expect the Task prompt to include:
@@ -51,12 +70,16 @@ If critical fields are missing, return `needs_user_input` — **never** call `as
 
 ### Step 2: Read the manifest snapshot (source of truth for "what's currently stamped")
 
-Before applying the new config, read the current snapshot via the canonical helper at `evals/_llm/manifest-snapshot.ts`:
+Run only after **Step 0** succeeds.
+
+Before applying the new config, read the current snapshot via the canonical helper at `plugins/zoto-eval-system/engine/manifest-snapshot.ts`:
 
 ```ts
-import { readManifestSnapshot } from "evals/_llm/manifest-snapshot";
-const oldSnapshot = readManifestSnapshot(); // { static, llm, evalFiles, source }
+import { readManifestSnapshot } from "plugins/zoto-eval-system/engine/manifest-snapshot";
+const oldSnapshot = readManifestSnapshot(); // { static, llm, discoveryTargets, effectiveDiscoveryTargets, evalFiles, source }
 ```
+
+`discoveryTargets` reflects what was last recorded on the manifest. When the operator sets `discoveryTargets` in `config.yml`, `effectiveDiscoveryTargets` carries the **narrowed** list (YAML wins). `evalFiles` omits tooling phantom catalogue paths (`*.eval.json`, plugin `evals/*.json` ghosts) so `cleanup_plan` and cache invalidation only touch real assets.
 
 `source` will be:
 
@@ -90,7 +113,7 @@ Fields to write, in order (values come from the payload):
 | 12 | `ignore` | Optional glob list (`[]` default). Advanced — upstream-vendored paths to exclude from eval generation/cleanup tooling. |
 | 13 | `update.criticalChangeRules.*` | five booleans (defaults yes). |
 
-`update.preserveUserAuthoredCases` and `update.writeMetaMarker` are stamped as `true` without prompting — they are contracts.
+`update.preserveUserAuthoredCases` and `update.writeMetaMarker` are always written as **`true`**. Bundled **`false`** for either flag is refused in **Step 0** before this step runs — never merge or honour upstream `false` here.
 
 #### Cross-field validation (runtime, in addition to schema)
 
@@ -106,7 +129,7 @@ Group the candidate files by `reason`:
 
 - `framework-switch` — when `oldSnapshot.static.framework !== newConfig.static.framework`. Files: the previous framework's fingerprint (`evals/conftest.py` / `vitest.config.ts` / `jest.config.{js,ts}`) plus every stamped test file that backend wrote.
 - `strategy-switch` — when `oldSnapshot.llm.strategy !== newConfig.llm.strategy`. Files: when leaving `code`, every `*.test.ts` file the LLM `code` strategy stamped; when leaving `declarative`, every `_meta.generated === true` case row in central `evals.json` files (the cleanup engine rewrites the JSON in place — `preserve_user_authored: true` is hard-coded for those entries).
-- `removed-target` — when `config.ignore` or `discoveryTargets` removes a target whose generated eval JSON now becomes orphaned.
+- `removed-target` — when `config.ignore` or `discoveryTargets` removes a target whose generated eval JSON now becomes orphaned. Compare the new discovery scope to `oldSnapshot.effectiveDiscoveryTargets` (or `oldSnapshot.discoveryTargets` when YAML did not override) plus `ignore` changes; real orphan `evals/*.json` rows belong here, not catalogue ghosts already stripped from `oldSnapshot.evalFiles`.
 
 Set `totals.files` to the sum of `groups[].files.length`.
 
@@ -118,7 +141,7 @@ When `oldSnapshot.static.framework !== newConfig.static.framework` OR `oldSnapsh
 
 This skill stamps `_meta.primitive_analysis.invalidate = true` on every generated case row in:
 
-- The manifest's `targets[].eval_files[]` paths.
+- `oldSnapshot.evalFiles` (canonical filtered list from `readManifestSnapshot` — real manifest-backed assets only).
 - Each skill's `evals/evals.json` enumerated under `skillsRoots`.
 
 Subtask 04's analyser flow honours `invalidate` and re-runs the analyser regardless of `source_hash`. The skill never deletes the cache entry — it only flips the flag, so previous summaries remain visible for human review.
@@ -138,7 +161,7 @@ Print the effective config, the `cleanup_plan` summary (totals + group reasons),
 - Directory: `.zoto/eval-system/` at the repository root.
 - File: `config.json`.
 - Contract fields: never offered as prompts from this skill.
-- Manifest snapshot reader: `evals/_llm/manifest-snapshot.ts` is the only sanctioned helper for reading framework/strategy snapshots; do not duplicate the YAML parsing or filesystem fallback in another module.
+- Manifest snapshot reader: `plugins/zoto-eval-system/engine/manifest-snapshot.ts` is the only sanctioned helper for reading framework/strategy snapshots; do not duplicate the YAML parsing or filesystem fallback in another module.
 
 ## What NOT to Do
 

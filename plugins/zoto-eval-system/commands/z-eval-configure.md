@@ -43,12 +43,14 @@ Run `askQuestion` for each field in this order. Use enum-backed options (no free
 
 Do **not** prompt for `preserveUserAuthoredCases` or `writeMetaMarker` — always `true`.
 
+When you assemble the structured subagent payload, **never** forward `update.preserveUserAuthoredCases: false` or `update.writeMetaMarker: false` (or the same keys mirrored at the top level). Omit them or set both to **`true`** only. The configurer treats either `false` as a contract breach and **refuses before any config write** until the payload is repaired.
+
 ### Manifest snapshot — source of truth
 
-Before spawning the subagent, read the canonical snapshot via `evals/_llm/manifest-snapshot.ts`:
+Before spawning the subagent, read the canonical snapshot via `plugins/zoto-eval-system/engine/manifest-snapshot.ts`:
 
 ```ts
-import { readManifestSnapshot } from "evals/_llm/manifest-snapshot";
+import { readManifestSnapshot } from "plugins/zoto-eval-system/engine/manifest-snapshot";
 const oldSnapshot = readManifestSnapshot();
 ```
 
@@ -62,7 +64,7 @@ Pass `oldSnapshot` plus all collected answers in the structured payload to the s
 
 ### Spawn subagent
 
-Spawn `zoto-eval-configurer` with the structured payload (answers + `oldSnapshot`). The subagent:
+Spawn `zoto-eval-configurer` with the structured payload (answers + `oldSnapshot`). If the payload wrongly sets `preserveUserAuthoredCases` or `writeMetaMarker` to `false`, the subagent **refuses before any write** (see **Resume loop**). Otherwise the subagent:
 
 1. Writes `.zoto/eval-system/config.yml` atomically.
 2. Diffs the new config against `oldSnapshot` and emits a `cleanup_plan` validated against `templates/schema/cleanup-plan.schema.json`.
@@ -108,6 +110,8 @@ Common `needs_user_input` triggers:
 
 - `llm.strategy === "code"` was selected but `llm.codeFramework` was missing from the payload.
 - The schema rejected the cleanup_plan (e.g. unknown `kind` value introduced by a future template).
+
+If the subagent **refuses** because the bundled answers contained `false` for `preserveUserAuthoredCases` or `writeMetaMarker`, fix the payload (remove those keys or set both `true`), then **spawn or resume** with the corrected answers — do not ask the user to weaken either flag.
 
 ## Cross-field validation enforced at runtime
 

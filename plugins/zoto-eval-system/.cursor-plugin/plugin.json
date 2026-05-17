@@ -1,7 +1,7 @@
 {
   "name": "zoto-eval-system",
   "displayName": "Eval System",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Generate, run, and consciously update static (pytest) + LLM (@cursor/sdk) evals when AI primitives change — every proposed change requires user confirmation. YAML+JSONSchema results, surgical update on git diff, sovereign user-authored cases, /canvas-rendered cross-run compare.",
   "author": {
     "name": "zotoio",

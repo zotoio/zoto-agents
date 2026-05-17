@@ -58,7 +58,7 @@ export interface CaseExpectedFilesystem {
   unchanged?: string[];
 }
 
-/** Declarative runner grader entries — kept in sync with `runner.ts` dispatch. */
+/** Declarative grader entries — kept in sync with code-strategy grader dispatch (`#eval-engine/graders/*.js`). */
 export type DeclarativeGraderConfig =
   | { type: "contains"; needle: string; caseInsensitive?: boolean }
   | { type: "regex"; pattern: string; flags?: string; expect?: "match" | "no-match" }
@@ -78,6 +78,7 @@ export interface EvalCase {
   expected_output?: string;
   files?: string[];
   assertions: string[];
+  /** Object graders run through the declarative runner; bare strings are legacy no-ops at parse time. */
   graders?: Array<DeclarativeGraderConfig | string>;
   follow_ups?: string[];
   _meta?: CaseMeta;
@@ -183,9 +184,9 @@ export interface ValidateEnrichedResult {
  *   2. `assertions` is a non-empty array of strings.
  *   3. When `graders` is present, every **object** entry must be a supported
  *      grader (`contains` | `regex` | `tool-called` | `llm-judge`) with the
- *      fields required by `evals/_llm/graders/*.ts`. Bare strings (e.g. legacy
+ *      fields enforced by `#eval-engine/graders/*.js`. Bare strings (e.g. legacy
  *      `["regex"]` tags) are ignored. Generated cases MUST NOT use `contains`
- *      needles shorter than eighteen trimmed characters (weak-grader guard).
+ *      needles shorter than four trimmed characters (weak-grader guard).
  *   4. `_meta.primitive_analysis` is present AND carries the four
  *      required fields (`source_hash`, `analysed_at`, `analyser_version`,
  *      `summary`) — the source-hash MUST be a 64-char lowercase hex
@@ -204,7 +205,7 @@ const DECLARATIVE_GRADER_TYPES = new Set<string>([
 ]);
 
 /** Minimum trimmed `needle` length for `contains` on generated cases (judge playbook). */
-const MIN_GENERATED_CONTAINS_NEEDLE_LEN = 18;
+const MIN_GENERATED_CONTAINS_NEEDLE_LEN = 4;
 
 function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
   const raw = c.graders;
@@ -214,6 +215,7 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
   }
   for (let i = 0; i < raw.length; i++) {
     const g = raw[i];
+    /* Legacy evals used bare string tags in `graders[]` — keep them as no-ops. */
     if (typeof g === "string") continue;
     if (g === null || typeof g !== "object" || Array.isArray(g)) {
       return { ok: false, reason: `graders[${i}] must be a grader object` };

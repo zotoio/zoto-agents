@@ -1,34 +1,50 @@
 {
-  "hook_name": "zoto-eval-system",
-  "evals": [
+  "target_id": "hook:zoto-eval-system",
+  "cases": [
     {
       "id": 1,
-      "prompt": "Session start hook fires in a repo with .zoto/eval-system/config.yml present.",
+      "prompt": "Exercise the Cursor hook lifecycle for hook plugin 'zoto-eval-system' during phase 'sessionStart'.\nHook command line: node hooks/zoto-eval-session-start.mjs\nDescription: Eval System: nudge on stale runs, missing evals.json, or detected drift\nConfirm stdout JSON contract and absence of blocking prompts.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/plugins/zoto-eval-system/hooks/hooks.json",
+            "content": "{\n  \"$schema\": \"https://cursor.sh/hooks-schema.json\",\n  \"version\": 1,\n  \"description\": \"Eval System hooks — session-start nudge for stale runs, missing evals, and detected drift.\",\n  \"hooks\": {\n    \"sessionStart\": [\n      {\n        \"command\": \"node hooks/zoto-eval-session-start.mjs\",\n        \"description\": \"Eval System: nudge on stale runs, missing evals.json, or detected drift\"\n      }\n    ]\n  }\n}\n"
+          },
+          {
+            "path": "workspace/hooks/zoto-eval-session-start.mjs",
+            "content": "# missing on disk fixture for hooks/zoto-eval-session-start.mjs"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": [
+          "hook-events/zoto-eval-system/sessionStart/1/stdout.json"
+        ],
+        "modified": [
+          "workspace/hooks/zoto-eval-session-start.mjs",
+          "workspace/plugins/zoto-eval-system/hooks/hooks.json"
+        ]
+      },
+      "expected_output": "Exit status 0; hook script zoto-eval-session-start.mjs completed without prompting.",
       "assertions": [
-        "The hook detects the eval-system config file",
-        "The hook outputs session context (e.g. active framework, last run timestamp)",
-        "The hook does not block or error on missing optional files"
+        "sessionStart hook entry ran the configured script without unresolved needs_user_input",
+        "No askQuestion emitted from hook binaries — stdin/stdout hooks channel only",
+        "Behaviour matched hooks.json description excerpt: Eval System: nudge on stale runs, missing evals.json, or detected drift"
       ],
       "_meta": {
         "generated": true,
         "source_hash": "5aede789d6f42e7903d75ee1d9dd7b9d16787575075d8aaffb35a0bc4704aa11",
-        "last_updated": "2026-05-07T10:18:00.000Z",
-        "generated_by": "zoto-update-evals"
-      }
-    },
-    {
-      "id": 2,
-      "prompt": "Session start hook fires in a repo without eval-system config.",
-      "assertions": [
-        "The hook exits gracefully without errors",
-        "No eval-system context is injected into the session"
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "5aede789d6f42e7903d75ee1d9dd7b9d16787575075d8aaffb35a0bc4704aa11",
-        "last_updated": "2026-05-07T10:18:00.000Z",
-        "generated_by": "zoto-update-evals"
+        "primitive_analysis_hash": "29352d982eacfc3a3dc73a3d36d0eaac4e6154f72e58488f7bd97889bc349204",
+        "last_updated": "2026-05-11T04:53:07.973Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "c205ce044f2739fa0d9c493fc6b3992e28b19893b57f8a5d7394db1ae22c8933",
+          "analysed_at": "2026-05-11T04:53:47.610Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The sessionStart hook runs `node hooks/zoto-eval-session-start.mjs` and prints either `{}` or JSON carrying `additional_context` when configured eval state exposes stale run folders, skills without `evals/evals.json`, or a drift reminder tied to `manifest.yml` and the once-per-day marker."
+        }
       }
     }
-  ]
+  ],
+  "hook_plugin": "zoto-eval-system"
 }

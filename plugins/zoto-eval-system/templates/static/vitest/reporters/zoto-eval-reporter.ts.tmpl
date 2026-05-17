@@ -17,6 +17,10 @@
  * `../_shared/result-yaml-writer.ts` (canonically owned by subtask 07,
  * consumed by both vitest and jest reporters). See that file's header
  * for the full schema-mapping contract.
+ *
+ * When spawned by `scripts/eval-orchestrate.ts`, honours
+ * `ZOTO_EVAL_RUN_ID` / `ZOTO_EVAL_RUN_TS` and `ZOTO_EVAL_RUNS_DIR` so
+ * `static.yml` lands beside the orchestrator's `report.yml`.
  */
 import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -50,10 +54,19 @@ export default class ZotoEvalReporter implements Reporter {
   private startedAt: string = new Date().toISOString();
 
   constructor(options: ZotoEvalReporterOptions = {}) {
+    const envRunId =
+      process.env.ZOTO_EVAL_RUN_ID ?? process.env.ZOTO_EVAL_RUN_TS;
     const runId =
-      options.runId ?? new Date().toISOString().replace(/[:.]/g, "-");
+      options.runId ??
+      (envRunId && envRunId.length > 0
+        ? envRunId
+        : new Date().toISOString().replace(/[:.]/g, "-"));
+    const envRunsDir = process.env.ZOTO_EVAL_RUNS_DIR;
+    const runsDir =
+      options.runsDir ??
+      (envRunsDir && envRunsDir.length > 0 ? envRunsDir : "evals/_runs");
     this.options = {
-      runsDir: options.runsDir ?? "evals/_runs",
+      runsDir,
       runId,
       ...(options.model ? { model: options.model } : {}),
     };

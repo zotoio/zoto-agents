@@ -1,6 +1,6 @@
 ---
 name: zoto-compare-evals
-description: Cross-run analysis across two or more eval runs driven by **`report.yml`**. Inputs are resolved per run directory under `{evalsDir}/_runs/<ts>/`; per-backend summaries are nested under **`report.static`** and **`report.llm`**. Emits a flat dataset (runs × cases × dimensions) plus the /canvas hand-off prompt, instructing the host agent to invoke Cursor's built-in /canvas tool. The skill never renders charts itself. Drill-down opens per-case log files. Does not call askQuestion — ambiguous run IDs use needs_user_input for the command.
+description: Cross-run analysis across two or more eval runs driven by **`report.yml`**. Inputs are resolved per run directory under `{evalsDir}/_runs/<ts>/`; per-backend summaries are nested under **`report.static`** and **`report.llm`**. Emits a flat dataset (runs × cases × dimensions) plus the /canvas hand-off prompt, instructing the host agent to invoke Cursor's built-in /canvas tool. The skill never renders charts itself. Drill-down opens per-case log files. Does not call askQuestion — when a fragment (e.g. `20260503`) matches multiple hourly folders and the Task lacks a disambiguator, emit schema-valid **`needs_user_input`** whose **`options[].label`** lists every full **`{evalsDir}/_runs/<ts>/`** candidate path (`/z-eval-compare` surfaces this without **`askQuestion`**).
 ---
 
 # Compare Evals
@@ -9,7 +9,7 @@ Compare two or more eval runs. The skill does not render any UI; it emits a stru
 
 ## Configuration
 
-Reads `.zoto/eval-system/config.yml` for `evalsDir`. Accepts run identifiers as either directory names under `{evalsDir}/_runs/` (e.g. `20260503051900`) or paths that resolve to that run folder.
+Reads `.zoto/eval-system/config.yml` for `evalsDir`. Accepts run identifiers as either directory names under `{evalsDir}/_runs/` (timestamps such as `20260503051900`, or symbolic stamps like `run-a` / `run-b` / `run-c`) or paths that resolve to that run folder.
 
 ## File layout / reads
 
@@ -21,13 +21,19 @@ Comparison is anchored on each run’s **`report.yml`** (merged static + LLM). W
 /z-eval-compare <run-1> <run-2> [<run-N>]
 ```
 
-Prefer receiving **disambiguated** run paths from **`/z-eval-compare`** (the command may have prompted before spawning this workflow).
+Prefer receiving identifiers that resolve to exactly one **`_runs/`** folder. If **`/z-eval-compare`** received only a fragment (`20260503`) and multiple hourly directories match, the command surfaces **`needs_user_input`** with **`{evalsDir}/_runs/...`** paths — no **`askQuestion`** pre-step.
 
 ## Workflow
 
 ### Step 1: Resolve runs
 
-For each argument, locate the corresponding run directory (and its **`report.yml`**). Prefer `report.yml` as the canonical comparison input; use sibling **`static.yml`** / **`llm.yml`** when a dimension needs backend-specific replay. If a name resolves to multiple candidates and the Task prompt does not include a resolution, return `needs_user_input` listing candidates — **never** call `askQuestion`.
+For each argument, locate the corresponding run directory (and its **`report.yml`**). Prefer `report.yml` as the canonical comparison input; use sibling **`static.yml`** / **`llm.yml`** when a dimension needs backend-specific replay.
+
+**Matching:** Accept directory basenames (`20260503121500`), relative paths under `{evalsDir}/_runs/`, or **fragments**: any `_runs/` child whose basename is **exactly** the token **or** begins with the token (so `20260503` matches `20260503120000` and `20260503121500`).
+
+**Ambiguity:** If lookup yields **multiple** `_runs/` directories for one argument **and** the Task prompt did not pin that argument to a single path (exact basename, unequivocal relative path, or other explicit resolution), stop comparison and emit **`needs_user_input`** validated against **`templates/schema/needs-user-input.schema.json`**. Encode disambiguation as one question per unresolved argument (`id`: e.g. `disambiguate-run-1`). Each **`options[].label`** MUST be the **full run path** **`{evalsDir}/_runs/<matched-basename>/`** so every candidate folder is enumerated; **`options[].id`** SHOULD be slug-safe (e.g. the basename itself when it fits the slug pattern).
+
+**Never** call `askQuestion`; the invoking command relays this payload without prompting.
 
 ### Step 2: Load and normalise
 

@@ -22,6 +22,7 @@ import {
   applyCaseUpdates,
   computeDeltas,
   runUpdate,
+  targetMatchesUpdateGlob,
   sha256,
   normaliseContent,
   type EvalCase,
@@ -477,6 +478,34 @@ describe("_meta.generated contract", () => {
   });
 });
 
+describe("targetMatchesUpdateGlob", () => {
+  it("matches nested command paths against **/plugins/.../commands/*.md", () => {
+    expect(
+      targetMatchesUpdateGlob(
+        "**/plugins/zoto-eval-system/commands/*.md",
+        "plugins/zoto-eval-system/commands/z-eval-update.md",
+        "command:z-eval-update",
+      ),
+    ).toBe(true);
+  });
+
+  it("matches target id when the pattern names the id", () => {
+    expect(
+      targetMatchesUpdateGlob("command:z-eval-update", "skills/x/SKILL.md", "command:z-eval-update"),
+    ).toBe(true);
+  });
+
+  it("does not match skill paths against a commands directory glob", () => {
+    expect(
+      targetMatchesUpdateGlob(
+        "**/plugins/zoto-eval-system/commands/*.md",
+        "skills/zoto-foo/SKILL.md",
+        "skill:zoto-foo",
+      ),
+    ).toBe(false);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // 7. Integration fixture — fresh scaffold + drift tests (test cases 12-20)
 // ---------------------------------------------------------------------------
@@ -724,6 +753,45 @@ describe("Fixture repo — update semantics", () => {
     expect(removedCritical!.reason).toMatch(/removed target with active generated cases/);
   });
 
+  // Test 21 — `--target` glob uses minimatch on path and id (narrowed drift scope)
+  it("21: targeted dry-run limits deltas to targets matching the glob", () => {
+    writeConfig();
+    const cfgPath = join(tmp, ".zoto", "eval-system", "config.yml");
+    const cfgDoc = YAML.parse(readFileSync(cfgPath, "utf-8")) as Record<string, unknown>;
+    cfgDoc.discoveryTargets = ["skill", "command"];
+    writeFileSync(cfgPath, YAML.stringify(cfgDoc));
+    const mergedCfg = YAML.parse(readFileSync(cfgPath, "utf-8")) as Record<string, unknown>;
+
+    writeSkill("zoto-foo", "Skill version one");
+    const cmdDir = join(tmp, "plugins", "zoto-eval-system", "commands");
+    mkdirSync(cmdDir, { recursive: true });
+    const cmdBody = (v: string) =>
+      `---\nname: zoto-test-cmd\ndescription: Test command\n---\n\n# cmd ${v}\n`;
+    writeFileSync(join(cmdDir, "zoto-test-cmd.md"), cmdBody("one"));
+
+    const skillHashBefore = sha256(
+      normaliseContent(readFileSync(join(tmp, "skills", "zoto-foo", "SKILL.md"), "utf-8")),
+    );
+    writeGeneratedEvalsFile("zoto-foo", skillHashBefore);
+    seedManifest(mergedCfg);
+
+    writeSkill("zoto-foo", "Skill version two triggers modified delta");
+    writeFileSync(join(cmdDir, "zoto-test-cmd.md"), cmdBody("two"));
+
+    const out = runUpdate({
+      repoRoot: tmp,
+      mode: "targeted-dry",
+      targetedFile: "**/plugins/zoto-eval-system/commands/*.md",
+    });
+    expect(out.code).toBe(0);
+    expect(out.deltas.length).toBeGreaterThan(0);
+    expect(out.deltas.every((d) => targetMatchesUpdateGlob("**/plugins/zoto-eval-system/commands/*.md", d.path, d.target_id))).toBe(
+      true,
+    );
+    expect(out.deltas.some((d) => d.kind === "modified" && d.target_id === "command:zoto-test-cmd")).toBe(true);
+    expect(out.deltas.some((d) => d.target_id.startsWith("skill:"))).toBe(false);
+  });
+
   // Test 17 — non-critical noise ignored
   it("17: comment/whitespace-only change is treated as non-critical (still detected, but not critical)", () => {
     const cfg = writeConfig();
@@ -775,6 +843,158 @@ describe("Fixture repo — update semantics", () => {
 
     const check = runUpdate({ repoRoot: tmp, mode: "check" });
     expect(check.code).toBe(0);
+  });
+
+  // Test 22 — ignore globs on manifest.discovery_config: manifest-catalogued plugin rows must not false-positive removals
+  it("22: manifest snapshot ignore aligns manifest baseline with narrowed discovery rows", () => {
+    writeConfig();
+    const cfgPath = join(tmp, ".zoto", "eval-system", "config.yml");
+    const cfgDoc = YAML.parse(readFileSync(cfgPath, "utf-8")) as Record<string, unknown>;
+    cfgDoc.discoveryTargets = ["skill", "command"];
+    writeFileSync(cfgPath, YAML.stringify(cfgDoc));
+
+    writeSkill("zoto-foo", "Skill pinned");
+    const cmdDir = join(tmp, "plugins", "plug-a", "commands");
+    mkdirSync(cmdDir, { recursive: true });
+    writeFileSync(
+      join(cmdDir, "zoto-plug-cmd.md"),
+      "---\nname: zoto-plug-cmd\ndescription: Plug command\n---\n\nBody.\n",
+    );
+
+    const hash = sha256(
+      normaliseContent(readFileSync(join(tmp, "skills", "zoto-foo", "SKILL.md"), "utf-8")),
+    );
+    writeGeneratedEvalsFile("zoto-foo", hash);
+    seedManifest(cfgDoc as Record<string, unknown>);
+
+    const cfg2 = YAML.parse(readFileSync(cfgPath, "utf-8")) as Record<string, unknown>;
+    cfg2.ignore = ["plugins/**"];
+    writeFileSync(cfgPath, YAML.stringify(cfg2));
+
+    // Full-catalog rediscovery reads ignore globs from `manifest.discovery_config` only;
+    // live `config.yml` ignore edits are ignored for enumeration unless the snapshot matches.
+    const manifestPath = join(tmp, ".zoto", "eval-system", "manifest.yml");
+    const mfDoc = YAML.parse(readFileSync(manifestPath, "utf-8")) as {
+      discovery_config?: Record<string, unknown>;
+    };
+    mfDoc.discovery_config = mfDoc.discovery_config ?? {};
+    mfDoc.discovery_config.ignore = ["plugins/**"];
+    writeFileSync(manifestPath, YAML.stringify(mfDoc));
+
+    const check = runUpdate({ repoRoot: tmp, mode: "check" });
+    expect(check.code).toBe(0);
+    expect(check.deltas.filter((d) => d.kind === "removed")).toHaveLength(0);
+  });
+
+  // Test 23 — narrowed discoveryKinds on canonical manifest prune stale catalogue rows
+  it("23: manifest canonical discovery_targets filter stale non-kind targets from baseline", () => {
+    writeConfig();
+    const cfgPath = join(tmp, ".zoto", "eval-system", "config.yml");
+    const merged = YAML.parse(readFileSync(cfgPath, "utf-8")) as Record<string, unknown>;
+    merged.discoveryTargets = ["skill", "command"];
+    writeFileSync(cfgPath, YAML.stringify(merged));
+
+    writeSkill("zoto-foo", "Skill");
+    const cmdDir = join(tmp, ".cursor", "commands");
+    mkdirSync(cmdDir, { recursive: true });
+    writeFileSync(
+      join(cmdDir, "zoto-cursor-cmd.md"),
+      "---\nname: zoto-cursor-cmd\ndescription: Cursor workspace command\n---\nCmd.\n",
+    );
+
+    const hash = sha256(
+      normaliseContent(readFileSync(join(tmp, "skills", "zoto-foo", "SKILL.md"), "utf-8")),
+    );
+    writeGeneratedEvalsFile("zoto-foo", hash);
+
+    seedManifest(merged);
+
+    const manifestPath = join(tmp, ".zoto", "eval-system", "manifest.yml");
+    const mfDoc = YAML.parse(readFileSync(manifestPath, "utf-8")) as {
+      discovery_config?: { discoveryTargets?: string[] };
+    };
+    if (!mfDoc.discovery_config) mfDoc.discovery_config = {};
+    mfDoc.discovery_config.discoveryTargets = ["skill"];
+    writeFileSync(manifestPath, YAML.stringify(mfDoc));
+
+    const check = runUpdate({ repoRoot: tmp, mode: "check" });
+    expect(check.code).toBe(0);
+  });
+
+  // Test 24 — tooling-only manifest eval_paths do not escalate removal drift
+  it("24: removed target entries with only stale catalogue eval_paths are non-critical", () => {
+    const cfg = writeConfig();
+    writeSkill("zoto-only", "Solo");
+    const hash = sha256(
+      normaliseContent(readFileSync(join(tmp, "skills", "zoto-only", "SKILL.md"), "utf-8")),
+    );
+    writeGeneratedEvalsFile("zoto-only", hash);
+    seedManifest(cfg);
+
+    const manifestPath = join(tmp, ".zoto", "eval-system", "manifest.yml");
+    const mfDoc = YAML.parse(readFileSync(manifestPath, "utf-8")) as {
+      targets?: Array<{ id?: string }>;
+    };
+    mfDoc.targets = mfDoc.targets ?? [];
+    mfDoc.targets.push({
+      id: "command:gone",
+      kind: "command",
+      path: ".cursor/commands/gone-tooling.md",
+      content_hash: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+      eval_files: ["evals/primitives/stale-eval.eval.json"],
+    });
+    writeFileSync(manifestPath, YAML.stringify(mfDoc));
+
+    const out = computeDeltas(
+      YAML.parse(readFileSync(manifestPath, "utf-8")) as Record<string, unknown>,
+      discover(tmp, YAML.parse(readFileSync(join(tmp, ".zoto/eval-system/config.yml"), "utf-8")) as Record<
+        string,
+        unknown
+      >),
+      cfg as Record<string, unknown>,
+      tmp,
+    );
+    const removed = out.find((d) => d.target_id === "command:gone");
+    expect(removed?.kind).toBe("removed");
+    expect(removed?.critical).toBe(false);
+  });
+
+  // Test 25 — plugin eval JSON catalogue paths left by tooling without backing files
+  it("25: removed target with phantom plugin evals/*.json catalogue path is non-critical", () => {
+    const cfg = writeConfig();
+    writeSkill("zoto-only", "Solo");
+    const hash = sha256(
+      normaliseContent(readFileSync(join(tmp, "skills", "zoto-only", "SKILL.md"), "utf-8")),
+    );
+    writeGeneratedEvalsFile("zoto-only", hash);
+    seedManifest(cfg);
+
+    const manifestPath = join(tmp, ".zoto", "eval-system", "manifest.yml");
+    const mfDoc = YAML.parse(readFileSync(manifestPath, "utf-8")) as {
+      targets?: Array<{ id?: string }>;
+    };
+    mfDoc.targets = mfDoc.targets ?? [];
+    mfDoc.targets.push({
+      id: "command:plug-stale",
+      kind: "command",
+      path: "plugins/plug-stale/commands/zoto-cmd.md",
+      content_hash: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+      eval_files: ["plugins/plug-stale/evals/commands/zoto-cmd.json"],
+    });
+    writeFileSync(manifestPath, YAML.stringify(mfDoc));
+
+    const out = computeDeltas(
+      YAML.parse(readFileSync(manifestPath, "utf-8")) as Record<string, unknown>,
+      discover(tmp, YAML.parse(readFileSync(join(tmp, ".zoto/eval-system/config.yml"), "utf-8")) as Record<
+        string,
+        unknown
+      >),
+      cfg as Record<string, unknown>,
+      tmp,
+    );
+    const removed = out.find((d) => d.target_id === "command:plug-stale");
+    expect(removed?.kind).toBe("removed");
+    expect(removed?.critical).toBe(false);
   });
 
   // Test 20 — refuses to mutate non-_meta cases (compile-time literal + runtime throw)

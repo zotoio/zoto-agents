@@ -14,18 +14,71 @@
  */
 import {
   appendFileSync,
+  closeSync,
   existsSync,
   mkdirSync,
+  openSync,
   readFileSync,
+  readSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
-import { execSync } from "node:child_process";
+import { execSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { dirname, join, relative, resolve } from "node:path";
 
+import { minimatch } from "minimatch";
 import { discover, manifestFor } from "./eval-discover.js";
 import { loadEvalConfig } from "../src/config-loader.js";
+import {
+  filterTargetsByDiscoveryIgnores,
+  filterTargetsByDiscoveryKinds,
+  toolingPhantomEvalCataloguePath,
+} from "../engine/discovery-filters.js";
+import { readManifestSnapshot } from "../engine/manifest-snapshot.js";
 import YAML from "yaml";
+
+const TARGET_GLOB_OPTS = { dot: true } as const;
+
+function loadIgnorePatterns(config: Record<string, unknown>): string[] {
+  const raw = config.ignore;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+}
+
+function isPlainObject(x: unknown): x is Record<string, unknown> {
+  return typeof x === "object" && x !== null && !Array.isArray(x);
+}
+
+/**
+ * Full-catalog modes pin discovery ignores to `manifest.discovery_config` — never the
+ * live `config.yml` — matching enumeration.
+ */
+function discoveryIgnoreForUpdate(
+  manifest: Record<string, unknown>,
+  liveConfig: Record<string, unknown>,
+  fullCatalog: boolean,
+): string[] {
+  if (fullCatalog) {
+    const dc = manifest.discovery_config;
+    return isPlainObject(dc) ? loadIgnorePatterns(dc) : [];
+  }
+  return loadIgnorePatterns(liveConfig);
+}
+
+/** Minimatch against `target.path` (POSIX) or `target.id`, as documented for `/z-eval-update --target`. */
+export function targetMatchesUpdateGlob(
+  pattern: string,
+  targetPath: string,
+  targetId: string,
+): boolean {
+  if (!pattern) return false;
+  const posixPath = targetPath.replace(/\\/g, "/");
+  return (
+    minimatch(posixPath, pattern, TARGET_GLOB_OPTS) ||
+    minimatch(targetId, pattern, TARGET_GLOB_OPTS)
+  );
+}
 
 export type Mode =
   | "rediscovery-dry"
@@ -140,6 +193,7 @@ export function computeDeltas(
   manifest: Record<string, unknown>,
   current: Array<Record<string, unknown>>,
   config: Record<string, unknown>,
+  repoRoot: string = process.cwd(),
 ): Delta[] {
   const oldTs = ((manifest.targets as Array<Record<string, unknown>>) ?? []).reduce<
     Record<string, Record<string, unknown>>
@@ -168,12 +222,11 @@ export function computeDeltas(
       );
     } else if (oldT && !newT) {
       const evalFiles = (oldT.eval_files as string[]) ?? [];
-      // We trust the manifest's record of coverage: if the manifest said this
-      // target had evals at the last snapshot, removing the target is always a
-      // critical change — the user should confirm whether the cases were
-      // intentionally orphaned or whether the delete was wrong.
-      const coveredByGenerated =
-        evalFiles.length > 0 || evalFiles.some((f) => evalFileHasGenerated(f));
+      /* Only tooling-generated rows count — manifest paths alone (often stale `.eval.json`
+       * catalogue leftovers) must not escalate removal drift. */
+      const coveredByGenerated = evalFiles.some((f) =>
+        evalFileImpliesRemovalIsGeneratedBacked(repoRoot, f),
+      );
       deltas.push(
         classifyDelta(
           config,
@@ -208,9 +261,90 @@ export function computeDeltas(
   return deltas;
 }
 
-function evalFileHasGenerated(path: string): boolean {
-  const abs = resolve(process.cwd(), path);
-  if (!existsSync(abs)) return false;
+interface ParityCheckResult {
+  status: "ok" | "drift" | "error";
+  summary?: string;
+  detail?: unknown;
+}
+
+const ANALYSER_PARITY_SCRIPT_REL = join("scripts", "check-analyser-payload-parity.ts");
+
+function parityHarnessPresent(repoRoot: string): boolean {
+  return existsSync(join(repoRoot, ANALYSER_PARITY_SCRIPT_REL));
+}
+
+/**
+ * When true, `/z-eval-update --check` must not skip the parity gate for a missing
+ * harness — CI often forgets setting `CI=true`; common CI vars and an explicit opt-in
+ * tighten that without invoking `pnpm` in ephemeral unit-test repos (no parity script present).
+ */
+function analyserParityGateRequired(): boolean {
+  return (
+    process.env.ZOTO_EVAL_CHECK_STRICT_ANALYSER_PARITY === "1" ||
+    process.env.CI === "true" ||
+    process.env.CONTINUOUS_INTEGRATION === "true" ||
+    process.env.GITHUB_ACTIONS === "true" ||
+    process.env.GITLAB_CI === "true" ||
+    process.env.BUILDKITE === "true"
+  );
+}
+
+function runParityCheck(repoRoot: string): ParityCheckResult {
+  if (!parityHarnessPresent(repoRoot)) {
+    if (analyserParityGateRequired()) {
+      return {
+        status: "error",
+        summary:
+          "scripts/check-analyser-payload-parity.ts missing — required for `/z-eval-update --check` when CI/CD is detected or ZOTO_EVAL_CHECK_STRICT_ANALYSER_PARITY=1",
+      };
+    }
+    return { status: "ok", summary: "skipped-no-parity-harness" };
+  }
+  try {
+    // Fully non-interactive: never attach stdin for CI gate; disallow p/npm prompts.
+    const r = spawnSync(
+      "pnpm",
+      ["exec", "tsx", ANALYSER_PARITY_SCRIPT_REL],
+      {
+        cwd: repoRoot,
+        encoding: "utf-8",
+        stdio: ["ignore", "pipe", "pipe"],
+        env: {
+          ...process.env,
+          PNPM_NONINTERACTIVE: "1",
+          npm_config_yes: "true",
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+        },
+      },
+    );
+    const out = (r.stdout ?? "").trim();
+    const err = (r.stderr ?? "").trim();
+    if (r.status === 0) {
+      try {
+        return { status: "ok", detail: JSON.parse(out) };
+      } catch {
+        return { status: "ok", summary: out };
+      }
+    }
+    const summary = [out, err].filter((s) => s.length > 0).join("\n");
+    return {
+      status: r.status === null ? "error" : "drift",
+      summary: summary.length > 0 ? summary : `parity subprocess exited ${r.signal ?? r.status}`,
+      detail: err,
+    };
+  } catch (e) {
+    return { status: "error", summary: (e as Error).message };
+  }
+}
+
+function evalFileImpliesRemovalIsGeneratedBacked(
+  repoRoot: string,
+  pathRel: string,
+): boolean {
+  const abs = resolve(repoRoot, pathRel);
+  if (!existsSync(abs)) {
+    return !toolingPhantomEvalCataloguePath(pathRel);
+  }
   try {
     const f = JSON.parse(readFileSync(abs, "utf-8")) as EvalFile;
     return casesOf(f).some((c) => c._meta?.generated === true);
@@ -221,25 +355,37 @@ function evalFileHasGenerated(path: string): boolean {
 
 function loadYaml(path: string): Record<string, unknown> | null {
   if (!existsSync(path)) return null;
-  const yaml = require("yaml") as typeof import("yaml");
-  return yaml.parse(readFileSync(path, "utf-8")) as Record<string, unknown>;
+  return YAML.parse(readFileSync(path, "utf-8")) as Record<string, unknown>;
 }
 
 function writeYaml(path: string, doc: Record<string, unknown>): void {
-  const yaml = require("yaml") as typeof import("yaml");
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, yaml.stringify(doc), "utf-8");
+  writeFileSync(path, YAML.stringify(doc), "utf-8");
 }
 
+/** Append-only multi-doc YAML: extend at EOF only — never rewrite earlier documents. */
 function appendHistory(path: string, doc: Record<string, unknown>): void {
-  const yaml = require("yaml") as typeof import("yaml");
+  const yamlBody = YAML.stringify(doc);
   mkdirSync(dirname(path), { recursive: true });
-  const chunk = "---\n" + yaml.stringify(doc);
   if (!existsSync(path)) {
-    writeFileSync(path, chunk, "utf-8");
-  } else {
-    appendFileSync(path, chunk, "utf-8");
+    appendFileSync(path, `---\n${yamlBody}`, "utf-8");
+    return;
   }
+  const st = statSync(path);
+  let sep: string;
+  if (st.size === 0) {
+    sep = "---\n";
+  } else {
+    const fd = openSync(path, "r");
+    try {
+      const buf = Buffer.alloc(1);
+      readSync(fd, buf, 0, 1, st.size - 1);
+      sep = buf[0] === 0x0a ? "---\n" : "\n---\n";
+    } finally {
+      closeSync(fd);
+    }
+  }
+  appendFileSync(path, `${sep}${yamlBody}`, "utf-8");
 }
 
 export interface RunOptions {
@@ -248,41 +394,131 @@ export interface RunOptions {
   targetedFile?: string;
 }
 
+function resolveCheckExitCodeOnDrift(repoRoot: string): number {
+  try {
+    const { config: typedConfig } = loadEvalConfig(repoRoot);
+    const config = typedConfig as unknown as Record<string, unknown>;
+    return Number(
+      (config.update as Record<string, unknown> | undefined)?.checkExitCodeOnCriticalDrift ?? 2,
+    );
+  } catch {
+    return 2;
+  }
+}
+
 export function runUpdate(opts: RunOptions): {
   code: number;
   deltas: Delta[];
   summary: Record<string, unknown>;
 } {
-  const { config: typedConfig, path: configPath } = loadEvalConfig(opts.repoRoot);
-  const config = typedConfig as unknown as Record<string, unknown>;
-  const manifestPath = join(opts.repoRoot, ".zoto", "eval-system", "manifest.yml");
-  const historyPath = join(opts.repoRoot, ".zoto", "eval-system", "manifest.history.yml");
-  const manifest = loadYaml(manifestPath);
-  if (!manifest) {
-    throw new Error("missing .zoto/eval-system/manifest.yml — run /z-eval-create first");
+  /**
+   * Parity gate runs before config validation, manifest load, and drift so a broken
+   * `config.yml` never hides analyser payload parity failures in `--check`.
+   */
+  if (opts.mode === "check") {
+    const checkParity = runParityCheck(opts.repoRoot);
+    if (checkParity.status !== "ok") {
+      return {
+        code: resolveCheckExitCodeOnDrift(opts.repoRoot),
+        deltas: [],
+        summary: {
+          status: "parity",
+          checked: 0,
+          critical_count: 0,
+          parity_drift: checkParity,
+        },
+      };
+    }
   }
 
-  const discoveryConfig = (manifest.discovery_config ?? config) as Record<string, unknown>;
-  const current = discover(opts.repoRoot, discoveryConfig);
-  let deltas = computeDeltas(manifest, current, config);
+  const { config: typedConfig } = loadEvalConfig(opts.repoRoot);
+  const config = typedConfig as unknown as Record<string, unknown>;
+  const manifestPath = join(opts.repoRoot, typedConfig.update.manifestPath);
+  const historyPath = join(opts.repoRoot, typedConfig.update.historyPath);
+  const exitCodeOnDrift = Number(
+    (config.update as Record<string, unknown> | undefined)?.checkExitCodeOnCriticalDrift ?? 2,
+  );
+
+  const manifest = loadYaml(manifestPath);
+  if (!manifest) {
+    if (opts.mode === "check") {
+      return {
+        code: exitCodeOnDrift,
+        deltas: [],
+        summary: {
+          status: "no-manifest",
+          checked: 0,
+          critical_count: 0,
+          parity_drift: null,
+        },
+      };
+    }
+    throw new Error(
+      `missing ${typedConfig.update.manifestPath} — run /z-eval-create first`,
+    );
+  }
+
+  const isTargetedScope =
+    opts.mode === "targeted-dry" || opts.mode === "targeted-apply";
+  const fullCatalog = !isTargetedScope;
+
+  if (fullCatalog) {
+    const dc = manifest.discovery_config;
+    if (!isPlainObject(dc)) {
+      const payload = {
+        status: "missing_manifest_discovery_config",
+        checked: 0,
+        critical_count: 0,
+        parity_drift: null,
+        note: "Full rediscovery uses manifest.discovery_config only; live eval config is not merged for enumeration.",
+      };
+      if (opts.mode === "check") {
+        return { code: exitCodeOnDrift, deltas: [], summary: payload };
+      }
+      throw new Error(JSON.stringify(payload));
+    }
+  }
+
+  const discoveryForEnumerate = (
+    fullCatalog
+      ? (manifest.discovery_config as Record<string, unknown>)
+      : (config as Record<string, unknown>)
+  ) as Record<string, unknown>;
+
+  const canon = readManifestSnapshot(opts.repoRoot);
+  const ignorePatterns = discoveryIgnoreForUpdate(manifest, config, fullCatalog);
+
+  let manifestBaseline = ((manifest.targets as Array<Record<string, unknown>>) ?? []).slice();
+  manifestBaseline = filterTargetsByDiscoveryIgnores(manifestBaseline, ignorePatterns);
+  manifestBaseline = filterTargetsByDiscoveryKinds(
+    manifestBaseline,
+    canon.discoveryTargets,
+  );
+
+  const manifestForDelta = { ...manifest, targets: manifestBaseline };
+  const current = filterTargetsByDiscoveryIgnores(
+    discover(opts.repoRoot, discoveryForEnumerate),
+    ignorePatterns,
+  );
+  let deltas = computeDeltas(manifestForDelta, current, config, opts.repoRoot);
 
   if (opts.mode === "targeted-dry" || opts.mode === "targeted-apply") {
     const glob = opts.targetedFile ?? "";
-    deltas = deltas.filter((d) => d.path.includes(glob));
+    deltas = deltas.filter((d) => targetMatchesUpdateGlob(glob, d.path, d.target_id));
   }
 
   const critical = deltas.filter((d) => d.critical);
 
   if (opts.mode === "check") {
-    const exitCode = Number(
-      (config.update as Record<string, unknown> | undefined)?.checkExitCodeOnCriticalDrift ?? 2,
-    );
+    const driftBad = critical.length > 0;
     const summary = {
-      status: critical.length === 0 ? "clean" : "critical",
+      status: driftBad ? "drift" : "clean",
       checked: current.length,
       critical_count: critical.length,
+      parity_drift: null,
     };
-    return { code: critical.length === 0 ? 0 : exitCode, deltas, summary };
+    const code = driftBad ? exitCodeOnDrift : 0;
+    return { code, deltas, summary };
   }
 
   if (opts.mode === "rediscovery-dry" || opts.mode === "targeted-dry") {
@@ -321,13 +557,19 @@ function headSha(repoRoot: string): string {
 function parseArgs(argv: string[]): { mode: Mode; targetedFile?: string } {
   const apply = argv.includes("--apply");
   const check = argv.includes("--check");
-  const positional = argv.filter((a) => !a.startsWith("--"));
   if (check) return { mode: "check" };
-  if (positional.length > 0) {
-    return {
-      mode: apply ? "targeted-apply" : "targeted-dry",
-      targetedFile: positional[0],
-    };
+
+  const tgtIdx = argv.indexOf("--target");
+  let fromFlag: string | undefined;
+  if (tgtIdx !== -1 && tgtIdx + 1 < argv.length) {
+    const next = argv[tgtIdx + 1];
+    if (next && !next.startsWith("--")) fromFlag = next;
+  }
+  const positional = argv.filter((a) => !a.startsWith("--"));
+  const targetedFile = fromFlag ?? positional[0];
+
+  if (targetedFile !== undefined && targetedFile !== "") {
+    return { mode: apply ? "targeted-apply" : "targeted-dry", targetedFile };
   }
   return { mode: apply ? "rediscovery-apply" : "rediscovery-dry" };
 }
@@ -337,6 +579,9 @@ if (process.argv[1] && process.argv[1].endsWith("eval-update.ts")) {
     const args = parseArgs(process.argv.slice(2));
     const out = runUpdate({ repoRoot: process.cwd(), ...args });
     console.log(JSON.stringify(out.summary));
+    if (out.summary.parity_drift != null) {
+      console.error(JSON.stringify(out.summary.parity_drift));
+    }
     for (const d of out.deltas) {
       if (d.critical) console.error(JSON.stringify(d));
     }

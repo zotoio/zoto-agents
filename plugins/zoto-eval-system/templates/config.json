@@ -39,6 +39,7 @@
     "manifestPath": ".zoto/eval-system/manifest.yml",
     "historyPath": ".zoto/eval-system/manifest.history.yml",
     "rediscoverWithSameDefaults": true,
-    "checkExitCodeOnCriticalDrift": 2
+    "checkExitCodeOnCriticalDrift": 2,
+    "failOnNoAnalyserInCI": false
   }
 }

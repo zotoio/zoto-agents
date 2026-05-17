@@ -3,272 +3,189 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "We never touched eval wiring here yet—scan the repo using the eval-system discovery command and print the manifest-shaped YAML to stdout so I can sanity-check skillsRoots and discoveryTargets without editing files.",
+      "prompt": "CI needs a manifest snapshot before we stamp anything: run `pnpm run eval:discover` and summarize how many primitive targets were discovered from the configured `skillsRoots` and `discoveryTargets`, then rerun it with the documented trailing `-- --resolve` form against `plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md` so we can confirm the resolved target id matches this skill.",
       "assertions": [
-        "the assistant instructs `pnpm run eval:discover` (not a direct `tsx` path to a script under plugins/)",
-        "the assistant describes stdout as YAML matching the manifest shape emitted by discovery",
-        "the assistant ties success to exit code 0 and mentions skillsRoots, discoveryTargets, evalsDir, or ignore only as documented config inputs rather than inventing new flags"
+        "After `pnpm run eval:discover`, stdout emits manifest-shaped YAML derived from configured `skillsRoots`, `discoveryTargets`, `evalsDir`, and `ignore` without requiring a manual `--config` flag because `loadEvalConfig` handles configuration.",
+        "After `pnpm run eval:discover -- --resolve plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md`, stdout associates that file with `skill:zoto-eval-tooling` when it is present in the workspace.",
+        "When required configuration is missing or unreadable, `pnpm run eval:discover` exits with status 1 rather than returning a success exit code with empty output."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
+        "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+        "last_updated": "2026-05-16T13:28:58.369Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
+          "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+          "analysed_at": "2026-05-16T13:28:58.369Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
+          "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
       },
-      "expected_output": "The assistant proposes running the discover alias and summarizes that stdout should be YAML in manifest shape reflecting configured roots and targets."
+      "expected_output": "The assistant runs discover twice, interprets the YAML-shaped stdout for the full walk, reports the resolved target id for the tooling skill file, and calls out exit status 1 when configuration is missing instead of masking failure."
     },
     {
       "id": 2,
-      "prompt": "Resolve `workspace/plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md` through discovery only—I want the matching target id lines, nothing else.",
+      "prompt": "We edited `plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md`; follow the documented two-step flow—`pnpm run eval:analyse -- skill:zoto-eval-tooling` (add `--pretty` only if you need readable logs) and then `pnpm run eval:stamp -- skill:zoto-eval-tooling`—and report the exact stdout path stamp prints plus where the analyser cache landed.",
       "assertions": [
-        "the assistant uses `pnpm run eval:discover -- --resolve workspace/plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md` or equivalent with args after `--`",
-        "the assistant states discovery reads eval-system config fields including skillsRoots, discoveryTargets, evalsDir, and ignore",
-        "the assistant does not tell the operator to pass a custom `--config` path because loading is automatic"
+        "The instructions route script arguments through `pnpm run eval:analyse -- skill:zoto-eval-tooling` so flags and targets are not consumed by pnpm itself.",
+        "Successful analyser runs emit JSON suitable for validation against `plugins/zoto-eval-system/templates/schema/analyser-payload.schema.json` and persist entries under `.zoto/eval-system/cache/analyser/` as documented.",
+        "Exit status 1 from `pnpm run eval:analyse` indicates a hard failure, exit status 2 signals budget exhaustion per the command table, and configuration reads honor `llm.model.id`, `analyser.concurrency`, `analyser.maxCallsPerInvocation`, and `ignore`.",
+        "After a successful cache hit, `pnpm run eval:stamp -- skill:zoto-eval-tooling` rewrites `plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json` and prints that destination path on stdout because the tooling skill is allowlisted via `CENTRAL_STAMP_SKILL_ALLOWLIST`.",
+        "For any other `skill:*` id, `pnpm run eval:stamp` must refuse with exit status 2 and direct maintainers to `templates/skill-evals/evals.json.tmpl` instead of attempting a merge.",
+        "Stamping consults `static.framework`, `llm.strategy`, `llm.codeFramework`, and `evalsDir` when selecting emitted backends, matching the configuration fields called out in the stamp command table."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
+        "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+        "last_updated": "2026-05-16T13:28:58.369Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
+          "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+          "analysed_at": "2026-05-16T13:28:58.369Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
+          "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
       },
-      "expected_output": "The assistant gives a one-shot shell line that forwards `--resolve` after the script delimiter and explains YAML stdout listing resolved target ids."
+      "expected_output": "The assistant sequences analyse then stamp using pnpm aliases with arguments after `--`, names the analyser cache directory, confirms JSON validity expectations, and explains why arbitrary `skill:*` targets cannot use stamp without the allowlist exception."
     },
     {
       "id": 3,
-      "prompt": "Kick off primitive analysis for `command:zoto-eval-help` and stream the JSON payload; I need it schema-clean for the stamper.",
+      "prompt": "Before we change `static.framework`, run `pnpm run eval:cleanup-stale` in its default dry-run mode and walk me through what hits stdout versus stderr, including how the engine validates the document against the cleanup-plan schema path referenced in the skill.",
       "assertions": [
-        "the assistant invokes `pnpm run eval:analyse -- command:zoto-eval-help` or adds `--pretty` or `--dry-run` without contradicting the skill",
-        "the assistant notes JSON on stdout must validate against `plugins/zoto-eval-system/templates/schema/analyser-payload.schema.json`",
-        "the assistant mentions analyser cache material under `.zoto/eval-system/cache/analyser/`",
-        "the assistant references relevant config knobs such as `llm.model.id`, analyser concurrency, analyser max calls per invocation, or ignore lists",
-        "the assistant distinguishes exit code 1 for analyser errors from exit code 2 when the per-invocation analyser call budget is exhausted",
-        "the assistant notes optional `--target` glob filtering when discussing batched primitive analysis"
+        "Default `pnpm run eval:cleanup-stale` behaves like `-- --dry-run`, printing the entire validated `cleanup_plan` JSON on stdout rather than the abbreviated apply summary.",
+        "The emitted plan is checked against `plugins/zoto-eval-system/templates/schema/cleanup-plan.schema.json` before it is printed, matching the documented contract shared with `/z-eval-configure`.",
+        "Unless tests suppress lockfiles with `--no-lockfile`, stderr includes authenticated cleanup session metadata such as `runId`, `plan_hash`, and TTL when a lockfile is written under `evals/_runs/`.",
+        "If internal validation ever fails, the command surfaces exit status 3 for AJV or engine drift, distinct from argument misuse exit status 1.",
+        "The cleanup computation consults `static.framework`, `llm.strategy`, `llm.codeFramework`, and `ignore` (including removed-target groups) when deciding stale fingerprints."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
+        "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+        "last_updated": "2026-05-16T13:28:58.369Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
+          "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+          "analysed_at": "2026-05-16T13:28:58.369Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
+          "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
       },
-      "expected_output": "The assistant cites `pnpm run eval:analyse`, stdout JSON per target, cache location under the eval-system cache directory, and validation against the analyser schema path from templates."
-    }
-  ,
+      "expected_output": "The assistant runs the default dry-run (or explicit `-- --dry-run`), shows the full `cleanup_plan` JSON on stdout, cites the schema file path, and explains authenticated cleanup session lines on stderr when lockfiles are enabled."
+    },
     {
       "id": 4,
-      "prompt": "Generate stamped tests from the latest analyser payload for `command:zoto-eval-help`; write real files under the configured evals directory.",
+      "prompt": "We want `pnpm run eval:cleanup-stale -- --check` as a pre-merge drift gate: explain how stdout stays quiet, how stderr summarizes stale counts when drift exists, and which exit codes mean clean versus dirty trees.",
       "assertions": [
-        "the assistant uses `pnpm run eval:stamp -- command:zoto-eval-help` and optionally `--dry-run` or `--baseline-only` if the user asked",
-        "the assistant expects exit code 0 on success and exit code 1 when payloads or targets are invalid",
-        "the assistant explains files land under the configured evals directory rather than beside arbitrary scripts"
+        "`pnpm run eval:cleanup-stale -- --check` never prints the full cleanup plan JSON on stdout; it relies on exit codes plus stderr messaging.",
+        "Exit status 0 from `--check` means `cleanup_plan.totals.files === 0`, while exit status 2 means `cleanup_plan.totals.files > 0`, signalling drift that must be reconciled before merge.",
+        "Supplying `--check` together with `--dry-run` or `--apply` violates the mutually exclusive flag rules and ends with exit status 1."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
+        "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+        "last_updated": "2026-05-16T13:28:58.370Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
+          "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+          "analysed_at": "2026-05-16T13:28:58.370Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
+          "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
       },
-      "expected_output": "The assistant instructs `pnpm run eval:stamp` with the target id, notes stdout lists written paths, and ties framework choices to static.framework, llm.strategy, llm.codeFramework, and evalsDir."
+      "expected_output": "The assistant describes the CI-oriented mode, maps exit 0 to zero stale files and exit 2 to nonzero stale totals, and warns that mixing `--check` with `--dry-run` or `--apply` is illegal."
     },
     {
       "id": 5,
-      "prompt": "Stamp automated tests straight from the analyser output for `skill:zoto-eval-tooling` itself.",
+      "prompt": "Dry-run stderr already emitted `runId` and `plan_hash`; outline how `pnpm run eval:cleanup-stale -- --apply` enforces TTL, hash equality, and session tokens unless `--force` is explicitly used for a migration-only escape hatch.",
       "assertions": [
-        "the assistant states `pnpm run eval:stamp` refuses `skill:*` targets",
-        "the assistant points operators to `plugins/zoto-eval-system/templates/skill-evals/evals.json.tmpl` for skill coverage",
-        "the assistant still keeps prior analyser JSON workflow intact for non-skill primitives"
+        "Unless `--force` accompanies `--apply`, at least one of `--session <runId>` or `--token <plan_hash>` from the prior dry-run lockfile is mandatory; omission yields exit status 1.",
+        "Successful guarded apply emits a concise JSON summary on stdout with applied counts rather than dumping the entire `cleanup_plan`.",
+        "Applying after the one-hour TTL or when the live hash diverges from the lockfile terminates with exit status 1 rather than silently mutating disk.",
+        "`--force` with `--apply` bypasses token validation but emits the documented warning reserved for migrations or trusted automation only."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
+        "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+        "last_updated": "2026-05-16T13:28:58.370Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
+          "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+          "analysed_at": "2026-05-16T13:28:58.370Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
+          "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
       },
-      "expected_output": "The assistant refuses `pnpm run eval:stamp` for the skill id and redirects maintenance to the repository skill-evals template JSON instead."
+      "expected_output": "The assistant explains that guarded apply demands `--session` or `--token`, contrasts stdout summaries with dry-run verbosity, enumerates expiration and hash mismatch failures, and positions `--force` as a loudly warned shortcut."
     },
     {
       "id": 6,
-      "prompt": "Show me what cleanup-stale would delete after our framework flip—dry plan only, JSON on stdout.",
+      "prompt": "Upstream agents and commands changed materially; orchestrate how we should use `pnpm run eval:update` with `--check` versus `--apply`, when `--target` globs trim scope, and what `--no-analyser` implies for trusted caches.",
       "assertions": [
-        "the assistant invokes `pnpm run eval:cleanup-stale` without prematurely applying deletions",
-        "the assistant cites stdout JSON against `plugins/zoto-eval-system/templates/schema/cleanup-plan.schema.json`",
-        "the assistant ties behaviour to static.framework, llm.strategy, and llm.codeFramework settings"
+        "Running `pnpm run eval:update -- --check` returns exit status 0 when drift is acceptable and exit status 2 when critical drift blocks safe merges.",
+        "Applying `pnpm run eval:update -- --apply` refreshes regenerated eval cases once operators confirm prompts and manifests should advance.",
+        "The flow honors `discoveryTargets`, `skillsRoots`, `ignore`, and the knobs under `update.*` spelled out for the updater command.",
+        "Documenting `--no-analyser` explains it skips freshly generated primitive payloads whenever cached analyser output is intentionally reused."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
+        "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+        "last_updated": "2026-05-16T13:28:58.370Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
+          "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+          "analysed_at": "2026-05-16T13:28:58.370Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
+          "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
       },
-      "expected_output": "The assistant runs `pnpm run eval:cleanup-stale` in default dry-run mode and describes JSON stdout validated against the cleanup-plan schema."
+      "expected_output": "The assistant contrasts read-only auditing with manifest-updating applies, cites glob targeting for large repos, clarifies analyser omission trade-offs, and references exit semantics for drift severity."
     },
     {
       "id": 7,
-      "prompt": "Run cleanup-stale in check mode right before CI merges—I need a failing exit if assets drift.",
+      "prompt": "Lay out how our nightly harness should invoke `pnpm run eval`/`pnpm run eval:full` to populate `{evalsDir}/_runs/<timestamp>/`, then prune historical folders using `pnpm run eval:gc` with `--dry-run` previews before committing to `--apply` plus `--retention` overrides.",
       "assertions": [
-        "the assistant forwards `--check` through `pnpm run eval:cleanup-stale -- --check`",
-        "the assistant explains exit code 2 means drift was detected in check mode",
-        "the assistant reminds that apply mode requires an explicit session identifier and token hash when deleting files"
+        "Full orchestration honours `pnpm run eval`/`pnpm run eval:full` switches including `--full`, `--llm-only`, and `--model <id>` while reading `evalsDir`, `static.framework`, `llm.strategy`, `llm.codeFramework`, `llm.model.id`, and `runs.retention`.",
+        "Successful orchestration writes outputs under `{evalsDir}/_runs/<timestamp>/`, including `static.yml`, `report.yml`, and optional `llm.yml`.",
+        "Garbage collection runs through `pnpm run eval:gc`, emits JSON plans on stdout, supports `--dry-run` versus destructive `--apply`, and accepts `--retention <N>` to override persisted retention defaults."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
+        "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+        "last_updated": "2026-05-16T13:28:58.370Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
+          "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+          "analysed_at": "2026-05-16T13:28:58.370Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
+          "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
       },
-      "expected_output": "The assistant uses the check flag pair documented for cleanup-stale and warns that exit code 2 signals drift while stdout stays JSON."
-    },
+      "expected_output": "The assistant names the artefacts inside each timestamped run folder, ties CLI flags such as `--full`, `--llm-only`, and `--model` to configured backends, and walks through retention JSON emitted by garbage collection commands."
+    }
+  ,
     {
       "id": 8,
-      "prompt": "Diff eval cases against the live primitives but skip another analyser spend—use update with `--no-analyser` and report drift only.",
+      "prompt": "A teammate prefers `pnpm exec tsx scripts/eval-update.ts ...` plus an explicit `--config` flag because they assume nothing loads automatically—intervene with zoto-eval-tooling guidance so workflows stay on aliases, migrate legacy `.zoto-eval-system/` trees transparently on first launch, gate failures on nonzero exits, and read structured stderr payloads when tooling surfaces them.",
       "assertions": [
-        "the assistant uses `pnpm run eval:update -- --no-analyser` plus `--check` or `--apply` consistent with the request",
-        "the assistant states exit code 2 on critical drift when running check-oriented flows",
-        "the assistant references update.* settings alongside discoveryTargets, skillsRoots, and ignore as documented",
-        "the assistant warns that `--apply` mutates the manifest only after the operator confirms acceptable drift"
+        "All guidance replaces ad-hoc `pnpm exec tsx` invocations targeting files under `scripts/` with equivalent `pnpm run eval:<command>` wrappers from `package.json`.",
+        "Every recipe that forwards flags to packaged scripts nests those flags after `--` so pnpm passes them verbatim to the spawned script.",
+        "The assistant emphasizes that centralized `loadEvalConfig` ingestion makes manual `--config` arguments unnecessary during supported workflows.",
+        "When obsolete `.zoto-eval-system/` content exists, the skill explains transparent first-run migration into `.zoto/eval-system/` rather than prescribing hand edits.",
+        "On non-zero exits, troubleshooting instructions prioritize stderr, including `{ \"error\": \"...\", \"code\": \"...\" }` JSON when present alongside exit status inspection."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
+        "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+        "last_updated": "2026-05-16T13:28:58.370Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
+          "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
+          "analysed_at": "2026-05-16T13:28:58.370Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
+          "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
       },
-      "expected_output": "The assistant chooses `pnpm run eval:update` with `--no-analyser`, describes stdout drift reporting, and notes manifest mutation happens only with `--apply`."
-    },
-    {
-      "id": 9,
-      "prompt": "Execute the full eval orchestrator so static and LLM backends both run—leave artifacts under the eval runs directory with timestamps.",
-      "assertions": [
-        "the assistant invokes `pnpm run eval:full` or `pnpm run eval` with `--full` rather than hand-running disparate scripts",
-        "the assistant states outputs land under the configured evals directory inside `_runs/` under a new ISO-like timestamp directory containing static.yml, llm.yml, and report.yml",
-        "the assistant mentions relevant knobs such as evalsDir, static.framework, llm.strategy, llm.codeFramework, llm.model.id, and runs.retention",
-        "the assistant references `--llm-only` or `--model` switches when the operator wants to constrain backends"
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
-        }
-      },
-      "expected_output": "The assistant schedules `pnpm run eval:full` or `pnpm run eval -- --full`, naming static.yml, llm.yml, and report.yml inside a timestamped folder beneath `_runs`."
-    },
-    {
-      "id": 10,
-      "prompt": "Preview which dated run folders exceed retention—JSON plan only, no deletes.",
-      "assertions": [
-        "the assistant uses `pnpm run eval:gc -- --dry-run` when previewing",
-        "the assistant describes stdout as a JSON plan listing directories past retention",
-        "the assistant notes exit code 0 on success and mentions optional `--apply` plus `--retention N` overrides"
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
-        }
-      },
-      "expected_output": "The assistant runs `pnpm run eval:gc` with dry-run semantics and ties pruning limits to runs.retention and evalsDir."
-    },
-    {
-      "id": 11,
-      "prompt": "This checkout still has `.zoto-eval-system/` sitting next to `.zoto/`—will the next eval command migrate automatically?",
-      "assertions": [
-        "the assistant references automatic migration of legacy `.zoto-eval-system/` content on first eval-system invocation",
-        "the assistant avoids instructing the user to pass `--config` solely because two directories exist"
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
-        }
-      },
-      "expected_output": "The assistant confirms first-run migration from `.zoto-eval-system/` happens transparently without manual config flags."
-    },
-    {
-      "id": 12,
-      "prompt": "Discovery blew up—rerun eval:discover after I renamed config and paste whatever structured error JSON lands on stderr.",
-      "assertions": [
-        "the assistant treats non-zero exit codes as hard failures",
-        "the assistant instructs parsing stderr for structured JSON errors when the CLI emits them",
-        "the assistant does not suggest bypassing failures by calling underlying TypeScript entrypoints directly"
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-        "last_updated": "2026-05-07T10:25:26.501Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
-          "analysed_at": "2026-05-07T10:25:26.501Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting."
-        }
-      },
-      "expected_output": "The assistant reruns `pnpm run eval:discover`, expects exit code 1 for missing config failures, and parses stderr for structured JSON errors when present."
+      "expected_output": "The assistant discourages bare `pnpm exec tsx scripts/...` entrypoints in favour of the documented aliases, nests forwarded flags after `--`, explains automatic configuration loading plus legacy directory migration, and points to stderr JSON objects after failures instead of interpreting silent success."
     }
   ]
 }

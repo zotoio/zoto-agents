@@ -1,6 +1,6 @@
 {
-  "command_name": "z-eval-configure",
-  "evals": [
+  "target_id": "command:z-eval-configure",
+  "cases": [
     {
       "id": 1,
       "prompt": "/z-eval-configure",
@@ -11,11 +11,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-        "last_updated": "2026-05-07T10:41:27.537Z",
+        "last_updated": "2026-05-16T13:28:58.444Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-          "analysed_at": "2026-05-07T10:41:27.537Z",
+          "analysed_at": "2026-05-16T13:28:58.444Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing `.zoto/eval-system/config.yml`, owns a fixed-order `askQuestion` preflight, snapshots manifest state, spawns `zoto-eval-configurer`, and only runs `pnpm run eval:cleanup-stale` after explicit cleanup-plan confirmation, with resume handling for `needs_user_input`.",
           "fixture_justifications": [
@@ -45,11 +45,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-        "last_updated": "2026-05-07T10:41:27.537Z",
+        "last_updated": "2026-05-16T13:28:58.444Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-          "analysed_at": "2026-05-07T10:41:27.537Z",
+          "analysed_at": "2026-05-16T13:28:58.444Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing `.zoto/eval-system/config.yml`, owns a fixed-order `askQuestion` preflight, snapshots manifest state, spawns `zoto-eval-configurer`, and only runs `pnpm run eval:cleanup-stale` after explicit cleanup-plan confirmation, with resume handling for `needs_user_input`."
         }
@@ -83,11 +83,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-        "last_updated": "2026-05-07T10:41:27.537Z",
+        "last_updated": "2026-05-16T13:28:58.444Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-          "analysed_at": "2026-05-07T10:41:27.537Z",
+          "analysed_at": "2026-05-16T13:28:58.444Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing `.zoto/eval-system/config.yml`, owns a fixed-order `askQuestion` preflight, snapshots manifest state, spawns `zoto-eval-configurer`, and only runs `pnpm run eval:cleanup-stale` after explicit cleanup-plan confirmation, with resume handling for `needs_user_input`."
         }
@@ -119,11 +119,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-        "last_updated": "2026-05-07T10:41:27.537Z",
+        "last_updated": "2026-05-16T13:28:58.444Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-          "analysed_at": "2026-05-07T10:41:27.537Z",
+          "analysed_at": "2026-05-16T13:28:58.444Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing `.zoto/eval-system/config.yml`, owns a fixed-order `askQuestion` preflight, snapshots manifest state, spawns `zoto-eval-configurer`, and only runs `pnpm run eval:cleanup-stale` after explicit cleanup-plan confirmation, with resume handling for `needs_user_input`."
         }
@@ -155,11 +155,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-        "last_updated": "2026-05-07T10:41:27.537Z",
+        "last_updated": "2026-05-16T13:28:58.444Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-          "analysed_at": "2026-05-07T10:41:27.537Z",
+          "analysed_at": "2026-05-16T13:28:58.444Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing `.zoto/eval-system/config.yml`, owns a fixed-order `askQuestion` preflight, snapshots manifest state, spawns `zoto-eval-configurer`, and only runs `pnpm run eval:cleanup-stale` after explicit cleanup-plan confirmation, with resume handling for `needs_user_input`."
         }
@@ -192,11 +192,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-        "last_updated": "2026-05-07T10:41:27.537Z",
+        "last_updated": "2026-05-16T13:28:58.444Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-          "analysed_at": "2026-05-07T10:41:27.537Z",
+          "analysed_at": "2026-05-16T13:28:58.444Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing `.zoto/eval-system/config.yml`, owns a fixed-order `askQuestion` preflight, snapshots manifest state, spawns `zoto-eval-configurer`, and only runs `pnpm run eval:cleanup-stale` after explicit cleanup-plan confirmation, with resume handling for `needs_user_input`."
         }
@@ -228,11 +228,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-        "last_updated": "2026-05-07T10:41:27.537Z",
+        "last_updated": "2026-05-16T13:28:58.444Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-          "analysed_at": "2026-05-07T10:41:27.537Z",
+          "analysed_at": "2026-05-16T13:28:58.444Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing `.zoto/eval-system/config.yml`, owns a fixed-order `askQuestion` preflight, snapshots manifest state, spawns `zoto-eval-configurer`, and only runs `pnpm run eval:cleanup-stale` after explicit cleanup-plan confirmation, with resume handling for `needs_user_input`."
         }
@@ -264,11 +264,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-        "last_updated": "2026-05-07T10:41:27.537Z",
+        "last_updated": "2026-05-16T13:28:58.444Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-          "analysed_at": "2026-05-07T10:41:27.537Z",
+          "analysed_at": "2026-05-16T13:28:58.444Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing `.zoto/eval-system/config.yml`, owns a fixed-order `askQuestion` preflight, snapshots manifest state, spawns `zoto-eval-configurer`, and only runs `pnpm run eval:cleanup-stale` after explicit cleanup-plan confirmation, with resume handling for `needs_user_input`."
         }
@@ -288,11 +288,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-        "last_updated": "2026-05-07T10:41:27.537Z",
+        "last_updated": "2026-05-16T13:28:58.444Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "289d8c097dacba12f18e720e94013fcbe524a9d3f93a2d8262c50a589eb6b7a4",
-          "analysed_at": "2026-05-07T10:41:27.537Z",
+          "analysed_at": "2026-05-16T13:28:58.444Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on an existing `.zoto/eval-system/config.yml`, owns a fixed-order `askQuestion` preflight, snapshots manifest state, spawns `zoto-eval-configurer`, and only runs `pnpm run eval:cleanup-stale` after explicit cleanup-plan confirmation, with resume handling for `needs_user_input`."
         }
@@ -302,5 +302,6 @@
         "Cancel the configure session immediately after the first prompt."
       ]
     }
-  ]
+  ],
+  "command_name": "z-eval-configure"
 }

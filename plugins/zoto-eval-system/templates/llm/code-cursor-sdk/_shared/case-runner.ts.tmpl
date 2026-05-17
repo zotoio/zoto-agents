@@ -264,7 +264,7 @@ export async function runAnalyserCaseInSandbox(
         });
       }
     } finally {
-      closeAgent(agent);
+      await closeAgent(agent);
     }
   } catch (e) {
     status = "errored";

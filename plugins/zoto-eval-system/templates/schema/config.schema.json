@@ -140,7 +140,12 @@
         "manifestPath": { "type": "string", "default": ".zoto/eval-system/manifest.yml" },
         "historyPath": { "type": "string", "default": ".zoto/eval-system/manifest.history.yml" },
         "rediscoverWithSameDefaults": { "type": "boolean", "default": true },
-        "checkExitCodeOnCriticalDrift": { "type": "integer", "default": 2, "minimum": 1, "maximum": 255 }
+        "checkExitCodeOnCriticalDrift": { "type": "integer", "default": 2, "minimum": 1, "maximum": 255 },
+        "failOnNoAnalyserInCI": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, `CI=true` plus cached primitive analysis (explicit `--no-analyser` or CI default omitting `--with-analyser`) aborts the updater with exit code 5 immediately after emitting the stderr CI warning. Use to forbid cache-only analyser runs in CI."
+        }
       }
     }
   }

@@ -15,16 +15,21 @@
  */
 import {
   appendFileSync,
+  closeSync,
   existsSync,
   mkdirSync,
+  openSync,
   readFileSync,
+  readSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
-import { execSync } from "node:child_process";
+import { execSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { dirname, join, relative, resolve } from "node:path";
 
 import YAML from "yaml";
+import { minimatch } from "minimatch";
 
 import type { EvalCase, EvalFile } from "./case.js";
 import { casesOf, loadEvalFile } from "./case.js";
@@ -33,6 +38,9 @@ const REPO_ROOT = resolve(process.cwd());
 const CONFIG_PATH = join(REPO_ROOT, ".zoto", "eval-system", "config.yml");
 const MANIFEST_PATH = join(REPO_ROOT, ".zoto", "eval-system", "manifest.yml");
 const HISTORY_PATH = join(REPO_ROOT, ".zoto", "eval-system", "manifest.history.yml");
+
+/** Repo-root relative path consumed by `--check`; same contract as `/z-eval-update`. */
+const ANALYSER_PARITY_SCRIPT_REL = join("scripts", "check-analyser-payload-parity.ts");
 
 export type Mode = "rediscovery-dry" | "rediscovery-apply" | "targeted-dry" | "targeted-apply" | "check";
 
@@ -58,16 +66,32 @@ function parseArgs(argv: string[]): { mode: Mode; glob?: string } {
   const args = argv.slice();
   const apply = args.includes("--apply");
   const check = args.includes("--check");
-  const positional = args.filter((a) => !a.startsWith("--"));
 
   if (check) return { mode: "check" };
-  if (positional.length > 0) {
+
+  const tgtIdx = args.indexOf("--target");
+  let fromFlag: string | undefined;
+  if (tgtIdx !== -1 && tgtIdx + 1 < args.length) {
+    const next = args[tgtIdx + 1];
+    if (next && !next.startsWith("--")) fromFlag = next;
+  }
+  const positional = args.filter((a) => !a.startsWith("--"));
+  const globPattern = fromFlag ?? positional[0];
+
+  if (globPattern !== undefined && globPattern !== "") {
     return {
       mode: apply ? "targeted-apply" : "targeted-dry",
-      glob: positional[0],
+      glob: globPattern,
     };
   }
   return { mode: apply ? "rediscovery-apply" : "rediscovery-dry" };
+}
+
+function deltaMatchesGlob(pattern: string | undefined, d: Delta): boolean {
+  if (!pattern) return true;
+  const opts = { dot: true } as const;
+  const posixPath = d.path.replace(/\\/g, "/");
+  return minimatch(posixPath, pattern, opts) || minimatch(d.target_id, pattern, opts);
 }
 
 function sha256(s: string): string {
@@ -95,6 +119,10 @@ function loadConfig(): Record<string, unknown> {
   if (!existsSync(CONFIG_PATH)) return {};
   const parsed = YAML.parse(readFileSync(CONFIG_PATH, "utf-8"));
   return (parsed && typeof parsed === "object" && !Array.isArray(parsed)) ? parsed as Record<string, unknown> : {};
+}
+
+function isPlainObject(x: unknown): x is Record<string, unknown> {
+  return typeof x === "object" && x !== null && !Array.isArray(x);
 }
 
 interface TargetSnapshot {
@@ -153,6 +181,31 @@ function parseFrontmatter(raw: string): Record<string, unknown> {
     out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
   }
   return { frontmatter: out };
+}
+
+/** Append-only multi-doc YAML: extend at EOF only — never rewrite earlier documents. */
+function appendManifestHistorySnapshot(absPath: string, doc: Record<string, unknown>): void {
+  const yamlBody = YAML.stringify(doc);
+  mkdirSync(dirname(absPath), { recursive: true });
+  if (!existsSync(absPath)) {
+    appendFileSync(absPath, `---\n${yamlBody}`, "utf-8");
+    return;
+  }
+  const st = statSync(absPath);
+  let sep: string;
+  if (st.size === 0) {
+    sep = "---\n";
+  } else {
+    const fd = openSync(absPath, "r");
+    try {
+      const buf = Buffer.alloc(1);
+      readSync(fd, buf, 0, 1, st.size - 1);
+      sep = buf[0] === 0x0a ? "---\n" : "\n---\n";
+    } finally {
+      closeSync(fd);
+    }
+  }
+  appendFileSync(absPath, `${sep}${yamlBody}`, "utf-8");
 }
 
 function classify(
@@ -247,9 +300,15 @@ export function computeDeltas(
   return deltas;
 }
 
+function toolingPhantomEvalCataloguePath(repoRel: string): boolean {
+  return /\.eval\.json$/i.test(repoRel.replace(/\\/g, "/"));
+}
+
 function containsGenerated(evalFile: string): boolean {
   const abs = resolve(REPO_ROOT, evalFile);
-  if (!existsSync(abs)) return false;
+  if (!existsSync(abs)) {
+    return !toolingPhantomEvalCataloguePath(evalFile);
+  }
   try {
     const f = loadEvalFile(abs);
     return casesOf(f).some((c) => c._meta?.generated === true);
@@ -316,33 +375,164 @@ export function summarise(deltas: Delta[], flaggedUser: number): UpdateSummary {
   };
 }
 
+interface ParityCheckResult {
+  status: "ok" | "drift" | "error";
+  summary?: string;
+  detail?: unknown;
+}
+
+function parityHarnessPresent(repoRoot: string): boolean {
+  return existsSync(join(repoRoot, ANALYSER_PARITY_SCRIPT_REL));
+}
+
+function analyserParityGateRequired(): boolean {
+  return (
+    process.env.ZOTO_EVAL_CHECK_STRICT_ANALYSER_PARITY === "1" ||
+    process.env.CI === "true" ||
+    process.env.CONTINUOUS_INTEGRATION === "true" ||
+    process.env.GITHUB_ACTIONS === "true" ||
+    process.env.GITLAB_CI === "true" ||
+    process.env.BUILDKITE === "true"
+  );
+}
+
+/**
+ * Fully non-interactive gate: mirrored from `plugins/zoto-eval-system/engine/update.ts`
+ * so scaffolded repos using this template match CI parity semantics before drift.
+ */
+function runParityCheck(repoRoot: string): ParityCheckResult {
+  if (!parityHarnessPresent(repoRoot)) {
+    if (analyserParityGateRequired()) {
+      return {
+        status: "error",
+        summary:
+          "scripts/check-analyser-payload-parity.ts missing — required for `/z-eval-update --check` when CI/CD is detected or ZOTO_EVAL_CHECK_STRICT_ANALYSER_PARITY=1",
+      };
+    }
+    return { status: "ok", summary: "skipped-no-parity-harness" };
+  }
+  try {
+    const r = spawnSync("pnpm", ["exec", "tsx", ANALYSER_PARITY_SCRIPT_REL], {
+      cwd: repoRoot,
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "pipe"],
+      env: {
+        ...process.env,
+        PNPM_NONINTERACTIVE: "1",
+        npm_config_yes: "true",
+        COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+      },
+    });
+    const out = (r.stdout ?? "").trim();
+    const err = (r.stderr ?? "").trim();
+    if (r.status === 0) {
+      try {
+        return { status: "ok", detail: JSON.parse(out) };
+      } catch {
+        return { status: "ok", summary: out };
+      }
+    }
+    const summary = [out, err].filter((s) => s.length > 0).join("\n");
+    return {
+      status: r.status === null ? "error" : "drift",
+      summary:
+        summary.length > 0 ? summary : `parity subprocess exited ${r.signal ?? r.status}`,
+      detail: err,
+    };
+  } catch (e) {
+    return { status: "error", summary: (e as Error).message };
+  }
+}
+
 function main(): number {
   const { mode, glob } = parseArgs(process.argv.slice(2));
   const config = loadConfig();
+  const exitCodeOnCriticalDrift = Number(
+    (config.update as Record<string, unknown> | undefined)?.checkExitCodeOnCriticalDrift ?? 2,
+  );
+
+  if (mode === "check") {
+    const parity = runParityCheck(REPO_ROOT);
+    if (parity.status !== "ok") {
+      console.log(
+        JSON.stringify({
+          status: "parity",
+          checked: 0,
+          critical_count: 0,
+          parity_drift: parity,
+        }),
+      );
+      console.error(JSON.stringify(parity));
+      return exitCodeOnCriticalDrift;
+    }
+  }
+
   const manifest = loadManifest();
 
   if (!manifest) {
     if (mode === "check") {
-      console.log(JSON.stringify({ status: "no-manifest" }));
-      return 0;
+      console.log(
+        JSON.stringify({
+          status: "no-manifest",
+          checked: 0,
+          critical_count: 0,
+          parity_drift: null,
+        }),
+      );
+      return exitCodeOnCriticalDrift;
     }
     console.error("Run /z-eval-create first.");
     return 1;
   }
 
-  const discoveryConfig = manifest.discovery_config ?? config;
-  const current = discoverTargets(discoveryConfig as Record<string, unknown>);
+  const isTargetedScope = Boolean(glob);
+  const fullCatalog = !isTargetedScope;
+  let discoveryForEnumerate: Record<string, unknown>;
+  if (fullCatalog) {
+    const dc = manifest.discovery_config;
+    if (!isPlainObject(dc)) {
+      const payload = {
+        status: "missing_manifest_discovery_config",
+        checked: 0,
+        critical_count: 0,
+        parity_drift: null,
+        note:
+          "Full rediscovery uses manifest.discovery_config only; live eval config is not merged for enumeration.",
+      };
+      if (mode === "check") {
+        console.log(JSON.stringify(payload));
+        return exitCodeOnCriticalDrift;
+      }
+      console.error(JSON.stringify(payload));
+      return 1;
+    }
+    discoveryForEnumerate = dc;
+  } else {
+    discoveryForEnumerate = config as Record<string, unknown>;
+  }
+  const current = discoverTargets(discoveryForEnumerate);
   const deltas = computeDeltas(manifest, current, config);
-  const critical = deltas.filter((d) => d.critical);
+
+  let scopedDeltas = deltas;
+  if (glob && (mode === "targeted-dry" || mode === "targeted-apply")) {
+    scopedDeltas = deltas.filter((d) => deltaMatchesGlob(glob, d));
+  }
+
+  const critical = scopedDeltas.filter((d) => d.critical);
 
   if (mode === "check") {
     if (critical.length === 0) {
-      console.log(JSON.stringify({ status: "clean", checked: current.length }));
+      console.log(
+        JSON.stringify({
+          status: "clean",
+          checked: current.length,
+          critical_count: 0,
+          parity_drift: null,
+        }),
+      );
       return 0;
     }
-    const exitCode = Number(
-      (config.update as Record<string, unknown> | undefined)?.checkExitCodeOnCriticalDrift ?? 2,
-    );
+    const driftBlock = critical.map((d) => d);
     const countsByKind: Record<string, number> = {};
     for (const d of critical) {
       countsByKind[d.kind] = (countsByKind[d.kind] ?? 0) + 1;
@@ -350,16 +540,25 @@ function main(): number {
     const summaryLine = Object.entries(countsByKind)
       .map(([k, v]) => `${k}: ${v} (critical)`)
       .join(", ");
-    console.log(summaryLine);
+    if (summaryLine) console.log(summaryLine);
+    console.log(
+      JSON.stringify({
+        status: "drift",
+        checked: current.length,
+        critical_count: critical.length,
+        parity_drift: null,
+        deltas: driftBlock,
+      }),
+    );
     for (const d of critical) {
       console.error(JSON.stringify(d));
     }
-    return exitCode;
+    return exitCodeOnCriticalDrift;
   }
 
-  console.log(`${mode}: ${deltas.length} delta(s), ${critical.length} critical`);
+  console.log(`${mode}: ${scopedDeltas.length} delta(s), ${critical.length} critical`);
   if (mode === "rediscovery-dry" || mode === "targeted-dry") {
-    for (const d of deltas) {
+    for (const d of scopedDeltas) {
       console.log(`- ${d.kind} ${d.target_id} (${d.reason})`);
     }
     return 0;
@@ -380,15 +579,12 @@ function main(): number {
     targets: current,
   };
 
+  mkdirSync(dirname(MANIFEST_PATH), { recursive: true });
   writeFileSync(MANIFEST_PATH, YAML.stringify(snapshot), "utf-8");
-  appendFileSync(
-    HISTORY_PATH,
-    "---\n" + YAML.stringify(snapshot),
-    "utf-8",
-  );
+  appendManifestHistorySnapshot(HISTORY_PATH, snapshot);
 
   console.log(
-    `applied=${applied.length} added=${deltas.filter((d) => d.kind === "added").length} removed=${deltas.filter((d) => d.kind === "removed").length}`,
+    `applied=${applied.length} added=${scopedDeltas.filter((d) => d.kind === "added").length} removed=${scopedDeltas.filter((d) => d.kind === "removed").length}`,
   );
   return 0;
 }

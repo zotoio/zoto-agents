@@ -33,6 +33,10 @@ Breaking changes operators should expect:
 
 ```bash
 /z-eval-init        # one-time scaffold of .zoto/eval-system/config.yml (every key commented)
+/z-eval-start       # optional: jump into evaluator lifecycle — delegates to the same router as /z-eval-workflow
+/z-eval-jump        # optional: same delegation as /z-eval-start — explicit “jump” verb for runbooks
+/z-eval-operator    # optional: operator/runbook entry — same delegation as /z-eval-start
+/z-eval-workflow    # optional: canonical lifecycle router — picks the next slash command via askQuestion
 /z-eval-configure   # optional: command-owned askQuestion — overwrites .zoto/eval-system/config.yml interactively
 /z-eval-create      # scaffolds static + LLM backends, writes manifest.yml
 /z-eval-update      # dry-run; confirms nothing drifted after create
@@ -81,6 +85,34 @@ Each orchestrated run writes a timestamped folder `{evalsDir}/_runs/<ts>/` conta
 | `report.yml` | Merged rollup across both backends — primary input for `/z-eval-compare` and high-level CI summaries. |
 
 Per-case verbose logs remain at `{evalsDir}/_runs/<ts>/logs/<case>.log`.
+
+## Run retention and cleanup
+
+Run directories accumulate under `{evalsDir}/_runs/` and are **gitignored** — only the `.gitkeep` placeholder is tracked. The analyser cache at `.zoto/eval-system/cache/` is likewise gitignored.
+
+| Setting | Default | Where |
+|---------|---------|-------|
+| `runs.retention` | **30** (most recent directories) | `.zoto/eval-system/config.yml` → `runs.retention` |
+
+Override the default by uncommenting and editing the key in `.zoto/eval-system/config.yml`:
+
+```yaml
+runs:
+  retention: 50   # keep the 50 most recent run directories
+```
+
+The schema lives at `templates/schema/config.schema.json` → `runs.retention`.
+
+### Cleanup commands
+
+| Script | Effect |
+|--------|--------|
+| `pnpm run eval:gc` | **Dry-run** — lists run directories that would be pruned. |
+| `pnpm run eval:gc -- --apply` | **Apply** — deletes directories beyond the retention limit. |
+| `pnpm run eval:cleanup-stale` | **Dry-run** — reports stale eval artefacts from framework/strategy switches. |
+| `pnpm run eval:cleanup-stale -- --apply` | **Apply** — removes stale artefacts. |
+
+> **Tip:** Never manually delete run directories. Always use `pnpm run eval:gc -- --apply`, which respects the configured retention limit.
 
 ## Lifecycle walk-through
 
@@ -158,6 +190,78 @@ pnpm run eval:full         # CURSOR_API_KEY is now sourced from .env
 ```
 
 Never commit `.env`. The default repo `.gitignore` already excludes `.env*` while allowing `.env.example`.
+
+## LLM eval strategies (declarative + code)
+
+The eval system supports two mutually exclusive **LLM strategies**. The active strategy is set in `.zoto/eval-system/config.yml` under `llm.strategy`:
+
+```yaml
+llm:
+  strategy: code             # or "declarative"
+  codeFramework: vitest      # only relevant when strategy=code
+```
+
+### Side-by-side comparison
+
+| Aspect | `declarative` (JSON) | `code` (Vitest/Jest) |
+|--------|---------------------|---------------------|
+| **Case storage** | `evals.json` files under plugin `evals/` directories (e.g. `plugins/zoto-eval-system/evals/commands/*.json`) | Stamped `evals/llm/test_*.test.ts` files |
+| **Runner script** | `pnpm run eval:llm:declarative` | `pnpm run eval:llm:code` |
+| **Under the hood** | `tsx evals/_llm/runner.ts --full` | `vitest run --config evals/llm/vitest.config.ts` |
+| **Validation** | `validateEnriched()` rejects placeholder prompts and missing `_meta.primitive_analysis` | Relies on stamp-time quality (no runtime pre-gate) |
+| **Best for** | Low-branch deterministic checks; bulk primitive coverage | Multi-step prompts with `follow_ups`; complex sandbox setups; command evals needing inline test logic |
+| **Update path** | `pnpm run eval:update --apply` → `surgicallyReplaceGeneratedCases()` | `pnpm run eval:update --apply` → `stampLlmCodeStrategy()` re-stamps entire test file |
+| **User-authored safety** | Case-level: `_meta.generated === true` check before mutation | File-level: `// _meta.generated: true` first-line marker |
+
+### Artifact locations
+
+| Strategy | Eval artifacts | Shared helpers | Run output |
+|----------|---------------|----------------|------------|
+| `declarative` | `plugins/*/evals/**/*.json` | `evals/_llm/` (runner, case loader, graders, metrics, writer) | `evals/_runs/<ts>/llm.yml` |
+| `code` | `evals/llm/test_*.test.ts` | `evals/llm/_shared/` (sdk-bridge, sandbox-helpers, graders, reporter) | `evals/_runs/<ts>/llm.yml` |
+
+Both strategies write run output to `.zoto/eval-system/manifest.yml` for drift tracking and `evals/_runs/<ts>/report.yml` for cross-run comparison.
+
+### Switching strategies
+
+Strategies are mutually exclusive. Switching requires cleanup of the old strategy's artifacts:
+
+```bash
+pnpm run eval:cleanup-stale --apply   # removes artifacts from the previous strategy
+```
+
+Then update `llm.strategy` in `.zoto/eval-system/config.yml` (or run `/z-eval-configure`) and re-stamp.
+
+### Playbook: when to use each strategy
+
+**Use `code` (Vitest/SDK scenarios) when:**
+
+- Evaluating **commands** that require multi-step agent interactions with `follow_ups`
+- Testing requires a **sandbox setup** (pre-populating files, asserting post-condition diffs)
+- You need inline test logic — conditional grading, custom fixtures, or assertions beyond pattern matching
+- The eval benefits from Vitest's `describe`/`it` structure for grouping related scenarios
+
+**Use `declarative` (JSON tables) when:**
+
+- Covering **bulk skill/agent triggers** — one JSON file per primitive, many cases per file
+- Cases are deterministic pattern matches (e.g. "response contains X", "tool Y was called")
+- You want the enriched validation gate (`validateEnriched()`) to catch placeholder prompts early
+- CI needs fast pass/fail without full Vitest boot
+
+**Example spec prompts** (the kind a future analyser would receive for codegen):
+
+```
+# Command eval (→ code strategy)
+"Prompt the z-spec-create command with a feature request.
+ Assert: it calls askQuestion at least twice, produces a spec file,
+ and the spec contains a subtask list."
+
+# Skill trigger eval (→ declarative strategy)  
+"Send 'compare my last two eval runs' to the agent.
+ Assert: response references /z-eval-compare, mentions report.yml."
+```
+
+These illustrate the split: commands with multi-turn flows and file-system side-effects belong in `code`; phrase-matching and routing checks belong in `declarative`.
 
 ## Updating evals when code changes
 

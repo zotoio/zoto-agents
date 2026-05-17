@@ -5,7 +5,7 @@ description: Initialise the Eval System config at .zoto/eval-system/config.yml w
 
 # z-eval-init
 
-Scaffold a fresh `.zoto/eval-system/config.yml` for this repository. The generated file contains every supported key — **commented out** — alongside the value the plugin would otherwise apply internally. Uncomment any line(s) to override a default. This is the **first** command you run for the Eval System; everything else (configure, create, execute, judge, update, compare, help) requires this file to exist.
+Scaffold a fresh `.zoto/eval-system/config.yml` for this repository. The generated file contains every supported key — **commented out** — alongside the value the plugin would otherwise apply internally. Uncomment any line(s) to override a default. This is the **first** command you run for the Eval System; everything else (workflow router, configure, create, execute, judge, update, compare, advise, help) requires this file to exist.
 
 ## Usage
 
@@ -37,4 +37,4 @@ Scaffold a fresh `.zoto/eval-system/config.yml` for this repository. The generat
 - `plugins/zoto-eval-system/templates/init-config.yml` — the canonical template
 - `plugins/zoto-eval-system/templates/schema/config.schema.json` — JSON Schema used by the loader
 - `/z-eval-configure` — guided interactive configuration that overwrites the same file via the `zoto-configure-evals` skill
-- `/z-eval-create`, `/z-eval-execute`, `/z-eval-judge`, `/z-eval-update`, `/z-eval-compare`, `/z-eval-help` — these all require `.zoto/eval-system/config.yml` to exist
+- `/z-eval-start`, `/z-eval-jump`, `/z-eval-operator`, `/z-eval-workflow`, `/z-eval-create`, `/z-eval-execute`, `/z-eval-judge`, `/z-eval-update`, `/z-eval-compare`, `/z-eval-advise`, `/z-eval-help` — these all require `.zoto/eval-system/config.yml` to exist
