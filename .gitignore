@@ -38,6 +38,14 @@ temp/
 # Eval workspace outputs (generated during skill evaluation runs)
 plugins/*/skills/*/evals/workspace/
 
+# Eval run artefacts (regenerable via pnpm run eval:full / eval:gc)
+evals/_runs/
+!evals/_runs/.gitkeep
+
+# Eval analyser cache (regenerable)
+.zoto/eval-system/cache/
+!.zoto/eval-system/cache/.gitkeep
+
 # Cursor local install artifacts
 .cursor/plugins/
 
@@ -46,3 +54,5 @@ plugins/*/skills/*/evals/workspace/
 
 # Python virtual environment (skills-ref)
 .venv/
+
+.ruff_cache/
