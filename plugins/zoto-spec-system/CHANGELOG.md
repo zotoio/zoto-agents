@@ -4,7 +4,12 @@ All notable changes to the Spec System plugin will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Local Spec System installs now copy the runtime `scripts/` and `src/` directories so live-status CLIs referenced by the installed plugin are present.
+
 ### Changed
+- **`/z-spec-create`** — Enforces the `zoto-create-spec` requirement gate before `{specsDir}/` writes (host-led minimum clarifiers or generator `needs_user_input` + resume); mandates spawning **`zoto-spec-generator`** with a reasoning-class model ladder (Opus/thinking slugs).
+- **`zoto-spec-generator`** — Default model moved to **`claude-opus-4-7-thinking-xhigh`**; judge spawn aligned with skill (**after** user approval, not before).
 - Renamed slash commands from `/zoto-spec-*` to `/z-spec-*`. The old `/zoto-spec-*` names have been removed.
 
 ### Documentation

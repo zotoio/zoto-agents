@@ -50,7 +50,7 @@ You are a **reviewer**, not a co-author. Reviewers MUST NEVER interfere with sub
 
 **Status-pair writes use the helper, never raw edits.** Use `pnpm --filter @zoto-agents/zoto-spec-system run spec-status-roundtrip -- md-from-yml --in <path>.status.yml --out <path>.status.md` (or `tsx plugins/zoto-spec-system/scripts/spec-status-roundtrip.ts md-from-yml ...`) after merging your verdict into the yml. Use the `heartbeat` subcommand for checklist tick reconciliation; for the verdict block (`extra.judge`) merge into yml first, then re-render md.
 
-As an optional final consistency check on the spec directory, you **may** run `pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-aggregator.ts --validate-only --spec-dir <specDir> --repo-root <repoRoot>` to ensure every subtask `.status.yml` still validates against the schema and the aggregate view is coherent — this does **not** mutate subtask pairs.
+As an optional final consistency check on the spec directory, you **may** run `pnpm exec tsx plugins/zoto-spec-system/scripts/spec-aggregator.ts --validate-only --spec-dir <specDir> --repo-root <repoRoot>` to ensure every subtask `.status.yml` still validates against the schema and the aggregate view is coherent — this does **not** mutate subtask pairs.
 
 #### Workflow
 
@@ -88,7 +88,7 @@ As an optional final consistency check on the spec directory, you **may** run `p
    ```
 
    Then re-render `.status.md` via `spec-status-roundtrip md-from-yml`. Do NOT modify any file the fix_list points at — that is the assigned subagent's territory.
-7. **onStop consistency check (mandatory before returning)**: Before reporting your verdict, shell out to `pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --spec-dir <specDir> --repo-root <repoRoot>`. The script schema-validates the subtask `.status.yml`, reconciles md ↔ yml drift via the round-trip helper, and exits 2 if a critical inconsistency remains (`state: completed` with open items, `extra.judge.verdict: verified` with open items, or schema-invalid yml). If the script auto-fixes a md/yml drift you introduced via the verdict write, that is expected and your verdict still stands. If the script exits 2 with a critical inconsistency, your verdict MUST reflect that — downgrade to `partial` or `failed` and add the issue to `fix_list` so the executor routes it back to the assigned subagent. Do NOT report `verified` if the script exits 2.
+7. **onStop consistency check (mandatory before returning)**: Before reporting your verdict, shell out to `pnpm exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --spec-dir <specDir> --repo-root <repoRoot>`. The script schema-validates the subtask `.status.yml`, reconciles md ↔ yml drift via the round-trip helper, and exits 2 if a critical inconsistency remains (`state: completed` with open items, `extra.judge.verdict: verified` with open items, or schema-invalid yml). If the script auto-fixes a md/yml drift you introduced via the verdict write, that is expected and your verdict still stands. If the script exits 2 with a critical inconsistency, your verdict MUST reflect that — downgrade to `partial` or `failed` and add the issue to `fix_list` so the executor routes it back to the assigned subagent. Do NOT report `verified` if the script exits 2.
 8. **Report verdict** to the executor:
    - **Verified** — all Deliverables Checklist AND Definition of Done items confirmed; `fix_list` empty; onStop check exited 0
    - **Partial** — some items incomplete (populate `fix_list`; list which from both sections and why)
@@ -146,7 +146,7 @@ Assess a specific engineering spec using the `zoto-judge-spec` skill.
 ### General Principles
 
 - **NEVER modify spec files before presenting the assessment** — the assessment itself must be unbiased and complete before any fixes are offered (Mode 3 only)
-- **NEVER apply fixes without explicit user approval** — always ask first (Mode 3 only)
+- **NEVER apply fixes without explicit user approval** — use **`askQuestion`** (if running as command/executor) or return **`needs_user_input`** (if running as subagent) to get structured approval (Mode 3 only)
 - **NEVER rubber-stamp** — provide genuine critical analysis, not just confirmation
 - **ALWAYS run in a fresh context** — no carryover from executing agents
 - **ALWAYS check the file system** — do not trust agent reports; verify yourself

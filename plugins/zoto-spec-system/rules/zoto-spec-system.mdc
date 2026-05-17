@@ -10,7 +10,7 @@ This repository uses the Spec System plugin for structured engineering workflows
 ## Available Commands
 
 - `/z-spec-init` — Scaffold `.zoto/spec-system/config.yml` with all defaults commented out (run once per repo)
-- `/z-spec-create` — Create a structured engineering spec for a complex initiative
+- `/z-spec-create` — Create a structured engineering spec for a complex initiative (mandatory **requirement gate** before any `{specsDir}/` writes; spawn `zoto-spec-generator` with a **reasoning-class** model — see command body)
 - `/z-spec-judge` — Independently assess the repository or a specific spec
 - `/z-spec-execute` — Execute a spec with subagent coordination and adversarial verification
 
@@ -61,6 +61,63 @@ Every spec index **must** contain a `## Subtask Dependency Graph` section with a
 
 For colouring to work, each mermaid node label must contain the subtask number as a leading two-digit prefix (`S01[01: Audit]`) or via a `subtask-NN` substring (`A[subtask-01]`). The aggregator-managed `classDef`/`class` block lives inside the mermaid fence between `%% spec-system:classes:begin` and `%% spec-system:classes:end` comments — it is rewritten on every rebuild and must not be hand-edited. The aggregator is the only writer of these directives; the executor, judge, and subtask agents must never modify them directly.
 
+## TodoWrite Contract (Mandatory Progress Tracking)
+
+All agents executing spec subtasks **must** use the `TodoWrite` tool to track deliverables and verification items. This provides reliable, structured progress visibility throughout execution.
+
+### When to use TodoWrite
+
+| Agent role | TodoWrite requirement |
+|------------|----------------------|
+| **Subtask agents** (during `/z-spec-execute`) | **Mandatory.** On spawn, create todos from the subtask's Deliverables Checklist and Definition of Done items. Mark each `in_progress` → `completed` as work progresses. |
+| **Executor agent** | **Mandatory.** Track phases and subtask completion across the execution. |
+| **Judge agent** (adversarial verification) | **Mandatory.** Create todos for each deliverable and DoD item being verified. Mark verified/failed. |
+| **Generator agent** (`/z-spec-create`) | **Recommended.** Track spec creation steps (requirements, exploration, drafting, review). |
+
+### Subtask agent TodoWrite protocol
+
+When a subtask agent starts, it **must** immediately create a todo list from the subtask file:
+
+1. Parse the **Deliverables Checklist** — create one todo per `- [ ]` item with id `D01`, `D02`, etc.
+2. Parse the **Definition of Done** — create one todo per `- [ ]` item with id `DoD01`, `DoD02`, etc.
+3. Set the first actionable item to `in_progress`, all others to `pending`.
+4. As each deliverable is completed, mark it `completed` and advance the next item to `in_progress`.
+5. After all items are `completed`, the agent may finalize.
+
+This runs **in parallel** with status.yml checklist updates — TodoWrite provides real-time progress visibility in the chat UI while status.yml provides durable structured state.
+
+## User Confirmation Contract
+
+All user-facing choices during spec workflows **must** use the structured `askQuestion` tool — never free-form chat prompts with `[Yes / No]` or "wait for user approval".
+
+### Implementation: askQuestion delegation (commands vs subagents/skills)
+
+Cursor subagents cannot prompt the user directly. The contract:
+
+| Layer | Interactive prompts |
+|-------|---------------------|
+| **Commands** (`commands/*.md`) | Own **`askQuestion`**. Pre-collect answers **before** spawning a subagent. |
+| **Parent executor agents** | Use **`askQuestion`** for execution gates (pre-run confirm, post-report approve, failure handling). |
+| **Subagents** (`agents/*.md`) and **skills** (`skills/*/SKILL.md`) | **Do not** call `askQuestion`. If mid-flight user input is required, finish with a structured `needs_user_input` block; the parent runs `askQuestion`, then **resumes** the subagent via the Task tool `resume` parameter with answers. |
+
+### `needs_user_input` schema
+
+When a subagent needs user input that was not pre-provided, it returns:
+
+```yaml
+needs_user_input:
+  reason: "<one-line why this can't proceed without the user>"
+  questions:
+    - id: <slug>
+      prompt: "<question text>"
+      options:
+        - id: <slug>
+          label: "<label>"
+      allow_multiple: false  # optional, defaults false
+```
+
+Free-form chat prompts from skills/agents are forbidden for interactive choices — use `needs_user_input` so `askQuestion` can present structured options.
+
 ## Reviewer Non-Interference (HARD RULE)
 
 The Spec System enforces strict separation between **doers** (the assigned subagent for each subtask) and **reviewers** (the `zoto-spec-judge` agent). Reviewer agents must **never interfere** with subtask work.
@@ -75,7 +132,7 @@ The Spec System enforces strict separation between **doers** (the assigned subag
 Spec-execute and review agents must verify they have not left any inconsistencies in the subtask `.status.{md,yml}` pair, the spec-root `status.yml`, or `.zoto/spec-system/config.yml` before terminating. The plugin ships a single CLI that performs every check:
 
 ```
-pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --repo-root <repoRoot>
+pnpm exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --repo-root <repoRoot>
 ```
 
 What it covers:

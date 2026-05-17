@@ -56,7 +56,7 @@ When this command is invoked, spawn a **fresh `zoto-spec-judge` subagent** to pe
 5. Checks each subtask for quality (objectives, deliverables, agent assignments)
 6. Performs risk analysis
 7. Produces a report in the spec's directory as `assessment-[feature-name]-[yyyymmdd].md`
-8. **Offers to apply fixes** — presents actionable findings and asks the user whether to apply the recommended changes directly to the spec files (index, subtasks, dependency graph). Only modifies spec files, never application source code.
+8. **Offers to apply fixes** — presents actionable findings and uses **`askQuestion`** to ask the user whether to apply the recommended changes directly to the spec files (index, subtasks, dependency graph). Only modifies spec files, never application source code.
 
 ### Verdicts and follow-up
 

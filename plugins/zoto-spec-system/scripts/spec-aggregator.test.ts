@@ -167,7 +167,7 @@ describe("spec-aggregator CLI", () => {
     expect(code).toBe(2);
   });
 
-  it("rebuilds on source mtime change under --watch and stops on SIGINT", async () => {
+  it("rebuilds on source content change under --watch and stops on SIGINT", async () => {
     const repo = tempRepo();
     writeQuickPollConfig(repo);
 
@@ -191,10 +191,9 @@ describe("spec-aggregator CLI", () => {
 
     const y1 = y0!;
 
-    const t = Date.now();
-    writeFileSync(subPath, minimalSubtask01(), "utf-8");
-    const fs = await import("node:fs");
-    fs.utimesSync(subPath, t + 180_000, t + 180_000);
+    const yml = YAML.parse(minimalSubtask01()) as Record<string, unknown>;
+    yml.last_heartbeat = "2026-05-06T11:00:00.000Z";
+    writeFileSync(subPath, YAML.stringify(yml, { lineWidth: 0 }), "utf-8");
 
     await delay(500);
     const y2 = YAML.parse(readFileSync(join(specDir, "status.yml"), "utf-8")) as { updated_at: string };

@@ -111,13 +111,24 @@ export function configSubsetForDigest(cfg: SpecSystemConfig): unknown {
   };
 }
 
-function computeDigest(sourceEntries: Array<{ relPath: string; mtimeMs: number }>, cfg: SpecSystemConfig): string {
+function sha256Utf8(text: string): string {
+  return createHash("sha256").update(text, "utf-8").digest("hex");
+}
+
+/**
+ * Digest subtask/index sources by path + utf-8 contents so spec-root rebuilds
+ * track live subagent status edits even when file mtimes are unchanged.
+ */
+function computeDigest(
+  sourceEntries: Array<{ relPath: string; contentSha256: string }>,
+  cfg: SpecSystemConfig,
+): string {
   const sorted = [...sourceEntries].sort((a, b) => a.relPath.localeCompare(b.relPath));
   const h = createHash("sha256");
   for (const e of sorted) {
     h.update(e.relPath);
     h.update("\0");
-    h.update(String(e.mtimeMs));
+    h.update(e.contentSha256);
     h.update("\0");
   }
   h.update(JSON.stringify(configSubsetForDigest(cfg)));
@@ -327,7 +338,7 @@ export function aggregateOnce(input: AggregateInput): AggregateResult {
   const outMd = join(specDir, cfg.aggregator.outputs.specStatusMd);
   const specId = basename(specDir);
 
-  const digestEntries: Array<{ relPath: string; mtimeMs: number }> = [];
+  const digestEntries: Array<{ relPath: string; contentSha256: string }> = [];
   const invalidSourcePaths: string[] = [];
   const warnEvents: SpecRootDoc["events"] = [];
   const validSources: ValidSource[] = [];
@@ -343,8 +354,8 @@ export function aggregateOnce(input: AggregateInput): AggregateResult {
         continue;
       }
       const rel = normalizePathKey(relative(repoRoot, abs));
-      digestEntries.push({ relPath: rel, mtimeMs: st.mtimeMs });
       const rawText = readFileSync(abs, "utf-8");
+      digestEntries.push({ relPath: rel, contentSha256: sha256Utf8(rawText) });
       let data: unknown;
       try {
         data = YAML.parse(rawText);
@@ -377,12 +388,15 @@ export function aggregateOnce(input: AggregateInput): AggregateResult {
   }
 
   const indexPath = findSpecIndexMd(specDir);
+  let indexMarkdown: string | undefined;
   if (indexPath && existsSync(indexPath)) {
     try {
-      const indexSt = statSync(indexPath);
+      indexMarkdown = readFileSync(indexPath, "utf-8");
       const indexRel = normalizePathKey(relative(repoRoot, indexPath));
-      digestEntries.push({ relPath: indexRel, mtimeMs: indexSt.mtimeMs });
-    } catch { /* stat failure is non-fatal for digest */ }
+      digestEntries.push({ relPath: indexRel, contentSha256: sha256Utf8(indexMarkdown) });
+    } catch {
+      /* read failure is non-fatal for digest */
+    }
   }
 
   const digest = computeDigest(digestEntries, cfg);
@@ -409,7 +423,9 @@ export function aggregateOnce(input: AggregateInput): AggregateResult {
   }
 
   let dodItems: Array<{ text: string; done: boolean }> = [];
-  if (indexPath && existsSync(indexPath)) {
+  if (indexMarkdown !== undefined) {
+    dodItems = parseDefinitionOfDoneFromIndex(indexMarkdown);
+  } else if (indexPath && existsSync(indexPath)) {
     dodItems = parseDefinitionOfDoneFromIndex(readFileSync(indexPath, "utf-8"));
   }
   const definition_of_done_status = dodItems.map((item, idx) => ({

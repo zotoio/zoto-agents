@@ -22,7 +22,7 @@ cursor plugin install zoto-spec-system
 
 **Manual install**
 
-Copy this plugin folder into your project's Cursor plugins directory (for example `.cursor/plugins/zoto-spec-system/`), preserving the internal layout (`.cursor-plugin/`, `agents/`, `skills/`, `commands/`, `rules/`, `hooks/`, and so on). Restart Cursor or reload the window if needed.
+Copy this plugin folder into your project's Cursor plugins directory (for example `.cursor/plugins/zoto-spec-system/`), preserving the internal layout (`.cursor-plugin/`, `agents/`, `skills/`, `commands/`, `rules/`, `hooks/`, `scripts/`, `src/`, `templates/`, and so on). Restart Cursor or reload the window if needed.
 
 ## Quick start
 

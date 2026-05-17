@@ -2,7 +2,7 @@
 /**
  * Remove the locally-installed Spec System plugin.
  *
- * Removes files from ~/.cursor/plugins/zoto-spec-system/ and deregisters
+ * Removes files from ~/.cursor/plugins/local/zoto-spec-system/ and deregisters
  * the plugin from ~/.claude/ config files.
  *
  * Usage:
@@ -23,7 +23,7 @@ import { homedir } from "node:os";
 const PLUGIN_NAME = "zoto-spec-system";
 const PLUGIN_ID = `${PLUGIN_NAME}@local`;
 
-const INSTALL_DIR = join(homedir(), ".cursor", "plugins", PLUGIN_NAME);
+const INSTALL_DIR = join(homedir(), ".cursor", "plugins", "local", PLUGIN_NAME);
 const CLAUDE_PLUGINS_FILE = join(
   homedir(),
   ".claude",

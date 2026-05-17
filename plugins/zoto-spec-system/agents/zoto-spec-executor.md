@@ -44,9 +44,9 @@ The live loader drives config used by the **`spec-aggregator --watch`** process 
 
 At the **start** of `/z-spec-execute`, the executor **backgrounds** the aggregator CLI for that spec’s lifetime:
 
-`pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-aggregator.ts --watch --spec-dir <specDir> --repo-root <repoRoot>`
+`pnpm exec tsx plugins/zoto-spec-system/scripts/spec-aggregator.ts --watch --spec-dir <specDir> --repo-root <repoRoot>`
 
-(Use the same invocation from the repo root; `<specDir>` is the absolute path to the dated spec directory.)
+(Run from the repo root; `<specDir>` is the absolute path to the dated spec directory. Do **not** use `pnpm --filter ... exec tsx plugins/zoto-spec-system/...` — the `--filter` flag changes cwd to the package, causing the `plugins/zoto-spec-system/` prefix to double.)
 
 - Track the **child PID**; the watch process **only reads** `status/*.status.yml` — it **never writes** a subtask’s `.status.md` / `.status.yml`.
 - The watch process **writes** only the spec-root **`status.md`** + **`status.yml`** when the aggregator digest changes (see `plugins/zoto-spec-system/docs/aggregator.md`).
@@ -219,13 +219,13 @@ Each subtask file contains:
 ### Execution Mode (zoto-execute-spec skill) — `/z-spec-execute`
 
 1. **Load Spec**: Read and validate the Subtask Manifest (agent assignments, dependencies, file existence)
-2. **Confirm Execution**: Present manifest as execution summary, get user approval
-3. **Execute Subtasks**: For each phase, spawn the exact subagent listed in the manifest for each subtask — never override agent assignments. Executing agents must tick off each Deliverables Checklist and Definition of Done item in the subtask file as they complete it.
+2. **Confirm Execution**: Present manifest as execution summary, use **`askQuestion`** for structured user approval
+3. **Execute Subtasks**: For each phase, spawn the exact subagent listed in the manifest for each subtask — never override agent assignments. Executing agents must use **`TodoWrite`** to track all Deliverables Checklist and Definition of Done items, and tick off each item in the subtask file as they complete it.
 4. **Adversarial Verification**: After each subtask completes, spawn a fresh `zoto-spec-judge` subagent to independently verify every Deliverables Checklist and Definition of Done item. The judge writes verdict and a structured `fix_list` into the subtask's `.status.yml` `extra.judge` block — and writes nowhere else. **The judge does not author fixes; the executor does not author fixes either.** When the judge returns `Partial` or `Failed`, the executor re-spawns the originally-assigned subagent (per the manifest's Subagent column) with the `fix_list` as input, then spawns a fresh judge to re-verify. Run judge verifications as background subagents where possible.
 5. **Final Verification**: Run the project's test suite, check lints
 6. **Execution Report**: Write `execution-report-[feature-name]-[yyyymmdd].md` to the spec directory with full results
-7. **onStop consistency check (mandatory)**: Before presenting the report to the user, shell out to `pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --repo-root <repoRoot>`. The script schema-validates every subtask `.status.yml`, the spec-root `status.yml`, and `.zoto/spec-system/config.yml`; reconciles md ↔ yml drift via the round-trip helper (yml authoritative); and exits 2 if critical inconsistencies remain (e.g. `state: completed` with open checklist items). If the exit code is 2, do not advance to step 8 — surface the critical issues to the user and re-spawn the originally-assigned subagent for the affected subtask(s) to address them, then re-run the check until it exits 0.
-8. **User Approval**: Present report, stop for user to review
+7. **onStop consistency check (mandatory)**: Before presenting the report to the user, shell out to `pnpm exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --repo-root <repoRoot>` (from repo root). The script schema-validates every subtask `.status.yml`, the spec-root `status.yml`, and `.zoto/spec-system/config.yml`; reconciles md ↔ yml drift via the round-trip helper (yml authoritative); and exits 2 if critical inconsistencies remain (e.g. `state: completed` with open checklist items). If the exit code is 2, do not advance to step 8 — surface the critical issues to the user and re-spawn the originally-assigned subagent for the affected subtask(s) to address them, then re-run the check until it exits 0.
+8. **User Approval**: Present report, use **`askQuestion`** for structured approval
 9. **Mark Complete**: Update spec status to Completed
 
 ## Subagent Coordination

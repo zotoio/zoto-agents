@@ -170,7 +170,22 @@ After generating the assessment report, present a summary of the verdict and act
 | 2 | MEDIUM | 05 | Replace vague deliverable with specific test files |
 | 3 | LOW | — | Add rollback plan to spec index |
 
-Apply these fixes to the spec files? [Yes / No]
+```
+
+Then use **`askQuestion`** (if running as a command/executor) or return **`needs_user_input`** (if running as a subagent) to get structured approval:
+
+```json
+{
+  "title": "Spec Assessment — Apply Fixes?",
+  "questions": [{
+    "id": "apply_fixes",
+    "prompt": "Apply [N] recommended fixes to the spec files?",
+    "options": [
+      { "id": "yes", "label": "Yes — apply all fixes" },
+      { "id": "no", "label": "No — keep spec as-is" }
+    ]
+  }]
+}
 ```
 
 #### If user accepts — apply fixes

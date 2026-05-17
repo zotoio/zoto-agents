@@ -13,7 +13,7 @@ It never edits a subtask’s paired `.status.md` / `.status.yml`. Subagents and 
 
 Each run computes a **SHA-256 digest** from:
 
-1. Sorted `(repo-relative path, mtimeMs)` for every `status/*.status.yml` file, and  
+1. Sorted `(repo-relative path, sha256(utf-8 file contents))` for every `status/*.status.yml` file, plus the same for the spec index `spec-*.md` when present — so subagent checklist / heartbeat edits always advance the digest even if file `mtime` is unchanged within a poll window, and  
 2. A JSON-stable subset of live config: `subagents.*`, `aggregator.*`, and `spec.parallelLimit`.
 
 If the digest matches the value stored in `status.yml` under `extra.aggregator_digest` and the spec-root files already exist, the aggregator **skips the write** (no disk churn, no new `rebuild` event).
