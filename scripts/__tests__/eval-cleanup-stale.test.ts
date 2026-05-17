@@ -136,6 +136,38 @@ function cleanup(root: string): void {
 async function main(): Promise<number> {
   process.stdout.write(`Running scripts/__tests__/eval-cleanup-stale.test.ts\n`);
 
+  // Default mode (no flags) matches --dry-run for pnpm `eval:cleanup-stale`
+  await test("default mode (no argv flags) runs dry-run", () => {
+    const root = makeScratchRepo("default-dry");
+    try {
+      writeConfig(root, {
+        evalsDir: "evals",
+        skillsRoots: [".cursor/skills"],
+        discoveryTargets: ["skill"],
+        static: { framework: "pytest" },
+        llm: { strategy: "declarative" },
+      });
+      writeManifest(
+        root,
+        `schema_version: 1\ndiscovery_config:\n  static:\n    framework: pytest\n  llm:\n    strategy: declarative\n  discoveryTargets: [skill]\n  skillsRoots: [.cursor/skills]\n  evalsDir: evals\n`,
+      );
+      let stdout = "";
+      const exit = runMain({
+        repoRoot: root,
+        argv: [],
+        stdoutWrite: (s) => {
+          stdout += s;
+        },
+        stderrWrite: () => {},
+      });
+      assertEqual(exit, 0, "default mode exit");
+      const plan = JSON.parse(stdout);
+      assertEqual(plan.totals.files, 0, "default dry-run totals.files");
+    } finally {
+      cleanup(root);
+    }
+  });
+
   // (a) fresh repo --dry-run → empty list exit 0
   await test("fresh repo dry-run produces empty plan", () => {
     const root = makeScratchRepo("fresh");

@@ -21,7 +21,8 @@
  *      Per-backend reporters that pre-date this contract still default
  *      to their own values when the env vars are unset.
  *   4. Spawn the active static runner (`pnpm run eval:static:<framework>`)
- *      and — when `--full` is passed and `CURSOR_API_KEY` is set — the
+ *      and — when `--full` is passed and `CURSOR_API_KEY` is available
+ *      (shell env or repo-root `.env` loaded via `dotenv/config` here) — the
  *      active LLM runner (`pnpm run eval:llm:<strategy>`).
  *   5. Read `static.yml` and `llm.yml` from the run folder, merge totals
  *      and aggregates into `report.yml` with `backend: "mixed"` (or
@@ -33,7 +34,8 @@
  *      Validation failure exits non-zero.
  *   7. Drift hook: spawn `pnpm run eval:update -- --check`, capture
  *      stdout + exit code, and append a `drift:` block to
- *      `report.yml`. Drift NEVER fails the orchestrator's exit code
+ *      `report.yml` and to `llm.yml` when that file exists. Drift NEVER
+ *      fails the orchestrator's exit code
  *      (warn-only — the orchestrator's exit reflects backend pass/fail).
  *   8. Write `evals/_runs/<runTs>/.run-meta.json` with `runId`,
  *      `static_framework`, `llm_strategy`, `llm_codeFramework`, `model`,
@@ -47,6 +49,8 @@
  * rule mentions yarn but the lockfile commitment forces pnpm; the
  * substitution is documented at the spec level.
  */
+import "dotenv/config";
+
 import { execSync, spawnSync } from "node:child_process";
 import {
   existsSync,
@@ -238,6 +242,8 @@ export interface OrchestrateOpts {
   spawnRunner?: (
     script: string,
     env: NodeJS.ProcessEnv,
+    /** When set (LLM backend only), real runner passes `pnpm run … -- --model <id>`. */
+    modelCli?: string,
   ) => { exitCode: number; stdout?: string; stderr?: string };
   /** Test seam: stub the drift hook child process. */
   spawnDrift?: (env: NodeJS.ProcessEnv) => {
@@ -253,8 +259,13 @@ export interface OrchestrateOpts {
 function spawnRunnerScript(
   script: string,
   env: NodeJS.ProcessEnv,
+  modelCli?: string,
 ): { exitCode: number; stdout?: string; stderr?: string } {
-  const r = spawnSync("pnpm", ["run", script], {
+  const pnpmArgs =
+    modelCli !== undefined && modelCli !== ""
+      ? (["run", script, "--", "--model", modelCli] as const)
+      : (["run", script] as const);
+  const r = spawnSync("pnpm", [...pnpmArgs], {
     cwd: REPO_ROOT,
     env,
     encoding: "utf-8",
@@ -487,7 +498,7 @@ export async function orchestrate(
       ZOTO_EVAL_LLM_STRATEGY: cfg.llmStrategy,
       ZOTO_EVAL_LLM_CODE_FRAMEWORK: cfg.llmCodeFramework,
     };
-    const result = spawnFn(script, llmEnv);
+    const result = spawnFn(script, llmEnv, args.model);
     llmOutcome = {
       ranScript: script,
       exitCode: result.exitCode,
@@ -582,6 +593,19 @@ export async function orchestrate(
     };
   }
   reportDoc.drift = driftBlock;
+
+  if (existsSync(llmPath)) {
+    try {
+      const llmWithDrift = YAML.parse(
+        readFileSync(llmPath, "utf-8"),
+      ) as Record<string, unknown>;
+      llmWithDrift.drift = driftBlock;
+      validateAgainstResultSchema(llmWithDrift, "llm.yml");
+      writeYamlSorted(llmPath, llmWithDrift);
+    } catch (e) {
+      validationErrors.push((e as Error).message);
+    }
+  }
 
   try {
     validateAgainstResultSchema(reportDoc, "report.yml");

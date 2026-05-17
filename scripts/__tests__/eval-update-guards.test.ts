@@ -8,7 +8,14 @@
  *   2. Code-strategy `*.test.ts` file-level guard — file lacking the
  *      `// _meta.generated: true` first line is byte-identical before
  *      and after `--apply`; file with the marker is regenerated.
- *   3. CI warning + `--no-analyser` emits the [CI WARNING] stderr line.
+ *   3. CI WARNING on stderr whenever CI skips fresh analysis (explicit
+ *      `--no-analyser` or CI-default cached analyser behaviour).
+ *   4. `--no-analyser` declarative apply preserves
+ *      `_meta.primitive_analysis.invalidate` from existing generated rows.
+ *   5. Declarative surgical merge skips `JSON.stringify` when a generated
+ *      row is already deep-equal to the stamped payload (buffer unchanged).
+ *   6. Pytest regeneration skips `test_*.py` / `*.test.py` files that lack
+ *      the `# _meta.generated: True` banner (same guard as other frameworks).
  *
  * Hand-rolled tsx-runnable harness — no global vitest/jest import — so
  * this can be executed standalone via:
@@ -31,11 +38,12 @@ import { spawnSync } from "node:child_process";
 import {
   regenerateLlmCode,
   regenerateLlmDeclarative,
+  regeneratePytest,
   surgicallyReplaceGeneratedCases,
   type RegenerationCommonOpts,
-} from "../../evals/_llm/update.ts";
-import { isGeneratedFile } from "../../evals/_llm/_user-case-guards.ts";
-import type { ManifestSnapshot } from "../../evals/_llm/manifest-snapshot.ts";
+} from "../../plugins/zoto-eval-system/engine/update.ts";
+import { isGeneratedFile } from "../../plugins/zoto-eval-system/engine/_user-case-guards.ts";
+import type { ManifestSnapshot } from "../../plugins/zoto-eval-system/engine/manifest-snapshot.ts";
 import type { AnalyserPayload } from "../../scripts/eval-analyse.ts";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -191,6 +199,102 @@ async function runSurgicalCaseGuardTest(): Promise<void> {
   );
 }
 
+async function runSurgicalSkipIdenticalGeneratedRowTest(): Promise<void> {
+  const mixed = JSON.stringify(
+    {
+      skill_name: "test-skill",
+      evals: [
+        {
+          id: 1,
+          prompt: "USER-AUTHORED prompt that must NEVER be touched.",
+          assertions: ["user assertion stays exactly as-is"],
+        },
+        {
+          id: 2,
+          prompt: "Generated prompt that will not change semantically.",
+          assertions: ["stable generated assertion"],
+          _meta: {
+            generated: true,
+            source_hash: "same",
+            last_updated: "2024-01-01T00:00:00.000Z",
+            generated_by: "zoto-create-evals",
+            primitive_analysis: {
+              source_hash: "0".repeat(64),
+              analysed_at: "2024-01-01T00:00:00.000Z",
+              analyser_version: "1",
+              summary: "unchanged summary",
+            },
+          },
+        },
+      ],
+    },
+    null,
+    2,
+  ) + "\n";
+
+  const beforeParsed = JSON.parse(mixed) as {
+    evals: [unknown, Record<string, unknown>];
+  };
+  const stampedRow = structuredClone(beforeParsed.evals[1]);
+
+  const result = surgicallyReplaceGeneratedCases(mixed, [stampedRow]);
+  assertEqual(result.replaced, 0, "deep-equal generated row is not rewritten");
+  assertEqual(result.text, mixed, "entire JSON buffer byte-identical");
+  assertEqual(result.userPreserved, 1, "exactly one user case preserved");
+}
+
+async function runPytestFileLevelGuardTest(): Promise<void> {
+  const host = mkdtempSync(join(tmpdir(), "eval-update-pytest-guard-"));
+  try {
+    const evalsDir = join(host, "evals");
+    mkdirSync(evalsDir, { recursive: true });
+    const pyFile = join(evalsDir, "test_skill_user-authored.py");
+    const userBody = ["def test_user():", "    assert True", ""].join("\n");
+    writeFileSync(pyFile, userBody, "utf-8");
+
+    assert(!isGeneratedFile(pyFile), "pytest file lacks marker — guard returns false");
+
+    const target = makeTarget("skill:user-authored", "dummy/evals.json");
+    const payload = makePayload("skill:user-authored", "f".repeat(64));
+    const opts: RegenerationCommonOpts = {
+      hostRepoRoot: host,
+      payload,
+      target,
+      config: {},
+      snapshot: makeMockSnapshot("pytest", undefined),
+    };
+
+    const report = regeneratePytest(opts);
+    const after = readFileSync(pyFile, "utf-8");
+    assertEqual(after, userBody, "user-authored pytest bytes preserved");
+    assert(
+      report.files_preserved.some((p) => p.endsWith("test_skill_user-authored.py")),
+      `expected files_preserved to include pytest path (got: ${JSON.stringify(report)})`,
+    );
+    assert(
+      report.notes.some((n) => /manual_merge_required/.test(n)),
+      "manual_merge_required note emitted for pytest",
+    );
+  } finally {
+    rmSync(host, { recursive: true, force: true });
+  }
+}
+
+async function runDotTestPyFileLevelGuardTest(): Promise<void> {
+  const host = mkdtempSync(join(tmpdir(), "eval-update-dot-test-py-guard-"));
+  try {
+    const evalsDir = join(host, "evals");
+    mkdirSync(evalsDir, { recursive: true });
+    const pyFile = join(evalsDir, "user_skill.test.py");
+    const userBody = ["def test_user():", "    assert True", ""].join("\n");
+    writeFileSync(pyFile, userBody, "utf-8");
+
+    assert(!isGeneratedFile(pyFile), ".test.py file lacks marker — guard returns false");
+  } finally {
+    rmSync(host, { recursive: true, force: true });
+  }
+}
+
 async function runFileLevelGuardTest(): Promise<void> {
   // Build a host repo skeleton. The helper writes to
   //   evals/llm/test_${kind}_${name-lowercased}.test.ts
@@ -340,11 +444,112 @@ async function runDeclarativeMixedHelperTest(): Promise<void> {
   }
 }
 
-async function runCiWarningTest(): Promise<void> {
-  // Spawn the updater in CI mode with --no-analyser; check stderr.
+async function runNoAnalyserPreservesInvalidateTest(): Promise<void> {
+  const host = mkdtempSync(join(tmpdir(), "eval-update-no-analyser-inv-"));
+  try {
+    const evalDir = join(
+      host,
+      "plugins",
+      "demo-plugin",
+      "evals",
+      "agents",
+    );
+    mkdirSync(evalDir, { recursive: true });
+    const evalFile = join(evalDir, "demo-agent.json");
+
+    const original = JSON.stringify(
+      {
+        agent_name: "demo-agent",
+        evals: [
+          {
+            id: 1,
+            prompt: "User row stays put.",
+            assertions: ["keep"],
+          },
+          {
+            id: 2,
+            prompt: "Old generated prompt to be refreshed.",
+            assertions: ["old"],
+            _meta: {
+              generated: true,
+              source_hash: "stale",
+              last_updated: "2024-01-01T00:00:00.000Z",
+              generated_by: "zoto-create-evals",
+              primitive_analysis: {
+                source_hash: "0".repeat(64),
+                analysed_at: "2024-01-01T00:00:00.000Z",
+                analyser_version: "1",
+                summary: "old summary",
+                invalidate: true,
+              },
+            },
+          },
+        ],
+      },
+      null,
+      2,
+    ) + "\n";
+    writeFileSync(evalFile, original, "utf-8");
+
+    const target = {
+      id: "agent:demo-agent",
+      kind: "agent",
+      path: "plugins/demo-plugin/agents/demo-agent.md",
+      content_hash: "deadbeef",
+      public_surface: {},
+      eval_files: ["plugins/demo-plugin/evals/agents/demo-agent.json"],
+    };
+    const payload = makePayload("agent:demo-agent", "f".repeat(64));
+
+    const report = regenerateLlmDeclarative({
+      hostRepoRoot: host,
+      payload,
+      target,
+      config: {},
+      snapshot: makeMockSnapshot(undefined, "declarative"),
+      noAnalyser: true,
+    });
+
+    assertEqual(report.cases_replaced, 1, "one generated case replaced");
+    assert(report.files_written.length === 1, "evals.json written");
+
+    const finalParsed = JSON.parse(readFileSync(evalFile, "utf-8"));
+    assert(
+      finalParsed.evals[1]._meta.primitive_analysis.invalidate === true,
+      "cached-analyser regen preserves primitive_analysis.invalidate",
+    );
+  } finally {
+    rmSync(host, { recursive: true, force: true });
+  }
+}
+
+async function runCiWarningImplicitCiDefaultTest(): Promise<void> {
+  // CI implies cached analyser without passing --no-analyser explicitly.
   const r = spawnSync(
     "pnpm",
-    ["exec", "tsx", "evals/_llm/update.ts", "--check", "--no-analyser"],
+    ["exec", "tsx", "plugins/zoto-eval-system/engine/update.ts", "--check"],
+    {
+      cwd: REPO_ROOT,
+      env: { ...process.env, CI: "true" },
+      encoding: "utf-8",
+    },
+  );
+  const stderr = r.stderr ?? "";
+  assert(stderr.includes("[CI WARNING]"), `expected [CI WARNING] in stderr`);
+  assert(
+    stderr.includes("skipping fresh primitive analysis"),
+    `expected skipping-fresh wording, got: ${stderr.slice(0, 400)}`,
+  );
+  assert(
+    stderr.includes(".zoto/eval-system/cache/analyser"),
+    `expected cache path in stderr, got: ${stderr.slice(0, 400)}`,
+  );
+}
+
+async function runCiExplicitNoAnalyserWarningTest(): Promise<void> {
+  const r = spawnSync(
+    "pnpm",
+    ["exec", "tsx", "plugins/zoto-eval-system/engine/update.ts", "--check", "--no-analyser"],
     {
       cwd: REPO_ROOT,
       env: { ...process.env, CI: "true" },
@@ -353,17 +558,46 @@ async function runCiWarningTest(): Promise<void> {
   );
   const stderr = r.stderr ?? "";
   assert(
-    stderr.includes("[CI WARNING] --no-analyser"),
-    `expected [CI WARNING] in stderr, got: ${stderr.slice(0, 400)}`,
+    stderr.includes("skipping fresh primitive analysis"),
+    `expected skipping-fresh wording, got: ${stderr.slice(0, 400)}`,
+  );
+}
+
+async function runCiWithAnalyserSkipsBannerTest(): Promise<void> {
+  const r = spawnSync(
+    "pnpm",
+    [
+      "exec",
+      "tsx",
+      "plugins/zoto-eval-system/engine/update.ts",
+      "--check",
+      "--with-analyser",
+    ],
+    {
+      cwd: REPO_ROOT,
+      env: { ...process.env, CI: "true" },
+      encoding: "utf-8",
+    },
+  );
+  const stderr = r.stderr ?? "";
+  assert(
+    !stderr.includes("skipping fresh primitive analysis"),
+    `unexpected cached-analyser stderr banner with --with-analyser (${stderr.slice(0, 200)})`,
   );
 }
 
 async function main(): Promise<void> {
   process.stdout.write("eval-update-guards.test\n");
   await test("surgical mixed-file case guard", runSurgicalCaseGuardTest);
+  await test("surgical merge skips identical generated rows (no reserialise)", runSurgicalSkipIdenticalGeneratedRowTest);
   await test("declarative mixed-file end-to-end (regenerateLlmDeclarative)", runDeclarativeMixedHelperTest);
+  await test("--no-analyser declarative regen preserves primitive_analysis.invalidate", runNoAnalyserPreservesInvalidateTest);
   await test("file-level guard preserves user-authored *.test.ts", runFileLevelGuardTest);
-  await test("CI=true + --no-analyser emits stderr warning", runCiWarningTest);
+  await test("file-level guard preserves user-authored test_*.py (pytest regen)", runPytestFileLevelGuardTest);
+  await test("isGeneratedFile rejects user-authored *.test.py without marker", runDotTestPyFileLevelGuardTest);
+  await test("CI=true implies cached analyser + stderr skips-fresh banner", runCiWarningImplicitCiDefaultTest);
+  await test("CI=true + explicit --no-analyser emits the same skips-fresh banner", runCiExplicitNoAnalyserWarningTest);
+  await test("CI=true + --with-analyser omits skips-fresh cached banner", runCiWithAnalyserSkipsBannerTest);
 
   const failed = results.filter((r) => !r.passed);
   process.stdout.write(`\n${results.length - failed.length}/${results.length} passed\n`);

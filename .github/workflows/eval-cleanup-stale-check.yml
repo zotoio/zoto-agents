@@ -1,0 +1,42 @@
+name: Eval cleanup-stale (check)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Gate: blocks PRs when generated eval artefacts disagree with the manifest
+# snapshot (framework / LLM strategy drift).  The cleanup-stale script exits 2
+# on critical drift, which fails this job.
+#
+# To debug a failure locally:
+#   pnpm run eval:cleanup-stale -- --dry-run   # see what would be cleaned
+#   pnpm run eval:cleanup-stale -- --check     # reproduce the CI check
+#   pnpm run eval:cleanup-stale -- --apply     # fix the drift
+# ──────────────────────────────────────────────────────────────────────────────
+
+on:
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: eval-cleanup-stale-check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cleanup-stale-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify no stale eval assets (cleanup-stale --check)
+        run: pnpm run eval:cleanup-stale -- --check

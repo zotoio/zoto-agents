@@ -9,9 +9,12 @@
  *
  * Discovery includes `.cursor/commands`, `.cursor/agents`, and workspace
  * hooks (`.cursor/hooks.json` or `.cursor/hooks/hooks.json`), alongside
- * `plugins/*` assets. Cursor-target IDs default to `command:<name>` /
+ * `plugins/*` assets and repo-root `upstream-vendor/commands` /
+ * `upstream-vendor/agents` mirrors. Cursor-target IDs default to `command:<name>` /
  * `agent:<name>`; collisions with plugin IDs use `command:cursor/<name>` /
  * `agent:cursor/<name>` (listed under `discovery_config.cursor_namespaced_ids`).
+ * Collisions against plugin + upstream roots use `command:upstream-vendor/<name>` /
+ * `agent:upstream-vendor/<name>`.
  *
  * Optional `ignore: string[]` in config supplies repo-relative POSIX globs (minimatch);
  * matched targets are dropped from output (see `ignored_summary`). If the full path
@@ -222,6 +225,50 @@ function discoverPluginAssets(
   return out;
 }
 
+function discoverUpstreamVendorAssets(
+  kind: "command" | "agent",
+  subdir: "commands" | "agents",
+  occupiedIds: ReadonlySet<string>,
+): { snapshots: TargetSnapshot[]; namespaced_ids: string[] } {
+  const root = join(REPO_ROOT, "upstream-vendor", subdir);
+  if (!existsSync(root) || !statSync(root).isDirectory()) {
+    return { snapshots: [], namespaced_ids: [] };
+  }
+  const evalLeaf = subdir === "commands" ? "commands" : "agents";
+  const snapshots: TargetSnapshot[] = [];
+  const namespaced_ids: string[] = [];
+  const prefix = kind === "command" ? "command" : "agent";
+  for (const file of readdirSync(root).sort()) {
+    if (!file.endsWith(".md")) continue;
+    const full = join(root, file);
+    const raw = readFileSync(full, "utf-8");
+    const base = file.replace(/\.md$/, "");
+    const bareId = `${prefix}:${base}`;
+    const id = occupiedIds.has(bareId)
+      ? `${prefix}:upstream-vendor/${base}`
+      : bareId;
+    if (id !== bareId) namespaced_ids.push(id);
+    const evalPath = join(
+      REPO_ROOT,
+      "upstream-vendor",
+      "evals",
+      evalLeaf,
+      `${base}.json`,
+    );
+    snapshots.push({
+      id,
+      kind,
+      path: relative(REPO_ROOT, full),
+      content_hash: sha256(normaliseContent(raw)),
+      public_surface: parseFrontmatter(raw),
+      eval_files: existsSync(evalPath)
+        ? [relative(REPO_ROOT, evalPath)]
+        : [],
+    });
+  }
+  return { snapshots, namespaced_ids };
+}
+
 function discoverHooks(): TargetSnapshot[] {
   const pluginsRoot = join(REPO_ROOT, "plugins");
   if (!existsSync(pluginsRoot)) return [];
@@ -351,8 +398,24 @@ function discoverTargets(
   const pluginAgents =
     kinds.includes("agent") ? discoverPluginAssets("agent", "agents") : [];
 
-  const occupiedCommandIds = new Set(pluginCommands.map((t) => t.id));
-  const occupiedAgentIds = new Set(pluginAgents.map((t) => t.id));
+  let occupiedCommandIds = new Set(pluginCommands.map((t) => t.id));
+  let occupiedAgentIds = new Set(pluginAgents.map((t) => t.id));
+
+  const { snapshots: uvCommands, namespaced_ids: uvCommandNs } =
+    kinds.includes("command")
+      ? discoverUpstreamVendorAssets("command", "commands", occupiedCommandIds)
+      : { snapshots: [] as TargetSnapshot[], namespaced_ids: [] as string[] };
+  occupiedCommandIds = new Set([
+    ...occupiedCommandIds,
+    ...uvCommands.map((t) => t.id),
+  ]);
+
+  const { snapshots: uvAgents, namespaced_ids: uvAgentNs } = kinds.includes(
+    "agent",
+  )
+    ? discoverUpstreamVendorAssets("agent", "agents", occupiedAgentIds)
+    : { snapshots: [] as TargetSnapshot[], namespaced_ids: [] as string[] };
+  occupiedAgentIds = new Set([...occupiedAgentIds, ...uvAgents.map((t) => t.id)]);
 
   const needCursor =
     kinds.includes("command") ||
@@ -370,17 +433,26 @@ function discoverTargets(
   if (kinds.includes("skill")) all.push(...discoverSkills(config));
   if (kinds.includes("command")) {
     all.push(...pluginCommands);
+    all.push(...uvCommands);
     all.push(...cursorCommands);
   }
   if (kinds.includes("agent")) {
     all.push(...pluginAgents);
+    all.push(...uvAgents);
     all.push(...cursorAgents);
   }
   if (kinds.includes("hook")) {
     all.push(...discoverHooks());
     all.push(...cursorHooks);
   }
-  return { targets: all, cursor_namespaced_ids };
+  return {
+    targets: all,
+    cursor_namespaced_ids: [
+      ...cursor_namespaced_ids,
+      ...uvCommandNs,
+      ...uvAgentNs,
+    ],
+  };
 }
 
 function main(): number {

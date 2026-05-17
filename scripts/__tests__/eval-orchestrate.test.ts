@@ -262,6 +262,77 @@ async function run(): Promise<void> {
       assert(reportDoc.report?.llm?.source_path === "llm.yml", "llm source_path");
       assert(reportDoc.drift?.status === "clean", "drift status clean");
       assert(result.exitCode === 0, `exitCode 0, got ${result.exitCode}`);
+
+      const llmDoc = YAML.parse(
+        readFileSync(result.llmReportPath, "utf-8"),
+      );
+      assert(llmDoc.drift?.status === "clean", "llm.yml drift overlay");
+    } finally {
+      rmSync(tmpRoot, { recursive: true, force: true });
+    }
+  });
+
+  await test("orchestrate: --model sets ZOTO_EVAL_MODEL and forwards model CLI to LLM spawn only", async () => {
+    const tmpRoot = mkdtempSync(join(tmpdir(), "zoto-orch-model-"));
+    try {
+      mkdirSync(join(tmpRoot, "evals"), { recursive: true });
+      mkdirSync(join(tmpRoot, ".zoto", "eval-system"), { recursive: true });
+      writeFileSync(
+        join(tmpRoot, ".zoto", "eval-system", "config.yml"),
+        YAML.stringify({
+          evalsDir: "evals",
+          static: { framework: "vitest" },
+          llm: {
+            strategy: "declarative",
+            model: { id: "composer-2" },
+          },
+          runs: { retention: 5 },
+        }),
+        "utf-8",
+      );
+      let staticModelCli: string | undefined;
+      let llmModelCli: string | undefined;
+      const result = await orchestrate({
+        argv: ["--full", "--model", "opus-4-6"],
+        now: new Date(Date.UTC(2026, 4, 4, 4, 0, 0)),
+        cursorApiKeyPresent: true,
+        hostRepoRoot: tmpRoot,
+        spawnRunner: (script, env, modelCli) => {
+          assert(typeof env.ZOTO_EVAL_RUN_ID === "string", "ZOTO_EVAL_RUN_ID");
+          const runDir = join(
+            tmpRoot,
+            "evals",
+            "_runs",
+            env.ZOTO_EVAL_RUN_TS as string,
+          );
+          mkdirSync(runDir, { recursive: true });
+          if (env.ZOTO_EVAL_MODEL !== "opus-4-6") {
+            throw new Error(
+              `expected ZOTO_EVAL_MODEL opus-4-6, got ${String(env.ZOTO_EVAL_MODEL)}`,
+            );
+          }
+          if (script.startsWith("eval:static:")) {
+            staticModelCli = modelCli;
+            writeFileSync(
+              join(runDir, "static.yml"),
+              YAML.stringify(makeStaticDoc(env.ZOTO_EVAL_RUN_ID as string)),
+              "utf-8",
+            );
+          } else if (script.startsWith("eval:llm:")) {
+            llmModelCli = modelCli;
+            writeFileSync(
+              join(runDir, "llm.yml"),
+              YAML.stringify(makeLlmDoc(env.ZOTO_EVAL_RUN_ID as string)),
+              "utf-8",
+            );
+          }
+          return { exitCode: 0 };
+        },
+        spawnDrift: () => ({ exitCode: 0, stdout: "drift hook stub: clean" }),
+      });
+      assert(staticModelCli === undefined, "static spawn must not pass model CLI");
+      assert(llmModelCli === "opus-4-6", "LLM spawn must forward --model");
+      assert(result.exitCode === 0, `exitCode 0, got ${result.exitCode}`);
     } finally {
       rmSync(tmpRoot, { recursive: true, force: true });
     }
