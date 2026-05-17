@@ -3,33 +3,50 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/sync-plugins",
+      "prompt": "/sync-plugins\n\nI tweaked `plugins/` locally — push everything Cursor needs into the IDE plugin tree and summarize what landed.",
       "assertions": [
-        "Plugin source files are copied from plugins/ to ~/.cursor/plugins/local/",
-        "All registered plugins in marketplace.json are synced",
-        "The sync completes without errors"
+        "after `/sync-plugins`, the assistant directs execution of `node .cursor/hooks/sync-plugins.mjs --full` with the workspace root as the working directory",
+        "the assistant wires stdin so the runner receives an empty JSON object, matching the hook-protocol note in the command",
+        "once the runner finishes, the assistant lists the plugin bundles that actually synced according to that run (or clearly states zero output if none were emitted)",
+        "the assistant explicitly warns that a Cursor window reload is necessary before refreshed plugin files surface in the IDE"
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "e56e7f7f021ea8ba307df39f91b53e36d4dff99eb8f1fd3b291af12269474d5d",
-        "last_updated": "2026-05-07T10:18:00.000Z",
-        "generated_by": "zoto-update-evals"
-      }
+        "source_hash": "65160761e11c5e38a4b710270e6e45bd240243ced4bba2c401f744f413347a24",
+        "last_updated": "2026-05-17T13:36:46.818Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "65160761e11c5e38a4b710270e6e45bd240243ced4bba2c401f744f413347a24",
+          "analysed_at": "2026-05-17T13:36:46.818Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command delegates to the workspace-root sync runner with `--full`, requires an empty JSON object on stdin because the runner speaks the Cursor hook payload shape, then expects a human-readable recap of copied plugin folders plus an explicit reload hint."
+        }
+      },
+      "expected_output": "The assistant runs the documented sync runner from the repository root with the full flag, feeds an empty JSON object on stdin per the hook protocol, relays which plugin directories the runner reports as synced, and ends by telling me to reload Cursor so the copies take effect."
     },
     {
       "id": 2,
-      "prompt": "/sync-plugins when a plugin has invalid structure",
+      "prompt": "/sync-plugins",
       "assertions": [
-        "The sync reports which plugin failed validation",
-        "Valid plugins are still synced despite the invalid one",
-        "The error message is actionable"
+        "after the follow-up, the assistant reiterates that stdin for `sync-plugins.mjs` remains the empty JSON object required by the hook protocol",
+        "the clarification keeps the reload reminder tying refreshed plugin payloads to a Cursor reload"
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "e56e7f7f021ea8ba307df39f91b53e36d4dff99eb8f1fd3b291af12269474d5d",
-        "last_updated": "2026-05-07T10:18:00.000Z",
-        "generated_by": "zoto-update-evals"
-      }
+        "source_hash": "65160761e11c5e38a4b710270e6e45bd240243ced4bba2c401f744f413347a24",
+        "last_updated": "2026-05-17T13:36:46.818Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "65160761e11c5e38a4b710270e6e45bd240243ced4bba2c401f744f413347a24",
+          "analysed_at": "2026-05-17T13:36:46.818Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command delegates to the workspace-root sync runner with `--full`, requires an empty JSON object on stdin because the runner speaks the Cursor hook payload shape, then expects a human-readable recap of copied plugin folders plus an explicit reload hint."
+        }
+      },
+      "expected_output": "The assistant summarizes the synchronized run again, restates that stdin must remain the empty JSON object from the hook contract, and keeps the Cursor reload guidance coherent across turns.",
+      "follow_ups": [
+        "Echo the exact stdin the sync runner demanded on that last step so I can log it elsewhere."
+      ]
     }
   ]
 }

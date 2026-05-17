@@ -3,101 +3,141 @@
   "cases": [
     {
       "id": 1,
-      "prompt": "Drive the 'z-eval-compare' command through its primary documented flow.\nAssume repository already passes template validation gates.\nHost plugin root for this primitive: workspace/plugins/zoto-eval-system/",
-      "fixtures": {
-        "files": [
-          {
-            "path": "workspace/plugins/zoto-eval-system/commands/z-eval-compare.md",
-            "content": "---\nname: z-eval-compare\ndescription: Cross-run analysis across two or more runs. When run fragments match multiple `_runs/` folders and the invocation is undifferentiated, the comparer returns `needs_user_input` enumerating candidates — surface that payload verbatim; **do not** run `askQuestion`. Emits flat dataset and /canvas hand-off once paths resolve.\n---\n\n# z-eval-compare\n\nCompare two or more eval runs by preparing a structured dataset and asking the host agent to render it via `/canvas`.\n\n## File layout / reads\n\nEach resolved run maps to `{evalsDir}/_runs/<ts>/`. The comparer consumes **`report.yml`** as the primary cross-run artefact (per-backend blocks **`report.static`** and **`report.llm`** summarise totals). **`static.yml`** and **`llm.yml`** remain available when case-level replay needs a specific backend slice. Drill-down targets `logs/<case>.log`.\n\n## Usage\n\n```\n/z-eval-compare <run-1> <run-2> [<run-N>]\n```\n\n## Instructions\n\n### Precondition\n\nBefore doing anything else, verify that **`.zoto/eval-system/config.yml`** exists at the repository root. If it does not, abort with the exact message:\n\n> Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.\n\nDo not synthesize a default config and do not proceed.\n\n### Pre-collect (before Task)\n\nAfter parsing arguments, pass **each identifier through unchanged** into the Task prompt (including fragments like `20260503`).\n\n**Do not** call `askQuestion` to disambiguate run folders here — the comparer resolves or returns structured `needs_user_input`.\n\n### Spawn subagent\n\nSpawn a `zoto-eval-comparer` subagent that uses the `zoto-compare-evals` skill.\n\n### Ambiguous run resolution (**no askQuestion**, **no resume**)\n\nIf the subagent returns `needs_user_input` because one or more run arguments matched **multiple** directories under `{evalsDir}/_runs/`, output that structured block **verbatim** for the operator (YAML or JSON conforming to `templates/schema/needs-user-input.schema.json`). Explain that comparisons stay blocked until `/z-eval-compare` is re-run with **disambiguated** run basenames.\n\n**Do not** invoke `askQuestion` or `resume` for this outcome — `/z-eval-compare` lists candidates inline and stops.\n\n### What happens\n\n1. Resolve each argument to a **`report.yml`** inside `{evalsDir}/_runs/<ts>/`. Use sibling **`static.yml`** / **`llm.yml`** and `report.static` / `report.llm` summaries when flattening datasets.\n2. Flatten cases into rows with `run_id`, `model`, `case_id`, `status`, metrics, `log_path`.\n3. Read `templates/canvas/compare-prompt.md.tmpl` verbatim.\n4. Emit `{ \"tool\": \"/canvas\", \"instructions\": [...], \"dataset\": [...] }` and instruct the host agent to invoke `/canvas`.\n5. Drilldown: clicking a data point opens the matching `log_path`.\n\n## Related\n\n- `zoto-eval-comparer` agent — prepares the payload.\n- `zoto-compare-evals` skill — the documented workflow.\n- `/canvas` — Cursor's built-in canvas rendering tool.\n- `/z-eval-execute` — produces the runs compared here.\n"
-          }
-        ]
-      },
-      "expected_filesystem": {
-        "created": [
-          "workspace/_runs/",
-          "workspace/.zoto/eval-system/config.yml",
-          "workspace/.zoto/eval-system/manifest.yml",
-          "workspace/canvas",
-          "workspace/evalsDir/_runs/",
-          "workspace/llm.yml",
-          "workspace/report.yml",
-          "workspace/static.yml",
-          "workspace/templates/canvas/compare-prompt.md.tmpl",
-          "workspace/templates/schema/needs-user-input.schema.json",
-          "workspace/z-eval-compare",
-          "workspace/z-eval-execute",
-          "workspace/z-eval-init"
-        ],
-        "modified": [
-          "workspace/package.json"
-        ],
-        "unchanged": [
-          "documented invariant paths until explicit mutate"
-        ]
-      },
-      "expected_output": "askQuestion checkpoints completed once; generator task spawned with enumerated approvals.",
+      "prompt": "/z-eval-compare 20260503T152604Z 20260508T120101Z",
       "assertions": [
-        "Primitive 'z-eval-compare' followed documented sequencing for command targets",
-        "Hybrids respected: command-layer askQuestion only when declaring command ownership elsewhere",
-        "Referenced paths from the corpus were honoured without silent destructive overrides"
+        "When `.zoto/eval-system/config.yml` is absent at the repository root, the command surfaces exactly the documented Eval System initialisation message and stops before spawning `zoto-eval-comparer`.",
+        "No `askQuestion` call runs while handling this abort, because the flow never reaches ambiguous-run resolution."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "be917b53788948c6a6ac4ade9b18eed18fc399211536839495c54c1b115ebaae",
-        "primitive_analysis_hash": "8e257017961051f069784fa285865074f6bb62097c6b0d3f0aeaa9e2f29294f7",
-        "last_updated": "2026-05-11T04:53:02.167Z",
+        "source_hash": "659c6524b4f48bd6508ebca53685cffef9eb5f5a129dbffb932c897fde11cd68",
+        "last_updated": "2026-05-17T13:36:46.673Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "659c6524b4f48bd6508ebca53685cffef9eb5f5a129dbffb932c897fde11cd68",
-          "analysed_at": "2026-05-11T04:53:59.497Z",
+          "analysed_at": "2026-05-17T13:36:46.673Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on present `.zoto/eval-system/config.yml`, delegates through `zoto-eval-comparer` with `zoto-compare-evals`, refuses `askQuestion`/`resume` when run folders stay ambiguous, and otherwise flattens `report.yml` (plus backend rollups and log paths) into a `/canvas` hand-off that embeds `plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl` verbatim."
         }
-      }
+      },
+      "expected_output": "The operator sees only the prescribed initialisation warning that names `/z-eval-init`, with no comparer Task and no `/canvas` JSON block."
     },
     {
       "id": 2,
-      "prompt": "Operator omits checklist detail for z-eval-compare: require command-owned recovery.",
-      "fixtures": {
-        "files": [
-          {
-            "path": "workspace/plugins/zoto-eval-system/commands/z-eval-compare.md",
-            "content": "---\nname: z-eval-compare\ndescription: Cross-run analysis across two or more runs. When run fragments match multiple `_runs/` folders and the invocation is undifferentiated, the comparer returns `needs_user_input` enumerating candidates — surface that payload verbatim; **do not** run `askQuestion`. Emits flat dataset and /canvas hand-off once paths resolve.\n---\n\n# z-eval-compare\n\nCompare two or more eval runs by preparing a structured dataset and asking the host agent to render it via `/canvas`.\n\n## File layout / reads\n\nEach resolved run maps to `{evalsDir}/_runs/<ts>/`. The comparer consumes **`report.yml`** as the primary cross-run artefact (per-backend blocks **`report.static`** and **`report.llm`** summarise totals). **`static.yml`** and **`llm.yml`** remain available when case-level replay needs a specific backend slice. Drill-down targets `logs/<case>.log`.\n\n## Usage\n\n```\n/z-eval-compare <run-1> <run-2> [<run-N>]\n```\n\n## Instructions\n\n### Precondition\n\nBefore doing anything else, verify that **`.zoto/eval-system/config.yml`** exists at the repository root. If it does not, abort with the exact message:\n\n> Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.\n\nDo not synthesize a default config and do not proceed.\n\n### Pre-collect (before Task)\n\nAfter parsing arguments, pass **each identifier through unchanged** into the Task prompt (including fragments like `20260503`).\n\n**Do not** call `askQuestion` to disambiguate run folders here — the comparer resolves or returns structured `needs_user_input`.\n\n### Spawn subagent\n\nSpawn a `zoto-eval-comparer` subagent that uses the `zoto-compare-evals` skill.\n\n### Ambiguous run resolution (**no askQuestion**, **no resume**)\n\nIf the subagent returns `needs_user_input` because one or more run arguments matched **multiple** directories under `{evalsDir}/_runs/`, output that structured block **verbatim** for the operator (YAML or JSON conforming to `templates/schema/needs-user-input.schema.json`). Explain that comparisons stay blocked until `/z-eval-compare` is re-run with **disambiguated** run basenames.\n\n**Do not** invoke `askQuestion` or `resume` for this outcome — `/z-eval-compare` lists candidates inline and stops.\n\n### What happens\n\n1. Resolve each argument to a **`report.yml`** inside `{evalsDir}/_runs/<ts>/`. Use sibling **`static.yml`** / **`llm.yml`** and `report.static` / `report.llm` summaries when flattening datasets.\n2. Flatten cases into rows with `run_id`, `model`, `case_id`, `status`, metrics, `log_path`.\n3. Read `templates/canvas/compare-prompt.md.tmpl` verbatim.\n4. Emit `{ \"tool\": \"/canvas\", \"instructions\": [...], \"dataset\": [...] }` and instruct the host agent to invoke `/canvas`.\n5. Drilldown: clicking a data point opens the matching `log_path`.\n\n## Related\n\n- `zoto-eval-comparer` agent — prepares the payload.\n- `zoto-compare-evals` skill — the documented workflow.\n- `/canvas` — Cursor's built-in canvas rendering tool.\n- `/z-eval-execute` — produces the runs compared here.\n"
-          },
-          {
-            "path": "workspace/tmp/ambiguous-request.txt",
-            "content": "// thin context\n"
-          }
-        ]
-      },
-      "expected_filesystem": {
-        "created": [],
-        "modified": [
-          "workspace/package.json"
-        ],
-        "unchanged": [
-          "documented invariant paths until explicit mutate",
-          "workspace/plugins/zoto-eval-system/commands/z-eval-compare.md"
-        ]
-      },
-      "expected_output": "Deterministic escalation path without overwriting protected assets.",
+      "prompt": "/z-eval-compare 20260510 solo-clear-20260510T1200Z",
       "assertions": [
-        "Ambiguous prompts returned clarifying guidance or YAML needs_user_input without guessing filenames",
-        "No silent selection among mutually exclusive branching paths absent explicit approval tokens"
+        "After `/z-eval-compare`, the assistant prints the `needs_user_input` structure verbatim (YAML or JSON) and explains comparisons remain blocked until disambiguated folders are supplied.",
+        "The command does not call `askQuestion` and does not call `resume` while surfacing the ambiguous-run outcome.",
+        "No `/canvas` hand-off whose `tool` field equals `/canvas` appears while the ambiguity remains unresolved."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "be917b53788948c6a6ac4ade9b18eed18fc399211536839495c54c1b115ebaae",
-        "primitive_analysis_hash": "8e257017961051f069784fa285865074f6bb62097c6b0d3f0aeaa9e2f29294f7",
-        "last_updated": "2026-05-11T04:53:02.167Z",
+        "source_hash": "659c6524b4f48bd6508ebca53685cffef9eb5f5a129dbffb932c897fde11cd68",
+        "last_updated": "2026-05-17T13:36:46.673Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "659c6524b4f48bd6508ebca53685cffef9eb5f5a129dbffb932c897fde11cd68",
-          "analysed_at": "2026-05-11T04:53:59.497Z",
+          "analysed_at": "2026-05-17T13:36:46.673Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on present `.zoto/eval-system/config.yml`, delegates through `zoto-eval-comparer` with `zoto-compare-evals`, refuses `askQuestion`/`resume` when run folders stay ambiguous, and otherwise flattens `report.yml` (plus backend rollups and log paths) into a `/canvas` hand-off that embeds `plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl` verbatim.",
+          "fixture_justifications": [
+            "Provides the active eval layout pointer so the comparer can resolve `evals/_runs/…` beneath the sandbox workspace without synthesising defaults.",
+            "First of two distinct `_runs/` entries that share the `20260510` token so one compare argument stays multiply matched.",
+            "Second colliding `_runs/` directory so ambiguous resolution stays deterministic for the same short token.",
+            "Unambiguous third run folder so the command still parses two operands while only the first stays unclear."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: evals\n"
+          },
+          {
+            "path": "workspace/evals/_runs/pair-first-20260510T0900Z/report.yml",
+            "content": "schema_version: 1\nrun_id: pair-first-20260510T0900Z\nmodel: composer-2\nbackend: static\nstarted_at: 2026-05-10T09:00:00.000Z\nended_at: 2026-05-10T09:01:00.000Z\ntotals:\n  cases: 0\n  passed: 0\n  failed: 0\n  skipped: 0\ncases: []\n"
+          },
+          {
+            "path": "workspace/evals/_runs/pair-second-20260510T0905Z/report.yml",
+            "content": "schema_version: 1\nrun_id: pair-second-20260510T0905Z\nmodel: composer-2\nbackend: static\nstarted_at: 2026-05-10T09:05:00.000Z\nended_at: 2026-05-10T09:06:00.000Z\ntotals:\n  cases: 0\n  passed: 0\n  failed: 0\n  skipped: 0\ncases: []\n"
+          },
+          {
+            "path": "workspace/evals/_runs/solo-clear-20260510T1200Z/report.yml",
+            "content": "schema_version: 1\nrun_id: solo-clear-20260510T1200Z\nmodel: composer-2\nbackend: static\nstarted_at: 2026-05-10T12:00:00.000Z\nended_at: 2026-05-10T12:01:00.000Z\ntotals:\n  cases: 0\n  passed: 0\n  failed: 0\n  skipped: 0\ncases: []\n"
+          }
+        ]
+      },
+      "expected_output": "The visible transcript repeats the structured `needs_user_input` payload without paraphrase, names the colliding run directories, and instructs the operator to rerun with clearer basenames instead of producing `/canvas` output."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "/z-eval-compare 20260503 20260508T120101Z",
+      "assertions": [
+        "After `/z-eval-compare`, a `zoto-eval-comparer` subagent is spawned with the `zoto-compare-evals` skill before any cross-run flattening happens.",
+        "The comparer task carries the first run argument as the literal token `20260503` without rewriting it into a longer directory name before the subagent executes.",
+        "No `askQuestion` call disambiguates `_runs/` folders during pre-collect; resolution happens inside the comparer workflow or succeeds outright.",
+        "Each resolved run contributes a `report.yml` path under `evals/_runs/`, and flattened rows expose `run_id`, `model`, `case_id`, `status`, metric fields when present, and `log_path` values that target `logs/<case>.log` when logs exist.",
+        "The emitted JSON includes `\"tool\":\"/canvas\"`, a non-empty `instructions` array whose joined text matches `plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl` byte-for-byte, and a `dataset` array with one entry per flattened case row.",
+        "The closing guidance tells the host agent to invoke `/canvas` so the operator can open log drilldowns from each row’s `log_path`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "659c6524b4f48bd6508ebca53685cffef9eb5f5a129dbffb932c897fde11cd68",
+        "last_updated": "2026-05-17T13:36:46.673Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "659c6524b4f48bd6508ebca53685cffef9eb5f5a129dbffb932c897fde11cd68",
+          "analysed_at": "2026-05-17T13:36:46.673Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The command gates on present `.zoto/eval-system/config.yml`, delegates through `zoto-eval-comparer` with `zoto-compare-evals`, refuses `askQuestion`/`resume` when run folders stay ambiguous, and otherwise flattens `report.yml` (plus backend rollups and log paths) into a `/canvas` hand-off that embeds `plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl` verbatim."
         }
-      }
+      },
+      "expected_output": "The operator receives JSON describing `/canvas` with instruction text pulled exactly from the compare canvas template and a flattened dataset that merges rows from both resolved runs."
+    },
+    {
+      "id": 4,
+      "prompt": "/z-eval-compare rollup-a-20260512-morning rollup-b-20260512-evening",
+      "assertions": [
+        "After `/z-eval-compare`, the flattened `dataset` entries include rollup fields sourced from each file’s `report.static` and `report.llm` sections alongside per-case metrics.",
+        "LLM rollup aggregates such as `verdict_confidence` surface in the flattened metrics without dropping the static totals from the same `report.yml`.",
+        "Each dataset row that mirrors `cross-backend-row-a` or `cross-backend-row-b` includes a `log_path` that points beneath the originating run’s `logs/` directory for drilldown."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "659c6524b4f48bd6508ebca53685cffef9eb5f5a129dbffb932c897fde11cd68",
+        "last_updated": "2026-05-17T13:36:46.673Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "659c6524b4f48bd6508ebca53685cffef9eb5f5a129dbffb932c897fde11cd68",
+          "analysed_at": "2026-05-17T13:36:46.673Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command gates on present `.zoto/eval-system/config.yml`, delegates through `zoto-eval-comparer` with `zoto-compare-evals`, refuses `askQuestion`/`resume` when run folders stay ambiguous, and otherwise flattens `report.yml` (plus backend rollups and log paths) into a `/canvas` hand-off that embeds `plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl` verbatim.",
+          "fixture_justifications": [
+            "Binds the sandbox workspace to the `evals` directory used by the synthetic `_runs/` trees.",
+            "Supplies the first run with nested static and LLM rollup blocks plus a cased row that references a concrete `log_path`.",
+            "Supplies the second run so the flattened dataset must keep non-overlapping `run_id` values while merging backend rollups."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: evals\n"
+          },
+          {
+            "path": "workspace/evals/_runs/rollup-a-20260512-morning/report.yml",
+            "content": "schema_version: 1\nrun_id: rollup-a-20260512-morning\nmodel: composer-2\nstarted_at: 2026-05-12T08:00:00.000Z\nended_at: 2026-05-12T08:10:00.000Z\nreport:\n  static:\n    totals:\n      passed: 2\n      failed: 0\n  llm:\n    totals:\n      passed: 1\n      failed: 0\n    aggregates:\n      verdict_confidence: 0.91\ncases:\n  - id: cross-backend-row-a\n    status: passed\n    metrics:\n      duration_ms: 950\n    log_path: logs/cross-backend-row-a.log\n"
+          },
+          {
+            "path": "workspace/evals/_runs/rollup-b-20260512-evening/report.yml",
+            "content": "schema_version: 1\nrun_id: rollup-b-20260512-evening\nmodel: composer-2\nstarted_at: 2026-05-12T20:00:00.000Z\nended_at: 2026-05-12T20:10:00.000Z\nreport:\n  static:\n    totals:\n      passed: 1\n      failed: 1\n  llm:\n    totals:\n      passed: 2\n      failed: 0\n    aggregates:\n      verdict_confidence: 0.74\ncases:\n  - id: cross-backend-row-b\n    status: failed\n    metrics:\n      duration_ms: 1400\n    log_path: logs/cross-backend-row-b.log\n"
+          }
+        ]
+      },
+      "expected_output": "The `/canvas` dataset rows reflect both static and LLM rollup totals drawn from each synthetic `report.yml`, preserving distinct `run_id` values for the morning and evening folders."
     }
   ],
   "command_name": "z-eval-compare"

@@ -13,11 +13,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-        "last_updated": "2026-05-16T13:28:58.872Z",
+        "last_updated": "2026-05-17T13:36:46.910Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-          "analysed_at": "2026-05-16T13:28:58.872Z",
+          "analysed_at": "2026-05-17T13:36:46.910Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The updater agent must keep generated eval rows aligned with primitives via zoto-update-evals, honour check and apply semantics, cached analyser behaviour in CI, strict generated-case and generated-file guards, and manifest history contracts without emitting askQuestion itself."
         }
@@ -34,11 +34,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-        "last_updated": "2026-05-16T13:28:58.872Z",
+        "last_updated": "2026-05-17T13:36:46.910Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-          "analysed_at": "2026-05-16T13:28:58.872Z",
+          "analysed_at": "2026-05-17T13:36:46.910Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The updater agent must keep generated eval rows aligned with primitives via zoto-update-evals, honour check and apply semantics, cached analyser behaviour in CI, strict generated-case and generated-file guards, and manifest history contracts without emitting askQuestion itself."
         }
@@ -61,11 +61,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-        "last_updated": "2026-05-16T13:28:58.872Z",
+        "last_updated": "2026-05-17T13:36:46.910Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-          "analysed_at": "2026-05-16T13:28:58.872Z",
+          "analysed_at": "2026-05-17T13:36:46.910Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The updater agent must keep generated eval rows aligned with primitives via zoto-update-evals, honour check and apply semantics, cached analyser behaviour in CI, strict generated-case and generated-file guards, and manifest history contracts without emitting askQuestion itself."
         }
@@ -82,11 +82,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-        "last_updated": "2026-05-16T13:28:58.872Z",
+        "last_updated": "2026-05-17T13:36:46.910Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-          "analysed_at": "2026-05-16T13:28:58.872Z",
+          "analysed_at": "2026-05-17T13:36:46.910Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The updater agent must keep generated eval rows aligned with primitives via zoto-update-evals, honour check and apply semantics, cached analyser behaviour in CI, strict generated-case and generated-file guards, and manifest history contracts without emitting askQuestion itself."
         }
@@ -104,11 +104,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-        "last_updated": "2026-05-16T13:28:58.872Z",
+        "last_updated": "2026-05-17T13:36:46.910Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-          "analysed_at": "2026-05-16T13:28:58.872Z",
+          "analysed_at": "2026-05-17T13:36:46.910Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The updater agent must keep generated eval rows aligned with primitives via zoto-update-evals, honour check and apply semantics, cached analyser behaviour in CI, strict generated-case and generated-file guards, and manifest history contracts without emitting askQuestion itself."
         }
@@ -124,11 +124,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-        "last_updated": "2026-05-16T13:28:58.872Z",
+        "last_updated": "2026-05-17T13:36:46.910Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-          "analysed_at": "2026-05-16T13:28:58.872Z",
+          "analysed_at": "2026-05-17T13:36:46.910Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The updater agent must keep generated eval rows aligned with primitives via zoto-update-evals, honour check and apply semantics, cached analyser behaviour in CI, strict generated-case and generated-file guards, and manifest history contracts without emitting askQuestion itself."
         }
@@ -144,11 +144,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-        "last_updated": "2026-05-16T13:28:58.872Z",
+        "last_updated": "2026-05-17T13:36:46.910Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-          "analysed_at": "2026-05-16T13:28:58.872Z",
+          "analysed_at": "2026-05-17T13:36:46.910Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The updater agent must keep generated eval rows aligned with primitives via zoto-update-evals, honour check and apply semantics, cached analyser behaviour in CI, strict generated-case and generated-file guards, and manifest history contracts without emitting askQuestion itself."
         }
@@ -164,11 +164,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-        "last_updated": "2026-05-16T13:28:58.872Z",
+        "last_updated": "2026-05-17T13:36:46.910Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-          "analysed_at": "2026-05-16T13:28:58.872Z",
+          "analysed_at": "2026-05-17T13:36:46.910Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The updater agent must keep generated eval rows aligned with primitives via zoto-update-evals, honour check and apply semantics, cached analyser behaviour in CI, strict generated-case and generated-file guards, and manifest history contracts without emitting askQuestion itself."
         }
@@ -184,11 +184,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-        "last_updated": "2026-05-16T13:28:58.872Z",
+        "last_updated": "2026-05-17T13:36:46.910Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-          "analysed_at": "2026-05-16T13:28:58.872Z",
+          "analysed_at": "2026-05-17T13:36:46.910Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The updater agent must keep generated eval rows aligned with primitives via zoto-update-evals, honour check and apply semantics, cached analyser behaviour in CI, strict generated-case and generated-file guards, and manifest history contracts without emitting askQuestion itself."
         }
@@ -204,11 +204,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-        "last_updated": "2026-05-16T13:28:58.872Z",
+        "last_updated": "2026-05-17T13:36:46.910Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "9380410be50fe041e7a2bee12c2fdc129e7d4994a6ece70476c61de74ddc8a2b",
-          "analysed_at": "2026-05-16T13:28:58.872Z",
+          "analysed_at": "2026-05-17T13:36:46.910Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The updater agent must keep generated eval rows aligned with primitives via zoto-update-evals, honour check and apply semantics, cached analyser behaviour in CI, strict generated-case and generated-file guards, and manifest history contracts without emitting askQuestion itself."
         }

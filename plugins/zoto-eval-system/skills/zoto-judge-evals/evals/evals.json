@@ -52,11 +52,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-        "last_updated": "2026-05-08T11:45:37.014Z",
+        "last_updated": "2026-05-17T13:36:46.603Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-          "analysed_at": "2026-05-08T11:45:37.014Z",
+          "analysed_at": "2026-05-17T13:36:46.603Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases exercise post-hoc scan of the freshest `_runs` bundle, sceptical grading heuristics, append-only enrichment of `llm.yml`, explicit failure when nothing is runnable yet, and updater handoffs expressed only as YAML `needs_user_input` rather than interactive prompts from this skill."
         }
@@ -74,11 +74,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-        "last_updated": "2026-05-08T11:45:37.014Z",
+        "last_updated": "2026-05-17T13:36:46.603Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-          "analysed_at": "2026-05-08T11:45:37.014Z",
+          "analysed_at": "2026-05-17T13:36:46.603Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases exercise post-hoc scan of the freshest `_runs` bundle, sceptical grading heuristics, append-only enrichment of `llm.yml`, explicit failure when nothing is runnable yet, and updater handoffs expressed only as YAML `needs_user_input` rather than interactive prompts from this skill.",
           "fixture_justifications": [
@@ -108,24 +108,24 @@
         "The agent records at least one `findings` row whose `dimension` equals assertion when eval assertions lack matching grader corroboration for the same case.",
         "The agent records a `findings` row whose `dimension` equals grader when a contains grader depends on fewer than four characters of evidence.",
         "The agent records `findings` tied to verbosity above 2.0, confidence under 0.4, and accuracy under 0.5 when those thresholds appear for any case.",
-        "When brittle contains graders are flagged the subsequent `recommendations` cite `matched_token` or `kind: contains` risk explicitly and steer operators toward regex matchers or llm-backed judges rather than generic assertion tweaks alone.",
+        "When brittle contains graders are flagged the subsequent `recommendations` steer operators toward richer scorer stacks such as regex matchers or llm-backed judges consistent with the skill playbook.",
         "When durations are interpretable versus the suite mean, anomalies beyond two sigma are surfaced as severity warn or flag instead of silently passing.",
         "The resulting `llm.yml` retains the preceding `totals` and `aggregates` verbatim while nesting the appended `judge` content afterward."
       ],
       "_meta": {
         "generated": true,
         "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-        "last_updated": "2026-05-08T11:45:37.014Z",
+        "last_updated": "2026-05-17T13:36:46.603Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-          "analysed_at": "2026-05-08T11:45:37.014Z",
+          "analysed_at": "2026-05-17T13:36:46.603Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases exercise post-hoc scan of the freshest `_runs` bundle, sceptical grading heuristics, append-only enrichment of `llm.yml`, explicit failure when nothing is runnable yet, and updater handoffs expressed only as YAML `needs_user_input` rather than interactive prompts from this skill.",
           "fixture_justifications": [
             "Provides the configuration file cited by the skill so `evalsDir` resolves to `evals`.",
             "Offers static backend totals the skill merges with llm-derived signals.",
-            "Seeds contradictory assertion coverage versus grader transcripts plus risky soft metrics and several sub-four-character contains graders for heuristic review.",
+            "Seeds contradictory assertion coverage versus grader transcripts plus risky soft metrics and a two-letter contains match for heuristic review.",
             "Supplies merged rollup YAML the workflow reads alongside per-backend files.",
             "Captures runnable log evidence the skill cross-checks against structured metrics."
           ]
@@ -143,7 +143,7 @@
           },
           {
             "path": "workspace/evals/_runs/20260201T090000Z/llm.yml",
-            "content": "totals:\n  cases: 2\naggregates:\n  mean_duration_ms: 1200\n  stddev_duration_ms: 95\n\ncases:\n  noisy-case:\n    verbosity: 2.9\n    confidence: 0.35\n    accuracy: 0.45\n    duration_ms: 5200\n  brittle-case:\n    graders:\n      - kind: contains\n        matched_token: \"f0\"\n      - kind: contains\n        matched_token: \"1x\"\n      - kind: contains\n        matched_token: \"z\"\n    duration_ms: 1185\nassertions_checked:\n  noisy-case:\n    - id: parity\n      satisfied: false\n"
+            "content": "totals:\n  cases: 2\naggregates:\n  mean_duration_ms: 1200\n  stddev_duration_ms: 95\n\ncases:\n  noisy-case:\n    verbosity: 2.9\n    confidence: 0.35\n    accuracy: 0.45\n    duration_ms: 5200\n  brittle-case:\n    graders:\n      - kind: contains\n        matched_token: \"ai\"\n    duration_ms: 1185\nassertions_checked:\n  noisy-case:\n    - id: parity\n      satisfied: false\n"
           },
           {
             "path": "workspace/evals/_runs/20260201T090000Z/report.yml",
@@ -169,11 +169,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-        "last_updated": "2026-05-08T11:45:37.014Z",
+        "last_updated": "2026-05-17T13:36:46.603Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-          "analysed_at": "2026-05-08T11:45:37.014Z",
+          "analysed_at": "2026-05-17T13:36:46.603Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases exercise post-hoc scan of the freshest `_runs` bundle, sceptical grading heuristics, append-only enrichment of `llm.yml`, explicit failure when nothing is runnable yet, and updater handoffs expressed only as YAML `needs_user_input` rather than interactive prompts from this skill."
         }
@@ -191,11 +191,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-        "last_updated": "2026-05-08T11:45:37.014Z",
+        "last_updated": "2026-05-17T13:36:46.603Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "435cf8673b5e3cadfd635c1d8b84406955f45a561d9b401b8c966475ab84ba2d",
-          "analysed_at": "2026-05-08T11:45:37.014Z",
+          "analysed_at": "2026-05-17T13:36:46.603Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases exercise post-hoc scan of the freshest `_runs` bundle, sceptical grading heuristics, append-only enrichment of `llm.yml`, explicit failure when nothing is runnable yet, and updater handoffs expressed only as YAML `needs_user_input` rather than interactive prompts from this skill."
         }

@@ -53,11 +53,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-        "last_updated": "2026-05-08T11:45:37.011Z",
+        "last_updated": "2026-05-17T13:36:46.582Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-          "analysed_at": "2026-05-08T11:45:37.011Z",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched."
         }
@@ -77,11 +77,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-        "last_updated": "2026-05-08T11:45:37.011Z",
+        "last_updated": "2026-05-17T13:36:46.582Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-          "analysed_at": "2026-05-08T11:45:37.011Z",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched."
         }
@@ -99,11 +99,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-        "last_updated": "2026-05-08T11:45:37.011Z",
+        "last_updated": "2026-05-17T13:36:46.582Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-          "analysed_at": "2026-05-08T11:45:37.011Z",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched."
         }
@@ -121,11 +121,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-        "last_updated": "2026-05-08T11:45:37.011Z",
+        "last_updated": "2026-05-17T13:36:46.582Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-          "analysed_at": "2026-05-08T11:45:37.011Z",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched."
         }
@@ -143,11 +143,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-        "last_updated": "2026-05-08T11:45:37.011Z",
+        "last_updated": "2026-05-17T13:36:46.582Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-          "analysed_at": "2026-05-08T11:45:37.011Z",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched.",
           "fixture_justifications": [
@@ -176,11 +176,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-        "last_updated": "2026-05-08T11:45:37.011Z",
+        "last_updated": "2026-05-17T13:36:46.582Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-          "analysed_at": "2026-05-08T11:45:37.011Z",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched.",
           "fixture_justifications": [
@@ -210,11 +210,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-        "last_updated": "2026-05-08T11:45:37.011Z",
+        "last_updated": "2026-05-17T13:36:46.582Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
-          "analysed_at": "2026-05-08T11:45:37.011Z",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched."
         }

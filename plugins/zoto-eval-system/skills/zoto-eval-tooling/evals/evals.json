@@ -12,11 +12,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-        "last_updated": "2026-05-16T13:28:58.369Z",
+        "last_updated": "2026-05-17T13:36:46.572Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-          "analysed_at": "2026-05-16T13:28:58.369Z",
+          "analysed_at": "2026-05-17T13:36:46.572Z",
           "analyser_version": "2026.05.03-1",
           "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
@@ -37,11 +37,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-        "last_updated": "2026-05-16T13:28:58.369Z",
+        "last_updated": "2026-05-17T13:36:46.572Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-          "analysed_at": "2026-05-16T13:28:58.369Z",
+          "analysed_at": "2026-05-17T13:36:46.572Z",
           "analyser_version": "2026.05.03-1",
           "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
@@ -61,11 +61,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-        "last_updated": "2026-05-16T13:28:58.369Z",
+        "last_updated": "2026-05-17T13:36:46.572Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-          "analysed_at": "2026-05-16T13:28:58.369Z",
+          "analysed_at": "2026-05-17T13:36:46.572Z",
           "analyser_version": "2026.05.03-1",
           "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
@@ -83,11 +83,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-        "last_updated": "2026-05-16T13:28:58.370Z",
+        "last_updated": "2026-05-17T13:36:46.572Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-          "analysed_at": "2026-05-16T13:28:58.370Z",
+          "analysed_at": "2026-05-17T13:36:46.572Z",
           "analyser_version": "2026.05.03-1",
           "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
@@ -106,11 +106,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-        "last_updated": "2026-05-16T13:28:58.370Z",
+        "last_updated": "2026-05-17T13:36:46.572Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-          "analysed_at": "2026-05-16T13:28:58.370Z",
+          "analysed_at": "2026-05-17T13:36:46.572Z",
           "analyser_version": "2026.05.03-1",
           "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
@@ -129,11 +129,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-        "last_updated": "2026-05-16T13:28:58.370Z",
+        "last_updated": "2026-05-17T13:36:46.572Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-          "analysed_at": "2026-05-16T13:28:58.370Z",
+          "analysed_at": "2026-05-17T13:36:46.572Z",
           "analyser_version": "2026.05.03-1",
           "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
@@ -151,11 +151,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-        "last_updated": "2026-05-16T13:28:58.370Z",
+        "last_updated": "2026-05-17T13:36:46.572Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-          "analysed_at": "2026-05-16T13:28:58.370Z",
+          "analysed_at": "2026-05-17T13:36:46.572Z",
           "analyser_version": "2026.05.03-1",
           "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
@@ -176,11 +176,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-        "last_updated": "2026-05-16T13:28:58.370Z",
+        "last_updated": "2026-05-17T13:36:46.572Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "68fa935f22d8bc69889eb353ca2c464e4778fd5bb1e4e374806d657748c642e1",
-          "analysed_at": "2026-05-16T13:28:58.370Z",
+          "analysed_at": "2026-05-17T13:36:46.572Z",
           "analyser_version": "2026.05.03-1",
           "summary": "These cases exercise every documented `pnpm run eval:*` alias plus the skill’s invocation rules: manifest discovery, analyser cache and schema contracts, allowlisted stamping for this skill, cleanup-stale dry-run versus CI check versus guarded apply, update drift handling, full orchestration artefacts, garbage collection, and how to avoid ad-hoc script entrypoints."
         }
