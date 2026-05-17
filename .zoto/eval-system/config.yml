@@ -39,12 +39,12 @@ llm:
   # runtime: tsx
   strategy: code             # default: declarative
   codeFramework: vitest
-  # model:
-  #   id: composer-2
+  model:
+    id: composer-2
 
 
 # ────────────────────────────────  judge  ────────────────────────────────────
-# judgeModel: opus-4.6
+judgeModel: opus-4.6
 
 
 # ────────────────────────────  manual checklists  ────────────────────────────
