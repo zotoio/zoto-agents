@@ -189,7 +189,7 @@ Matching **`<!-- status:checklist:start -->`** region in `.status.md` shows `[x]
 
 **4. Completion tick** — Same helper with `--state completed` after all checklist rows have `done: true` (and `evidence_path` populated where required).
 
-**5. Aggregator render** — On mtime change under `status/*.status.yml`, the watcher recomputes digest and rewrites spec-root **`status.yml`** with `aggregate_state`, `subtasks[]`, `events[]` (for example `kind: "rebuild"`).
+**5. Aggregator render** — On each poll the watcher rereads `status/*.status.yml`, recomputes a content-aware digest, and rewrites spec-root **`status.yml`** with `aggregate_state`, `subtasks[]`, `events[]` (for example `kind: "rebuild"`) whenever that digest changes.
 
 **Fragment (`status.yml` excerpt)**
 

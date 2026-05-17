@@ -63,7 +63,9 @@ Use this skill when a spec exists under `{specsDir}/` with status **Ready for Re
 
 ### Step 2: Confirm Execution
 
-Present the manifest as the execution summary and wait for user approval. Use `unitOfWork` from config where it fits the repository's vocabulary (e.g. describing the spec or scope):
+Present the manifest as the execution summary, then use the **`askQuestion`** tool to get structured user approval. Use `unitOfWork` from config where it fits the repository's vocabulary (e.g. describing the spec or scope).
+
+First, display the summary in your response text:
 
 ```
 ## Execution Summary
@@ -80,9 +82,24 @@ Present the manifest as the execution summary and wait for user approval. Use `u
 | 02 | subtask-02-...-yyyymmdd.md | generalPurpose | — | 1 |
 | 03 | subtask-03-...-yyyymmdd.md | generalPurpose | 01, 02 | 2 |
 | 04 | subtask-04-...-yyyymmdd.md | generalPurpose | 03 | 3 |
-
-Proceed with execution? [Yes / No]
 ```
+
+Then call `askQuestion` with:
+```json
+{
+  "title": "Spec Execution Confirmation",
+  "questions": [{
+    "id": "confirm_execution",
+    "prompt": "Proceed with execution of [N] subtasks across [M] phases?",
+    "options": [
+      { "id": "yes", "label": "Yes — begin execution" },
+      { "id": "no", "label": "No — cancel" }
+    ]
+  }]
+}
+```
+
+**CRITICAL**: Always use `askQuestion` for user gates — never plain-text `[Yes / No]` prompts.
 
 ### Step 2b: Record Start Time
 
@@ -99,7 +116,13 @@ For each phase in order:
    - The full subtask file content (read from the File column path)
    - Any relevant context from the spec index (key decisions, requirements)
    - Status file pair (paths from the prompt prefix from subtask 04). Subagent must own these per the Status File Ownership section.
-   - **Checklist tracking instructions**: As the agent works, it MUST update the subtask file in place:
+   - **TodoWrite instructions (mandatory)**: On spawn, the agent MUST immediately use `TodoWrite` to create a structured todo list from the subtask's Deliverables Checklist and Definition of Done:
+     - One todo per Deliverables Checklist item (ids: `D01`, `D02`, ...)
+     - One todo per Definition of Done item (ids: `DoD01`, `DoD02`, ...)
+     - Set first actionable item to `in_progress`, others to `pending`
+     - Mark each `completed` as work progresses; advance next to `in_progress`
+     - This provides real-time progress visibility alongside the durable status.yml tracking
+   - **Checklist tracking instructions**: As the agent works, it MUST also update the subtask file in place:
      - Tick each **Deliverables Checklist** item (`- [ ]` → `- [x]`) immediately after completing that deliverable
      - Tick each **Definition of Done** item (`- [ ]` → `- [x]`) as the corresponding quality gate is satisfied (e.g. code implemented, tests added, no linter errors)
      - Both sections must be fully checked before the agent reports completion
@@ -123,7 +146,7 @@ Every spawned subagent owns its `.status.yml` + `.status.md` pair. The executor 
 
 The executor backgrounds **`spec-aggregator --watch`** (see `plugins/zoto-spec-system/docs/aggregator.md`) for the spec directory. That process is the **only** writer of the spec-root **`status.md`** + **`status.yml`** — started by the executor, tracked by PID, stopped with **SIGINT**/SIGTERM on cancellation.
 
-- **Digest-based skip**: the aggregator recomputes a digest from subtask source mtimes plus the live-reloadable config subset; if unchanged, it **does not rewrite** the spec-root files (no useless churn).
+- **Digest-based skip**: the aggregator recomputes a digest from each subtask `status/*.status.yml` and the spec index contents (UTF-8 SHA-256 per file, sorted by path) plus the live-reloadable config subset; if unchanged, it **does not rewrite** the spec-root files (no useless churn).
 - **CLI modes** (all through `tsx scripts/spec-aggregator.ts` with `--repo-root`):
   - **`--watch`** — default during execution: poll + reload config each iteration.
   - **`--once`** — one-shot rebuild for dashboards or `--resume` flows.
@@ -144,20 +167,21 @@ After each subtask's assigned agent completes, spawn a **fresh `zoto-spec-judge`
 
 For each completed subtask, the adversarial verifier must:
 
-1. **Read the subtask file** — both the **Deliverables Checklist** and the **Definition of Done** (read-only)
-2. **Read the paired `.status.yml`** for the live execution record. **Live truth during execution is the `.status.yml`**; the subtask markdown file remains the long-form brief.
-3. **Inspect every deliverable**: For each Deliverables Checklist item, verify the deliverable actually exists and is correct; **cross-check** each `checklist[].done: true` row in `.status.yml` against real filesystem and git state — if yml claims done but evidence is missing, treat that as a failure to verify.
+1. **Create a TodoWrite checklist** from the subtask's Deliverables Checklist and Definition of Done items (ids: `verify-D01`, `verify-D02`, ..., `verify-DoD01`, ...). Mark each `in_progress` as it is being verified, then `completed` when confirmed or note the gap.
+2. **Read the subtask file** — both the **Deliverables Checklist** and the **Definition of Done** (read-only)
+3. **Read the paired `.status.yml`** for the live execution record. **Live truth during execution is the `.status.yml`**; the subtask markdown file remains the long-form brief.
+4. **Inspect every deliverable**: For each Deliverables Checklist item, verify the deliverable actually exists and is correct; **cross-check** each `checklist[].done: true` row in `.status.yml` against real filesystem and git state — if yml claims done but evidence is missing, treat that as a failure to verify.
    - Files listed as created → verify they exist and have expected content
    - Code changes → verify they build or typecheck as appropriate for the project; **check for linter errors on modified files**
    - Tests added → verify test files exist and are syntactically valid
    - Config changes → verify structured config is valid and references resolve
-4. **Inspect every Definition of Done item**: For each quality gate, verify it is genuinely satisfied:
+5. **Inspect every Definition of Done item**: For each quality gate, verify it is genuinely satisfied:
    - "Code implemented" → confirm the code exists and is functional
    - "Tests added" → confirm tests exist and cover the stated functionality
    - "No linter errors" → run linter checks on modified files and confirm clean
    - Any other DoD items → verify against the actual project state
-5. **Reconcile checklist state inside the status pair only** (never the subtask spec markdown, never the spec index): tick `checklist[].done = true` for items confirmed against disk, untick `checklist[].done = false` for items the executing agent claimed but the verifier cannot confirm. Re-render the paired `.status.md` via the round-trip helper. Use the `heartbeat` subcommand for tick reconciliation; for `extra.judge` use a validated YAML merge followed by `md-from-yml`.
-6. **Write verdict and structured `fix_list` into `extra.judge` of the same `.status.yml`**:
+6. **Reconcile checklist state inside the status pair only** (never the subtask spec markdown, never the spec index): tick `checklist[].done = true` for items confirmed against disk, untick `checklist[].done = false` for items the executing agent claimed but the verifier cannot confirm. Re-render the paired `.status.md` via the round-trip helper. Use the `heartbeat` subcommand for tick reconciliation; for `extra.judge` use a validated YAML merge followed by `md-from-yml`.
+7. **Write verdict and structured `fix_list` into `extra.judge` of the same `.status.yml`**:
 
    ```yaml
    extra:
@@ -173,7 +197,7 @@ For each completed subtask, the adversarial verifier must:
    ```
 
    Re-render `.status.md` via `spec-status-roundtrip md-from-yml`. The judge MUST NOT modify any file the `fix_list` points at — that is the assigned subagent's territory.
-7. **Report verdict**: Return one of:
+8. **Report verdict**: Return one of:
    - **Verified** — all Deliverables Checklist AND Definition of Done items confirmed; `fix_list` empty
    - **Partial** — some items incomplete (populate `fix_list`; list which from both sections)
    - **Failed** — critical deliverables missing or DoD items unsatisfied (populate `fix_list` with at least one `severity: blocker`)
@@ -183,8 +207,23 @@ For each completed subtask, the adversarial verifier must:
 After adversarial verification, the **executor** (not the judge) reconciles the spec index and routes any required fixes:
 
 - **Verified** → set the index manifest Status column to `Done`. Continue to the next phase.
-- **Partial** → set Status to `Partial`. Report the structured `fix_list` to the user. Ask: re-spawn the assigned subagent to address the fix-list (preferred), accept-as-is and continue, or abort. **The executor MUST NOT edit deliverables itself.**
-- **Failed** → set Status to `Failed`, stop dependent subtasks, and report the `fix_list` to the user with the same three options. Default to re-spawning the originally-assigned subagent.
+- **Partial** → set Status to `Partial`. Report the structured `fix_list` to the user. Use **`askQuestion`** to present the three-way choice:
+  ```json
+  {
+    "title": "Subtask [ID] — Partial Verdict",
+    "questions": [{
+      "id": "partial_action",
+      "prompt": "[Summary of fix_list gaps]. How should we proceed?",
+      "options": [
+        { "id": "respawn", "label": "Re-spawn assigned subagent to address fix-list (recommended)" },
+        { "id": "accept", "label": "Accept as-is and continue" },
+        { "id": "abort", "label": "Abort execution" }
+      ]
+    }]
+  }
+  ```
+  **The executor MUST NOT edit deliverables itself.**
+- **Failed** → set Status to `Failed`, stop dependent subtasks. Use **`askQuestion`** with the same three options (default to re-spawning the originally-assigned subagent).
 
 When re-spawning the originally-assigned subagent to address a `fix_list`:
 
@@ -199,7 +238,7 @@ When re-spawning the originally-assigned subagent to address a `fix_list`:
 
 After all phases complete and all subtasks have been adversarially verified:
 
-1. **Confirm all subtasks are `Done`**: Every row in the manifest must have status `Done`. If any are `Partial` or `Failed`, report and ask the user before proceeding
+1. **Confirm all subtasks are `Done`**: Every row in the manifest must have status `Done`. If any are `Partial` or `Failed`, use **`askQuestion`** to present the situation and ask how to proceed before continuing
 2. **Verify and tick spec-level Definition of Done**: Read the spec index's `## Definition of Done` section. For each item, verify it against the actual project state (grep for keywords, check file existence, inspect deliverables, etc.). Tick each confirmed checkbox (`- [ ]` → `- [x]`) in the spec index. The aggregator mirrors these checkboxes into `definition_of_done_status` in the spec-root `status.yml` — unticked items will be flagged as critical by the onStop consistency check. **Do not skip this step** — it is the only mechanism that populates the spec-root DoD status.
 3. **Run tests**: Run the **project's test suite** (use the repository's standard test command, or what the spec index documents). Prefer a `shell` subagent if your environment routes heavy commands that way
 4. **Linter**: **Check for linter errors on modified files** (all files touched during execution)
@@ -212,7 +251,7 @@ After all phases complete and all subtasks have been adversarially verified:
 Before writing the execution report, every spec-execute and review agent runs a final consistency sweep over the live status pairs and config files. The check is a hard gate — if it exits non-zero, the executor must address the critical inconsistencies before declaring completion.
 
 ```
-pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --repo-root <repoRoot>
+pnpm exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --repo-root <repoRoot>
 ```
 
 What it does:
@@ -303,14 +342,20 @@ Before writing the report, capture the end timestamp by running `date -u '+%Y-%m
 
 ### Step 7: Final Review
 
-Present the execution report to the user for approval:
+Present the execution report summary in your response text, then use **`askQuestion`** for structured approval:
 
-```
-Execution report written to: {specsDir}/[directory]/execution-report-[feature-name]-[yyyymmdd].md
-
-All [N] subtasks verified. Tests: PASS. Linter: CLEAN.
-
-Approve and mark spec as Completed? [Yes / No]
+```json
+{
+  "title": "Spec Execution Complete",
+  "questions": [{
+    "id": "approve_completion",
+    "prompt": "Execution report written to {specsDir}/[directory]/execution-report-[feature-name]-[yyyymmdd].md. All [N] subtasks verified. Tests: [status]. Linter: [status]. Approve and mark spec as Completed?",
+    "options": [
+      { "id": "approve", "label": "Approve — mark spec as Completed" },
+      { "id": "reject", "label": "Reject — review issues before completing" }
+    ]
+  }]
+}
 ```
 
 Replace `{specsDir}` with the configured value (e.g. `specs`).
@@ -339,7 +384,7 @@ After user approval:
 ### Error Handling
 
 - If a subtask fails, update its status in the index and report to the user
-- Ask the user how to proceed: retry, skip, or abort the spec
+- Use **`askQuestion`** to present structured options: retry, skip, or abort the spec
 - Never silently skip a failed subtask
 
 ### Progress Updates
@@ -368,7 +413,8 @@ If execution is interrupted (e.g. session ends):
 - Do not modify code files directly — only subagents modify code. **This applies even when the modification looks small or "mechanical"** — a one-line typo fix from a judge fix-list still routes through a re-spawn of the originally-assigned subagent. Single-owner provenance per deliverable is non-negotiable.
 - Do not let a judge (or any reviewer) write to anything outside the `<specDir>/status/<subtask>.status.{md,yml}` pair during Mode 1. Reviewer non-interference is a hard rule (see Step 4).
 - Do not "promote" a fix-list item to executor-direct work. Always re-spawn the manifest-listed subagent for that subtask.
-- Do not skip the user confirmation step before starting execution
+- Do not skip the user confirmation step before starting execution — **always use `askQuestion`** for user gates, never plain-text `[Yes / No]` prompts
+- Do not use free-form chat to request user decisions — all choices must go through **`askQuestion`** (executor/commands) or **`needs_user_input`** (subagents/skills)
 - Do not run the **full** project test suite during parallel subtask execution
 - Do not mark a subtask complete if any Deliverables Checklist or Definition of Done item is unchecked
 - Do not continue past a failed dependency without user approval

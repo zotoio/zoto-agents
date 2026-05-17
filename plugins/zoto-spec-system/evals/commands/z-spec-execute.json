@@ -1,211 +1,141 @@
 {
-  "command_name": "z-spec-execute",
-  "evals": [
+  "target_id": "command:z-spec-execute",
+  "cases": [
     {
       "id": 1,
       "prompt": "/z-spec-execute",
       "assertions": [
-        "The assistant output contains the exact text: Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.",
-        "After `/z-spec-execute`, no execution-report markdown is created under any spec directory and no zoto-spec-executor delegation is described as running."
+        "Before delegating work, the flow confirms `.zoto/spec-system/config.yml` exists and, if that file were absent, it would halt with only the initialise-first guidance and skip spawning `zoto-spec-executor`.",
+        "Upon success it spawns `zoto-spec-executor`, forwards the empty `$ARGUMENTS`, and targets the newest spec directory beneath the configured specs directory root.",
+        "The executor loads the discovered spec index and validates manifest integrity so referenced artefacts exist, agent assignments honour metadata, and dependency ordering forbids skipping prerequisites.",
+        "It surfaces an execution summary covering phases, subtask totals, and per-subtask assignments through structured `askQuestion` prior to spawning workers.",
+        "Once approved it walks phases sequentially, spawning at most four concurrent manifest-named subagents per batch without rewriting agent identifiers.",
+        "After every subtask a separate `zoto-spec-judge` pass must verify deliverables and definition-of-done items rather than trusting the originating executor transcript alone.",
+        "It keeps targeted checks during subtasks and defers repo-wide suites until final verification alongside lint passes on altered files before writing the consolidated report.",
+        "It backgrounds `pnpm exec tsx plugins/zoto-spec-system/scripts/spec-aggregator.ts --watch --spec-dir … --repo-root …` from repo root until execution ends, rebuilding status rollups whenever digests detect changes while workers keep sole ownership of their `.status.(md|yml)` artefacts.",
+        "It writes `execution-report-[feature-slug]-[yyyymmdd].md` beside the index under the chosen spec folder capturing per-subtask outcomes, verdicts, remediation notes, lint or test deltas, and recorded file mutations.",
+        "It replays structured `askQuestion` after presenting that report and only transitions the spec completion flag after operator approval acknowledging the artefacts."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-        "last_updated": "2026-05-07T10:47:16.709Z",
+        "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+        "last_updated": "2026-05-16T13:07:47.389Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-          "analysed_at": "2026-05-07T10:47:16.709Z",
+          "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+          "analysed_at": "2026-05-16T13:07:47.389Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics."
+          "summary": "These cases stress manifest-driven execution with dual askQuestion gates, adversarial judging, durable reporting, resume behaviour, failure remediation choices, and the split between live-reloaded versus restart-only configuration keys."
         }
       },
-      "expected_output": "A refusal that quotes the required initialisation message and does not start an executor run."
+      "expected_output": "A controlled run that aborts cleanly when initialise prerequisites are absent, otherwise walks approval, phased dispatch, hostile verification, aggregator telemetry, hardened quality checks, and finishes with durable reporting plus closure gating."
     },
     {
       "id": 2,
-      "prompt": "/z-spec-execute",
+      "prompt": "/z-spec-execute workspace/specs/20260403-auth-guardrails",
       "assertions": [
-        "After `/z-spec-execute` with no extra tokens, the plan identifies a single spec directory under the configured specsDir by latest modification time.",
-        "The assistant states it will spawn `zoto-spec-executor` and rely on the `zoto-execute-spec` skill, passing through an empty argument tail."
+        "Directory arguments resolve internally to the `spec-*.md` index beneath that folder so execution mirrors the richer paths without handing the Markdown file explicitly."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-        "last_updated": "2026-05-07T10:47:16.709Z",
+        "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+        "last_updated": "2026-05-16T13:07:47.389Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-          "analysed_at": "2026-05-07T10:47:16.709Z",
+          "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+          "analysed_at": "2026-05-16T13:07:47.389Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics."
+          "summary": "These cases stress manifest-driven execution with dual askQuestion gates, adversarial judging, durable reporting, resume behaviour, failure remediation choices, and the split between live-reloaded versus restart-only configuration keys."
         }
       },
-      "expected_output": "The run targets the most recently modified spec tree, validates its manifest, and proceeds toward confirmation only if `.zoto/spec-system/config.yml` is present."
+      "expected_output": "Executor treats the supplied directory exactly like palette usage rooted at the specs tree and drives the documented workflow unchanged."
     }
   ,
     {
       "id": 3,
-      "prompt": "/z-spec-execute specs/20260403-network-retries",
+      "prompt": "/z-spec-execute workspace/specs/20260403-auth-guardrails/spec-auth-guardrails-20260403.md",
       "assertions": [
-        "After `/z-spec-execute specs/20260403-network-retries`, the assistant loads the spec index under that directory and validates manifest entries (files exist, agent names match metadata, dependencies are ordered).",
-        "The assistant presents phases, subtask counts, and per-subtask agent assignments from the manifest, then pauses for operator approval before any execution subagents run."
+        "Pointing directly at the Markdown index honours that file verbatim so nested layouts or unconventional folders still execute reliably."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-        "last_updated": "2026-05-07T10:47:16.709Z",
+        "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+        "last_updated": "2026-05-16T13:07:47.389Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-          "analysed_at": "2026-05-07T10:47:16.709Z",
+          "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+          "analysed_at": "2026-05-16T13:07:47.389Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics."
+          "summary": "These cases stress manifest-driven execution with dual askQuestion gates, adversarial judging, durable reporting, resume behaviour, failure remediation choices, and the split between live-reloaded versus restart-only configuration keys."
         }
       },
-      "expected_output": "The executor resolves `spec-*.md` inside that directory, validates the manifest structure, and prepares a phase and subtask summary for approval."
+      "expected_output": "Planner loads the anchored index straight away rather than probing neighbours for substitutes."
     },
     {
       "id": 4,
-      "prompt": "/z-spec-execute specs/20260403-network-retries/spec-network-retries-20260403.md",
+      "prompt": "/z-spec-execute --resume",
       "assertions": [
-        "After `/z-spec-execute` with a path ending in `.md` under the spec directory, the assistant treats that file as the spec index rather than searching for another `spec-*.md` name.",
-        "The manifest validation and pre-flight execution summary still occur before subagents begin work."
+        "The `--resume` mode rehydrates persisted manifest checkpoints, skips checklist items already marked complete, and schedules only the earliest incomplete subtasks without duplicating succeeded phases."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-        "last_updated": "2026-05-07T10:47:16.709Z",
+        "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+        "last_updated": "2026-05-16T13:07:47.389Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-          "analysed_at": "2026-05-07T10:47:16.709Z",
+          "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+          "analysed_at": "2026-05-16T13:07:47.389Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics."
+          "summary": "These cases stress manifest-driven execution with dual askQuestion gates, adversarial judging, durable reporting, resume behaviour, failure remediation choices, and the split between live-reloaded versus restart-only configuration keys."
         }
       },
-      "expected_output": "Execution uses that markdown file as the spec index and follows the same validation and approval pattern as directory-based runs."
+      "expected_output": "Continuation path replays manifests from disk respecting stored progress snapshots."
     },
     {
       "id": 5,
-      "prompt": "/z-spec-execute --resume",
+      "prompt": "/z-spec-execute workspace/specs/20260412-payment-webhook",
       "assertions": [
-        "After `/z-spec-execute --resume`, the assistant explains it will read checklist and manifest state to find completed subtasks.",
-        "The plan does not reorder dependencies and avoids restarting subtasks already marked complete in the stored manifest."
+        "After a Failure-class outcome from execution or hostile verification it issues structured `askQuestion` branching across retry skip and abort remedies before advancing.",
+        "Selecting abort honours the refusal path leaving later subtasks untouched and withholding final completion signalling."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-        "last_updated": "2026-05-07T10:47:16.709Z",
+        "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+        "last_updated": "2026-05-16T13:07:47.389Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-          "analysed_at": "2026-05-07T10:47:16.709Z",
+          "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+          "analysed_at": "2026-05-16T13:07:47.389Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics."
+          "summary": "These cases stress manifest-driven execution with dual askQuestion gates, adversarial judging, durable reporting, resume behaviour, failure remediation choices, and the split between live-reloaded versus restart-only configuration keys."
         }
       },
-      "expected_output": "The executor reads persisted progress from the spec index manifest, skips finished subtasks, and schedules only remaining work."
+      "expected_output": "Demonstrates the documented failure safeguards with observable operator-mediated halt behaviour.",
+      "follow_ups": [
+        "When structured remediation prompts appear following a Failed judge verdict, choose abort so the orchestration freezes instead of spawning more subtasks."
+      ]
     },
     {
       "id": 6,
-      "prompt": "/z-spec-execute specs/20260403-network-retries",
+      "prompt": "/z-spec-execute workspace/specs/20260418-observability-hardening",
       "assertions": [
-        "After approval, subagents spawned per subtask match the manifest agent field with no alternate agent substitution.",
-        "The assistant states that no more than four subagents run concurrently within a batch and that the next phase waits until the prior phase fully finishes.",
-        "After each subtask finishes, the assistant schedules or describes a fresh `zoto-spec-judge` pass that audits Deliverables Checklist and Definition of Done items separately from the executor agent."
+        "Mutations under `subagents.*.tokenBudget`, `subagents.*.model`, aggregator cadence knobs, aggregator enable switches, or `spec.parallelLimit` propagate on subsequent spawns without restarting the overarching command invocation.",
+        "Edits targeting `specsDir`, `unitOfWork`, `workDir`, `hooks.*`, or `extensions.*` stay latent until `/z-spec-execute` launches again intentionally."
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-        "last_updated": "2026-05-07T10:47:16.709Z",
+        "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+        "last_updated": "2026-05-16T13:07:47.389Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-          "analysed_at": "2026-05-07T10:47:16.709Z",
+          "source_hash": "f2a2527a884c95506f947f6387d08af4f2fec2e5dbdccf89b9ff48cf15174cec",
+          "analysed_at": "2026-05-16T13:07:47.389Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics."
+          "summary": "These cases stress manifest-driven execution with dual askQuestion gates, adversarial judging, durable reporting, resume behaviour, failure remediation choices, and the split between live-reloaded versus restart-only configuration keys."
         }
       },
-      "expected_output": "Phases run serially while up to four subagents from the manifest run in parallel inside a phase; each finished subtask gets an independent zoto-spec-judge verification pass before the phase closes.",
-      "follow_ups": [
-        "Approve the execution summary — run the manifest as listed."
-      ]
-    },
-    {
-      "id": 7,
-      "prompt": "/z-spec-execute specs/20260403-network-retries",
-      "assertions": [
-        "After all subtasks verify, the assistant runs the project test suite and linter checks focused on touched files before declaring the run done.",
-        "A durable `execution-report-` markdown file appears under the same spec directory as the index and records per-subtask outcomes, verification results, test status, lint status, and changed files.",
-        "The assistant surfaces that report for review and only marks the spec Completed after explicit user approval of the final summary."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-        "last_updated": "2026-05-07T10:47:16.709Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-          "analysed_at": "2026-05-07T10:47:16.709Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics."
-        }
-      },
-      "expected_output": "After judges succeed, tests and lint run once globally; an `execution-report-*-*.md` file lands beside the spec index; the assistant shows it and only then updates status to Completed when the operator agrees.",
-      "follow_ups": [
-        "All subtasks and judge results are green — run the final test suite and lint pass now.",
-        "I approve the execution report — mark the spec Completed."
-      ]
-    },
-    {
-      "id": 8,
-      "prompt": "/z-spec-execute specs/20260403-network-retries",
-      "assertions": [
-        "When a subtask or `zoto-spec-judge` result is Failed, the assistant stops forward progress and asks the operator to choose retry, skip, or abort.",
-        "The assistant does not mark the spec Completed or write a final success-only report while that Failed branch remains unresolved."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-        "last_updated": "2026-05-07T10:47:16.709Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-          "analysed_at": "2026-05-07T10:47:16.709Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics."
-        }
-      },
-      "expected_output": "The run halts escalation until the operator picks retry, skip, or abort; no silent continuation past a Failed gate.",
-      "follow_ups": [
-        "A subtask failed verification with judge outcome Failed — how should we proceed?"
-      ]
-    },
-    {
-      "id": 9,
-      "prompt": "/z-spec-execute specs/20260403-network-retries",
-      "assertions": [
-        "For an active execution, the assistant describes running `pnpm --filter @zoto-agents/zoto-spec-system exec tsx scripts/spec-aggregator.ts --watch` (or the documented watch mode) for the spec lifetime so spec-root `status.md` and `status.yml` rebuild when digests change.",
-        "The assistant notes that `subagents.*.tokenBudget`, `subagents.*.model`, `aggregator.pollIntervalMs`, `aggregator.debounceMs`, `aggregator.enabled`, and `spec.parallelLimit` reload after the next spawn or aggregator tick without restarting the whole executor.",
-        "The assistant states that `specsDir`, `unitOfWork`, `workDir`, `hooks.*`, and `extensions.*` changes only apply after a fresh `/z-spec-execute` invocation, not mid-run."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-        "last_updated": "2026-05-07T10:47:16.709Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
-          "analysed_at": "2026-05-07T10:47:16.709Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics."
-        }
-      },
-      "expected_output": "A long-running aggregator command keeps spec-root status files synchronized, and config edits for token budgets apply on subsequent spawns while specsDir edits still need a brand-new command invocation.",
-      "follow_ups": [
-        "During the run, keep spec-root `status.md` and `status.yml` updated from subagent status digests."
-      ]
+      "expected_output": "Clear separation showing hot knobs versus knobs that mandate a freshly issued command entry."
     }
-  ]
+  ],
+  "command_name": "z-spec-execute"
 }

@@ -22,8 +22,57 @@ Use this skill when the user wants to plan a new feature, refactor, or multi-ste
 
 ## Workflow
 
-### Step 1: Gather Requirements
-Ask the user clarifying questions to understand the scope. Ask one question at a time, up to 10 questions maximum.
+### Progress Tracking (mandatory)
+
+Use `TodoWrite` to track spec creation progress. On start, create todos for each workflow step:
+
+```
+Step 1: Gather requirements [in_progress]
+Step 2: Explore codebase [pending]
+Step 3: Propose key decisions [pending]
+Step 4: Determine dependencies [pending]
+Step 5: Assign agents [pending]
+Step 6: Create spec files [pending]
+Step 7: Present for review [pending]
+Step 8: Judge review [pending]
+```
+
+Update each todo as you progress through the workflow.
+
+### Step 1: Gather Requirements (mandatory gate)
+
+You MUST NOT execute **Step 6** (create files under `{specsDir}/`, including `status/` scaffolding) until Step 1 is **complete**.
+
+Step 1 is **complete** when **one** of the following holds:
+
+- **Host-led:** The invoking assistant already asked the minimum clarifying prompts documented in `/z-spec-create` and the generator prompt begins with `REQUIREMENTS_GATE: satisfied` plus a **Gathered requirements** bullet list capturing those answers.
+- **Resume:** Your immediately prior turn ended with `needs_user_input` (see below) and the current user message contains `USER_ANSWERS:` with numbered replies matching those questions.
+- **Narrow exception:** The user pointed at a single design-doc `@path` whose content is explicitly treated as signed-off, **and** the user answered **one** final confirmation (“Proceed to draft spec files under `{specsDir}/`?”) affirmatively. You must still record that confirmation in **Gathered requirements**.
+
+#### Questions
+
+Ask clarifying questions to understand the scope. **Interactive chat:** ask **one question at a time**, up to **10** maximum. **Batched subagent mode:** you may emit up to **10** numbered questions in a single `needs_user_input` block.
+
+#### `needs_user_input` (when you cannot loop interactively)
+
+If Step 1 is **not** complete and you cannot wait turn-by-turn, respond **only** with the following fence **and do not create or modify anything under `{specsDir}/` in this turn**:
+
+```
+---SPEC_CREATE_NEEDS_USER_INPUT---
+
+## Clarifying questions
+
+1. …
+2. …
+
+## Assumptions inferred so far
+
+- …
+
+---END_SPEC_CREATE_NEEDS_USER_INPUT---
+```
+
+On the next turn, require `USER_ANSWERS:` with lines `1. …`, `2. …`, etc., before proceeding to Step 2.
 
 ### Step 2: Explore the Codebase
 Spawn an `explore` subagent to identify relevant files, patterns, conflicts, conventions.
@@ -54,6 +103,8 @@ If your environment enables optional memory-extension agents, you may also assig
 
 ### Step 6: Create Spec Files
 
+**Precondition:** Step 1 gate satisfied (see **Step 1: Gather Requirements**). If not satisfied, stop with `needs_user_input` or ask the host to supply `REQUIREMENTS_GATE: satisfied`.
+
 After dependencies and agents are determined, create the spec directory and files:
 
 1. **Create directory**: `{specsDir}/[yyyymmdd]-[feature-name]/`
@@ -70,7 +121,7 @@ Present the complete spec to the user for review:
 - **Phases**: count
 - **Subtask Manifest**: table of IDs, files, subagents, dependencies, phases
 
-Wait for user approval before proceeding to the automatic judge review.
+Use **`askQuestion`** (if running as a command/executor) or return **`needs_user_input`** (if running as a subagent) to get structured user approval before proceeding to the automatic judge review.
 
 ### Step 8: Automatic Judge Review
 
@@ -81,8 +132,8 @@ After user approval in Step 7:
 3. Present both the spec summary AND the judge's verdict/findings to the user
 4. Based on the verdict:
    - **Approve** (4.0+): Update the spec status from `Draft` to `Ready for Review`
-   - **Conditional** (3.0–3.9): Flag the issues and ask the user whether to revise or proceed
-   - **Reject** (< 3.0): Flag the issues and ask the user whether to revise or proceed anyway
+   - **Conditional** (3.0–3.9): Flag the issues and use **`askQuestion`** / **`needs_user_input`** to ask whether to revise or proceed
+   - **Reject** (< 3.0): Flag the issues and use **`askQuestion`** / **`needs_user_input`** to ask whether to revise or proceed anyway
 5. Only move the spec status to `Ready for Review` after the judge completes and the user confirms
 
 ## Conventions
@@ -99,4 +150,4 @@ After user approval in Step 7:
 - Do not create files outside `{specsDir}/`
 - Do not execute the spec
 - Do not create knowledge or memory files
-- Do not skip user confirmation
+- Do not skip user confirmation — always use **`askQuestion`** (commands/executors) or **`needs_user_input`** (subagents/skills) for user gates

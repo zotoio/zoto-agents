@@ -75,8 +75,8 @@ describe("Plugin Structure", () => {
     expect(missing, `Missing fields: ${missing.join(", ")}`).toHaveLength(0);
   });
 
-  it("directories referenced in plugin.json exist", () => {
-    for (const d of ["agents", "skills", "commands", "rules"]) {
+  it("required runtime directories exist", () => {
+    for (const d of ["agents", "skills", "commands", "rules", "hooks", "scripts", "src", "templates"]) {
       expect(isDir(join(PLUGIN_DIR, d)), `${d}/ missing`).toBe(true);
     }
   });

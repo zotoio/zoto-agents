@@ -1,164 +1,102 @@
 {
-  "command_name": "z-spec-create",
-  "evals": [
+  "target_id": "command:z-spec-create",
+  "cases": [
     {
       "id": 1,
-      "prompt": "/z-spec-create",
+      "prompt": "Drive the 'z-spec-create' command through its primary documented flow.\nAssume repository already passes template validation gates.\nHost plugin root for this primitive: workspace/plugins/zoto-spec-system/",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/plugins/zoto-spec-system/commands/z-spec-create.md",
+            "content": "---\nname: z-spec-create\ndescription: Generate structured engineering specs for complex features and multi-step initiatives.\n---\n\n# z-spec-create\n\nGenerate structured engineering specs for complex features and multi-step initiatives.\n\n## Usage\n\n```\n/z-spec-create                           - Start interactive spec creation (guided questions)\n/z-spec-create @docs/design.md           - Create spec from a design doc\n/z-spec-create \"add feature X\"           - Create a spec by description\n```\n\n## Instructions\n\n### Precondition\n\nBefore doing anything else, verify that **`.zoto/spec-system/config.yml`** exists at the repository root. If it does not, abort with the exact message:\n\n> Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.\n\nDo not synthesize a default config and do not proceed.\n\n### Mandatory reasoning model\n\nWhen spawning `zoto-spec-generator`, pass a **reasoning-class** model on the Task/spawn tool:\n\n1. **`claude-opus-4-7-thinking-xhigh`** (preferred)\n2. If that slug is unavailable: **`claude-4.6-opus-high-thinking`**\n3. If that slug is unavailable: **`claude-opus-4-6`**\n\nDo **not** use fast or non-reasoning models for spec creation. The agent frontmatter default is aligned to this preference; overrides must stay within this ladder.\n\n### Requirement gate (hard — before any `{specsDir}/` write)\n\nFollow `zoto-create-spec`. **No file or directory may be created under `{specsDir}/`** (including `status/` scaffolding) until **Step 1** of the skill is complete.\n\n**Preferred — host-led Step 1 (interactive):** Before the first `zoto-spec-generator` spawn, use **`askQuestion`** for structured clarifying questions. Minimum counts:\n\n| Invocation | Minimum clarifying prompts (before drafting filenames) |\n|------------|----------------------------------------------------------|\n| **No arguments** | **3** questions, **one at a time**, up to **10** total unless the user directs you to proceed sooner with explicit assumptions written down |\n| **`@` file reference(s)** | **2** scoped questions after you summarise what you read |\n| **Quoted description** | **3** questions |\n\nThen spawn `zoto-spec-generator` with `$ARGUMENTS` **and** prepend a gate block to the delegated prompt:\n\n```markdown\nREQUIREMENTS_GATE: satisfied\n\nGathered requirements:\n- …\n```\n\n**Alternate — generator-led `needs_user_input`:** If you spawn the generator **before** completing Step 1 (discouraged), instruct it to output **only** the skill’s `needs_user_input` fence and perform **zero** `{specsDir}/` writes until you **resume** the same generator with a `USER_ANSWERS:` block (see `zoto-create-spec`).\n\nWhen this command is invoked and the gate is satisfied (or you are resuming after `needs_user_input`), spawn `zoto-spec-generator` with the reasoning model above. The generator uses the `zoto-create-spec` skill. Pass `$ARGUMENTS` through unless you are appending the gate block and gathered-requirements bullets as specified.\n\n### Argument handling\n\n- **No arguments**: Run **host-led Step 1** (minimum **3** questions), then spawn the generator with `REQUIREMENTS_GATE: satisfied` — do **not** delegate straight to file creation in one hop without clarifiers or an explicit `needs_user_input` cycle.\n- **File reference(s)**: Read the referenced file(s); run **host-led Step 1** (minimum **2** questions unless the generator-led alternate applies); then spawn with `$ARGUMENTS` and the gate block.\n- **Text description**: Treat the quoted text as scope input; run **host-led Step 1** (minimum **3** questions); then spawn with `$ARGUMENTS` and the gate block.\n\n### What happens\n\n1. Gather requirements (minimum clarifiers per **Requirement gate** above, or `needs_user_input` / resume — never draft filenames before Step 1 completes)\n2. Explore the codebase to understand existing patterns and potential conflicts\n3. Propose key decisions for user confirmation\n4. Create spec files in `{specsDir}/[yyyymmdd]-[feature-name]/` (for example `specs/20260403-feature-name/` when `specsDir` is `specs`):\n   - `spec-[feature-name]-[yyyymmdd].md` — coordination index with dependency graph, phases, and definition of done\n   - `subtask-NN-[feature]-[name]-[yyyymmdd].md` — one per subtask with objectives, deliverables, and agent assignments\n5. Scaffold `{specsDir}/<spec>/status/` with one paired `.status.md` plus `.status.yml` per subtask, populated from each subtask's Deliverables Checklist (via `pnpm run spec-status-roundtrip -- scaffold`).\n6. Present the spec summary and use **`askQuestion`** for structured user approval\n7. After user approval, automatically spawn a `zoto-spec-judge` agent to assess the spec's quality and feasibility\n8. Set spec status to **Ready for Review**\n\n## Spec output structure\n\n```\n{specsDir}/\n└── 20260403-feature-name/\n    ├── spec-feature-name-20260403.md\n    ├── subtask-01-feature-name-foundation-20260403.md\n    ├── subtask-02-feature-name-...\n    ├── status/\n    │   ├── subtask-01-....status.md\n    │   └── subtask-01-....status.yml\n    └── ...\n```\n\nResolve `{specsDir}` from the plugin configuration (default: `specs`).\n\n## Related\n\n- `zoto-spec-generator` agent — specialist that creates and manages specs\n- `zoto-spec-judge` agent — independent quality gate and adversarial verifier\n- `zoto-create-spec` skill — guided spec creation workflow\n- `/z-spec-execute` — execute a spec with guided coordination\n- `/z-spec-judge` — assess a spec before execution\n"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": [
+          "workspace/.status.md",
+          "workspace/.status.yml",
+          "workspace/.zoto/eval-system/manifest.yml",
+          "workspace/.zoto/spec-system/config.yml",
+          "workspace/spec-[feature-name]-[yyyymmdd].md",
+          "workspace/specs/20260403-feature-name/",
+          "workspace/status/",
+          "workspace/subtask-NN-[feature]-[name]-[yyyymmdd].md",
+          "workspace/z-spec-execute",
+          "workspace/z-spec-init",
+          "workspace/z-spec-judge"
+        ],
+        "modified": [
+          "workspace/package.json"
+        ],
+        "unchanged": [
+          "documented invariant paths until explicit mutate"
+        ]
+      },
+      "expected_output": "askQuestion checkpoints completed once; generator task spawned with enumerated approvals.",
       "assertions": [
-        "After `/z-spec-create`, the visible assistant output MUST present the exact abort text requiring `/z-spec-init` and `.zoto/spec-system/config.yml` without fabricating a default config.",
-        "After `/z-spec-create`, no new dated feature directory MUST appear under `specs/` on disk."
+        "Primitive 'z-spec-create' followed documented sequencing for command targets",
+        "Hybrids respected: command-layer askQuestion only when declaring command ownership elsewhere",
+        "Referenced paths from the corpus were honoured without silent destructive overrides"
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
-        "last_updated": "2026-05-07T10:46:43.812Z",
+        "source_hash": "9dad691b4ec9d07eb9667ef45225181efd1337e646bcfc7953317228826a2681",
+        "primitive_analysis_hash": "9ac7b9c70f85199d6581fd3d0e4d49a1867fa33dff7ef5ff236c3883c3dce9b7",
+        "last_updated": "2026-05-11T04:53:02.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
-          "analysed_at": "2026-05-07T10:46:43.812Z",
+          "source_hash": "667c3947b976c456a85ae59add611ea106f0375c3f2e86d37f6e3f323cdcc9d2",
+          "analysed_at": "2026-05-11T04:53:58.904Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status."
+          "summary": "Eval runs should prove /z-spec-create refuses uninitialised repos, honours per-invocation askQuestion minimums and the requirement gate before any specs directory writes, delegates to zoto-spec-generator on the reasoning-model ladder with a satisfied gate block, and completes the documented artefact tree plus approval, judge spawn, and Ready-for-Review status when the spec system is configured."
         }
-      },
-      "expected_output": "The assistant refuses immediately, prints the mandated initialisation message, and does not spawn the generator or write specs."
+      }
     },
     {
       "id": 2,
-      "prompt": "/z-spec-create",
-      "assertions": [
-        "After `/z-spec-create`, the manifest or transcript MUST show a `zoto-spec-generator` delegation carrying an empty argument list consistent with the no-argument mode.",
-        "After `/z-spec-create`, clarifying user prompts MUST appear before any write creating `{specsDir}/[yyyymmdd]-[feature-name]/spec-[feature-name]-[yyyymmdd].md`.",
-        "After `/z-spec-create`, the new spec tree MUST include at least one `subtask-NN-` markdown file beside the coordination index inside the dated directory."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
-        "last_updated": "2026-05-07T10:46:43.812Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
-          "analysed_at": "2026-05-07T10:46:43.812Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status.",
-          "fixture_justifications": [
-            "Supplies the repository-root Spec System config so the precondition succeeds in sandboxes that have not run `/z-spec-init`."
-          ]
-        }
-      },
+      "prompt": "Operator omits checklist detail for z-spec-create: require command-owned recovery.",
       "fixtures": {
         "files": [
           {
-            "path": "workspace/.zoto/spec-system/config.yml",
-            "content": "specsDir: specs\n"
-          }
-        ]
-      },
-      "expected_output": "The assistant routes work through the generator skill path, asks scope questions before locking filenames, and only then drafts the coordination index and subtasks under a new dated folder beneath the configured specs directory."
-    }
-  ,
-    {
-      "id": 3,
-      "prompt": "/z-spec-create @workspace/docs/northstar-brief.md",
-      "assertions": [
-        "After `/z-spec-create @workspace/docs/northstar-brief.md`, tool activity MUST show the generator read `workspace/docs/northstar-brief.md` before drafting subtasks.",
-        "After `/z-spec-create @workspace/docs/northstar-brief.md`, the filesystem MUST contain `{specsDir}/[yyyymmdd]-[feature-name]/spec-[feature-name]-[yyyymmdd].md` and at least one `subtask-NN-[feature]-[name]-[yyyymmdd].md` sibling following the documented naming pattern."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
-        "last_updated": "2026-05-07T10:46:43.812Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
-          "analysed_at": "2026-05-07T10:46:43.812Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status.",
-          "fixture_justifications": [
-            "Ensures the Spec System precondition passes without assuming prior operator setup.",
-            "Provides a concrete design memo so the file-reference argument pathway can be exercised deterministically."
-          ]
-        }
-      },
-      "fixtures": {
-        "files": [
-          {
-            "path": "workspace/.zoto/spec-system/config.yml",
-            "content": "specsDir: specs\n"
+            "path": "workspace/plugins/zoto-spec-system/commands/z-spec-create.md",
+            "content": "---\nname: z-spec-create\ndescription: Generate structured engineering specs for complex features and multi-step initiatives.\n---\n\n# z-spec-create\n\nGenerate structured engineering specs for complex features and multi-step initiatives.\n\n## Usage\n\n```\n/z-spec-create                           - Start interactive spec creation (guided questions)\n/z-spec-create @docs/design.md           - Create spec from a design doc\n/z-spec-create \"add feature X\"           - Create a spec by description\n```\n\n## Instructions\n\n### Precondition\n\nBefore doing anything else, verify that **`.zoto/spec-system/config.yml`** exists at the repository root. If it does not, abort with the exact message:\n\n> Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.\n\nDo not synthesize a default config and do not proceed.\n\n### Mandatory reasoning model\n\nWhen spawning `zoto-spec-generator`, pass a **reasoning-class** model on the Task/spawn tool:\n\n1. **`claude-opus-4-7-thinking-xhigh`** (preferred)\n2. If that slug is unavailable: **`claude-4.6-opus-high-thinking`**\n3. If that slug is unavailable: **`claude-opus-4-6`**\n\nDo **not** use fast or non-reasoning models for spec creation. The agent frontmatter default is aligned to this preference; overrides must stay within this ladder.\n\n### Requirement gate (hard — before any `{specsDir}/` write)\n\nFollow `zoto-create-spec`. **No file or directory may be created under `{specsDir}/`** (including `status/` scaffolding) until **Step 1** of the skill is complete.\n\n**Preferred — host-led Step 1 (interactive):** Before the first `zoto-spec-generator` spawn, use **`askQuestion`** for structured clarifying questions. Minimum counts:\n\n| Invocation | Minimum clarifying prompts (before drafting filenames) |\n|------------|----------------------------------------------------------|\n| **No arguments** | **3** questions, **one at a time**, up to **10** total unless the user directs you to proceed sooner with explicit assumptions written down |\n| **`@` file reference(s)** | **2** scoped questions after you summarise what you read |\n| **Quoted description** | **3** questions |\n\nThen spawn `zoto-spec-generator` with `$ARGUMENTS` **and** prepend a gate block to the delegated prompt:\n\n```markdown\nREQUIREMENTS_GATE: satisfied\n\nGathered requirements:\n- …\n```\n\n**Alternate — generator-led `needs_user_input`:** If you spawn the generator **before** completing Step 1 (discouraged), instruct it to output **only** the skill’s `needs_user_input` fence and perform **zero** `{specsDir}/` writes until you **resume** the same generator with a `USER_ANSWERS:` block (see `zoto-create-spec`).\n\nWhen this command is invoked and the gate is satisfied (or you are resuming after `needs_user_input`), spawn `zoto-spec-generator` with the reasoning model above. The generator uses the `zoto-create-spec` skill. Pass `$ARGUMENTS` through unless you are appending the gate block and gathered-requirements bullets as specified.\n\n### Argument handling\n\n- **No arguments**: Run **host-led Step 1** (minimum **3** questions), then spawn the generator with `REQUIREMENTS_GATE: satisfied` — do **not** delegate straight to file creation in one hop without clarifiers or an explicit `needs_user_input` cycle.\n- **File reference(s)**: Read the referenced file(s); run **host-led Step 1** (minimum **2** questions unless the generator-led alternate applies); then spawn with `$ARGUMENTS` and the gate block.\n- **Text description**: Treat the quoted text as scope input; run **host-led Step 1** (minimum **3** questions); then spawn with `$ARGUMENTS` and the gate block.\n\n### What happens\n\n1. Gather requirements (minimum clarifiers per **Requirement gate** above, or `needs_user_input` / resume — never draft filenames before Step 1 completes)\n2. Explore the codebase to understand existing patterns and potential conflicts\n3. Propose key decisions for user confirmation\n4. Create spec files in `{specsDir}/[yyyymmdd]-[feature-name]/` (for example `specs/20260403-feature-name/` when `specsDir` is `specs`):\n   - `spec-[feature-name]-[yyyymmdd].md` — coordination index with dependency graph, phases, and definition of done\n   - `subtask-NN-[feature]-[name]-[yyyymmdd].md` — one per subtask with objectives, deliverables, and agent assignments\n5. Scaffold `{specsDir}/<spec>/status/` with one paired `.status.md` plus `.status.yml` per subtask, populated from each subtask's Deliverables Checklist (via `pnpm run spec-status-roundtrip -- scaffold`).\n6. Present the spec summary and use **`askQuestion`** for structured user approval\n7. After user approval, automatically spawn a `zoto-spec-judge` agent to assess the spec's quality and feasibility\n8. Set spec status to **Ready for Review**\n\n## Spec output structure\n\n```\n{specsDir}/\n└── 20260403-feature-name/\n    ├── spec-feature-name-20260403.md\n    ├── subtask-01-feature-name-foundation-20260403.md\n    ├── subtask-02-feature-name-...\n    ├── status/\n    │   ├── subtask-01-....status.md\n    │   └── subtask-01-....status.yml\n    └── ...\n```\n\nResolve `{specsDir}` from the plugin configuration (default: `specs`).\n\n## Related\n\n- `zoto-spec-generator` agent — specialist that creates and manages specs\n- `zoto-spec-judge` agent — independent quality gate and adversarial verifier\n- `zoto-create-spec` skill — guided spec creation workflow\n- `/z-spec-execute` — execute a spec with guided coordination\n- `/z-spec-judge` — assess a spec before execution\n"
           },
           {
-            "path": "workspace/docs/northstar-brief.md",
-            "content": "# Northstar brief\n\nDeliver resumable batch export with integrity verification for large workspaces. Non-goals: interactive preview in the first release.\n"
+            "path": "workspace/tmp/ambiguous-request.txt",
+            "content": "// thin context\n"
           }
         ]
       },
-      "expected_output": "The assistant ingests the brief, aligns phases to its constraints, and materialises a dated specs folder with a coordination file plus numbered subtasks that reference those requirements."
-    },
-    {
-      "id": 4,
-      "prompt": "/z-spec-create \"Add resilient offline queueing to the ingestion worker\"",
+      "expected_filesystem": {
+        "created": [],
+        "modified": [
+          "workspace/package.json"
+        ],
+        "unchanged": [
+          "documented invariant paths until explicit mutate",
+          "workspace/plugins/zoto-spec-system/commands/z-spec-create.md"
+        ]
+      },
+      "expected_output": "Deterministic escalation path without overwriting protected assets.",
       "assertions": [
-        "After `/z-spec-create`, the spawned generator payload MUST preserve the provided quoted description as the scope input rather than substituting an unrelated initiative title before discovery completes.",
-        "After `/z-spec-create`, created markdown filenames under the dated directory MUST embed a slug derived from the ingestion worker scope together with the same calendar date stamp used in the parent folder name."
+        "Ambiguous prompts returned clarifying guidance or YAML needs_user_input without guessing filenames",
+        "No silent selection among mutually exclusive branching paths absent explicit approval tokens"
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
-        "last_updated": "2026-05-07T10:46:43.812Z",
+        "source_hash": "9dad691b4ec9d07eb9667ef45225181efd1337e646bcfc7953317228826a2681",
+        "primitive_analysis_hash": "9ac7b9c70f85199d6581fd3d0e4d49a1867fa33dff7ef5ff236c3883c3dce9b7",
+        "last_updated": "2026-05-11T04:53:02.761Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
-          "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
-          "analysed_at": "2026-05-07T10:46:43.812Z",
+          "source_hash": "667c3947b976c456a85ae59add611ea106f0375c3f2e86d37f6e3f323cdcc9d2",
+          "analysed_at": "2026-05-11T04:53:58.904Z",
           "analyser_version": "2026.05.03-1",
-          "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status.",
-          "fixture_justifications": [
-            "Initialises Spec System so the command proceeds past the precondition in minimal workspaces."
-          ]
+          "summary": "Eval runs should prove /z-spec-create refuses uninitialised repos, honours per-invocation askQuestion minimums and the requirement gate before any specs directory writes, delegates to zoto-spec-generator on the reasoning-model ladder with a satisfied gate block, and completes the documented artefact tree plus approval, judge spawn, and Ready-for-Review status when the spec system is configured."
         }
-      },
-      "fixtures": {
-        "files": [
-          {
-            "path": "workspace/.zoto/spec-system/config.yml",
-            "content": "specsDir: specs\n"
-          }
-        ]
-      },
-      "expected_output": "The assistant forwards the quoted initiative text into the generator, derives a slug and date-structured folder, and writes matching coordination and subtask files that stay anchored to that scope."
-    },
-    {
-      "id": 5,
-      "prompt": "/z-spec-create",
-      "assertions": [
-        "Before calling the spec complete, the transcript MUST record `pnpm run spec-status-roundtrip -- scaffold` (or a direct invocation producing the same paired artifacts) creating matching `.status.md` and `.status.yml` files under the dated `status/` directory for each subtask.",
-        "After the approval follow-up, the manifest MUST note a `zoto-spec-judge` engagement and the spec status MUST read Ready for Review in the written status artifacts."
-      ],
-      "_meta": {
-        "generated": true,
-        "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
-        "last_updated": "2026-05-07T10:46:43.812Z",
-        "generated_by": "zoto-create-evals",
-        "primitive_analysis": {
-          "source_hash": "6054bdb60d3f1e56f6cf7166d224462e4fd27993289aa848c90340f98eee2ad6",
-          "analysed_at": "2026-05-07T10:46:43.812Z",
-          "analyser_version": "2026.05.03-1",
-          "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status.",
-          "fixture_justifications": [
-            "Provides the config file the command requires so later steps can execute end-to-end in the sandbox."
-          ]
-        }
-      },
-      "fixtures": {
-        "files": [
-          {
-            "path": "workspace/.zoto/spec-system/config.yml",
-            "content": "specsDir: specs\n"
-          }
-        ]
-      },
-      "expected_output": "The assistant finishes drafting, runs the status round-trip scaffolder, presents a review summary, honours approval, brings in the judge agent, and marks the bundle Ready for Review.",
-      "follow_ups": [
-        "Approve the printed spec summary and run the quality gate now."
-      ]
+      }
     }
-  ]
+  ],
+  "command_name": "z-spec-create"
 }

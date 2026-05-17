@@ -118,7 +118,7 @@ function checkManifest(): CheckResult[] {
 }
 
 function checkDirectories(): CheckResult[] {
-  return ["agents", "skills", "commands", "rules", "hooks"].map((dirname) => {
+  return ["agents", "skills", "commands", "rules", "hooks", "scripts", "src", "templates"].map((dirname) => {
     const exists = isDir(join(REPO_ROOT, dirname));
     return { name: `dir_${dirname}`, passed: exists, detail: `${dirname}/ ${exists ? "exists" : "MISSING"}` };
   });
@@ -130,8 +130,8 @@ function checkNamingConventions(): CheckResult[] {
   const cmdDir = join(REPO_ROOT, "commands");
   if (isDir(cmdDir)) {
     for (const f of readdirSync(cmdDir).filter((n) => n.endsWith(".md"))) {
-      const ok = f.startsWith("zoto-");
-      results.push({ name: `cmd_prefix_${f}`, passed: ok, detail: `${f} ${ok ? "has" : "MISSING"} zoto- prefix` });
+      const ok = f.startsWith("z-");
+      results.push({ name: `cmd_prefix_${f}`, passed: ok, detail: `${f} ${ok ? "has" : "MISSING"} z- prefix` });
     }
   }
 

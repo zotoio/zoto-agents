@@ -1,49 +1,94 @@
 {
-  "hook_name": "zoto-spec-system",
-  "evals": [
+  "target_id": "hook:zoto-spec-system",
+  "cases": [
     {
       "id": 1,
-      "prompt": "sessionStart lifecycle in Cursor: the workspace loads with zoto-spec-system enabled and Cursor runs `node hooks/zoto-session-start.mjs` from the plugin directory before chat work begins.",
+      "prompt": "Exercise the Cursor hook lifecycle for hook plugin 'zoto-spec-system' during phase 'sessionStart'.\nHook command line: node hooks/zoto-session-start.mjs\nDescription: Spec System: Check for unprocessed specs and nudge user\nConfirm stdout JSON contract and absence of blocking prompts.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/plugins/zoto-spec-system/hooks/hooks.json",
+            "content": "{\n  \"$schema\": \"https://cursor.sh/hooks-schema.json\",\n  \"version\": 1,\n  \"description\": \"Spec System hooks — session start nudge and on-stop consistency check\",\n  \"hooks\": {\n    \"sessionStart\": [\n      {\n        \"command\": \"node hooks/zoto-session-start.mjs\",\n        \"description\": \"Spec System: Check for unprocessed specs and nudge user\"\n      }\n    ],\n    \"stop\": [\n      {\n        \"command\": \"node hooks/zoto-onstop-check.mjs\",\n        \"description\": \"Spec System: Validate subtask status pairs (schema + checkbox + regex) and auto-fix md/yml drift; surface critical inconsistencies\"\n      }\n    ]\n  }\n}\n"
+          },
+          {
+            "path": "workspace/hooks/zoto-session-start.mjs",
+            "content": "# missing on disk fixture for hooks/zoto-session-start.mjs"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": [
+          "hook-events/zoto-spec-system/sessionStart/1/stdout.json"
+        ],
+        "modified": [
+          "workspace/hooks/zoto-session-start.mjs",
+          "workspace/plugins/zoto-spec-system/hooks/hooks.json"
+        ]
+      },
+      "expected_output": "Exit status 0; hook script zoto-session-start.mjs completed without prompting.",
       "assertions": [
-        "The sessionStart hook process exited with status 0.",
-        "Combined stdout and stderr contain no Cursor `askQuestion` payloads or other interactive prompts, because hook scripts must stay non-interactive.",
-        "Log or printed output references checking for unprocessed specs, matching the sessionStart hook description declared next to `node hooks/zoto-session-start.mjs` in plugins/zoto-spec-system/hooks/hooks.json."
+        "sessionStart hook entry ran the configured script without unresolved needs_user_input",
+        "No askQuestion emitted from hook binaries — stdin/stdout hooks channel only",
+        "Behaviour matched hooks.json description excerpt: Spec System: Check for unprocessed specs and nudge user"
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "3b5e0c719fc680de02199f910d307b8db9566e243db984dd0f42437ecdd60e73",
-        "last_updated": "2026-05-07T11:02:59.616Z",
+        "source_hash": "e12aef7ec0adc9c2f3aa8586611ed33bd222f6a2169df5915cca443e892fa019",
+        "primitive_analysis_hash": "9bd3ed5c947098d119a6509598415895408aab75cbc88a0bb5af0c0f027220a8",
+        "last_updated": "2026-05-11T04:53:49.327Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3b5e0c719fc680de02199f910d307b8db9566e243db984dd0f42437ecdd60e73",
-          "analysed_at": "2026-05-07T11:02:59.616Z",
+          "analysed_at": "2026-05-11T04:53:49.392Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The bundle wires sessionStart to a Node runner that scans for unprocessed specs and nudges the operator, and stop to a Node runner that checks subtask status consistency and may reconcile markdown or YAML drift before surfacing hard failures."
         }
-      },
-      "expected_output": "The hook finishes without blocking the session, reporting whether any specs still need attention and pointing the operator at the right follow-up."
+      }
     },
     {
       "id": 2,
-      "prompt": "stop lifecycle in Cursor: the operator ends the agent turn and Cursor runs `node hooks/zoto-onstop-check.mjs` so subtask checkbox, schema, and regex-derived statuses are compared and light drift can be auto-corrected.",
+      "prompt": "Exercise the Cursor hook lifecycle for hook plugin 'zoto-spec-system' during phase 'stop'.\nHook command line: node hooks/zoto-onstop-check.mjs\nDescription: Spec System: Validate subtask status pairs (schema + checkbox + regex) and auto-fix md/yml drift; surface critical inconsistencies\nConfirm stdout JSON contract and absence of blocking prompts.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/plugins/zoto-spec-system/hooks/hooks.json",
+            "content": "{\n  \"$schema\": \"https://cursor.sh/hooks-schema.json\",\n  \"version\": 1,\n  \"description\": \"Spec System hooks — session start nudge and on-stop consistency check\",\n  \"hooks\": {\n    \"sessionStart\": [\n      {\n        \"command\": \"node hooks/zoto-session-start.mjs\",\n        \"description\": \"Spec System: Check for unprocessed specs and nudge user\"\n      }\n    ],\n    \"stop\": [\n      {\n        \"command\": \"node hooks/zoto-onstop-check.mjs\",\n        \"description\": \"Spec System: Validate subtask status pairs (schema + checkbox + regex) and auto-fix md/yml drift; surface critical inconsistencies\"\n      }\n    ]\n  }\n}\n"
+          },
+          {
+            "path": "workspace/hooks/zoto-onstop-check.mjs",
+            "content": "# missing on disk fixture for hooks/zoto-onstop-check.mjs"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": [
+          "hook-events/zoto-spec-system/stop/2/stdout.json"
+        ],
+        "modified": [
+          "workspace/hooks/zoto-onstop-check.mjs",
+          "workspace/plugins/zoto-spec-system/hooks/hooks.json"
+        ]
+      },
+      "expected_output": "Exit status 0; hook script zoto-onstop-check.mjs completed without prompting.",
       "assertions": [
-        "The stop hook process exposes a boolean success versus failure through its exit code that reflects whether blocking inconsistencies persist after any automatic reconciliation.",
-        "Stdout and stderr stay free of `askQuestion` chatter; any guidance is emitted as plain text or structured logging suitable for a hook runner.",
-        "Output mentions validation of subtask status triples and markdown or YAML drift handling, consistent with the stop hook description paired with `node hooks/zoto-onstop-check.mjs` in plugins/zoto-spec-system/hooks/hooks.json."
+        "stop hook entry ran the configured script without unresolved needs_user_input",
+        "No askQuestion emitted from hook binaries — stdin/stdout hooks channel only",
+        "Behaviour matched hooks.json description excerpt: Spec System: Validate subtask status pairs (schema + checkbox + regex) and auto-"
       ],
       "_meta": {
         "generated": true,
-        "source_hash": "3b5e0c719fc680de02199f910d307b8db9566e243db984dd0f42437ecdd60e73",
-        "last_updated": "2026-05-07T11:02:59.616Z",
+        "source_hash": "e12aef7ec0adc9c2f3aa8586611ed33bd222f6a2169df5915cca443e892fa019",
+        "primitive_analysis_hash": "9bd3ed5c947098d119a6509598415895408aab75cbc88a0bb5af0c0f027220a8",
+        "last_updated": "2026-05-11T04:53:49.327Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3b5e0c719fc680de02199f910d307b8db9566e243db984dd0f42437ecdd60e73",
-          "analysed_at": "2026-05-07T11:02:59.616Z",
+          "analysed_at": "2026-05-11T04:53:49.392Z",
           "analyser_version": "2026.05.03-1",
           "summary": "The bundle wires sessionStart to a Node runner that scans for unprocessed specs and nudges the operator, and stop to a Node runner that checks subtask status consistency and may reconcile markdown or YAML drift before surfacing hard failures."
         }
-      },
-      "expected_output": "When metadata lines up, the hook exits cleanly; when critical mismatches remain, the hook exits non-zero after printing explicit findings so the operator can fix them manually."
+      }
     }
-  ]
+  ],
+  "hook_plugin": "zoto-spec-system"
 }

@@ -184,7 +184,7 @@ graph TD
     expect(statSync(a.statusYmlPath).mtimeMs).toBe(st);
   });
 
-  it("touches a source yml to change digest and trigger rebuild", () => {
+  it("does not rebuild when only subtask yml mtime changes and content is unchanged", () => {
     const repo = tempDir();
     const specDir = join(repo, "20260102-x");
     mkdirSync(join(specDir, "status"), { recursive: true });
@@ -192,10 +192,29 @@ graph TD
     writeFileSync(p, minimalSubtask("01", "completed", "2026-05-06T10:00:00.000Z"), "utf-8");
     const cfg = baseCfg();
     aggregateOnce({ specDir, config: cfg, repoRoot: repo });
+    const stBefore = statSync(join(specDir, "status.yml")).mtimeMs;
     const t = Date.now();
     utimesSync(p, t, t);
     const r = aggregateOnce({ specDir, config: cfg, repoRoot: repo });
+    expect(r.rebuilt).toBe(false);
+    expect(statSync(join(specDir, "status.yml")).mtimeMs).toBe(stBefore);
+  });
+
+  it("rebuilds when subtask yml content changes but mtime is preserved", () => {
+    const repo = tempDir();
+    const specDir = join(repo, "20260109-content");
+    mkdirSync(join(specDir, "status"), { recursive: true });
+    const p = join(specDir, "status", "subtask-01-demo.status.yml");
+    writeFileSync(p, minimalSubtask("01", "pending", "2026-05-06T10:00:00.000Z"), "utf-8");
+    const cfg = baseCfg();
+    aggregateOnce({ specDir, config: cfg, repoRoot: repo });
+    const oldMtime = statSync(p).mtime;
+    writeFileSync(p, minimalSubtask("01", "in_progress", "2026-05-06T10:05:00.000Z"), "utf-8");
+    utimesSync(p, oldMtime, oldMtime);
+    const r = aggregateOnce({ specDir, config: cfg, repoRoot: repo });
     expect(r.rebuilt).toBe(true);
+    const raw = YAML.parse(readFileSync(join(specDir, "status.yml"), "utf-8")) as SpecRootDoc;
+    expect(raw.subtasks[0]?.state).toBe("in_progress");
   });
 
   it("orders blockers by last_heartbeat descending", () => {
@@ -326,7 +345,7 @@ graph TD
     expect(raw.events.some((e) => e.kind === "config_reload_failed")).toBe(true);
   });
 
-  it("rebuilds when spec index mtime changes (DoD checkbox ticked)", () => {
+  it("rebuilds when spec index content changes (DoD checkbox ticked)", () => {
     const repo = tempDir();
     const specDir = join(repo, "20260108-dod");
     mkdirSync(join(specDir, "status"), { recursive: true });
@@ -380,7 +399,10 @@ graph TD
     }));
     writeFileSync(join(specDir, "status.yml"), YAML.stringify(existing, { lineWidth: 0 }), "utf-8");
 
-    utimesSync(join(specDir, "status", "subtask-01-demo.status.yml"), Date.now(), Date.now());
+    const subPath = join(specDir, "status", "subtask-01-demo.status.yml");
+    const y = YAML.parse(readFileSync(subPath, "utf-8")) as Record<string, unknown>;
+    y.notes = "tick-for-rebuild";
+    writeFileSync(subPath, YAML.stringify(y, { lineWidth: 0 }), "utf-8");
     aggregateOnce({ specDir, config: cfg, repoRoot: repo });
     const raw = YAML.parse(readFileSync(join(specDir, "status.yml"), "utf-8")) as SpecRootDoc;
     expect(raw.events.length).toBeLessThanOrEqual(100);
