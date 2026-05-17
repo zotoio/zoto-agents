@@ -1,0 +1,138 @@
+{
+  "target_id": "command:z-eval-judge",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-eval-judge",
+      "assertions": [
+        "The assistant message is exactly: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+        "No `zoto-eval-judge` subagent or `zoto-judge-evals` skill workflow starts and `llm.yml` under any `evals/_runs/` path is untouched."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
+        "last_updated": "2026-05-17T13:36:46.726Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
+          "analysed_at": "2026-05-17T13:36:46.726Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command refuses work until `.zoto/eval-system/config.yml` exists, otherwise it drives a `zoto-eval-judge` subagent through the latest `evals/_runs/<ts>/` artefacts, appends a `judge:` block into `llm.yml`, and uses `askQuestion` plus resume when the judge signals `needs_user_input` for a `/z-eval-update` handoff."
+        }
+      },
+      "expected_output": "A single refusal that tells the operator to initialise the eval system first, without opening run directories or editing YAML under evals."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-eval-judge",
+      "assertions": [
+        "After `/z-eval-judge`, `workspace/evals/_runs/20260507120000Z/llm.yml` contains a newly appended top-level `judge` mapping that was absent in the fixture.",
+        "The command run spawns a `zoto-eval-judge` subagent wired to the `zoto-judge-evals` skill before mutating `llm.yml`.",
+        "The judge narrative references signals that could only come from `static.yml`, `llm.yml`, `report.yml`, and `logs/case-a.log` together (for instance citing the passing total and the logged turn text).",
+        "`workspace/evals/_runs/20260507120000Z/static.yml` and `workspace/evals/_runs/20260507120000Z/report.yml` are not deleted or replaced wholesale; only `llm.yml` receives the documented append-only edit."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
+        "last_updated": "2026-05-17T13:36:46.726Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
+          "analysed_at": "2026-05-17T13:36:46.726Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command refuses work until `.zoto/eval-system/config.yml` exists, otherwise it drives a `zoto-eval-judge` subagent through the latest `evals/_runs/<ts>/` artefacts, appends a `judge:` block into `llm.yml`, and uses `askQuestion` plus resume when the judge signals `needs_user_input` for a `/z-eval-update` handoff.",
+          "fixture_justifications": [
+            "Provides the repository-root config file the command must confirm before any judge work.",
+            "Supplies static backend totals the judge must load from the newest run folder.",
+            "Seeds `llm.yml` without a `judge` key so an append-only overlay is externally visible.",
+            "Supplies merged report data the judge must read alongside per-backend YAML.",
+            "Provides a per-case transcript file under `logs/` the judge must consult."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: evals\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260507120000Z/static.yml",
+            "content": "totals:\n  passed: 1\n  failed: 0\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260507120000Z/llm.yml",
+            "content": "runs:\n  primary:\n    cases:\n      - id: case-a\n        verdict: pass\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260507120000Z/report.yml",
+            "content": "totals:\n  passed: 1\n  failed: 0\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260507120000Z/logs/case-a.log",
+            "content": "turn 0: assistant summarised coverage\n"
+          }
+        ]
+      },
+      "expected_output": "The subagent finishes analysis, `llm.yml` in that run folder contains a new `judge` section summarising findings from the loaded artefacts, and `static.yml` plus `report.yml` stay consistent with a read-only pass."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "/z-eval-judge",
+      "assertions": [
+        "Immediately after `/z-eval-judge` while `report.yml` advertises `needs_user_input` for `/z-eval-update`, the assistant calls `askQuestion` whose choices name that command.",
+        "After the follow-up answer selecting `/z-eval-update`, the assistant resumes with the chosen handoff and does not emit the identical `askQuestion` card again on the next turn.",
+        "Throughout the loop, `workspace/evals/_runs/20260507120000Z/llm.yml` still receives the append-only `judge` block expected from the analysis pass."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
+        "last_updated": "2026-05-17T13:36:46.726Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "7ac2b17139721a03339d40775256bea61290a174586559fd4a92ba406f79e50d",
+          "analysed_at": "2026-05-17T13:36:46.726Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The command refuses work until `.zoto/eval-system/config.yml` exists, otherwise it drives a `zoto-eval-judge` subagent through the latest `evals/_runs/<ts>/` artefacts, appends a `judge:` block into `llm.yml`, and uses `askQuestion` plus resume when the judge signals `needs_user_input` for a `/z-eval-update` handoff.",
+          "fixture_justifications": [
+            "Binds `evalsDir` so the command resolves `_runs` under `workspace/evals`.",
+            "Static totals show failure so the merged story matches log evidence.",
+            "Shows a failing case with an overly strict regex grader to justify `needs_user_input`.",
+            "Merged report carries `needs_user_input` pointing at `/z-eval-update`, exercising the resume contract.",
+            "Log text backs the reported failure for transcript review."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: evals\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260507120000Z/static.yml",
+            "content": "totals:\n  passed: 0\n  failed: 1\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260507120000Z/llm.yml",
+            "content": "runs:\n  primary:\n    cases:\n      - id: case-b\n        verdict: fail\n        graders:\n          - type: regex\n            pattern: \"^$\"\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260507120000Z/report.yml",
+            "content": "needs_user_input:\n  kind: handoff\n  propose_command: /z-eval-update\n  detail: Regex grader cannot substantiate the assertion.\ntotals:\n  passed: 0\n  failed: 1\n"
+          },
+          {
+            "path": "workspace/evals/_runs/20260507120000Z/logs/case-b.log",
+            "content": "turn 0: assistant noted brittle grading\n"
+          }
+        ]
+      },
+      "expected_output": "First turn surfaces `askQuestion` options that include `/z-eval-update`; after the operator picks that path, the assistant resumes the judge flow without repeating the same prompt.",
+      "follow_ups": [
+        "Choose the handoff option that runs `/z-eval-update` next."
+      ]
+    }
+  ],
+  "command_name": "z-eval-judge"
+}

@@ -1,0 +1,156 @@
+# Spec 20260516-rationalise-eval-system — aggregate live status
+
+<!-- status:overview:start -->
+| Key | Value |
+|-----|-------|
+| spec_id | 20260516-rationalise-eval-system |
+| phase | 0 |
+| aggregate_state | completed |
+| started_at | 2026-05-16T12:28:30.528Z |
+| updated_at | 2026-05-16T15:26:44.335Z |
+
+**config_reloaded**
+_None._
+<!-- status:overview:end -->
+
+<!-- status:progress:start -->
+| Metric | Count |
+|--------|-------|
+| Total | 6 |
+| Completed | 6 |
+| In progress | 0 |
+| Blocked | 0 |
+| Failed | 0 |
+<!-- status:progress:end -->
+
+<!-- status:subtasks:start -->
+| Subtask | State | Status (yml) | Last heartbeat |
+|---------|-------|--------------|----------------|
+| 01 | completed | `specs/20260516-rationalise-eval-system/status/subtask-01-rationalise-eval-system-audit-uncommitted-20260516.status.yml` | 2026-05-16T12:41:00Z |
+| 02 | completed | `specs/20260516-rationalise-eval-system/status/subtask-02-rationalise-eval-system-consolidate-evals-_llm-20260516.status.yml` | 2026-05-16T12:42:00Z |
+| 03 | completed | `specs/20260516-rationalise-eval-system/status/subtask-03-rationalise-eval-system-verify-shared-helpers-20260516.status.yml` | 2026-05-16T12:42:00Z |
+| 04 | completed | `specs/20260516-rationalise-eval-system/status/subtask-04-rationalise-eval-system-audit-test-realism-20260516.status.yml` | 2026-05-17T01:06:00Z |
+| 05 | completed | `specs/20260516-rationalise-eval-system/status/subtask-05-rationalise-eval-system-artifact-management-20260516.status.yml` | 2026-05-16T13:01:00Z |
+| 06 | completed | `specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml` | 2026-05-17T15:19:00+10:00 |
+<!-- status:subtasks:end -->
+
+<!-- status:blockers:start -->
+_None._
+<!-- status:blockers:end -->
+
+<!-- status:definition-of-done:start -->
+- [x] **DOD01** — All subtasks completed
+- [x] **DOD02** — `pnpm run eval:llm:code` passes (or skips coherently when `CURSOR_API_KEY` is unset)
+- [x] **DOD03** — `pnpm run validate-template` and `pnpm run validate-skills` pass
+- [x] **DOD04** — `pnpm run eval:cleanup-stale -- --check` exits 0 (no drift)
+- [x] **DOD05** — `pnpm run eval:list`, `eval:analyser-parity-check`, `eval:sandbox-selftest` all succeed
+- [x] **DOD06** — No file in `evals/_llm/` outside Decision 2's allow-list
+- [x] **DOD07** — No `evals/llm/test_*.test.ts` declares an inline `interface CaseDefinition` — resolved: 33 files updated to import `CodeStrategyCaseDefinition` from `_shared/code-strategy-case.js`.
+- [x] **DOD08** — `.gitignore` covers `evals/_runs/` and `.zoto/eval-system/cache/`
+- [x] **DOD09** — No linter errors introduced in modified files
+- [x] **DOD10** — Audit (`audit-…20260516.md`), realism findings (`audit-test-realism-…20260516.md`), and validation report (`validation-…20260516.md`) all present in the spec directory
+- [x] **DOD11** — `zoto-spec-judge` assessment present at `assessment-rationalise-eval-system-20260516.md` (after user approval)
+<!-- status:definition-of-done:end -->
+
+<!-- status:events:start -->
+- **2026-05-16T12:54:06.521Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-05-rationalise-eval-system-artifact-management-20260516.status.yml
+- **2026-05-16T12:54:06.521Z** `rebuild` — Aggregated 5 subtask source(s); digest 5779311c…
+- **2026-05-16T12:54:27.214Z** `rebuild` — Aggregated 6 subtask source(s); digest 4fc57184…
+- **2026-05-16T12:54:27.814Z** `rebuild` — Aggregated 6 subtask source(s); digest 188c151b…
+- **2026-05-16T12:54:36.416Z** `rebuild` — Aggregated 6 subtask source(s); digest 054adbf0…
+- **2026-05-16T12:55:22.699Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-04-rationalise-eval-system-audit-test-realism-20260516.status.yml
+- **2026-05-16T12:55:22.699Z** `rebuild` — Aggregated 5 subtask source(s); digest a1ed4560…
+- **2026-05-16T12:55:23.555Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-04-rationalise-eval-system-audit-test-realism-20260516.status.yml
+- **2026-05-16T12:55:23.555Z** `rebuild` — Aggregated 5 subtask source(s); digest 301d19bc…
+- **2026-05-16T12:55:38.750Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-04-rationalise-eval-system-audit-test-realism-20260516.status.yml
+- **2026-05-16T12:55:38.750Z** `rebuild` — Aggregated 5 subtask source(s); digest 6b2d049f…
+- **2026-05-16T12:55:50.908Z** `rebuild` — Aggregated 6 subtask source(s); digest 7e5e5674…
+- **2026-05-16T12:55:51.744Z** `rebuild` — Aggregated 6 subtask source(s); digest e8f8c5a4…
+- **2026-05-16T12:55:58.511Z** `rebuild` — Aggregated 6 subtask source(s); digest 826da066…
+- **2026-05-16T12:56:56.340Z** `rebuild` — Aggregated 6 subtask source(s); digest 1413391b…
+- **2026-05-16T12:56:57.291Z** `rebuild` — Aggregated 6 subtask source(s); digest e2a0bbb6…
+- **2026-05-16T12:57:06.400Z** `rebuild` — Aggregated 6 subtask source(s); digest 3192d954…
+- **2026-05-16T12:57:20.069Z** `rebuild` — Aggregated 6 subtask source(s); digest d2362f3a…
+- **2026-05-16T12:58:24.075Z** `rebuild` — Aggregated 6 subtask source(s); digest 62b90f4c…
+- **2026-05-16T12:58:45.504Z** `rebuild` — Aggregated 6 subtask source(s); digest 04334671…
+- **2026-05-16T12:59:04.204Z** `rebuild` — Aggregated 6 subtask source(s); digest f28375d3…
+- **2026-05-16T12:59:07.258Z** `rebuild` — Aggregated 6 subtask source(s); digest b81a0beb…
+- **2026-05-16T12:59:14.531Z** `rebuild` — Aggregated 6 subtask source(s); digest 34ea9545…
+- **2026-05-16T12:59:20.641Z** `rebuild` — Aggregated 6 subtask source(s); digest 8766a71b…
+- **2026-05-16T12:59:36.241Z** `rebuild` — Aggregated 6 subtask source(s); digest 67ed7d5a…
+- **2026-05-16T12:59:52.816Z** `rebuild` — Aggregated 6 subtask source(s); digest 41dffa62…
+- **2026-05-16T13:00:01.957Z** `rebuild` — Aggregated 6 subtask source(s); digest a00f1ebc…
+- **2026-05-16T13:00:05.020Z** `rebuild` — Aggregated 6 subtask source(s); digest 5b19e2bc…
+- **2026-05-16T13:00:05.433Z** `rebuild` — Aggregated 6 subtask source(s); digest cb6f92f6…
+- **2026-05-16T13:00:09.579Z** `rebuild` — Aggregated 6 subtask source(s); digest d5211c97…
+- **2026-05-16T13:00:20.262Z** `rebuild` — Aggregated 6 subtask source(s); digest eb915c0d…
+- **2026-05-16T13:00:26.786Z** `rebuild` — Aggregated 6 subtask source(s); digest 9deac6da…
+- **2026-05-16T13:00:35.631Z** `rebuild` — Aggregated 6 subtask source(s); digest 28a6cba6…
+- **2026-05-16T13:00:38.685Z** `rebuild` — Aggregated 6 subtask source(s); digest 8523b6ed…
+- **2026-05-16T13:00:54.550Z** `rebuild` — Aggregated 6 subtask source(s); digest 100fea9e…
+- **2026-05-16T13:01:13.359Z** `rebuild` — Aggregated 6 subtask source(s); digest 7744877e…
+- **2026-05-16T13:01:33.735Z** `rebuild` — Aggregated 6 subtask source(s); digest 33a7d6a0…
+- **2026-05-16T13:01:42.988Z** `rebuild` — Aggregated 6 subtask source(s); digest bb5693da…
+- **2026-05-16T13:01:44.545Z** `rebuild` — Aggregated 6 subtask source(s); digest 92e87a86…
+- **2026-05-16T13:02:30.325Z** `rebuild` — Aggregated 6 subtask source(s); digest dd1161a6…
+- **2026-05-16T13:05:15.146Z** `rebuild` — Aggregated 6 subtask source(s); digest c427e89e…
+- **2026-05-16T13:06:33.972Z** `rebuild` — Aggregated 6 subtask source(s); digest 1729c16b…
+- **2026-05-16T13:08:15.705Z** `rebuild` — Aggregated 6 subtask source(s); digest 6d6511c0…
+- **2026-05-16T13:08:16.429Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T13:08:16.429Z** `rebuild` — Aggregated 5 subtask source(s); digest 649fb349…
+- **2026-05-16T13:08:17.567Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T13:08:17.567Z** `rebuild` — Aggregated 5 subtask source(s); digest 0498ac83…
+- **2026-05-16T13:11:32.868Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T13:11:32.868Z** `rebuild` — Aggregated 5 subtask source(s); digest 0b48beb6…
+- **2026-05-16T13:11:57.264Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T13:11:57.264Z** `rebuild` — Aggregated 5 subtask source(s); digest 30f62062…
+- **2026-05-16T13:12:02.443Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T13:12:02.443Z** `rebuild` — Aggregated 5 subtask source(s); digest 4f584d5c…
+- **2026-05-16T13:12:09.105Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T13:12:09.105Z** `rebuild` — Aggregated 5 subtask source(s); digest 4d48abc7…
+- **2026-05-16T13:12:21.137Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T13:12:21.137Z** `rebuild` — Aggregated 5 subtask source(s); digest 1d3c3071…
+- **2026-05-16T13:12:22.830Z** `rebuild` — Aggregated 6 subtask source(s); digest 990dddcd…
+- **2026-05-16T13:12:24.606Z** `rebuild` — Aggregated 6 subtask source(s); digest d35876e2…
+- **2026-05-16T13:12:44.627Z** `rebuild` — Aggregated 6 subtask source(s); digest 0a671d5b…
+- **2026-05-16T13:13:02.004Z** `rebuild` — Aggregated 6 subtask source(s); digest 7321cee5…
+- **2026-05-16T13:15:52.882Z** `rebuild` — Aggregated 6 subtask source(s); digest 635f6902…
+- **2026-05-16T13:16:35.806Z** `rebuild` — Aggregated 6 subtask source(s); digest b3e0eb04…
+- **2026-05-16T13:16:45.232Z** `rebuild` — Aggregated 6 subtask source(s); digest 29067ff5…
+- **2026-05-16T13:18:07.376Z** `rebuild` — Aggregated 6 subtask source(s); digest 9e21d5ed…
+- **2026-05-16T13:19:24.252Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T13:19:24.252Z** `rebuild` — Aggregated 5 subtask source(s); digest 088515e4…
+- **2026-05-16T13:19:24.643Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T13:19:24.643Z** `rebuild` — Aggregated 5 subtask source(s); digest 3eb3d98a…
+- **2026-05-16T13:20:18.149Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T13:20:18.149Z** `rebuild` — Aggregated 5 subtask source(s); digest a4b0c882…
+- **2026-05-16T13:20:51.835Z** `rebuild` — Aggregated 6 subtask source(s); digest bc792620…
+- **2026-05-16T13:20:52.159Z** `rebuild` — Aggregated 6 subtask source(s); digest 91687d23…
+- **2026-05-16T13:21:06.460Z** `rebuild` — Aggregated 6 subtask source(s); digest 7c027b48…
+- **2026-05-16T13:24:13.027Z** `rebuild` — Aggregated 6 subtask source(s); digest a9e5f509…
+- **2026-05-16T13:24:13.353Z** `rebuild` — Aggregated 6 subtask source(s); digest c75dd399…
+- **2026-05-16T13:24:21.455Z** `rebuild` — Aggregated 6 subtask source(s); digest 9dbc94e0…
+- **2026-05-16T13:24:27.175Z** `rebuild` — Aggregated 6 subtask source(s); digest d8c0979b…
+- **2026-05-16T13:24:32.461Z** `rebuild` — Aggregated 6 subtask source(s); digest e65d5d7d…
+- **2026-05-16T13:25:03.858Z** `rebuild` — Aggregated 6 subtask source(s); digest e2c5a3a5…
+- **2026-05-16T13:25:12.657Z** `rebuild` — Aggregated 6 subtask source(s); digest e80fd822…
+- **2026-05-16T13:28:44.889Z** `rebuild` — Aggregated 6 subtask source(s); digest f89d1e98…
+- **2026-05-16T13:30:38.266Z** `rebuild` — Aggregated 6 subtask source(s); digest 28777a7b…
+- **2026-05-16T15:00:10.532Z** `rebuild` — Aggregated 6 subtask source(s); digest e735c66e…
+- **2026-05-16T15:00:23.560Z** `rebuild` — Aggregated 6 subtask source(s); digest bb6beb52…
+- **2026-05-16T15:04:06.152Z** `rebuild` — Aggregated 6 subtask source(s); digest f82a78ac…
+- **2026-05-16T15:06:26.672Z** `rebuild` — Aggregated 6 subtask source(s); digest d0601c49…
+- **2026-05-16T15:06:49.569Z** `rebuild` — Aggregated 6 subtask source(s); digest d3d3eecb…
+- **2026-05-16T15:07:03.311Z** `rebuild` — Aggregated 6 subtask source(s); digest 4684d01a…
+- **2026-05-16T15:09:42.021Z** `rebuild` — Aggregated 6 subtask source(s); digest f3341e5d…
+- **2026-05-16T15:10:46.175Z** `rebuild` — Aggregated 6 subtask source(s); digest c102fd03…
+- **2026-05-16T15:21:00.852Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T15:21:00.852Z** `rebuild` — Aggregated 5 subtask source(s); digest f475db0c…
+- **2026-05-16T15:21:01.564Z** `source_validation_warn` — Schema validation failed for specs/20260516-rationalise-eval-system/status/subtask-06-rationalise-eval-system-end-to-end-validation-20260516.status.yml
+- **2026-05-16T15:21:01.564Z** `rebuild` — Aggregated 5 subtask source(s); digest 7f762245…
+- **2026-05-16T15:22:09.338Z** `rebuild` — Aggregated 6 subtask source(s); digest aa404f15…
+- **2026-05-16T15:22:09.992Z** `rebuild` — Aggregated 6 subtask source(s); digest 4ac69786…
+- **2026-05-16T15:22:16.992Z** `rebuild` — Aggregated 6 subtask source(s); digest 830d6c2a…
+- **2026-05-16T15:25:39.927Z** `rebuild` — Aggregated 6 subtask source(s); digest 71b819be…
+- **2026-05-16T15:26:44.335Z** `rebuild` — Aggregated 6 subtask source(s); digest 2e99c497…
+<!-- status:events:end -->

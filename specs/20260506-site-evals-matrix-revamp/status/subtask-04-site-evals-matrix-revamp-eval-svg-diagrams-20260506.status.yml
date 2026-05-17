@@ -1,0 +1,170 @@
+schema_version: 1
+subtask_id: "04"
+feature: site-evals-matrix-revamp
+assigned_agent: crux-software-engineer
+model: claude-opus-4.7
+token_budget: 200000
+state: completed
+started_at: "2026-05-06T12:36:00Z"
+last_heartbeat: "2026-05-06T12:55:00Z"
+completed_at: "2026-05-06T12:55:00Z"
+checklist:
+  - id: D01
+    text: "site/images/diagrams/eval-lifecycle.svg — six-step horizontal flow init/configure/create/execute/judge/compare with update below the spine."
+    done: true
+    evidence_path: site/images/diagrams/eval-lifecycle.svg
+  - id: D02
+    text: "site/images/diagrams/eval-run-report.svg — three-panel run directory / outputs / /canvas hand-off."
+    done: true
+    evidence_path: site/images/diagrams/eval-run-report.svg
+  - id: D03
+    text: "site/images/diagrams/eval-update-contract.svg — two columns (generated touch zone, user-authored no-touch) with blocked arrow."
+    done: true
+    evidence_path: site/images/diagrams/eval-update-contract.svg
+  - id: D04
+    text: "site/images/diagrams/eval-askquestion-flow.svg — sequence diagram User / Command / Subagent with needs_user_input + resume."
+    done: true
+    evidence_path: site/images/diagrams/eval-askquestion-flow.svg
+  - id: D05
+    text: "site/images/mockups/eval-create.svg — Cursor IDE mockup of /zoto-eval-create."
+    done: true
+    evidence_path: site/images/mockups/eval-create.svg
+  - id: D06
+    text: "site/images/mockups/eval-canvas-compare.svg — Cursor IDE mockup of /zoto-eval-compare driving /canvas."
+    done: true
+    evidence_path: site/images/mockups/eval-canvas-compare.svg
+  - id: D07
+    text: "site/images/mockups/eval-judge-output.svg — Cursor IDE mockup of /zoto-eval-judge with the judge: block in llm.yml."
+    done: true
+    evidence_path: site/images/mockups/eval-judge-output.svg
+  - id: D08
+    text: "site/images/mockups/eval-advise-flow.svg — Cursor IDE mockup of /zoto-eval-advise five-dimension scoreboard."
+    done: true
+    evidence_path: site/images/mockups/eval-advise-flow.svg
+  - id: D09
+    text: "All eight assets are valid SVG (validated via Python ElementTree XML parse)."
+    done: true
+    evidence_path: site/images/
+  - id: D10
+    text: "All eight assets use the canonical Matrix palette mapping (no charcoal-era #8ec0d6 / #1a1a1a / #2a2a2a / #3a3a3a / #e0e0e0); palette mapping table in subtask 04 honoured."
+    done: true
+    evidence_path: site/images/
+artifacts:
+  - path: site/images/diagrams/eval-lifecycle.svg
+    kind: created
+    note: New SVG. 1200x700 viewBox; matrix palette; <title> + <desc> present.
+  - path: site/images/diagrams/eval-run-report.svg
+    kind: created
+    note: "New SVG. Three-panel: run dir, outputs, /canvas hand-off."
+  - path: site/images/diagrams/eval-update-contract.svg
+    kind: created
+    note: New SVG. _meta.generated contract; touch zone vs no-touch column.
+  - path: site/images/diagrams/eval-askquestion-flow.svg
+    kind: created
+    note: New SVG. Sequence-style diagram, User / Command / Subagent.
+  - path: site/images/mockups/eval-create.svg
+    kind: created
+    note: New mockup. Cursor IDE rendering of /zoto-eval-create.
+  - path: site/images/mockups/eval-canvas-compare.svg
+    kind: created
+    note: New mockup. Cursor IDE rendering of /zoto-eval-compare + /canvas.
+  - path: site/images/mockups/eval-judge-output.svg
+    kind: created
+    note: New mockup. Cursor IDE rendering of /zoto-eval-judge.
+  - path: site/images/mockups/eval-advise-flow.svg
+    kind: created
+    note: New mockup. Cursor IDE rendering of /zoto-eval-advise scoreboard.
+errors: []
+notes: |
+  All eight SVGs validate as well-formed XML and use only the canonical Matrix palette listed in subtask 04. Each <svg> root has both <title> and <desc> for screen-reader / pa11y accessibility (subtask 07 will run the formal a11y check). System-stack fonts only; no external font dependencies.
+extra:
+  heartbeats:
+    - ts: "2026-05-06T12:36:00Z"
+      msg: "subtask started; baselined off site/images/diagrams/workflow-overview.svg"
+    - ts: "2026-05-06T12:55:00Z"
+      msg: "all 8 SVGs authored, validated, palette-clean"
+  dod_checks:
+    eight_files: true
+    well_formed_xml: true
+    matrix_palette_only: true
+    title_and_desc_present: true
+    no_external_font: true
+  judge:
+    verdict: verified
+    at: "2026-05-06T12:58:00Z"
+    notes: |
+      DELIVERABLES: all D01-D10 and Definition of Done bullets independently verified.
+
+      Existence (D01-D08): all eight SVGs present at the canonical paths under
+      site/images/diagrams/ and site/images/mockups/ with the exact filenames specified
+      in the subtask.
+
+      Well-formed XML (D09): all eight files parse cleanly via Python
+      xml.etree.ElementTree.parse(). xmllint was not installed in this sandbox (recorded
+      as an environment note, not a defect); ElementTree is an equivalent / stricter
+      conformance check.
+
+      Matrix palette only (D10): zero occurrences of the forbidden charcoal-era values
+      #8ec0d6 / #1a1a1a / #2a2a2a / #3a3a3a / #e0e0e0 / #242424 / #999999 / #a8d4e6 across
+      all eight files. The canonical Matrix palette mapping (#000000, #0a0f0a, #0f1a0f,
+      #1a3a1a, #c8ffc8, #6a8a6a, #00ff7f, #5cffaf) is honoured in every file.
+
+      Definition of Done extras: each <svg> root contains both <title> and <desc> (8/8
+      verified). Only "system-ui, -apple-system, sans-serif" and "ui-monospace, monospace"
+      font-family declarations appear; no Google Fonts <link>, no @import, no @font-face,
+      no Roboto / Helvetica / Arial / Inter / Times. Diagrams use viewBox 0 0 1200 700;
+      mockups use viewBox 0 0 1400 900, matching the "12:7 for diagrams, wider for mockups"
+      guidance and the existing workflow-overview.svg / create-spec.svg style baseline.
+
+      Semantic eyeball pass per file:
+      - eval-lifecycle.svg: 6-step horizontal spine (init/configure/create/execute/judge/
+        compare) with the `update` panel below the spine arrowing back into create +
+        execute as a continuous sync loop; backend-split panel covers static (pytest) and
+        llm (@cursor/sdk); a sibling `/z-eval-advise` panel is included alongside compare,
+        which is consistent with the broader command set.
+      - eval-run-report.svg: three panels - run directory on left (evals/_runs/<ts>/ plus
+        the standard children), per-backend outputs in centre (static.yml, llm.yml,
+        report.yml stroked as the aggregate), and the /canvas hand-off on the right
+        (flat dataset, /canvas instruction, cross-run charts, drilldown to per-case logs).
+      - eval-update-contract.svg: two-column layout, generated touch-zone on the left with
+        accent arrows from the updater, user-authored no-touch column on the right marked
+        "preserved verbatim" with a blocked-arrow marker; the `_meta.generated === true`
+        contract is called out in the header.
+      - eval-askquestion-flow.svg: three-lifeline sequence (User / Command / Subagent),
+        showing command-owned askQuestion <-> user, spawn(subagent, pre-collected answers),
+        subagent -> needs_user_input, command resumes after second askQuestion. Footer
+        states explicitly "Skills + agents never call askQuestion. Only commands do."
+      - eval-create.svg: Cursor IDE mockup, sidebar highlights evals/, evals/_llm/ and
+        .zoto/eval-system/manifest.yml; editor renders the manifest preview; chat panel
+        shows the create skill output and tool calls.
+      - eval-canvas-compare.svg: Cursor IDE mockup with run-A and run-B run directories in
+        the sidebar, chat panel showing the comparer summary plus the /canvas tool call,
+        and a canvas pane rendering a runs x cases x tokens grouped bar chart with legend
+        and drilldown instruction.
+      - eval-judge-output.svg: Cursor IDE mockup with the judge: block being appended to
+        llm.yml (weak_graders, verbosity_spikes, accuracy_regressions, recommended_handoff,
+        needs_user_input flag); chat panel summarises findings and the hand-off prompt.
+      - eval-advise-flow.svg: Cursor IDE mockup with the five-dimension severity scoreboard
+        (trigger-phrase / schema / regression / citation / checklist) colour-coded
+        clean/warn/block, plus the command-owned askQuestion hand-off banner.
+
+      All checklist[].done flags reconciled to true based on independent confirmation
+      against disk. No defects in the deliverables.
+
+      META-NOTE (status-pair reconciliation by judge):
+      Two minor schema/syntax glitches in the executor-authored status.yml had to be
+      reconciled before the round-trip helper and onStop check could run cleanly:
+        1. line 58 `note:` value contained an unquoted "Three-panel:" which the strict
+           YAML parser rejected as a nested mapping; quoted the string.
+        2. all 8 artifacts had `kind: source` which is not in the schema's allowed enum
+           (created / modified / deleted); set to `kind: created` since the SVGs are
+           net-new files.
+      These are status-pair metadata fixes (the only file the judge is permitted to
+      write), not changes to any subtask 04 deliverable.
+
+      onStop check: spec-onstop-check.ts exits 2 with 3 critical findings, but ALL three
+      are schema-invalid yml in SIBLING subtasks (01, 02, 03), not in subtask 04. Subtask
+      04's status.yml validates cleanly in isolation. The executor should route the
+      sibling-subtask schema cleanups through their respective owners; they are not
+      blockers for advancing past subtask 04.
+    fix_list: []

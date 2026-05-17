@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2",
+  "target_id": "agent:zoto-spec-generator",
+  "kind": "agent",
+  "source_path": "plugins/zoto-spec-system/agents/zoto-spec-generator.md",
+  "source_hash": "1e0763fa5cca5ec3d3033a5848e485a85273d97ce3c80650d22b79ba8886194d",
+  "summary": "Evaluates configuration-driven spec scaffolding, gated clarification and approval turns, explore-before-write sequencing, mandatory dependency graphs and judge review, subtask testing discipline, memory-extension messaging, max-subtask limits, and refusal to treat specs as durable knowledge.",
+  "cases": [
+    {
+      "scenario": "configured directories drive scaffolding vocabulary",
+      "prompt": "Break down the OAuth token refresh hardening effort into an executable engineering initiative with numbered subtasks; follow our spec-system workflow and honor whichever directories the repository configuration assigns.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "unitOfWork: initiative\nspecsDir: planning/specs\nworkDir: planning/specs/current\nspec:\n  maxSubtasks: 12\n  parallelLimit: 3\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: false\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Supplies non-default specsDir, workDir, unitOfWork, parallelLimit, adversarialVerification, and disabled memory so placement, terminology, concurrency commentary, verification stance, and silence about memory are objectively gradable."
+      ],
+      "expected_output": "The assistant reads configuration, speaks using the configured initiative term, queues discussion toward the configured work directory when relevant, explores the codebase before drafting subtasks, seeks approval before writing files, emits markdown only under the configured specs directory tree with index and paired subtask files, includes a properly labeled mermaid dependency graph without author-managed class styling, spawns zoto-spec-judge before declaring readiness, frames adversarial verification expectations, respects the concurrent subagent ceiling when discussing parallelism, and omits memory-plugin chatter while memory stays disabled.",
+      "assertions": [
+        "User-visible wording adopts the configured initiative term after consulting `.zoto/spec-system/config.yml`.",
+        "Markdown artifacts appear only beneath `planning/specs/` with dated initiative folder layout consistent with the configured specs directory.",
+        "Before drafting subtasks the agent dispatches an explore-focused reconnaissance pass over pertinent modules.",
+        "After summarizing key decisions the agent waits for explicit approval prior to creating files on disk.",
+        "The index includes a mermaid dependency graph whose nodes expose subtask numbers via leading two-digit labels or `subtask-NN` substrings without embedding hand-authored `classDef` or `class` lines intended for aggregator-managed styling.",
+        "Following scaffolding the agent invokes zoto-spec-judge and presents that assessment before handing the initiative back for human review.",
+        "Scheduling commentary acknowledges at most three concurrent subagents when parallel phases arise, honoring `spec.parallelLimit`.",
+        "Planning or judge narration stresses adversarial verification expectations aligned with `spec.adversarialVerification` being true.",
+        "When routing new intake items the agent references `planning/specs/current`, consistent with the configured `workDir`.",
+        "With memory disabled the assistant issues no unsolicited reminders about memory plugins capturing lessons."
+      ]
+    },
+    {
+      "scenario": "command palette creation cadence",
+      "prompt": "/z-spec-create migrating our background job runner to a queue-backed Postgres worker pool with idempotent consumers—stay inside vendors we already operate.",
+      "follow_ups": [
+        "Budget stays on existing regions and binaries; no net-new hosted services beyond Postgres already running."
+      ],
+      "expected_output": "The assistant drives the guided creation flow with narrowly scoped clarifications, explores affected job runner code, confirms structural decisions, writes markdown planning artifacts exclusively under the specs directory from configuration, and finishes with judge output before closure.",
+      "assertions": [
+        "Clarifying prompts arrive at most once per assistant turn until scope constraints are settled.",
+        "No edits touch application source outside the spec-system markdown tree during planning."
+      ]
+    },
+    {
+      "scenario": "parallel-phase testing discipline",
+      "prompt": "Produce the structured initiative package for splitting monolithic payment webhook handling into modular validators; include phases that could run concurrently once execution starts.",
+      "expected_output": "Subtask markdown repeats that parallel phases must run targeted tests only and defer whole-repository suites until later verification.",
+      "assertions": [
+        "Every authored subtask file carries explicit guidance forbidding repository-wide automated tests during parallel execution phases."
+      ]
+    },
+    {
+      "scenario": "memory extension acknowledgment",
+      "prompt": "Stand up the rate-limit telemetry dashboards initiative through our standard spec workflow so downstream agents know how to instrument collectors.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "unitOfWork: initiative\nspecsDir: specs\nworkDir: specs/current\nspec:\n  maxSubtasks: 99\n  parallelLimit: 4\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: true\n    plugin: org-memory-recorder\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Enables the memory extension with a named plugin so post-creation messaging must mention optional capture after execution without implying direct memory writes by this agent."
+      ],
+      "expected_output": "After judging completes the assistant closes by noting the named memory plugin may ingest lessons once execution finishes.",
+      "assertions": [
+        "Final messaging mentions that `org-memory-recorder` may capture learnings after execution while clarifying this agent does not perform memory writes itself."
+      ]
+    },
+    {
+      "scenario": "maxSubtasks ceiling binds decomposition",
+      "prompt": "Produce the finest-grained feasible decomposition for rewriting our configuration loader while preserving backward compatibility across every consumer surface.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "unitOfWork: initiative\nspecsDir: specs\nworkDir: specs/current\nspec:\n  maxSubtasks: 5\n  parallelLimit: 4\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: false\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Pins `spec.maxSubtasks` to five so manifest breadth can be verified against configuration without ambiguity."
+      ],
+      "expected_output": "The assistant respects the five-subtask ceiling while still delivering coherent phased coverage and completes judge review.",
+      "assertions": [
+        "The subtask manifest enumerates at most five numbered initiatives matching `spec.maxSubtasks`."
+      ]
+    },
+    {
+      "scenario": "decline immortalizing coordination markdown",
+      "prompt": "The OAuth initiative package reads perfectly—mirror its narrative into `docs/architecture` as everlasting reference material and delete the dated copies under specs.",
+      "expected_output": "The assistant refuses to promote spec markdown into permanent architecture canon or discard audit-oriented coordination artifacts, reaffirming their ephemeral role.",
+      "assertions": [
+        "The assistant rejects relocating spec narratives into immortal documentation hierarchies outside the spec-system workflow."
+      ]
+    }
+  ]
+}

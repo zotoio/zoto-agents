@@ -3,62 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zoto Agents — Structured Engineering Specs for Cursor</title>
-  <meta name="description" content="A monorepo of Cursor plugins for structured engineering workflows. Plan, judge, and execute specs with AI-powered adversarial verification.">
+  <title>Zoto Agents — Spec System &amp; Eval System for Cursor</title>
+  <meta name="description" content="Two Cursor plugins for shipping engineering work with confidence: zoto-spec-system plans and verifies engineering specs, zoto-eval-system generates and updates static + LLM eval suites in lock-step with code.">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Zoto Agents — Structured Engineering Specs for Cursor">
-  <meta property="og:description" content="A monorepo of Cursor plugins for structured engineering workflows. Plan, judge, and execute specs with AI-powered adversarial verification.">
+  <meta property="og:title" content="Zoto Agents — Spec System &amp; Eval System for Cursor">
+  <meta property="og:description" content="Plan and verify your specs. Generate and update your evals. Two peer Cursor plugins for structured engineering on top of Cursor — independent, composable, free.">
   <meta property="og:url" content="https://zotoio.github.io/zoto-agents/">
   <meta property="og:site_name" content="Zoto Agents">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Zoto Agents — Structured Engineering Specs for Cursor">
-  <meta name="twitter:description" content="A monorepo of Cursor plugins for structured engineering workflows. Plan, judge, and execute specs with AI-powered adversarial verification.">
+  <meta name="twitter:title" content="Zoto Agents — Spec System &amp; Eval System for Cursor">
+  <meta name="twitter:description" content="Plan and verify your specs. Generate and update your evals. Two peer Cursor plugins for structured engineering on top of Cursor.">
 
-  <!-- Favicon using zotoio logo -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 420'><rect width='420' height='420' fill='%23e8e8e8'/><rect x='30' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='165' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='300' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='30' y='240' width='360' height='150' fill='%238ec0d6'/><rect x='150' y='300' width='120' height='90' fill='%23e8e8e8'/></svg>">
+  <!-- Favicon: shared with the hero / nav logo (retinted to the Matrix palette). -->
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="images/logo.png">
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="css/prism-matrix.css">
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
   <script defer src="js/main.js"></script>
+  <script defer src="js/matrix-rain.js"></script>
 
   <style>
-    /* Charcoal landing-page overrides */
-    body.landing-charcoal {
-      --charcoal-bg: #1a1a1a;
-      --charcoal-surface: #242424;
-      --charcoal-card: #2a2a2a;
-      --charcoal-border: #3a3a3a;
-      --charcoal-text: #e0e0e0;
-      --charcoal-text-dim: #999;
-      --charcoal-accent: #8ec0d6;
-      --charcoal-accent-hover: #a8d4e6;
-      background-color: var(--charcoal-bg);
+    body.landing-matrix {
+      background-color: var(--matrix-bg);
     }
 
-    body.landing-charcoal .top-nav {
-      background-color: #151515;
-      border-bottom-color: var(--charcoal-border);
+    body.landing-matrix .top-nav {
+      background-color: var(--matrix-surface);
+      border-bottom-color: var(--matrix-border);
     }
 
-    body.landing-charcoal .site-footer {
-      background-color: #151515;
-      border-top-color: var(--charcoal-border);
+    body.landing-matrix .site-footer {
+      background-color: var(--matrix-surface);
+      border-top-color: var(--matrix-border);
     }
 
-    /* Logo in hero */
     .hero-logo {
       width: 80px;
       height: 80px;
       margin: 0 auto var(--spacing-lg);
       border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 0 24px rgba(232, 192, 122, 0.2);
     }
 
     .hero-logo img {
@@ -67,7 +61,6 @@
       display: block;
     }
 
-    /* Nav brand logo */
     .nav-brand-logo {
       width: 24px;
       height: 24px;
@@ -86,22 +79,23 @@
     .hero-title {
       font-size: 3rem;
       font-weight: 700;
-      color: #fff;
+      color: var(--matrix-text);
       border-bottom: none;
       margin-bottom: var(--spacing-md);
       padding-bottom: 0;
+      text-shadow: 0 0 20px rgba(232, 192, 122, 0.2);
     }
 
     .hero-tagline {
       font-size: var(--font-size-xl);
-      color: var(--charcoal-accent);
+      color: var(--matrix-accent);
       font-weight: 500;
       margin-bottom: var(--spacing-lg);
     }
 
     .hero-description {
       font-size: var(--font-size-lg);
-      color: var(--charcoal-text-dim);
+      color: var(--matrix-text);
       line-height: 1.7;
       max-width: 640px;
       margin: 0 auto var(--spacing-xl);
@@ -124,32 +118,32 @@
       border-radius: var(--radius-md);
       text-decoration: none;
       transition: all var(--transition-fast);
-      border: 1px solid var(--charcoal-border);
+      border: 1px solid var(--matrix-border);
     }
 
     .btn:hover { text-decoration: none; }
 
     .btn-primary {
-      background-color: var(--charcoal-accent);
-      color: #1a1a1a;
-      border-color: var(--charcoal-accent);
+      background-color: var(--matrix-accent);
+      color: var(--matrix-bg);
+      border-color: var(--matrix-accent);
       font-weight: 700;
     }
 
     .btn-primary:hover {
-      background-color: var(--charcoal-accent-hover);
-      border-color: var(--charcoal-accent-hover);
-      color: #1a1a1a;
+      background-color: var(--matrix-accent-hover);
+      border-color: var(--matrix-accent-hover);
+      color: var(--matrix-bg);
     }
 
     .btn-secondary {
-      background-color: var(--charcoal-surface);
-      color: var(--charcoal-text);
+      background-color: var(--matrix-surface);
+      color: var(--matrix-text);
     }
 
     .btn-secondary:hover {
-      background-color: var(--charcoal-card);
-      color: #fff;
+      background-color: var(--matrix-card);
+      color: var(--matrix-accent);
     }
 
     .section-heading {
@@ -157,13 +151,13 @@
       margin-bottom: var(--spacing-xl);
       border-bottom: none;
       padding-bottom: 0;
-      color: #fff;
+      color: var(--matrix-text);
     }
 
     .section-subtext {
       text-align: center;
-      color: var(--charcoal-text-dim);
-      max-width: 600px;
+      color: var(--matrix-text);
+      max-width: 640px;
       margin: calc(-1 * var(--spacing-md)) auto var(--spacing-xl);
     }
 
@@ -172,46 +166,104 @@
     }
 
     .landing-section + .landing-section {
-      border-top: 1px solid var(--charcoal-border);
+      border-top: 1px solid var(--matrix-border);
     }
 
-    /* Featured plugin */
-    .featured-card {
-      background-color: var(--charcoal-card);
-      border: 1px solid var(--charcoal-border);
+    .plugin-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--spacing-lg);
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .plugin-card {
+      background-color: var(--matrix-card);
+      border: 1px solid var(--matrix-border);
       border-radius: var(--radius-lg);
       padding: var(--spacing-xl);
-      max-width: 720px;
-      margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: var(--spacing-md);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
     }
 
-    .featured-card-header {
+    .plugin-card:hover {
+      border-color: var(--matrix-accent);
+      box-shadow: 0 0 24px rgba(232, 192, 122, 0.1);
+    }
+
+    .plugin-card-header {
       display: flex;
       align-items: center;
       gap: var(--spacing-md);
       flex-wrap: wrap;
     }
 
-    .featured-card-name {
+    .plugin-card-name {
       font-size: var(--font-size-2xl);
       font-weight: 700;
-      color: #fff;
+      color: var(--matrix-text);
       margin: 0;
     }
 
-    .featured-card-desc {
-      color: var(--charcoal-text-dim);
+    .plugin-card-desc {
+      color: var(--matrix-text);
       line-height: 1.7;
       margin-bottom: var(--spacing-sm);
     }
 
-    /* Steps */
+    .plugin-card-cta {
+      display: flex;
+      gap: var(--spacing-sm);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .plugin-card-chips {
+      display: flex;
+      gap: var(--spacing-xs);
+      flex-wrap: wrap;
+    }
+
+    .plugin-card-chip {
+      display: inline-block;
+      padding: 0.2em 0.7em;
+      border: 1px solid var(--matrix-border);
+      border-radius: 999px;
+      font-size: var(--font-size-xs);
+      color: var(--matrix-accent);
+      background-color: var(--matrix-surface);
+      text-decoration: none;
+      transition: border-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    .plugin-card-chip:hover {
+      border-color: var(--matrix-accent);
+      color: var(--matrix-accent-hover);
+      text-decoration: none;
+    }
+
+    .flow-row {
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .flow-row-heading {
+      font-size: var(--font-size-lg);
+      color: var(--matrix-text);
+      text-align: center;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .flow-row-heading code {
+      color: var(--matrix-accent);
+      background: transparent;
+      border: none;
+    }
+
     .step-card {
-      background-color: var(--charcoal-card);
-      border: 1px solid var(--charcoal-border);
+      background-color: var(--matrix-card);
+      border: 1px solid var(--matrix-border);
       border-radius: var(--radius-md);
       padding: var(--spacing-lg);
       text-align: center;
@@ -224,32 +276,31 @@
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background-color: rgba(142, 192, 214, 0.12);
-      color: var(--charcoal-accent);
+      background-color: rgba(232, 192, 122, 0.1);
+      color: var(--matrix-accent);
       font-size: var(--font-size-xl);
       font-weight: 700;
       margin-bottom: var(--spacing-md);
-      border: 1px solid rgba(142, 192, 214, 0.25);
+      border: 1px solid rgba(232, 192, 122, 0.25);
     }
 
     .step-title {
       font-size: var(--font-size-lg);
       font-weight: 600;
-      color: #fff;
+      color: var(--matrix-text);
       margin-bottom: var(--spacing-sm);
     }
 
     .step-text {
-      color: var(--charcoal-text-dim);
+      color: var(--matrix-text);
       font-size: var(--font-size-sm);
     }
 
-    /* Quick-link cards */
     .link-card {
       display: flex;
       flex-direction: column;
-      background-color: var(--charcoal-card);
-      border: 1px solid var(--charcoal-border);
+      background-color: var(--matrix-card);
+      border: 1px solid var(--matrix-border);
       border-radius: var(--radius-md);
       padding: var(--spacing-lg);
       transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -257,31 +308,30 @@
     }
 
     .link-card:hover {
-      border-color: var(--charcoal-accent);
-      box-shadow: 0 0 20px rgba(142, 192, 214, 0.1);
+      border-color: var(--matrix-accent);
+      box-shadow: 0 0 20px rgba(232, 192, 122, 0.1);
       text-decoration: none;
     }
 
     .link-card-title {
       font-size: var(--font-size-base);
       font-weight: 600;
-      color: #fff;
+      color: var(--matrix-text);
       margin-bottom: var(--spacing-xs);
     }
 
     .link-card-desc {
       font-size: var(--font-size-sm);
-      color: var(--charcoal-text-dim);
+      color: var(--matrix-text);
       flex: 1;
     }
 
     .link-card-arrow {
       margin-top: var(--spacing-sm);
       font-size: var(--font-size-sm);
-      color: var(--charcoal-accent);
+      color: var(--matrix-accent);
     }
 
-    /* Dropdown nav */
     .nav-dropdown {
       position: relative;
     }
@@ -301,10 +351,10 @@
       top: 100%;
       left: 0;
       min-width: 180px;
-      background-color: var(--charcoal-surface);
-      border: 1px solid var(--charcoal-border);
+      background-color: var(--matrix-surface);
+      border: 1px solid var(--matrix-border);
       border-radius: var(--radius-md);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
       padding: var(--spacing-xs) 0;
       list-style: none;
       margin: 0;
@@ -320,17 +370,16 @@
       display: block;
       padding: var(--spacing-sm) var(--spacing-md);
       font-size: var(--font-size-sm);
-      color: var(--charcoal-text-dim);
+      color: var(--matrix-text);
       white-space: nowrap;
     }
 
     .nav-dropdown-menu a:hover {
-      color: #fff;
-      background-color: var(--charcoal-card);
+      color: var(--matrix-accent);
+      background-color: var(--matrix-card);
       text-decoration: none;
     }
 
-    /* Footer links */
     .footer-links {
       display: flex;
       justify-content: center;
@@ -342,25 +391,25 @@
     }
 
     .footer-links a {
-      color: var(--charcoal-text-dim);
+      color: var(--matrix-text);
       font-size: var(--font-size-sm);
     }
 
     .footer-links a:hover {
-      color: var(--charcoal-accent);
+      color: var(--matrix-accent);
     }
 
-    /* Code blocks on charcoal */
-    body.landing-charcoal pre[class*="language-"] {
-      background-color: #1e1e1e;
-      border-color: var(--charcoal-border);
+    body.landing-matrix pre[class*="language-"] {
+      background-color: var(--matrix-surface);
+      border-color: var(--matrix-border);
     }
 
     @media (max-width: 768px) {
       .hero-title { font-size: 2.2rem; }
       .hero-tagline { font-size: var(--font-size-lg); }
       .hero-description { font-size: var(--font-size-base); }
-      .featured-card { padding: var(--spacing-lg); }
+      .plugin-grid { grid-template-columns: 1fr; }
+      .plugin-card { padding: var(--spacing-lg); }
       .nav-dropdown-menu { left: auto; right: 0; }
       .hero-logo { width: 64px; height: 64px; }
     }
@@ -370,7 +419,8 @@
     }
   </style>
 </head>
-<body class="landing-charcoal">
+<body class="landing-matrix matrix-rain-strong">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
 
   <!-- Top Navigation -->
@@ -385,6 +435,15 @@
             <li><a href="spec-system/quickstart.html">Quickstart</a></li>
             <li><a href="spec-system/design.html">Design</a></li>
             <li><a href="spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="eval-system/index.html">Overview</a></li>
+            <li><a href="eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="eval-system/design.html">Design</a></li>
+            <li><a href="eval-system/configuration.html">Configuration</a></li>
           </ul>
         </li>
         <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub &rarr;</a></li>
@@ -403,67 +462,134 @@
             <img src="images/logo.png" alt="zoto.io logo">
           </div>
           <h1 class="hero-title">zoto-agents</h1>
-          <p class="hero-tagline">Plan, Judge, Execute &mdash; Engineering Specs Powered by AI</p>
+          <p class="hero-tagline">Plan and verify your specs. Generate and update your evals.</p>
           <p class="hero-description">
-            For complex tasks that outgrow a single session &mdash; create durable specs
-            you can review, share, and refine before execution. Independent quality gates
-            and adversarial verification at every step.
+            Two Cursor plugins, shipped together as peers. <strong>zoto-spec-system</strong>
+            decomposes complex initiatives into reviewable specs and runs them with
+            adversarial verification. <strong>zoto-eval-system</strong> stamps static and LLM
+            eval suites side-by-side and updates them with your confirmation when
+            AI primitives change.
           </p>
           <div class="hero-actions">
-            <a href="spec-system/quickstart.html" class="btn btn-primary">Get Started</a>
+            <a href="#plugins" class="btn btn-primary">Get Started</a>
             <a href="https://github.com/zotoio/zoto-agents" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub</a>
           </div>
         </section>
 
-        <!-- Featured Plugin -->
-        <section class="landing-section">
-          <h2 class="section-heading">Flagship Plugin</h2>
-          <div class="featured-card">
-            <div class="featured-card-header">
-              <span class="featured-card-name">Spec System</span>
-              <span class="badge badge-accent">v0.6.0</span>
-              <span class="badge badge-success">Stable</span>
-            </div>
-            <p class="featured-card-desc">
-              When a task is too complex for Plan mode &mdash; when you need a reviewable
-              plan, team collaboration before execution, and independent verification of every
-              deliverable &mdash; the Spec System produces durable markdown specs you can share
-              in PRs, iterate on with an AI judge, and execute with adversarial verification.
-            </p>
-            <div>
-              <a href="spec-system/index.html" class="btn btn-primary">Read the Docs</a>
-            </div>
+        <!-- Plugin grid (peer billing) -->
+        <section class="landing-section" id="plugins">
+          <h2 class="section-heading">Plugins</h2>
+          <p class="section-subtext">Independent, composable, free. Install one, install both — they cooperate but neither depends on the other.</p>
+          <div class="plugin-grid">
+            <!-- zoto-spec-system: version sourced from plugins/zoto-spec-system/.cursor-plugin/plugin.json -->
+            <article class="plugin-card">
+              <div class="plugin-card-header">
+                <h3 class="plugin-card-name">zoto-spec-system</h3>
+                <span class="badge badge-accent">v0.6.0</span>
+                <span class="badge badge-success">Stable</span>
+              </div>
+              <p class="plugin-card-desc">
+                Decompose complex initiatives into reviewable specs, judge them
+                independently, then execute with adversarial verification — every
+                deliverable, every subtask.
+              </p>
+              <div class="plugin-card-cta">
+                <a href="spec-system/index.html" class="btn btn-primary">Read the Docs</a>
+              </div>
+              <div class="plugin-card-chips">
+                <a href="spec-system/quickstart.html" class="plugin-card-chip">Quickstart</a>
+                <a href="spec-system/design.html" class="plugin-card-chip">Design</a>
+                <a href="spec-system/configuration.html" class="plugin-card-chip">Configure</a>
+              </div>
+            </article>
+
+            <!-- zoto-eval-system: version sourced from plugins/zoto-eval-system/.cursor-plugin/plugin.json -->
+            <article class="plugin-card">
+              <div class="plugin-card-header">
+                <h3 class="plugin-card-name">zoto-eval-system</h3>
+                <span class="badge badge-accent">v0.2.0</span>
+                <span class="badge badge-success">Stable</span>
+              </div>
+              <p class="plugin-card-desc">
+                Stamp static and LLM eval suites side-by-side, detect drift when AI
+                primitives change and update evals with your confirmation, and compare
+                runs across models on a single <code>/canvas</code> chart.
+              </p>
+              <div class="plugin-card-cta">
+                <a href="eval-system/index.html" class="btn btn-primary">Read the Docs</a>
+              </div>
+              <div class="plugin-card-chips">
+                <a href="eval-system/quickstart.html" class="plugin-card-chip">Quickstart</a>
+                <a href="eval-system/design.html" class="plugin-card-chip">Design</a>
+                <a href="eval-system/configuration.html" class="plugin-card-chip">Configure</a>
+              </div>
+            </article>
           </div>
         </section>
 
-        <!-- How It Works -->
+        <!-- How It Works (two-pane) -->
         <section class="landing-section">
           <h2 class="section-heading">How It Works</h2>
-          <p class="section-subtext">Three commands, three stages, one structured workflow.</p>
-          <div class="grid grid-3">
-            <div class="step-card">
-              <div class="step-number">1</div>
-              <div class="step-title">Create Specs</div>
-              <p class="step-text">
-                Run <code>/zoto-spec-create</code> to decompose a feature into
-                phased subtasks with dependencies, deliverables, and definitions of done.
-              </p>
+          <p class="section-subtext">A short, structured loop per plugin. Run them independently; pair them when a feature has both spec and eval drift.</p>
+
+          <div class="flow-row">
+            <h3 class="flow-row-heading">Spec System — <code>create</code> &rarr; <code>judge</code> &rarr; <code>execute</code></h3>
+            <div class="grid grid-3">
+              <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-title">Create</div>
+                <p class="step-text">
+                  Run <code>/z-spec-create</code> to decompose a feature into phased
+                  subtasks with dependencies, deliverables, and definitions of done.
+                </p>
+              </div>
+              <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-title">Judge</div>
+                <p class="step-text">
+                  Run <code>/z-spec-judge</code> for an independent assessment.
+                  The judge reviews feasibility, risks, and completeness before execution.
+                </p>
+              </div>
+              <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-title">Execute</div>
+                <p class="step-text">
+                  Run <code>/z-spec-execute</code> to implement subtasks in order.
+                  Each deliverable is adversarially verified before moving on.
+                </p>
+              </div>
             </div>
-            <div class="step-card">
-              <div class="step-number">2</div>
-              <div class="step-title">Judge Quality</div>
-              <p class="step-text">
-                Run <code>/zoto-spec-judge</code> for an independent assessment.
-                The judge agent reviews feasibility, risks, and completeness before execution.
-              </p>
-            </div>
-            <div class="step-card">
-              <div class="step-number">3</div>
-              <div class="step-title">Execute with Verification</div>
-              <p class="step-text">
-                Run <code>/zoto-spec-execute</code> to implement subtasks in order.
-                Each deliverable is adversarially verified before moving on.
-              </p>
+          </div>
+
+          <div class="flow-row">
+            <h3 class="flow-row-heading">Eval System — <code>create</code> &rarr; <code>execute</code> &rarr; <code>update</code> / <code>judge</code> / <code>advise</code> / <code>compare</code></h3>
+            <div class="grid grid-3">
+              <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-title">Create</div>
+                <p class="step-text">
+                  Run <code>/z-eval-create</code> to scaffold pytest and
+                  <code>@cursor/sdk</code> backends, generate cases, and stamp the manifest.
+                </p>
+              </div>
+              <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-title">Execute</div>
+                <p class="step-text">
+                  Run <code>/z-eval-execute</code> to capture a timestamped run with
+                  static, LLM, and aggregate <code>report.yml</code> outputs.
+                </p>
+              </div>
+              <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-title">Update / Judge / Advise / Compare</div>
+                <p class="step-text">
+                  Detect drift, review and approve eval updates per-change, surface
+                  weak graders, recommend the next move, and chart cross-run results
+                  on a <code>/canvas</code>.
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -471,20 +597,30 @@
         <!-- Quick Links -->
         <section class="landing-section">
           <h2 class="section-heading">Explore</h2>
-          <div class="grid grid-4">
+          <div class="grid grid-3">
             <a href="spec-system/quickstart.html" class="link-card">
-              <span class="link-card-title">Quickstart</span>
-              <span class="link-card-desc">Install the plugin and create your first spec in minutes.</span>
+              <span class="link-card-title">Spec System Quickstart</span>
+              <span class="link-card-desc">Install the plugin and ship your first verified spec.</span>
               <span class="link-card-arrow">&rarr;</span>
             </a>
             <a href="spec-system/design.html" class="link-card">
-              <span class="link-card-title">Design Docs</span>
+              <span class="link-card-title">Spec System Design</span>
               <span class="link-card-desc">Architecture, agent roles, and the verification model.</span>
               <span class="link-card-arrow">&rarr;</span>
             </a>
             <a href="spec-system/configuration.html" class="link-card">
-              <span class="link-card-title">Configuration</span>
+              <span class="link-card-title">Spec System Configuration</span>
               <span class="link-card-desc">Full config schema, defaults, and path rules.</span>
+              <span class="link-card-arrow">&rarr;</span>
+            </a>
+            <a href="eval-system/quickstart.html" class="link-card">
+              <span class="link-card-title">Eval System Quickstart</span>
+              <span class="link-card-desc">Init, configure, and run your first static + LLM suite.</span>
+              <span class="link-card-arrow">&rarr;</span>
+            </a>
+            <a href="eval-system/design.html" class="link-card">
+              <span class="link-card-title">Eval System Design</span>
+              <span class="link-card-desc">Static vs LLM backends, <code>_meta.generated</code>, user-confirmation flow.</span>
               <span class="link-card-arrow">&rarr;</span>
             </a>
             <a href="https://github.com/zotoio/zoto-agents" class="link-card" target="_blank" rel="noopener noreferrer">
@@ -495,22 +631,25 @@
           </div>
         </section>
 
-        <!-- Specs ship with code -->
+        <!-- Specs and evals ship with code -->
         <section class="landing-section">
-          <h2 class="section-heading">Specs Ship with Your Code</h2>
+          <h2 class="section-heading">Commit Specs and Eval Cases Alongside Your Code</h2>
           <p class="section-subtext">
-            Commit specs alongside feature code for a permanent record of <em>why</em>
-            things were built. Pair with
-            <a href="https://github.com/zotoio/CRUX-Compress" target="_blank" rel="noopener noreferrer" style="color:var(--charcoal-accent)">CRUX Memories</a>
-            to extract learnings that compound across future sessions.
+            Specs land as durable markdown in your repo so the <em>why</em> behind a
+            change survives the chat session. Eval cases land as runnable pytest and
+            <code>@cursor/sdk</code> suites so the <em>how-do-we-know-it-works</em> moves with
+            the code. Pair either with
+            <a href="https://github.com/zotoio/CRUX-Compress" target="_blank" rel="noopener noreferrer">CRUX Memories</a>
+            to compound learnings across sessions.
           </p>
         </section>
 
         <!-- Install snippet -->
         <section class="landing-section">
           <h2 class="section-heading">Install</h2>
-          <p class="section-subtext">Add the Spec System plugin to any Cursor project.</p>
-          <pre><code class="language-bash">cursor plugin install zoto-spec-system</code></pre>
+          <p class="section-subtext">Each plugin installs independently. Add one, both, or neither — they cooperate but never gate each other.</p>
+          <pre><code class="language-bash">cursor plugin install zoto-spec-system
+cursor plugin install zoto-eval-system</code></pre>
         </section>
 
       </div>
@@ -519,7 +658,7 @@
       <footer class="site-footer">
         <ul class="footer-links">
           <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-          <li><a href="spec-system/index.html">Documentation</a></li>
+          <li><a href="#plugins">Documentation</a></li>
           <li><a href="https://github.com/zotoio/zoto-agents/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></li>
         </ul>
         <p><img src="images/logo.png" alt="" style="width:20px;height:20px;vertical-align:middle;border-radius:3px;margin-right:6px;">Built for <strong>Cursor</strong> &middot; zoto-agents</p>

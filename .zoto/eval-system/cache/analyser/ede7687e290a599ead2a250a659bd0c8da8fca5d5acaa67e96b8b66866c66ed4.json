@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2",
+  "target_id": "agent:zoto-spec-executor",
+  "kind": "agent",
+  "source_path": "plugins/zoto-spec-system/agents/zoto-spec-executor.md",
+  "source_hash": "ede7687e290a599ead2a250a659bd0c8da8fca5d5acaa67e96b8b66866c66ed4",
+  "summary": "Evaluates the executor agent’s `/z-spec-execute` coordination loop: config-driven vocabulary and limits, aggregator watch behaviour, per-spawn token budget prefix resolution, judge-driven remediation without executor-authored fixes, legacy directories without `status/`, hot config reload failures, cooperative cancellation signalling, mandatory `spec-onstop-check.ts`, and the optional memory-extension follow-up when enabled.",
+  "cases": [
+    {
+      "scenario": "standard spec run with watcher and phased subagents",
+      "prompt": "You are the spec executor: run `/z-spec-execute` against `specs/20260507-auth-hardening` using the repo’s `.zoto/spec-system/config.yml`. Confirm the Subtask Manifest with me, then drive each dependency phase without bumping parallel fan-out above the configured limit, keep the index Status column truthful as subtasks finish, and stop for my review before you mark the initiative completed.",
+      "expected_output": "A concise execution plan that quotes the manifest, states the resolved `spec.parallelLimit`, announces background `spec-aggregator.ts --watch` for the dated directory, schedules subagents strictly by phases, and lists the gate checks (per-subtask targeted testing only during parallel work, full suite later, `spec-onstop-check.ts` before sharing the report).",
+      "assertions": [
+        "Before coordinating work, the agent reads `.zoto/spec-system/config.yml` and applies `unitOfWork`, `specsDir`, `workDir`, `spec.maxSubtasks`, `spec.parallelLimit`, `spec.adversarialVerification`, and `extensions.memory.enabled` to its decisions.",
+        "Right after execution begins on a spec whose directory contains `status/`, the agent backgrounds `pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-aggregator.ts --watch` with the absolute dated spec directory and repository root arguments and tracks the child PID.",
+        "The agent states that the aggregator watch loop only reads `status/*.status.yml`, never writes a subtask’s `.status.yml` / `.status.md`, and updates only the spec-root `status.md` + `status.yml` when the digest changes.",
+        "The user-facing summary and approval prompts use the configured `unitOfWork` term instead of hard-coded synonyms like “plan” or “story” when those conflict with config.",
+        "Subtasks are started only after all dependency subtasks from earlier phases are complete, and within each phase the agent launches at most `spec.parallelLimit` concurrent subagents.",
+        "Executing agents are instructed to run targeted tests during parallel work and defer the repository-wide test suite to the final verification phase.",
+        "After each subtask completes, the agent spawns a fresh `zoto-spec-judge` subagent for adversarial verification whenever `spec.adversarialVerification` is true."
+      ]
+    },
+    {
+      "scenario": "per-spawn token budget prefix resolution",
+      "prompt": "Continue executing the same dated spec where `status/` is present. Before you spawn the next `subtask`-role worker for subtask 02, explain how you refresh the spawn prefix and what the first line of the injected prefix will contain.",
+      "expected_output": "An explicit note that the next subagent spawn shells out to `tsx plugins/zoto-spec-system/scripts/spec-spawn-prefix.ts` with `--role subtask` plus the current `--status-yml` and `--status-md` paths, and that stdout’s first line is the required token-budget sentence with the resolved integer.",
+      "assertions": [
+        "On each subagent spawn (roles in the `generator | executor | judge | subtask` set), the agent shells to `tsx plugins/zoto-spec-system/scripts/spec-spawn-prefix.ts --role … --status-yml … --status-md …` from the repository root.",
+        "The agent states that updated `subagents.*.tokenBudget` values take effect on the very next spawn without restarting the whole executor session.",
+        "The agent quotes or paraphrases the required first-line prefix format beginning with `Token budget:` and mentions recording that budget in the spawned subagent’s `status.yml` `token_budget` field."
+      ]
+    },
+    {
+      "scenario": "judge verdict remediation without executor-authored fixes",
+      "prompt": "During `/z-spec-execute`, the judge for subtask 04 returned `Partial` with a non-empty structured `fix_list` in `.status.yml` under `extra.judge`. As executor, what do you do next—please be explicit about who edits code and who reruns verification.",
+      "expected_output": "A remediation plan that routes the structured `fix_list` back to the manifest’s originally assigned subagent for subtask 04, forbids the judge from patching product files, and schedules a brand-new `zoto-spec-judge` pass afterward.",
+      "assertions": [
+        "The agent refuses to translate the judge `fix_list` into its own code edits and instead re-spawns the exact subagent type listed in the manifest row for that subtask.",
+        "The agent instructs the implementation subagent to apply fixes, update its own `.status.yml` / `.status.md` pair, and keep the judge confined to writing verdict metadata into `extra.judge` in the subtask `.status.yml` only.",
+        "After fixes land, the agent schedules another `zoto-spec-judge` verification pass (a new instance) before treating the subtask as done."
+      ]
+    },
+    {
+      "scenario": "final verification, onStop gate, and execution report",
+      "prompt": "All subtasks are green. Before you show me anything, walk through the shutdown checks for `/z-spec-execute`: tests, lint handling, the YAML/md consistency script, and where you write the narrative audit trail.",
+      "expected_output": "A ordered checklist that runs the project-wide tests and lint assessment after parallel work, invokes `pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --repo-root …`, blocks user-facing completion when the script exits 2, and writes `execution-report-<feature>-<yyyymmdd>.md` inside the dated spec directory.",
+      "assertions": [
+        "The agent states it runs `ReadLints` (or equivalent) on files touched during subtasks after each subtask and again during final verification as needed.",
+        "The agent runs the full project test suite only in the final verification phase after every subtask has completed successfully.",
+        "Before presenting the execution report to the operator, the agent shells out to `pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human` with the repository root flag set to the workspace root and treats exit code 2 as a hard stop that forces additional remediation loops.",
+        "The agent writes `execution-report-[feature-name]-[yyyymmdd].md` into the dated spec directory and treats specs under `{specsDir}/` as ephemeral coordination artifacts rather than durable knowledge stores.",
+        "The agent notes that the `hooks/zoto-onstop-check.mjs` stop hook mirrors the same consistency check as defence in depth, without substituting for the executor’s explicit `spec-onstop-check.ts` call."
+      ]
+    },
+    {
+      "scenario": "legacy spec directory without status folder",
+      "prompt": "Please `/z-spec-execute` the initiative under `specs/20240501-legacy-import`—that tree predates `status/` directories. Describe exactly how your tooling path differs from a modern spec.",
+      "expected_output": "Recognition that missing `status/` triggers the legacy branch with a single warning line, skips `spec-aggregator --watch`, and skips `spec-spawn-prefix.ts`, while still coordinating subtasks through the manifest.",
+      "assertions": [
+        "The agent logs the exact legacy warning sentence `status/ directory absent — running legacy spawn path` when the dated directory lacks a `status/` folder.",
+        "In that legacy situation the agent does not background `spec-aggregator.ts --watch` and does not invoke `spec-spawn-prefix.ts`, noting that spawned subagents will not receive status-file paths in their prefix."
+      ]
+    },
+    {
+      "scenario": "invalid spec-system config during aggregator reload",
+      "prompt": "While the watcher is running for an active `/z-spec-execute`, someone saved a malformed `.zoto/spec-system/config.yml`. What should the aggregator do on the next poll, and what event must appear at the spec root afterward?",
+      "expected_output": "Explanation that the watcher keeps the last validated configuration, continues operating, and emits an events entry whose kind field is config_reload_failed in the spec-root status.yml on the next aggregate write.",
+      "assertions": [
+        "The agent explains that `ConfigValidationError` during reload causes the process to continue with the previous good config rather than crashing the watcher.",
+        "The agent specifies that the next digest write records an events entry whose kind field equals config_reload_failed in the spec-root status.yml."
+      ]
+    },
+    {
+      "scenario": "operator cancels an in-flight execute run",
+      "prompt": "I am aborting `/z-spec-execute` mid-run. How do you tear down the background aggregator politely so we do not strand processes?",
+      "expected_output": "A shutdown recipe that targets the tracked child PID with `SIGINT`, waits at most one `pollIntervalMs` for graceful exit, then escalates to `SIGTERM` if needed.",
+      "assertions": [
+        "The agent sends `SIGINT` to the background `spec-aggregator` process when cancellation is requested.",
+        "The agent waits up to one current `aggregator.pollIntervalMs` window for a clean exit before issuing `SIGTERM`."
+      ]
+    },
+    {
+      "scenario": "memory extension enabled suggests follow-up workflow",
+      "prompt": "We finished `/z-spec-execute` successfully on this repo with memory extensions switched on. What optional housekeeping do you recommend next regarding the configured memory plugin?",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "content": "unitOfWork: spec\nspecsDir: specs\nworkDir: specs/current\nspec:\n  maxSubtasks: 12\n  parallelLimit: 2\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: true\n    plugin: zoto-memory-notes\naggregator:\n  pollIntervalMs: 1500\n  debounceMs: 250\n  enabled: true\nhooks: {}\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Flips `extensions.memory.enabled` and supplies a named `extensions.memory.plugin` so the post-run memory follow-up behaviour can be evaluated without relying on whichever defaults ship in the shared baseline checkout."
+      ],
+      "expected_output": "After completion, the agent suggests invoking the named plugin’s dream or extract workflow to harvest learnings, while clarifying it does not write memories itself.",
+      "assertions": [
+        "Because `extensions.memory.enabled` is true and a plugin id is present, the agent proposes running that plugin’s deferred memory workflow after execution, without attempting to mutate memory data directly."
+      ]
+    }
+  ]
+}

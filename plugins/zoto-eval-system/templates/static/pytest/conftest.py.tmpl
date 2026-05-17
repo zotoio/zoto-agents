@@ -1,0 +1,305 @@
+"""Shared fixtures + per-run reporter for the static (pytest) eval suite.
+
+Stamped by ``zoto-eval-system/templates/static/pytest/conftest.py.tmpl``
+(subtask 06).
+
+This file owns two responsibilities:
+
+1. Light-touch user fixtures (``repo_root``, ``eval_config``,
+   ``manifest``, ``tmp_workspace``) plus the eval-case loaders
+   (``load_eval_cases``, ``is_generated_case``). Adapt freely - anything
+   you add here is user-authored and survives ``/z-eval-update``.
+2. Per-run report serialisation. The ``pytest_runtest_logreport`` hook
+   captures every test outcome, and ``pytest_terminal_summary`` writes
+   a ``result.schema.json``-shaped YAML to
+   ``evals/_runs/<ts>/static.yml`` via the colocated ``_reporter.py``
+   module.
+
+Environment overrides (used by tests, the orchestrator and CI):
+
+* ``ZOTO_EVAL_SUPPRESS_STATIC_REPORT`` - any truthy value (``1``,
+  ``true``, ``yes``, ``on``) skips writing static.yml entirely.
+  ``ZOTO_EVAL_STATIC_REPORT=off`` is honoured as a synonym.
+* ``ZOTO_EVAL_RUNS_DIR`` - absolute path overriding the default
+  ``<repo_root>/evals/_runs/`` location.
+* ``ZOTO_EVAL_RUN_ID`` - explicit run-id directory name.
+* ``ZOTO_EVAL_MODEL`` - records the model the orchestrator was running
+  against (additive metadata; result.schema.json permits it).
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+import pytest
+import yaml
+
+# ``conftest.py`` lives at ``evals/conftest.py`` once stamped. Pytest adds
+# its parent directory to ``sys.path`` automatically; we re-add it here
+# defensively so the colocated reporter is importable regardless of cwd.
+# The reporter is stamped from ``_reporter.py.tmpl`` into the host repo
+# as ``_zoto_static_reporter.py`` (a namespaced filename that won't
+# collide with user-authored files under ``evals/``); see
+# ``ensurePytestSupportFiles`` in ``scripts/eval-stamp.ts``.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _zoto_static_reporter import (  # type: ignore[import-not-found]  # noqa: E402
+    CaseRecord,
+    GraderReport,
+    write_static_report,
+)
+
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+EVALS_DIR = Path(__file__).resolve().parent
+RUNS_DIR = EVALS_DIR / "_runs"
+
+
+@pytest.fixture()
+def repo_root() -> Path:
+    """Absolute path to the repository root (one level above ``evals/``)."""
+    return REPO_ROOT
+
+
+@pytest.fixture()
+def eval_config(repo_root: Path) -> dict[str, Any]:
+    """Load ``.zoto/eval-system/config.yml`` if present, otherwise an empty dict."""
+    cfg_path = repo_root / ".zoto" / "eval-system" / "config.yml"
+    if cfg_path.is_file():
+        return json.loads(cfg_path.read_text(encoding="utf-8"))
+    return {}
+
+
+@pytest.fixture()
+def manifest(repo_root: Path) -> dict[str, Any] | None:
+    """Load ``.zoto/eval-system/manifest.yml`` if present, else ``None``."""
+    mf_path = repo_root / ".zoto" / "eval-system" / "manifest.yml"
+    if mf_path.is_file():
+        return yaml.safe_load(mf_path.read_text(encoding="utf-8"))
+    return None
+
+
+@pytest.fixture()
+def tmp_workspace(tmp_path: Path) -> Path:
+    """Provide an isolated working directory for a test."""
+    cwd = Path.cwd()
+    os.chdir(tmp_path)
+    try:
+        yield tmp_path
+    finally:
+        os.chdir(cwd)
+
+
+def load_eval_cases(evals_json_path: Path) -> list[dict[str, Any]]:
+    """Load an eval JSON file, returning the cases list (``evals`` or ``cases`` key)."""
+    data = json.loads(evals_json_path.read_text(encoding="utf-8"))
+    cases = data.get("evals") or data.get("cases") or []
+    return cases
+
+
+def is_generated_case(case: dict[str, Any]) -> bool:
+    """True if a case was generated (and thus regenerable by ``/z-eval-update``)."""
+    meta = case.get("_meta") or {}
+    return bool(meta.get("generated"))
+
+
+# ---------------------------------------------------------------------------
+# Static-backend run report (subtask 06)
+# ---------------------------------------------------------------------------
+# Module-level capture buffer. Pytest does not reliably expose ``config``
+# on every report record, but it does invoke hooks single-threaded within
+# a session, so a module-scoped dict is the cleanest place to accumulate
+# per-case state. Reset at the start of every session.
+_SESSION_STATE: dict[str, Any] = {
+    "started_at": None,
+    "cases": {},
+}
+
+
+def _now_utc() -> datetime:
+    return datetime.now(tz=timezone.utc)
+
+
+def _suppress_static_report() -> bool:
+    """Honour suppression env vars for self-tests / collect-only runs."""
+    suppress = os.environ.get("ZOTO_EVAL_SUPPRESS_STATIC_REPORT", "").strip().lower()
+    if suppress in {"1", "true", "yes", "on"}:
+        return True
+    legacy = os.environ.get("ZOTO_EVAL_STATIC_REPORT", "").strip().lower()
+    return legacy == "off"
+
+
+def _runs_dir_override() -> Path | None:
+    raw = os.environ.get("ZOTO_EVAL_RUNS_DIR", "").strip()
+    if not raw:
+        return None
+    return Path(raw).expanduser().resolve()
+
+
+def _run_id_override() -> str | None:
+    rid = os.environ.get("ZOTO_EVAL_RUN_ID", "").strip()
+    return rid or None
+
+
+def _model_override() -> str | None:
+    rid = os.environ.get("ZOTO_EVAL_MODEL", "").strip()
+    return rid or None
+
+
+def pytest_sessionstart(session: pytest.Session) -> None:
+    """Reset the per-session capture buffer."""
+    _SESSION_STATE["started_at"] = _now_utc()
+    _SESSION_STATE["cases"] = {}
+
+
+def pytest_runtest_logreport(report: pytest.TestReport) -> None:
+    """Aggregate per-phase reports into a single record per nodeid."""
+    cases: dict[str, dict[str, Any]] = _SESSION_STATE["cases"]
+    nodeid = report.nodeid
+    case = cases.setdefault(
+        nodeid,
+        {
+            "id": nodeid,
+            "status": "passed",
+            "duration_ms": 0,
+            "grader_reports": [],
+        },
+    )
+
+    case["duration_ms"] = int(case["duration_ms"]) + int(
+        round((report.duration or 0.0) * 1000.0)
+    )
+
+    if report.when == "setup":
+        if report.outcome == "skipped":
+            case["status"] = "skipped"
+            case["grader_reports"].append(
+                {
+                    "grader": "pytest",
+                    "verdict": "warn",
+                    "detail": _short_repr(getattr(report, "longreprtext", "")),
+                }
+            )
+        elif report.outcome == "failed":
+            case["status"] = "errored"
+            case["grader_reports"].append(
+                {
+                    "grader": "pytest",
+                    "verdict": "fail",
+                    "detail": "setup failed: "
+                    + _short_repr(getattr(report, "longreprtext", "")),
+                }
+            )
+        return
+
+    if report.when == "call":
+        if report.outcome == "passed":
+            case["status"] = "passed"
+            case["grader_reports"].append(
+                {
+                    "grader": "pytest",
+                    "verdict": "pass",
+                    "detail": _short_detail_for_nodeid(nodeid),
+                }
+            )
+        elif report.outcome == "skipped":
+            case["status"] = "skipped"
+            case["grader_reports"].append(
+                {
+                    "grader": "pytest",
+                    "verdict": "warn",
+                    "detail": _short_repr(getattr(report, "longreprtext", "")),
+                }
+            )
+        else:
+            case["status"] = "failed"
+            case["grader_reports"].append(
+                {
+                    "grader": "pytest",
+                    "verdict": "fail",
+                    "detail": _short_repr(getattr(report, "longreprtext", "")),
+                }
+            )
+        return
+
+    if report.when == "teardown" and report.outcome == "failed":
+        if case["status"] == "passed":
+            case["status"] = "errored"
+        case["grader_reports"].append(
+            {
+                "grader": "pytest",
+                "verdict": "fail",
+                "detail": "teardown failed: "
+                + _short_repr(getattr(report, "longreprtext", "")),
+            }
+        )
+
+
+def pytest_terminal_summary(
+    terminalreporter: Any,
+    exitstatus: int,
+    config: pytest.Config,
+) -> None:
+    """Serialise the captured run as ``evals/_runs/<ts>/static.yml``."""
+    if _suppress_static_report():
+        return
+    cases_map: dict[str, dict[str, Any]] = _SESSION_STATE["cases"]
+    if not cases_map:
+        return
+
+    started_at: datetime = _SESSION_STATE["started_at"] or _now_utc()
+    ended_at = _now_utc()
+
+    cases: list[CaseRecord] = []
+    for raw in cases_map.values():
+        cases.append(
+            CaseRecord(
+                id=str(raw["id"]),
+                status=str(raw["status"]),
+                duration_ms=int(raw.get("duration_ms") or 0),
+                grader_reports=[
+                    GraderReport(
+                        grader=str(g["grader"]),
+                        verdict=str(g["verdict"]),
+                        detail=str(g.get("detail") or ""),
+                    )
+                    for g in (raw.get("grader_reports") or [])
+                ],
+            )
+        )
+
+    runs_dir = _runs_dir_override() or RUNS_DIR
+    run_id = _run_id_override()
+    model = _model_override()
+
+    out = write_static_report(
+        runs_dir=runs_dir,
+        started_at=started_at,
+        ended_at=ended_at,
+        cases=cases,
+        framework="pytest",
+        model=model,
+        run_id=run_id,
+    )
+    terminalreporter.write_line(
+        f"[zoto-eval] static.yml written: {out}",
+        bold=True,
+    )
+
+
+def _short_repr(text: object, limit: int = 480) -> str:
+    s = str(text or "").strip()
+    if len(s) <= limit:
+        return s
+    return s[: limit - 1] + "\u2026"
+
+
+def _short_detail_for_nodeid(nodeid: str, limit: int = 200) -> str:
+    if len(nodeid) <= limit:
+        return nodeid
+    return nodeid[: limit - 1] + "\u2026"

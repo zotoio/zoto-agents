@@ -1,0 +1,55 @@
+schema_version: 1
+subtask_id: "05"
+feature: Refactor LLM eval approach
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-08T10:50:00Z
+last_heartbeat: 2026-05-08T10:56:47.698Z
+completed_at: 2026-05-08T10:55:00Z
+checklist:
+  - id: D01
+    text: "Template emits: imports, `CASES` injection (`{{CASES_JSON}}`), `TARGET_ID` / model placeholders, **single** call into shared runner (no inlined `CaseDefinition`, no duplicate loop)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl
+  - id: D02
+    text: "`eval-stamp.ts` updated if placeholders or paths change; smoke **stamp dry-run** or unit test if available"
+    done: true
+    evidence_path: null
+  - id: D03
+    text: Plugin tests (`plugins/zoto-eval-system/tests/plugin.test.ts` or equivalent) updated if they assert on template substring literals
+    done: true
+    evidence_path: null
+  - id: D04
+    text: Regenerate or verify **bootstrap** path `pnpm run eval:bootstrap-llm-code` / caches if documented in README
+    done: true
+    evidence_path: scripts/bootstrap-llm-code-from-cache.ts
+artifacts:
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl
+    kind: modified
+    note: Refactored from ~240-line inlined runner to ~30-line thin file importing shared types + harness
+  - path: plugins/zoto-eval-system/CHANGELOG.md
+    kind: modified
+    note: Added Unreleased entry describing template/harness refactor
+errors: []
+notes: |
+  - eval-stamp.ts renderLlmCodePerPrimitiveTest() required NO changes — all placeholders are a superset of what the new template uses.
+  - Plugin tests (62/62 pass) had no assertions on template substring content.
+  - eval:update --check shows 4 pre-existing critical deltas (skill content drift), none introduced by this change.
+  - Bootstrap script (bootstrap-llm-code-from-cache.ts) calls stampLlmCodeStrategy which reads the template at runtime — verified compatible.
+  - Subtask 06 should own bulk regen of existing evals/llm/test_*.test.ts files to use the new thin pattern.
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-08T10:55:30Z
+    notes: |
+      All 4 deliverables and 2 DoD items independently confirmed against disk.
+      D01: Template is 32 lines; imports CodeStrategyCaseDefinition + defineLlmCodeEval; single defineLlmCodeEval() call; no inlined CaseDefinition or duplicate loop.
+      D02: renderLlmCodePerPrimitiveTest in eval-stamp.ts (lines 2098-2134) substitutes a superset of placeholders — unused ones are harmless no-ops. No changes needed — correct.
+      D03: 62/62 plugin tests pass. Grep confirms no test asserts on per-primitive-test.ts.tmpl content.
+      D04: bootstrap-llm-code-from-cache.ts calls stampLlmCodeStrategy which reads the template at runtime via renderLlmCodePerPrimitiveTest — fully compatible.
+      DoD01: eval:update --check shows 4 pre-existing critical deltas (skill content drift on zoto-compare-evals, zoto-create-spec, zoto-execute-spec, zoto-judge-spec) — none introduced by this change.
+      DoD02: CHANGELOG entry at line 9 under [Unreleased] describes the template/harness refactor.
+      No linter errors on modified files.
+    fix_list: []

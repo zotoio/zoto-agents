@@ -1,0 +1,67 @@
+schema_version: 1
+subtask_id: "02"
+feature: spec-system-live-status
+assigned_agent: crux-platform-architect
+model: composer-2-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`plugins/zoto-spec-system/templates/schema/subtask-status.schema.json` (draft-07) — required fields:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/templates/schema/subtask-status.schema.json
+  - id: D02
+    text: "`plugins/zoto-spec-system/templates/schema/spec-status.schema.json` (draft-07) — required fields:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/templates/schema/spec-status.schema.json
+  - id: D03
+    text: "`plugins/zoto-spec-system/templates/schema/config.schema.json` — **new file** (today there is no schema for `.zoto/spec-system/config.yml`; only a free-text doc). Mirror the eval-system style and include:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/templates/schema/config.schema.json
+  - id: D04
+    text: "`plugins/zoto-spec-system/docs/status-schema.md` — single canonical source describing:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/docs/status-schema.md
+  - id: D05
+    text: "`plugins/zoto-spec-system/templates/status/subtask-status.md.tmpl` — markdown template with all block markers in place and `{{placeholder}}` slots so subtask 05 can stamp it"
+    done: true
+    evidence_path: plugins/zoto-spec-system/templates/status/subtask-status.md.tmpl
+  - id: D06
+    text: "`plugins/zoto-spec-system/templates/status/subtask-status.yml.tmpl` — yml template mirroring the md template's marker set"
+    done: true
+    evidence_path: plugins/zoto-spec-system/templates/status/subtask-status.yml.tmpl
+  - id: D07
+    text: "`plugins/zoto-spec-system/templates/status/spec-status.md.tmpl` and `.yml.tmpl` — same for the spec-root aggregate (subtask 07 stamps these)"
+    done: true
+    evidence_path: plugins/zoto-spec-system/templates/status/spec-status.md.tmpl
+artifacts:
+  - path: plugins/zoto-spec-system/templates/schema/subtask-status.schema.json
+    kind: created
+    note: draft-07 subtask status schema
+  - path: plugins/zoto-spec-system/templates/schema/spec-status.schema.json
+    kind: created
+    note: draft-07 spec aggregate schema
+  - path: plugins/zoto-spec-system/templates/schema/config.schema.json
+    kind: created
+    note: Zoto Spec System config schema
+  - path: plugins/zoto-spec-system/docs/status-schema.md
+    kind: created
+    note: block markers and round-trip documentation
+  - path: plugins/zoto-spec-system/templates/status/subtask-status.md.tmpl
+    kind: created
+    note: subtask status md template
+  - path: plugins/zoto-spec-system/templates/status/subtask-status.yml.tmpl
+    kind: created
+    note: subtask status yml template
+  - path: plugins/zoto-spec-system/templates/status/spec-status.md.tmpl
+    kind: created
+    note: spec aggregate md template
+  - path: plugins/zoto-spec-system/templates/status/spec-status.yml.tmpl
+    kind: created
+    note: spec aggregate yml template
+errors: []
+notes: ""
+extra: {}
+last_heartbeat: 2026-05-06T08:03:50.886Z
+started_at: 2026-05-06T08:02:51.030Z
+completed_at: 2026-05-06T08:03:50.886Z

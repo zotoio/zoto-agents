@@ -44,3 +44,19 @@ Before submitting changes, run:
 1. `node scripts/validate-template.mjs`
 2. `node scripts/validate-skills.mjs`
 3. `pnpm test`
+
+## Workspace-Local Plugin Config Directory
+
+**Rule:** Every zoto plugin that needs workspace-local runtime state (configuration, caches, manifests, run reports, fixtures referenced by tests) MUST store it under **`.zoto/<plugin-suffix>/`**, where **`<plugin-suffix>`** is the plugin package name with the leading **`zoto-`** stripped (same basename as `plugins/zoto-<suffix>/`).
+
+| Plugin folder | Workspace-local root |
+|---------------|----------------------|
+| `plugins/zoto-spec-system/` | `.zoto/spec-system/` |
+| `plugins/zoto-eval-system/` | `.zoto/eval-system/` (migration off legacy layouts is tracked separately; do not invent a second convention here) |
+| `plugins/zoto-<future>/` | `.zoto/<future>/` |
+
+Keeping everything beneath **`.zoto/`** gives repos one predictable anchor for cleanup—operators ignore `.zoto/` entirely once local artifacts appear—and avoids scattering `.plugin-*`, `.vendor-runtime-*`, or per-marketplace folders across repository roots.
+
+**`.gitignore`:** Prefer ignoring **`.zoto/`** at the repo root so ephemeral blobs stay untracked. Plugins MAY tighten ignores inside subtrees (for example `.zoto/**/cache/` or `*.local.json`). Paths intentionally tracked (`README`/starter YAML shipped alongside specs or tutorials) MUST use **`touch`-based placeholders such as `.gitkeep`** and the README MUST name exactly what stays tracked versus regenerated.
+
+**Validation hook (follow-up):** CI could extend `scripts/validate-template.mjs` later so marketplace plugins fail audit when tooling reads deprecated workspace-root folders instead of **`.zoto/<plugin-suffix>/`**—document future enforcement here but do not gate today's edits on it.

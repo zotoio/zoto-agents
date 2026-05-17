@@ -1,0 +1,32 @@
+schema_version: 1
+subtask_id: "05"
+feature: Eval Adviser
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Eval file: `plugins/zoto-eval-system/skills/zoto-advise-evals/evals/evals.json`"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: Minimum 3 test cases covering distinct scenarios
+    done: false
+    evidence_path: null
+  - id: D03
+    text: Each test case has meaningful assertions (>= 3 assertions per case)
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "Test cases cover: gap detection, interactive flow, recommendation quality"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: Assertions verify the skill does NOT call `askQuestion`
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

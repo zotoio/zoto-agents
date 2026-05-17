@@ -1,0 +1,205 @@
+// _meta.generated: true
+/**
+ * Custom jest reporter for the zoto-eval-system static backend.
+ *
+ * Stamped at `<host-repo>/evals/reporters/zoto-eval-reporter.ts` by
+ * `scripts/eval-stamp.ts#stampJestPerPrimitive` (subtask 08).
+ *
+ * Implements `@jest/reporters`' `Reporter` interface and emits
+ * `evals/_runs/<ts>/static.yml` matching
+ * `plugins/zoto-eval-system/templates/schema/result.schema.json`
+ * (`backend: "static"`). Each test result becomes one entry in `cases[]`.
+ * Synthesises `grader_reports` with `grader: "jest"` so the orchestrator
+ * (subtask 12) can merge `static.yml` and `llm.yml` uniformly.
+ *
+ * The actual YAML emission is delegated to the SHARED writer at
+ * `../_shared/result-yaml-writer.ts` (canonically owned by subtask 07,
+ * consumed by both vitest and jest reporters). See that file's header
+ * for the full schema-mapping contract.
+ *
+ * When spawned by `scripts/eval-orchestrate.ts`, honours
+ * `ZOTO_EVAL_RUN_ID` / `ZOTO_EVAL_RUN_TS` and `ZOTO_EVAL_RUNS_DIR` so
+ * `static.yml` lands beside the orchestrator's `report.yml`.
+ */
+import { existsSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
+
+import type {
+  AggregatedResult,
+  Reporter,
+  ReporterOnStartOptions,
+  TestCaseResult,
+  TestContext,
+} from "@jest/reporters";
+
+import {
+  buildStaticReportDocument,
+  type StaticCaseRecord,
+  type StaticCaseStatus,
+  type StaticGraderReport,
+  writeStaticReport,
+} from "../_shared/result-yaml-writer.ts";
+
+interface ZotoEvalReporterOptions {
+  /** Override `<host-repo>/evals/_runs`. */
+  runsDir?: string;
+  /** Override the run id (defaults to compact ISO timestamp). */
+  runId?: string;
+  /** Forwarded to the schema's optional `model` field. */
+  model?: string;
+}
+
+type ResolvedOptions = Required<Pick<ZotoEvalReporterOptions, "runsDir">> & {
+  runId: string;
+  model?: string;
+};
+
+export default class ZotoEvalReporter implements Reporter {
+  private readonly cases: StaticCaseRecord[] = [];
+  private readonly options: ResolvedOptions;
+  private startedAt: string = new Date().toISOString();
+
+  constructor(_globalConfig: unknown, options: ZotoEvalReporterOptions = {}) {
+    const envRunId =
+      process.env.ZOTO_EVAL_RUN_ID ?? process.env.ZOTO_EVAL_RUN_TS;
+    const runId =
+      options.runId ??
+      (envRunId && envRunId.length > 0
+        ? envRunId
+        : new Date().toISOString().replace(/[:.]/g, "-"));
+    const envRunsDir = process.env.ZOTO_EVAL_RUNS_DIR;
+    const runsDir =
+      options.runsDir ??
+      (envRunsDir && envRunsDir.length > 0 ? envRunsDir : "evals/_runs");
+    this.options = {
+      runsDir,
+      runId,
+      ...(options.model ? { model: options.model } : {}),
+    };
+  }
+
+  onRunStart(
+    _aggregated: AggregatedResult,
+    _opts: ReporterOnStartOptions,
+  ): void {
+    this.startedAt = new Date().toISOString();
+  }
+
+  onTestCaseResult(_test: unknown, testCaseResult: TestCaseResult): void {
+    this.cases.push(recordFromTestCaseResult(testCaseResult));
+  }
+
+  onRunComplete(
+    _contexts: Set<TestContext>,
+    _results: AggregatedResult,
+  ): Promise<void> | void {
+    const endedAt = new Date().toISOString();
+    const outDir = join(this.options.runsDir, this.options.runId);
+    if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
+    const outFile = join(outDir, "static.yml");
+    const doc = buildStaticReportDocument({
+      run_id: this.options.runId,
+      started_at: this.startedAt,
+      ended_at: endedAt,
+      framework: "jest",
+      cases: this.cases,
+      ...(this.options.model ? { model: this.options.model } : {}),
+    });
+    writeStaticReport(outFile, doc);
+  }
+
+  getLastError(): Error | void {
+    return undefined;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Pure helpers (exported for unit-testing)                                */
+/* ---------------------------------------------------------------------- */
+
+export function caseIdFromResult(result: {
+  ancestorTitles?: string[];
+  title: string;
+}): string {
+  const ancestors = result.ancestorTitles?.length
+    ? result.ancestorTitles.join(" > ")
+    : "";
+  return ancestors ? `${ancestors} > ${result.title}` : result.title;
+}
+
+export function mapStatus(
+  jestStatus: TestCaseResult["status"],
+): StaticCaseStatus {
+  switch (jestStatus) {
+    case "passed":
+      return "passed";
+    case "failed":
+      return "failed";
+    case "pending":
+    case "skipped":
+    case "todo":
+    case "disabled":
+      return "skipped";
+    default:
+      return "errored";
+  }
+}
+
+export function recordFromTestCaseResult(
+  result: TestCaseResult,
+): StaticCaseRecord {
+  const status = mapStatus(result.status);
+  const verdict: StaticGraderReport["verdict"] =
+    status === "passed" ? "pass" : status === "skipped" ? "warn" : "fail";
+  const detail = result.failureMessages?.[0]?.toString().slice(0, 4096);
+  const grader_reports: StaticGraderReport[] = [
+    {
+      grader: "jest",
+      verdict,
+      ...(detail ? { detail } : {}),
+    },
+  ];
+  const record: StaticCaseRecord = {
+    id: caseIdFromResult(result),
+    status,
+    grader_reports,
+  };
+  if (typeof result.duration === "number") {
+    record.duration_ms = Math.round(result.duration);
+  }
+  return record;
+}
+
+/**
+ * Plain-object variant for unit-testing. Mirrors `recordFromTestCaseResult`
+ * but accepts a structurally-typed input so tests don't need to fabricate a
+ * full `TestCaseResult` instance.
+ */
+export function recordFromPlain(input: {
+  ancestorTitles?: string[];
+  title: string;
+  status: TestCaseResult["status"];
+  duration?: number | null;
+  failureMessages?: string[];
+}): StaticCaseRecord {
+  const status = mapStatus(input.status);
+  const verdict: StaticGraderReport["verdict"] =
+    status === "passed" ? "pass" : status === "skipped" ? "warn" : "fail";
+  const detail = input.failureMessages?.[0]?.toString().slice(0, 4096);
+  const grader_reports: StaticGraderReport[] = [
+    {
+      grader: "jest",
+      verdict,
+      ...(detail ? { detail } : {}),
+    },
+  ];
+  const record: StaticCaseRecord = {
+    id: caseIdFromResult(input),
+    status,
+    grader_reports,
+  };
+  if (typeof input.duration === "number") {
+    record.duration_ms = Math.round(input.duration);
+  }
+  return record;
+}

@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2",
+  "target_id": "agent:zoto-eval-analyser-subagent",
+  "kind": "agent",
+  "source_path": "plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md",
+  "source_hash": "e70fcc44075e79dd53766ac8c8e53a58b71cbcc22723b0c1788d9f92251a0a15",
+  "summary": "Eval coverage focuses on machine-parseable AnalyserPayload emission, envelope pinning, per-kind prompt and assertion conventions, fixture hygiene when overlays appear, and denial of template-token leakage in generated case text.",
+  "cases": [
+    {
+      "scenario": "json-object-emitted-for-analyse-pipeline",
+      "prompt": "Kick off the primitive-analysis pass for `pnpm run eval:analyse` using this subagent with the current envelope; I need the raw analyser response the SDK will parse.",
+      "expected_output": "The completion is one JSON object that survives extraction and JSON.parse without wrapping prose or markdown fences.",
+      "assertions": [
+        "The subagent completion parses as a single JSON object whose first non-whitespace character is `{` and whose last non-whitespace character is `}`.",
+        "The parsed root object includes schema_version, analyser_version, model_id, target_id, kind, source_path, source_hash, summary, and cases keys only at the top level."
+      ]
+    },
+    {
+      "scenario": "envelope-fields-echoed-unmodified",
+      "prompt": "Return the AnalyserPayload for `agent:zoto-eval-analyser-subagent` while preserving every canonical envelope field the caller injected.",
+      "expected_output": "Pinned metadata matches the supplied envelope exactly so downstream re-assertion succeeds.",
+      "assertions": [
+        "schema_version is the integer 1, not a string.",
+        "analyser_version, model_id, target_id, kind, source_path, and source_hash match the prompt envelope strings verbatim including target_id prefix agent:."
+      ]
+    },
+    {
+      "scenario": "command-kind-slash-prompt-shape",
+      "prompt": "Analyse `command:zoto-eval-update` at `plugins/vendor/commands/zoto-eval-update.md` for stamping; emit at least one case that mirrors how an operator launches it from the palette.",
+      "expected_output": "Generated cases include slash-command style prompts with realistic arguments.",
+      "assertions": [
+        "At least one case prompt begins with `/zoto-eval-update` followed by arguments or whitespace suitable for the command palette.",
+        "At least one assertion mentions an observable artefact such as manifest rows, emitted questions before writes, or filesystem outputs tied to that command flow."
+      ]
+    },
+    {
+      "scenario": "skill-upstream-load-message",
+      "prompt": "Produce analyser rows for `skill:zoto-execute-evals` so the stamped eval reflects skill loading via upstream chat traffic rather than direct slash invocation.",
+      "expected_output": "Case prompts read like upstream agent messages that would cause the skill to load.",
+      "assertions": [
+        "Every emitted case prompt avoids leading `/` command palette syntax reserved for command primitives.",
+        "Assertions reference externally visible behaviour such as documented step ordering or read-before-write sequencing described for skills."
+      ]
+    },
+    {
+      "scenario": "hook-lifecycle-event-phrasing",
+      "prompt": "Analyse `hook:zoto-eval-session-start` and ensure one scenario explicitly anchors on the Cursor lifecycle event that fires the hook bundle.",
+      "expected_output": "At least one case prompt names session-start or hook-phase context instead of end-user slash commands.",
+      "assertions": [
+        "At least one case prompt cites a Cursor lifecycle trigger such as session start, hook execution timing, or a concrete edited-path scenario tied to hooks.",
+        "Assertions cite observable outcomes like hook exit status 0, JSON-shaped stdout per hooks contract, or absence of askQuestion emissions from hook binaries."
+      ]
+    },
+    {
+      "scenario": "rule-constrained-user-request",
+      "prompt": "Generate analyser coverage for `rule:zoto-eval-system` where prompts mimic a refactor chat that should activate rule constraints on matched globs.",
+      "expected_output": "Cases embed natural-language user intents typical of IDE chat rather than operator palette commands.",
+      "assertions": [
+        "At least one case prompt reads like a user-authored editing request without a leading `/` token.",
+        "Assertions mention whether rule enforcement triggers on documented globs or whether assistant replies obey stated constraints."
+      ]
+    },
+    {
+      "scenario": "agent-flow-natural-language-driver",
+      "prompt": "When `kind` is agent for `agent:zoto-eval-comparer`, emit prompts phrased as conversational orchestration requests that exercise judge or compare flows.",
+      "expected_output": "Agent-kind cases rely on plain English tasking aimed at the documented agent behaviour.",
+      "assertions": [
+        "Prompts for agent targets avoid slash-command syntax unless quoting operator text inside prose.",
+        "Assertions describe structured payloads such as needs_user_input objects or restrictions like no askQuestion loops where documented."
+      ]
+    },
+    {
+      "scenario": "fixture-path-and-justification-pairing",
+      "prompt": "If any generated case needs a workspace overlay, show fixtures.files entries using sandbox-relative paths only and pair them with fixture_justifications lines.",
+      "expected_output": "Fixture sections obey path constraints and justification cardinality rules.",
+      "assertions": [
+        "Every fixtures.files[].path uses sandbox-relative POSIX form without `..` segments and without absolute filesystem prefixes.",
+        "Whenever fixtures.files is non-empty, fixture_justifications exists with the same element count as fixtures.files in identical order."
+      ]
+    },
+    {
+      "scenario": "omit-fixtures-when-baseline-suffices",
+      "prompt": "Analyse `rule:generic-doc-headers` where baseline checkout alone supplies enough context; avoid inventing per-case overlays.",
+      "expected_output": "Cases omit fixtures or declare fixtures.files as an empty array without speculative overlays.",
+      "assertions": [
+        "No case introduces fixtures.files entries solely to pad payload shape when baseline context is adequate.",
+        "If fixtures are omitted entirely, no fixture_justifications array appears without accompanying files."
+      ]
+    },
+    {
+      "scenario": "denylist-token-absence-in-case-text",
+      "prompt": "Run analyser generation for `plugins/acme/rules/style.mdc` and scrub prompts plus expected_output strings so stale template tokens never ship.",
+      "expected_output": "Serialised case strings exclude angle-bracket template tails and other banned literals from the analyser hard rules.",
+      "assertions": [
+        "The emitted JSON contains none of the forbidden analyser substrings such as angle-bracket TODO markers or angle-bracket command markers.",
+        "Each expected_output field remains plain English prose without embedding a full JSON envelope inside the description."
+      ]
+    },
+    {
+      "scenario": "realistic-prompts-and-falsifiable-checks",
+      "prompt": "Final review pass: ensure every case prompt could be pasted into Cursor chat or logs and every assertion names a concrete observable.",
+      "expected_output": "Prompts feel operator-authentic and assertions could be graded against traces or artifacts.",
+      "assertions": [
+        "Each assertion names at least one observable target such as manifest.yml contents, hook stdout JSON validity, filesystem paths created, exit codes, or parse success of the analyser JSON.",
+        "scenario labels stay short and avoid vague correctness phrases without naming what changed."
+      ]
+    }
+  ]
+}

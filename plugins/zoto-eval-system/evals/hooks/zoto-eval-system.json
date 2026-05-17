@@ -1,0 +1,153 @@
+{
+  "target_id": "hook:zoto-eval-system",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Cursor fires `sessionStart` for this workspace; the hook command is `node hooks/zoto-eval-session-start.mjs` with current working directory set to the sandbox workspace root, and `.zoto/eval-system/config.yml` exists but its contents are not valid YAML for `yaml.parse`.",
+      "assertions": [
+        "Exit status was 0 and stdout parsed as a JSON object with no keys.",
+        "No interactive prompt or askQuestion channel was used because the hook is a non-interactive Node script."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "c205ce044f2739fa0d9c493fc6b3992e28b19893b57f8a5d7394db1ae22c8933",
+        "last_updated": "2026-05-17T13:36:46.960Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "c205ce044f2739fa0d9c493fc6b3992e28b19893b57f8a5d7394db1ae22c8933",
+          "analysed_at": "2026-05-17T13:36:46.960Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The sessionStart hook runs `node hooks/zoto-eval-session-start.mjs` and prints either `{}` or JSON carrying `additional_context` when configured eval state exposes stale run folders, skills without `evals/evals.json`, or a drift reminder tied to `manifest.yml` and the once-per-day marker.",
+          "fixture_justifications": [
+            "Forces `loadYamlConfig` to fail so the hook takes the early quiet path instead of scanning runs or skills."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "[\n"
+          }
+        ]
+      },
+      "expected_output": "The hook process exits cleanly and writes a single-line JSON object that is exactly `{}` followed by a newline, matching Cursor hook stdout expectations."
+    }
+  ,
+    {
+      "id": 2,
+      "prompt": "On `sessionStart`, Cursor runs `node hooks/zoto-eval-session-start.mjs` from the workspace root after a skill folder under `skills/` contains `SKILL.md` but omits `evals/evals.json`.",
+      "assertions": [
+        "Exit status was 0 and stdout was valid JSON containing an `additional_context` field mentioning missing `evals.json` paths and `/z-eval-update`.",
+        "The `additional_context` text enumerates the `notes-ingest` skill among the missing entries or states the correct missing count including it.",
+        "No askQuestion was emitted from the hook binary because hooks must remain non-interactive."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "c205ce044f2739fa0d9c493fc6b3992e28b19893b57f8a5d7394db1ae22c8933",
+        "last_updated": "2026-05-17T13:36:46.960Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "c205ce044f2739fa0d9c493fc6b3992e28b19893b57f8a5d7394db1ae22c8933",
+          "analysed_at": "2026-05-17T13:36:46.960Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The sessionStart hook runs `node hooks/zoto-eval-session-start.mjs` and prints either `{}` or JSON carrying `additional_context` when configured eval state exposes stale run folders, skills without `evals/evals.json`, or a drift reminder tied to `manifest.yml` and the once-per-day marker.",
+          "fixture_justifications": [
+            "Provides a readable eval-system configuration so the hook leaves the early-return path.",
+            "Creates a real skill tree whose missing `evals/evals.json` must be reported by `missingEvals`."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: evals\n"
+          },
+          {
+            "path": "workspace/skills/notes-ingest/SKILL.md",
+            "content": "# Notes ingest\n\nOperational checklist for ingestion workflows.\n"
+          }
+        ]
+      },
+      "expected_output": "Hook stdout is one JSON object whose `additional_context` string tells the operator how many skills lack `evals/evals.json`, names at least the affected skill, and points them at `/z-eval-update`."
+    },
+    {
+      "id": 3,
+      "prompt": "`sessionStart` executes `node hooks/zoto-eval-session-start.mjs` in a workspace where `.zoto/eval-system/config.yml` parses successfully, `.zoto/eval-system/manifest.yml` is present, and `.zoto/eval-system/.last-drift-check` is absent so the drift branch may run.",
+      "assertions": [
+        "Exit status was 0 and stdout parsed as JSON whose `additional_context` mentions `/z-eval-update` for drift checking.",
+        "After the hook finishes, `.zoto/eval-system/.last-drift-check` exists under the workspace and contains a UTF-8 ISO-8601 timestamp string.",
+        "No askQuestion was emitted from the hook binary."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "c205ce044f2739fa0d9c493fc6b3992e28b19893b57f8a5d7394db1ae22c8933",
+        "last_updated": "2026-05-17T13:36:46.960Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "c205ce044f2739fa0d9c493fc6b3992e28b19893b57f8a5d7394db1ae22c8933",
+          "analysed_at": "2026-05-17T13:36:46.960Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The sessionStart hook runs `node hooks/zoto-eval-session-start.mjs` and prints either `{}` or JSON carrying `additional_context` when configured eval state exposes stale run folders, skills without `evals/evals.json`, or a drift reminder tied to `manifest.yml` and the once-per-day marker.",
+          "fixture_justifications": [
+            "Ensures the hook enables manifest-relative logic instead of exiting early.",
+            "Supplies a manifest file so the drift reminder branch can append its message when the marker gate passes."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: evals\n"
+          },
+          {
+            "path": "workspace/.zoto/eval-system/manifest.yml",
+            "content": "version: 1\ntargets: []\n"
+          }
+        ]
+      },
+      "expected_output": "Hook stdout includes JSON with `additional_context` advising `/z-eval-update` for drift detection, and the hook creates or refreshes `.last-drift-check` with an ISO timestamp body."
+    },
+    {
+      "id": 4,
+      "prompt": "`sessionStart` runs `node hooks/zoto-eval-session-start.mjs` after the sandbox clock and filesystem expose at least one immediate subdirectory under `evals/_runs/` whose directory modification time is at least fourteen days older than the hook invocation instant.",
+      "assertions": [
+        "Exit status was 0 and stdout remained valid JSON per the Cursor hooks contract even when warnings are present.",
+        "When the aged-directory precondition holds, `additional_context` states the stale run count is at least one and references `/z-eval-execute`.",
+        "No askQuestion was emitted from the hook binary."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "c205ce044f2739fa0d9c493fc6b3992e28b19893b57f8a5d7394db1ae22c8933",
+        "last_updated": "2026-05-17T13:36:46.960Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "c205ce044f2739fa0d9c493fc6b3992e28b19893b57f8a5d7394db1ae22c8933",
+          "analysed_at": "2026-05-17T13:36:46.960Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The sessionStart hook runs `node hooks/zoto-eval-session-start.mjs` and prints either `{}` or JSON carrying `additional_context` when configured eval state exposes stale run folders, skills without `evals/evals.json`, or a drift reminder tied to `manifest.yml` and the once-per-day marker.",
+          "fixture_justifications": [
+            "Pins `evalsDir` so `staleRuns` inspects `evals/_runs` inside the sandbox.",
+            "Ensures a subdirectory exists for the stale-run scanner to evaluate once fixture staging sets an appropriately aged directory mtime."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: evals\n"
+          },
+          {
+            "path": "workspace/evals/_runs/historic-batch/run-summary.txt",
+            "content": "completed_at: 2024-01-15\n"
+          }
+        ]
+      },
+      "expected_output": "Hook stdout is JSON whose `additional_context` cites how many run folders exceed the fourteen-day threshold and instructs the operator to consider `/z-eval-execute`."
+    }
+  ],
+  "hook_plugin": "zoto-eval-system"
+}

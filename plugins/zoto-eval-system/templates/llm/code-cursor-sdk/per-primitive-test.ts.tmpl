@@ -1,0 +1,31 @@
+// _meta.generated: true
+/**
+ * LLM `code`-strategy eval for {{PRIMITIVE_KIND}} `{{PRIMITIVE_NAME}}`.
+ *
+ * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
+ * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
+ *
+ * The literal first line of this file MUST remain `// _meta.generated: true`.
+ * Subtask 03's cleanup engine and subtask 11's overwrite gate both use
+ * `evals/_llm/_user-case-guards.ts#isGeneratedFile(path, { strict: true })`
+ * to decide whether this file is safe to replace or delete. Edit the
+ * template, not this emitted file.
+ */
+{{FRAMEWORK_IMPORTS}}
+
+import type { CodeStrategyCaseDefinition } from "./_shared/code-strategy-case.js";
+import { defineLlmCodeEval } from "./_shared/run-code-strategy-suite.js";
+
+const CASES: CodeStrategyCaseDefinition[] = {{CASES_JSON}};
+
+defineLlmCodeEval({
+  targetId: "{{TARGET_ID}}",
+  cases: CASES,
+  modelId: process.env.ZOTO_EVAL_MODEL ?? "{{MODEL_ID}}",
+  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? "{{JUDGE_MODEL}}",
+  caseTimeoutMs: {{CASE_TIMEOUT_MS}},
+  describe,
+  it,
+  afterAll,
+  expect,
+});

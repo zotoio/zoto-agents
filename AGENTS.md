@@ -47,3 +47,13 @@ When building or executing engineering specs in this repository, **always use th
 | Documentation sync after source changes | `docs-sync-agent` |
 
 **Do not default to `generalPurpose`** — every subtask in a spec should map to the most appropriate CRUX agent above.
+
+### Eval Strategy for Agents
+
+This repository uses the **`code`** LLM eval strategy (`llm.strategy: code` in `.zoto/eval-system/config.yml`). When writing or running LLM evals, use `pnpm run eval:llm:code` (Vitest). The full dual-strategy reference — including when to prefer declarative JSON vs code-based tests — lives in [`plugins/zoto-eval-system/README.md`](plugins/zoto-eval-system/README.md#llm-eval-strategies-declarative--code).
+
+### Live Status During Spec Execution
+
+- During **`/z-spec-execute`**, every spawned subagent owns its **`{specsDir}/<spec>/status/subtask-NN-....status.{md,yml}`** pair. The executor's aggregator rebuilds the spec-root **`status.{md,yml}`** on every change. Read these files before asking about progress.
+- Token budgets for spec-system subagents live in **`.zoto/spec-system/config.yml`** under **`subagents.*.tokenBudget`** and reload on the next spawn — no executor restart required. **Token budget changes apply to the next spawned subagent without restarting the executor.**
+- Plugin workspace-local config lives under **`.zoto/<plugin-suffix>/`** per [`.cursor/rules/zoto-plugin-conventions.mdc`](.cursor/rules/zoto-plugin-conventions.mdc). The spec-system uses **`.zoto/spec-system/`**.

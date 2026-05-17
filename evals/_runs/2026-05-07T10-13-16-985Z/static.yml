@@ -1,0 +1,15 @@
+aggregates:
+  duration_ms_total: 0
+  tokens_total: 0
+backend: static
+cases: []
+ended_at: "2026-05-07T10:13:17.008Z"
+report:
+  framework: vitest
+run_id: 2026-05-07T10-13-16-985Z
+schema_version: 1
+started_at: "2026-05-07T10:13:17.007Z"
+totals:
+  cases: 0
+  failed: 0
+  passed: 0

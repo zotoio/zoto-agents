@@ -1,0 +1,100 @@
+---
+description: Eval System integration rule — teaches agents about available commands and routes help-intent to the help skill before answering from inferred knowledge.
+alwaysApply: true
+---
+
+# Eval System
+
+This repository uses the Eval System plugin to generate, run, and consciously update static (pytest) + LLM (@cursor/sdk) eval suites when AI primitives change — every proposed update requires user confirmation before writing.
+
+## Available Commands
+
+- `/z-eval-init` — scaffold `.zoto/eval-system/config.yml` from the init template (every key commented; run once per repo).
+- `/z-eval-start` — operator jump into the evaluator workflow; after verifying config.yml, load `commands/z-eval-workflow.md` and apply Probe → Lifecycle router → Resolution verbatim (no subagents; read-only).
+- `/z-eval-jump` — same read-only delegation as `/z-eval-start`; use when docs or runbooks call for an explicit “jump” verb.
+- `/z-eval-operator` — same read-only delegation as `/z-eval-start`; use when runbooks or ops docs want an explicit operator entry label.
+- `/z-eval-workflow` — canonical lifecycle routing specification; one `askQuestion` maps lifecycle stage → next `/z-eval-*` command (no subagents; read-only).
+- `/z-eval-configure` — interactive config; the command owns `askQuestion`, then delegates to the configurer subagent.
+- `/z-eval-create` — scaffold both eval backends and the manifest.
+- `/z-eval-update [<file-or-glob>] [--apply] [--check]` — diff-aware refresh.
+- `/z-eval-execute [--full] [--model <id>]` — run the suite.
+- `/z-eval-judge` — adversarial coverage and soft-metric review.
+- `/z-eval-compare <r1> <r2> [<rN>]` — cross-run analysis via `/canvas`.
+- `/z-eval-help [<topic>]` — README-anchored, project-tailored help with mandatory citations.
+- `/z-eval-advise [<scope>]` — interactive eval coverage gap analysis and recommendations.
+
+If an Eval System command is invoked and `.zoto/eval-system/config.yml` is missing, **stop and instruct the user to run `/z-eval-init`** rather than continuing.
+
+## Help-Intent Routing
+
+Before answering ANY question about how to configure, create, update, execute, judge, compare, or advise on evals — or any question about `.zoto/eval-system/`, `evals/`, `llm.yml`, the `_meta.generated` contract, or `manifest.history.yml` — the agent MUST invoke `/z-eval-help` so the answer is anchored on the plugin's shipped README, tailored to this project's actual state (config, manifest, runs), and cited inline with `start:end:plugins/zoto-eval-system/README.md` code references. Do not answer from inferred knowledge.
+
+When the operator only needs **which slash command to run next** (workflow routing, “where do I start after init”, or “what comes after execute?”) without README-cited narrative, use **`/z-eval-start`**, **`/z-eval-jump`**, **`/z-eval-operator`**, or **`/z-eval-workflow`** instead of **`/z-eval-help`** (`/z-eval-start`, `/z-eval-jump`, and `/z-eval-operator` delegate to the workflow rules after the init gate).
+
+Questions about "what tests am I missing?", "eval coverage gaps", "are my evals sufficient?", or "eval recommendations" should be routed to `/z-eval-advise` rather than `/z-eval-help`.
+
+## User confirmation contract
+
+No generated eval is rewritten without explicit user consent. When the updater detects drift or the configurer proposes a change, every modification is presented for user approval before writing.
+
+### Implementation: askQuestion delegation (commands vs subagents/skills)
+
+Cursor subagents cannot prompt the user directly — this is standard Cursor subagent plumbing, not a plugin feature. The contract works as follows:
+
+| Layer | Interactive prompts |
+|-------|---------------------|
+| **Commands** (`commands/*.md`) | Own **`askQuestion`**, except where a command explicitly documents otherwise. **`/z-eval-compare`** does **not** use **`askQuestion`** for multi-folder run resolution — forward fragments to the comparer and surface verbatim **`needs_user_input`** listing **`{evalsDir}/_runs/...`** candidates; the operator re-runs with resolved basenames. Pre-collect answers **before** spawning a subagent for all other flows. |
+| **Agents** (`agents/*.md`) and **skills** (`skills/*/SKILL.md`) | **Do not** call `askQuestion`. Consume pre-collected answers from the invoking command. If mid-flight user input is unexpectedly required, finish with a structured `needs_user_input` block (below); the command runs `askQuestion`, then **resumes** the same subagent via the Task tool `resume` parameter with the answers. |
+
+### `needs_user_input` schema
+
+When a subagent needs user input that was not pre-provided, it returns this structured block. Commands typically map each question to **`askQuestion`**, then resume the same subagent with answers — **`/z-eval-compare`** is an exception when the payload only disambiguates **`_runs/`** folders: surface **`needs_user_input`** inline without **`askQuestion`** or **`resume`** (operator re-invokes). Validated against `templates/schema/needs-user-input.schema.json`.
+
+```yaml
+needs_user_input:
+  reason: "<one-line why this can't be answered without the user>"
+  questions:
+    - id: <slug>
+      prompt: "<question text>"
+      options:
+        - id: <slug>
+          label: "<label>"
+      allow_multiple: false  # optional, defaults false
+```
+
+Free-form chat prompts from skills/agents are forbidden for interactive choices — use **`needs_user_input`** so **`askQuestion`** (where applicable, or verbatim surfacing for `/z-eval-compare` run-folder ambiguity) can present options. The schema enforces: at least one question, at least two options per question, slug-format ids, and no additional properties.
+
+## TodoWrite Contract (Mandatory Progress Tracking)
+
+All agents performing multi-step eval workflows **must** use the `TodoWrite` tool to track progress. This applies to:
+
+| Agent/skill | TodoWrite requirement |
+|-------------|----------------------|
+| **Eval executor** (`zoto-execute-evals`) | Track run phases (discover, analyse, stamp, execute, report) |
+| **Eval updater** (`zoto-update-evals`) | Track drift detection, per-primitive regeneration, and apply steps |
+| **Eval judge** (`zoto-judge-evals`) | Track each case/assertion being judged |
+| **Eval adviser** (`zoto-advise-evals`) | Track coverage dimensions being analysed |
+| **Eval configurer** (`zoto-configure-evals`) | Track config fields being validated and written |
+
+Create todos at workflow start, mark each `in_progress` → `completed` as work progresses. This provides real-time progress visibility in the chat UI.
+
+## _meta.generated Contract
+
+Generated eval cases carry `_meta.generated: true`. The updater NEVER touches:
+- cases without `_meta`, or
+- cases with `_meta.generated === false`.
+
+The plugin validator rejects any code path that violates this contract. Don't try.
+
+## Configuration
+
+`.zoto/eval-system/config.yml` is the single source of truth — the **only** path the plugin reads. The shipped init template (`templates/init-config.yml`) lists every supported key commented out alongside its internal default; uncomment lines to override. Validated against `templates/schema/config.schema.json`.
+
+Two fields are hard-coded:
+- `update.preserveUserAuthoredCases: true`
+- `update.writeMetaMarker: true`
+
+## Manifest
+
+- `.zoto/eval-system/manifest.yml` — current state (validated against `manifest.schema.json`).
+- `.zoto/eval-system/manifest.history.yml` — append-only full-snapshot history.

@@ -1,0 +1,71 @@
+{
+  "skill_name": "zoto-advise-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run /z-eval-advise in full scan mode on a codebase where several skills lack trigger-phrase coverage in their eval cases.",
+      "expected_output": "The skill loads config and manifest, scans all targets, identifies skills with uncovered trigger phrases, produces a structured adviser_report with a dimensions section containing all five dimensions with per-target severity scoring, and returns needs_user_input with drill-down options listing each gapped dimension. The skill does not call askQuestion and does not modify any files.",
+      "files": [
+        ".zoto/eval-system/config.yml",
+        ".zoto/eval-system/manifest.yml"
+      ],
+      "assertions": [
+        "The skill identified at least one skill without full trigger-phrase coverage",
+        "The adviser_report includes a dimensions section listing all five dimensions: trigger_phrases, schema_validation, regression_baselines, citation_verification, checklist_completeness",
+        "Each dimension in the report has a severity field set to ok, warn, or critical",
+        "The skill returned needs_user_input with a drill-down question offering dimension-specific options",
+        "The skill did not call askQuestion",
+        "The skill did not modify any files"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run /z-eval-advise in targeted mode scoped to the skill zoto-help-evals.",
+      "expected_output": "The skill loads config and manifest, filters targets to zoto-help-evals only, assesses that skill across all five dimensions (marking inapplicable dimensions as exempt), and produces per-dimension findings with severity scoring and a score between 0 and 100. Returns needs_user_input with drill-down options for any gapped dimensions.",
+      "files": [
+        ".zoto/eval-system/config.yml",
+        ".zoto/eval-system/manifest.yml"
+      ],
+      "assertions": [
+        "The report scope shows mode: targeted with a target_glob matching the specified skill",
+        "All five dimensions are present in the report, with inapplicable ones marked exempt",
+        "Each non-exempt dimension has a numeric score between 0 and 100",
+        "Findings reference the specific target_id for zoto-help-evals",
+        "The skill returned needs_user_input after presenting the scan summary",
+        "The skill did not call askQuestion"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run /z-eval-advise when .zoto/eval-system/config.yml does not exist.",
+      "expected_output": "The skill detects the missing configuration file and returns needs_user_input pointing the user to /z-eval-configure. It does not crash, does not produce a partial adviser_report, and does not modify any files.",
+      "files": [],
+      "assertions": [
+        "The skill returned needs_user_input with reason indicating no eval-system config was found",
+        "The needs_user_input questions include an option referencing /z-eval-configure",
+        "No adviser_report was produced (the skill aborted before scanning)",
+        "The skill did not crash or produce an error traceback",
+        "The skill did not modify any files",
+        "The skill did not call askQuestion"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "After /z-eval-advise has completed its scan and the user selects drill-down on all dimensions, verify the recommendation handoff structure.",
+      "expected_output": "The skill produces detailed per-target findings for each gapped dimension and generates deterministic recommendations. Each recommendation references a specific target_id from the manifest, maps to exactly one handoff command (/z-eval-create for targets without eval files, /z-eval-update for targets with existing but incomplete evals), and includes actionable args (target path or glob, mode flags). Returns needs_user_input at the second breakpoint offering action choices.",
+      "files": [
+        ".zoto/eval-system/config.yml",
+        ".zoto/eval-system/manifest.yml"
+      ],
+      "assertions": [
+        "Each recommendation references a specific target_id from the manifest",
+        "Each recommendation maps to exactly one handoff command: either /z-eval-create or /z-eval-update",
+        "Recommendations for targets without eval files use /z-eval-create",
+        "Recommendations for targets with existing evals use /z-eval-update with --target and --apply args",
+        "The second needs_user_input breakpoint offers action options including accept-all, walk, create-only, update-only, and none",
+        "The skill did not call askQuestion",
+        "The skill did not modify any files"
+      ]
+    }
+  ]
+}

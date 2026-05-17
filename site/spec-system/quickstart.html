@@ -7,27 +7,48 @@
   <link rel="stylesheet" href="../css/style.css">
   <!-- Prism.js for syntax highlighting (Tomorrow Night theme) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
   <script defer src="../js/main.js"></script>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 420'><rect width='420' height='420' fill='%23e8e8e8'/><rect x='30' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='165' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='300' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='30' y='240' width='360' height='150' fill='%238ec0d6'/><rect x='150' y='300' width='120' height='90' fill='%23e8e8e8'/></svg>">
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
 </head>
-<body>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
 
   <!-- Top Navigation -->
-  <nav class="top-nav">
+  <nav class="top-nav" aria-label="Main navigation">
     <div class="top-nav-inner">
       <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
-      <button class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
         <span class="sidebar-toggle-icon"></span>
       </button>
       <ul class="top-nav-links">
         <li><a href="../index.html">Home</a></li>
-        <li><a href="index.html" class="active">Spec System</a></li>
+        <li class="nav-dropdown">
+          <a href="index.html" class="nav-dropdown-toggle active">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="quickstart.html">Quickstart</a></li>
+            <li><a href="design.html">Design</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../eval-system/index.html">Overview</a></li>
+            <li><a href="../eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../eval-system/design.html">Design</a></li>
+            <li><a href="../eval-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
         <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
       </ul>
     </div>
@@ -37,7 +58,7 @@
   <div class="page-layout">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav" aria-label="Spec System pages">
         <h3 class="sidebar-heading">Spec System</h3>
         <ul class="sidebar-list">
           <li><a href="index.html" class="sidebar-link">Overview</a></li>
@@ -81,13 +102,13 @@
         </p>
 
         <pre><code class="language-bash"># Step 1 — Create the spec
-/zoto-spec-create Add a Redis caching layer to our API endpoints
+/z-spec-create Add a Redis caching layer to our API endpoints
 
 # Step 2 — Judge the spec
-/zoto-spec-judge specs/20260406-redis-caching/spec-redis-caching-20260406.md
+/z-spec-judge specs/20260406-redis-caching/spec-redis-caching-20260406.md
 
 # Step 3 — Execute the spec
-/zoto-spec-execute specs/20260406-redis-caching/
+/z-spec-execute specs/20260406-redis-caching/
 
 # Step 4 — Review and ship (manual)</code></pre>
 
@@ -104,29 +125,25 @@
         </ul>
 
         <!-- ============================================================== -->
-        <h2 id="step-0">Step 0: Configure <span class="badge">Optional</span></h2>
+        <h2 id="step-0">Step 0: Initialise the config file <span class="badge">Required</span></h2>
 
         <p>
-          The Spec System works out of the box with sensible defaults. If you want to
-          customize directory paths or naming, create a config file:
+          Run the init command once per repository to scaffold
+          <code>.zoto/spec-system/config.yml</code>. Every key is commented out alongside the
+          default value the plugin would otherwise apply &mdash; uncomment any line(s) to
+          override.
         </p>
 
-        <pre><code class="language-bash">mkdir -p .zoto-spec-system
-touch .zoto-spec-system/config.json</code></pre>
+        <pre><code class="language-bash">/z-spec-init</code></pre>
 
-        <p>A minimal configuration looks like this:</p>
-
-        <pre><code class="language-json">{
-  "specsDir": "specs",
-  "unitOfWork": "spec"
-}</code></pre>
-
-        <div class="callout callout-success">
-          <div class="callout-title">Skip this step</div>
+        <div class="callout">
+          <div class="callout-title">This file is required</div>
           <p class="mb-0">
-            You can skip configuration entirely. Specs will be stored in <code>specs/</code>,
-            work items are called "specs", and all other defaults apply. See the
-            <a href="configuration.html">Configuration Reference</a> for the full list of options.
+            All other Spec System commands (<code>/z-spec-create</code>,
+            <code>/z-spec-execute</code>, <code>/z-spec-judge</code>) fail loudly when
+            <code>.zoto/spec-system/config.yml</code> is missing. Uncommenting nothing is fine
+            &mdash; an all-comments file behaves identically to the schema defaults. See the
+            <a href="configuration.html">Configuration Reference</a> for the full field list.
           </p>
         </div>
 
@@ -134,11 +151,11 @@ touch .zoto-spec-system/config.json</code></pre>
         <h2 id="step-1">Step 1: Create a Spec</h2>
 
         <p>
-          Open the Cursor chat and type the <code>/zoto-spec-create</code> command followed
+          Open the Cursor chat and type the <code>/z-spec-create</code> command followed
           by a description of what you want to build:
         </p>
 
-        <pre><code class="language-bash">/zoto-spec-create Add a Redis caching layer to our API endpoints</code></pre>
+        <pre><code class="language-bash">/z-spec-create Add a Redis caching layer to our API endpoints</code></pre>
 
         <h3>What happens</h3>
 
@@ -161,7 +178,7 @@ touch .zoto-spec-system/config.json</code></pre>
 
         <figure>
           <img src="../images/mockups/create-spec.svg"
-               alt="Cursor IDE showing the /zoto-spec-create command in the chat panel with the agent asking clarifying questions">
+               alt="Cursor IDE showing the /z-spec-create command in the chat panel with the agent asking clarifying questions">
           <figcaption>The generator agent asks clarifying questions to understand your feature</figcaption>
         </figure>
 
@@ -234,7 +251,7 @@ and improve response times for frequently accessed resources.
           manually at any time. Pass the path to your spec index:
         </p>
 
-        <pre><code class="language-bash">/zoto-spec-judge specs/20260406-redis-caching/spec-redis-caching-20260406.md</code></pre>
+        <pre><code class="language-bash">/z-spec-judge specs/20260406-redis-caching/spec-redis-caching-20260406.md</code></pre>
 
         <h3>What happens</h3>
 
@@ -321,7 +338,7 @@ and improve response times for frequently accessed resources.
             <tr>
               <td><span class="badge badge-success">Approve</span></td>
               <td>4.0+</td>
-              <td>Spec is ready for <code>/zoto-spec-execute</code></td>
+              <td>Spec is ready for <code>/z-spec-execute</code></td>
             </tr>
             <tr>
               <td><span class="badge badge-warning">Conditional</span></td>
@@ -331,7 +348,7 @@ and improve response times for frequently accessed resources.
             <tr>
               <td><span class="badge badge-danger">Reject</span></td>
               <td>&lt; 3.0</td>
-              <td>Significant issues &mdash; rework with <code>/zoto-spec-create</code></td>
+              <td>Significant issues &mdash; rework with <code>/z-spec-create</code></td>
             </tr>
           </tbody>
         </table>
@@ -343,7 +360,7 @@ and improve response times for frequently accessed resources.
             actionable findings and offer to apply fixes directly to your spec files
             (dependencies, deliverables, missing sections, etc.). Accept to have the issues
             resolved automatically, or decline to address them manually. You can re-run
-            <code>/zoto-spec-judge</code> after fixes until you reach an Approve verdict.
+            <code>/z-spec-judge</code> after fixes until you reach an Approve verdict.
           </p>
         </div>
 
@@ -355,7 +372,7 @@ and improve response times for frequently accessed resources.
           it:
         </p>
 
-        <pre><code class="language-bash">/zoto-spec-execute specs/20260406-redis-caching/</code></pre>
+        <pre><code class="language-bash">/z-spec-execute specs/20260406-redis-caching/</code></pre>
 
         <h3>What happens</h3>
 

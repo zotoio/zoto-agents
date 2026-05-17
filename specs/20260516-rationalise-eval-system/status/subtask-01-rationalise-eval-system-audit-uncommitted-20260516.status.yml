@@ -1,0 +1,79 @@
+schema_version: 1
+subtask_id: "01"
+feature: Rationalise Eval System
+assigned_agent: crux-platform-architect
+model: composer-2-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-16T12:29:00Z"
+last_heartbeat: "2026-05-16T12:41:00Z"
+completed_at: "2026-05-16T12:35:00Z"
+checklist:
+  - id: D01
+    text: Inventory the deleted set in `evals/_llm/` (declarative engine modules + graders) and confirm each has a counterpart at `plugins/zoto-eval-system/engine/` with equivalent exports.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-01"
+  - id: D02
+    text: Inventory the deleted set in `evals/llm/_shared/` (old shared files) and confirm each is replaced by the new helpers (`code-strategy-case.ts`, `run-code-strategy-suite.ts`, `sandbox-helpers.ts`, `setup.ts`, `zoto-llm-reporter.ts`).
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-02"
+  - id: D03
+    text: Verify `evals/_llm/case.ts` and `evals/_llm/_user-case-guards.ts` are thin re-export shims pointing at the engine.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-03"
+  - id: D04
+    text: Confirm whether `evals/_llm/sandbox.ts` is a shim or a duplicate full implementation. If duplicate, flag for subtask 02.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-04"
+  - id: D05
+    text: Grep all template files (`plugins/zoto-eval-system/templates/llm/**`, `templates/static/**`) for imports of `../../_llm/*` and list each occurrence with the recommended replacement (`#eval-engine/*` alias or shim).
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-05 #F-06"
+  - id: D06
+    text: Grep all `evals/llm/test_*.test.ts` files for any remaining `interface CaseDefinition` inline declarations or imports from `../../_llm/*` outside of allowed shims.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-07"
+  - id: D07
+    text: Grep `scripts/eval-*.ts` and `evals/setup.ts` for imports/comments referencing moved engine paths (`evals/_llm/runner.ts`, `evals/_llm/manifest-snapshot.ts`, `evals/_llm/sdk-bridge.ts`, etc.). List each with a recommended fix.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-10"
+  - id: D08
+    text: "List all untracked artefacts: `evals/_runs/*` (count, size estimate), `.zoto/eval-system/cache/analyser/*` (count). Confirm the `.gitignore` does **not** currently cover them."
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-14"
+  - id: D09
+    text: Inspect `.github/workflows/eval-cleanup-stale-check.yml` for correctness (script invocation, exit-code handling, concurrency).
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-15"
+  - id: D10
+    text: Spot-check 3 modified test files (`evals/llm/test_command_*.test.ts`) to confirm they use the shared harness pattern and contain no orphan imports.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-16"
+  - id: D11
+    text: Inspect `.zoto/eval-system/config.yml`, `manifest.yml`, `manifest.history.yml` modifications and confirm the changes align with the documented schema (no broken keys).
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-17"
+  - id: D12
+    text: "Verify `package.json` script mapping is internally consistent: `eval:llm:code` uses Vitest on `evals/llm/`, `eval:llm:declarative` uses the engine path, `eval:update` and `eval:compare` point at engine modules."
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#F-18"
+  - id: D13
+    text: Write `audit-rationalise-eval-system-20260516.md` in the spec directory with the structure below.
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md"
+  - id: D14
+    text: Open one or more **Blockers** in the audit if anything cannot proceed without re-planning (e.g. an engine module is missing or a shim is broken).
+    done: true
+    evidence_path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md#Blockers"
+artifacts:
+  - path: "specs/20260516-rationalise-eval-system/audit-rationalise-eval-system-20260516.md"
+    kind: "created"
+    note: "Full audit document with 27 findings"
+errors: []
+notes: "Audit complete. 169 tracked files + ~227 untracked artefacts reviewed. 17 coherent, 8 cleanup, 2 defect, 0 blocker. Phase 2 can proceed."
+extra:
+  judge:
+    verdict: "verified"
+    at: "2026-05-16T12:45:00Z"
+    notes: "Re-verification after fix. Summary counts now match actual findings (Coherent: 17, Cleanup: 8, Defect: 2, Blocker: 0 = 27 total). Status notes also updated correctly. All DoD criteria pass."
+    fix_list: []

@@ -1,0 +1,78 @@
+// _meta.generated: true
+/**
+ * LLM `code` strategy — framework-agnostic setup.
+ *
+ * Stamped at `<host-repo>/evals/llm/_shared/setup.ts` by
+ * `scripts/eval-stamp.ts#stampLlmCodePerPrimitive` (subtask 09).
+ *
+ * Loaded by both vitest (`setupFiles`) and jest (`setupFiles`) — the file
+ * has no framework-specific imports so the same source ships into both
+ * configurations.
+ *
+ * Responsibilities:
+ *   1. Load `.env` via `dotenv/config` so `CURSOR_API_KEY`,
+ *      `ZOTO_EVAL_MODEL`, `ZOTO_EVAL_REPO_ROOT`, etc. are available
+ *      before any test file imports the SDK bridge.
+ *   2. Initialise the per-run output directory under
+ *      `evals/_runs/<runId>/` and expose its absolute path via the
+ *      `ZOTO_EVAL_RUN_DIR` env var so per-case test bodies can drop their
+ *      sidecar JSON for the reporter to aggregate.
+ *   3. Compute `ZOTO_EVAL_RUN_ID` (compact ISO-8601 stamp) so the
+ *      reporter and the test bodies share a single run id without a
+ *      side-channel handshake.
+ *   4. Surface a clean SKIP message when `CURSOR_API_KEY` is absent —
+ *      the SDK call surface short-circuits, but the per-test bodies still
+ *      receive a known reason via `ZOTO_EVAL_SKIP_REASON` and emit a
+ *      sidecar row with `status: "skipped"` so the reporter records the
+ *      skip in `evals/_runs/<ts>/llm.yml`.
+ *
+ * Sandbox preparation is per-case (handled in the per-primitive test
+ * file) — this module only owns the cross-cutting environment + run
+ * scaffolding.
+ */
+import "dotenv/config";
+
+import { mkdirSync } from "node:fs";
+import { join, resolve } from "node:path";
+
+const REPO_ROOT = process.env.ZOTO_EVAL_REPO_ROOT
+  ? resolve(process.env.ZOTO_EVAL_REPO_ROOT)
+  : resolve(process.cwd());
+
+function computeRunId(): string {
+  /* Lex-sortable, filename-safe stamp. Matches the format used by the
+   * static reporter (subtask 07) so both backends drop into the same
+   * `evals/_runs/<ts>/` directory when invoked back-to-back. */
+  return new Date()
+    .toISOString()
+    .replace(/\..*$/, "")
+    .replace(/[-:Z]/g, "");
+}
+
+if (!process.env.ZOTO_EVAL_RUN_ID) {
+  process.env.ZOTO_EVAL_RUN_ID = computeRunId();
+}
+
+const RUN_ID = process.env.ZOTO_EVAL_RUN_ID;
+const RUN_DIR = join(REPO_ROOT, "evals", "_runs", RUN_ID);
+const SIDECAR_DIR = join(RUN_DIR, "_pending", "llm-cases");
+const LOG_DIR = join(RUN_DIR, "logs");
+
+mkdirSync(SIDECAR_DIR, { recursive: true, mode: 0o755 });
+mkdirSync(LOG_DIR, { recursive: true, mode: 0o755 });
+
+process.env.ZOTO_EVAL_RUN_DIR = RUN_DIR;
+process.env.ZOTO_EVAL_RUN_SIDECAR_DIR = SIDECAR_DIR;
+process.env.ZOTO_EVAL_RUN_LOG_DIR = LOG_DIR;
+
+if (!process.env.CURSOR_API_KEY) {
+  process.env.ZOTO_EVAL_SKIP_REASON =
+    process.env.ZOTO_EVAL_SKIP_REASON ??
+    "CURSOR_API_KEY not set — LLM code strategy tests will record `status: skipped` rows and exit 0.";
+  /* Mirror the /full-flag gate behaviour from evals/_llm/runner.ts so
+   * operators see the same message regardless of which backend they
+   * launched. */
+  process.stdout.write(
+    `[zoto-eval-llm-code] skipping: ${process.env.ZOTO_EVAL_SKIP_REASON}\n`,
+  );
+}

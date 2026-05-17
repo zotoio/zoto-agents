@@ -1,0 +1,234 @@
+{
+  "target_id": "command:z-eval-update",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-eval-update",
+      "assertions": [
+        "After `/z-eval-update`, `.zoto/eval-system/config.yml` and `.zoto/eval-system/manifest.yml` are read and `readManifestSnapshot()` is consulted before rediscovery begins.",
+        "Rediscovery output only mentions targets whose on-disk primitives differ from the manifest snapshot according to `config.update.criticalChangeRules`.",
+        "Dry-run mode performs no `askQuestion` prompts and emits no accepted filesystem patches from regeneration helpers.",
+        "The emitted summary names the dry-run mode and refrains from reporting fresh `git_ref`, `updated_at`, or `manifest.history.yml` append activity tied to apply-only step 6."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+        "last_updated": "2026-05-16T13:28:58.724Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+          "analysed_at": "2026-05-16T13:28:58.724Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases walk every `/z-eval-update` invocation style from rediscovery through targeted apply, the CI parity gate, cache-only refreshes, and the hard failures when required eval-system files are absent. Assertions stay tied to externally visible transcripts, exit codes, manifest touches, and the documented preservation guards for user-owned eval rows and tests."
+        }
+      },
+      "expected_output": "The run loads the eval config, reads the live manifest plus the snapshot helper, rediscovers targets from `discovery_config`, classifies drift with the critical-change rules, and prints a drift-oriented summary without writing regenerated tests or appending manifest history from an apply path."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-eval-update --apply",
+      "assertions": [
+        "After `/z-eval-update --apply`, a `zoto-eval-updater` subagent runs using the `zoto-update-evals` skill.",
+        "Each time the subagent returns `needs_user_input`, the command issues `askQuestion`, then resumes with the operator choice until the loop completes.",
+        "Unless `--no-analyser` is set, every added or modified target triggers `runAnalyser` with invalidate true before dispatching to `regeneratePytest`, `regenerateVitest`, `regenerateJest`, `regenerateLlmCode`, or `regenerateLlmDeclarative` as configured.",
+        "Helpers refuse to overwrite tests unless `isGeneratedFile` passes and refuse to mutate `evals.json` rows unless `isGeneratedCase` passes, leaving user-authored rows lacking `_meta.generated === true` and user-authored tests missing the first-line `_meta.generated` marker untouched.",
+        "When `--no-analyser` is omitted, missing `CURSOR_API_KEY` prevents a successful remote analyser refresh and blocks writes until credentials are supplied or the operator switches modes.",
+        "Accepted updates rewrite `.zoto/eval-system/manifest.yml` with a new `git_ref`, `updated_at`, and `targets[]`, append `.zoto/eval-system/manifest.history.yml`, and close with `{ mode, regenerated_targets, files_written, files_preserved_user_authored, user_cases_preserved, reports[] }`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+        "last_updated": "2026-05-16T13:28:58.724Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+          "analysed_at": "2026-05-16T13:28:58.724Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases walk every `/z-eval-update` invocation style from rediscovery through targeted apply, the CI parity gate, cache-only refreshes, and the hard failures when required eval-system files are absent. Assertions stay tied to externally visible transcripts, exit codes, manifest touches, and the documented preservation guards for user-owned eval rows and tests."
+        }
+      },
+      "expected_output": "The updater subagent drives per-target regeneration, the host issues one `askQuestion` per presented diff and resumes with each answer, helpers stamp only generated cases or files, and accepted work refreshes the manifest plus history while reporting preserved user-owned artifacts.",
+      "follow_ups": [
+        "Accept the first proposed regeneration",
+        "Reject the very next diff",
+        "Choose skip-rest for every later suggestion"
+      ]
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "/z-eval-update --target \"plugins/zoto-eval-system/commands/z-eval-*.md\"",
+      "assertions": [
+        "After `/z-eval-update --target \"plugins/zoto-eval-system/commands/z-eval-*.md\"`, drift findings exclude primitives outside the minimatch on `target.path` or `target.id`.",
+        "The command stays in dry-run posture, so no regeneration writes occur and no `askQuestion` prompts fire."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+        "last_updated": "2026-05-16T13:28:58.724Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+          "analysed_at": "2026-05-16T13:28:58.724Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases walk every `/z-eval-update` invocation style from rediscovery through targeted apply, the CI parity gate, cache-only refreshes, and the hard failures when required eval-system files are absent. Assertions stay tied to externally visible transcripts, exit codes, manifest touches, and the documented preservation guards for user-owned eval rows and tests."
+        }
+      },
+      "expected_output": "Only command markdown targets whose recorded `target.path` or `target.id` matches the glob appear in the drift narrative, mirroring rediscovery semantics with a narrowed scope."
+    },
+    {
+      "id": 4,
+      "prompt": "/z-eval-update --target \"command:z-eval-help\" --apply",
+      "assertions": [
+        "After `/z-eval-update --target \"command:z-eval-help\" --apply`, `askQuestion` chatter and stamper dispatches mention solely targets that satisfy the provided glob.",
+        "Non-matching primitives do not receive new analyser invalidations or helper rewrites during this invocation."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+        "last_updated": "2026-05-16T13:28:58.724Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+          "analysed_at": "2026-05-16T13:28:58.724Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases walk every `/z-eval-update` invocation style from rediscovery through targeted apply, the CI parity gate, cache-only refreshes, and the hard failures when required eval-system files are absent. Assertions stay tied to externally visible transcripts, exit codes, manifest touches, and the documented preservation guards for user-owned eval rows and tests."
+        }
+      },
+      "expected_output": "Apply mode runs, but regeneration and questioning only target `command:z-eval-help`, leaving other primitives alone for this pass.",
+      "follow_ups": [
+        "Keep only the first refreshed plan and discard the second suggestion"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "/z-eval-update --check",
+      "assertions": [
+        "After `/z-eval-update --check`, `pnpm exec tsx scripts/check-analyser-payload-parity.ts` finishes before drift reporting so `parity_drift` reflects that self-check.",
+        "No `askQuestion` calls occur in this mode.",
+        "The process exits with `config.update.checkExitCodeOnCriticalDrift` (default 2) on critical drift and 0 otherwise, matching `pnpm run eval:update -- --check` for automation hooks."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+        "last_updated": "2026-05-16T13:28:58.724Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+          "analysed_at": "2026-05-16T13:28:58.724Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases walk every `/z-eval-update` invocation style from rediscovery through targeted apply, the CI parity gate, cache-only refreshes, and the hard failures when required eval-system files are absent. Assertions stay tied to externally visible transcripts, exit codes, manifest touches, and the documented preservation guards for user-owned eval rows and tests."
+        }
+      },
+      "expected_output": "The command executes the parity script, emits structured `parity_drift`, stays fully non-interactive, and returns 0 when drift is non-critical or the configured failure exit code when drift is critical."
+    },
+    {
+      "id": 6,
+      "prompt": "/z-eval-update --no-analyser --apply",
+      "assertions": [
+        "After `/z-eval-update --no-analyser --apply`, logs show cache hits from `.zoto/eval-system/cache/analyser/` instead of `runAnalyser` invalidations.",
+        "Stamper helpers still enforce `isGeneratedFile` and `isGeneratedCase` before mutating generated assets."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+        "last_updated": "2026-05-16T13:28:58.724Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+          "analysed_at": "2026-05-16T13:28:58.724Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases walk every `/z-eval-update` invocation style from rediscovery through targeted apply, the CI parity gate, cache-only refreshes, and the hard failures when required eval-system files are absent. Assertions stay tied to externally visible transcripts, exit codes, manifest touches, and the documented preservation guards for user-owned eval rows and tests."
+        }
+      },
+      "expected_output": "Regeneration reuses analyser JSON already stored under `.zoto/eval-system/cache/analyser/` and never issues a fresh LLM analyser round trip for the invalidated targets."
+    },
+    {
+      "id": 7,
+      "prompt": "/z-eval-update --check --no-analyser",
+      "assertions": [
+        "When `process.env.CI` equals `true`, stderr after `/z-eval-update --check --no-analyser` includes `[CI WARNING] --no-analyser used in CI; cached analyser payloads may be stale and produce drift`.",
+        "With `update.failOnNoAnalyserInCI` enabled, the same invocation aborts with exit code 5 before rewriting eval assets."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+        "last_updated": "2026-05-16T13:28:58.724Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+          "analysed_at": "2026-05-16T13:28:58.724Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases walk every `/z-eval-update` invocation style from rediscovery through targeted apply, the CI parity gate, cache-only refreshes, and the hard failures when required eval-system files are absent. Assertions stay tied to externally visible transcripts, exit codes, manifest touches, and the documented preservation guards for user-owned eval rows and tests."
+        }
+      },
+      "expected_output": "In CI, stderr carries the prescribed warning when cached analyser payloads are reused, and an optional config switch upgrades that situation to a hard exit 5."
+    }
+  ,
+    {
+      "id": 8,
+      "prompt": "/z-eval-update",
+      "assertions": [
+        "When `.zoto/eval-system/config.yml` is missing at the repository root, `/z-eval-update` aborts with the exact message: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+        "No `zoto-eval-updater` subagent starts and no drift regeneration runs in this failure path."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+        "last_updated": "2026-05-16T13:28:58.724Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+          "analysed_at": "2026-05-16T13:28:58.724Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases walk every `/z-eval-update` invocation style from rediscovery through targeted apply, the CI parity gate, cache-only refreshes, and the hard failures when required eval-system files are absent. Assertions stay tied to externally visible transcripts, exit codes, manifest touches, and the documented preservation guards for user-owned eval rows and tests.",
+          "fixture_justifications": [
+            "Isolates a workspace that lacks `.zoto/eval-system/config.yml` so the command must stop at the documented precondition instead of inventing defaults."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/uninit-repo/README.md",
+            "content": "# tree without eval initialisation\n"
+          }
+        ]
+      },
+      "expected_output": "The command prints the initialisation error and stops before spawning helpers or touching manifests."
+    },
+    {
+      "id": 9,
+      "prompt": "/z-eval-update",
+      "assertions": [
+        "After `/z-eval-update` with config present but `.zoto/eval-system/manifest.yml` missing, the run aborts before rediscovery mutates disk.",
+        "No regeneration helper writes tests or `evals.json` rows when the manifest is missing."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+        "last_updated": "2026-05-16T13:28:58.724Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2020a0a40c2c18937f50de06b237b21cdd321b3476a6328c0aedf1d141647da4",
+          "analysed_at": "2026-05-16T13:28:58.724Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases walk every `/z-eval-update` invocation style from rediscovery through targeted apply, the CI parity gate, cache-only refreshes, and the hard failures when required eval-system files are absent. Assertions stay tied to externally visible transcripts, exit codes, manifest touches, and the documented preservation guards for user-owned eval rows and tests.",
+          "fixture_justifications": [
+            "Supplies only `config.yml` inside a fresh workspace so manifest loading fails after the config precondition succeeds."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/missing-manifest/.zoto/eval-system/config.yml",
+            "content": "version: 1\nupdate:\n  checkExitCodeOnCriticalDrift: 2\n"
+          }
+        ]
+      },
+      "expected_output": "The command recognises the config file, then stops because `.zoto/eval-system/manifest.yml` is absent per apply-mode step 1."
+    }
+  ],
+  "command_name": "z-eval-update"
+}

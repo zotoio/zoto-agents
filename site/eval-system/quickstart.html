@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quickstart — Eval System — Zoto Agents</title>
+  <meta name="description" content="zoto-eval-system quickstart — install, init, configure, create, update, execute, judge, advise, and compare in one walk-through.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Eval System — Quickstart — Zoto Agents">
+  <meta property="og:description" content="From cursor plugin install to your first compared run on /canvas.">
+  <meta property="og:url" content="https://zotoio.github.io/zoto-agents/eval-system/quickstart.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Eval System — Quickstart — Zoto Agents">
+  <meta name="twitter:description" content="From cursor plugin install to your first compared run on /canvas.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
+</head>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <nav class="top-nav" aria-label="Main navigation">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="../spec-system/index.html" class="nav-dropdown-toggle">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../spec-system/index.html">Overview</a></li>
+            <li><a href="../spec-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../spec-system/design.html">Design</a></li>
+            <li><a href="../spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="index.html" class="nav-dropdown-toggle active">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="quickstart.html">Quickstart</a></li>
+            <li><a href="design.html">Design</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" aria-label="Eval System pages">
+        <h3 class="sidebar-heading">Eval System</h3>
+        <ul class="sidebar-list">
+          <li><a href="index.html" class="sidebar-link">Overview</a></li>
+          <li><a href="quickstart.html" class="sidebar-link active">Quickstart</a></li>
+          <li><a href="design.html" class="sidebar-link">Design</a></li>
+          <li><a href="configuration.html" class="sidebar-link">Configuration</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="index.html">Eval System</a></li>
+          <li>Quickstart</li>
+        </ul>
+
+        <h1>Quickstart</h1>
+        <p>
+          From a fresh Cursor install to a compared eval run in under fifteen minutes. Each step
+          maps to one slash command; the lifecycle is the same on Linux, macOS, and Windows.
+        </p>
+
+        <h2 id="install">Install</h2>
+        <p>Add the plugin to Cursor (marketplace install or local dev install from this monorepo):</p>
+        <pre><code class="language-bash">cursor plugin install zoto-eval-system</code></pre>
+        <p>
+          No host-repo files change at this point. The plugin fails loudly if any command other
+          than <code>/z-eval-init</code> runs before configuration exists.
+        </p>
+
+        <h2 id="init">Init — drop the config template</h2>
+        <p>
+          One-time scaffold. Writes a fully-commented template to
+          <code>.zoto/eval-system/config.yml</code> with every key showing the internal default the
+          plugin would otherwise apply.
+        </p>
+        <pre><code class="language-bash">/z-eval-init</code></pre>
+        <p>
+          Edit the file by hand if you know what you want — every line is commented, so you can
+          uncomment selectively. Or run <code>/z-eval-configure</code> for the interactive flow.
+        </p>
+
+        <h2 id="configure">Configure — interactive guided setup</h2>
+        <p>
+          The command walks you through each config field interactively, validates your choices,
+          emits a <code>cleanup_plan</code> when framework or strategy changes, and writes
+          <code>.zoto/eval-system/config.yml</code> in one atomic write.
+        </p>
+        <pre><code class="language-bash">/z-eval-configure</code></pre>
+        <p>Key prompts: <code>static.framework</code>, <code>llm.strategy</code>, <code>llm.codeFramework</code>, <code>evalsDir</code>, <code>discoveryTargets[]</code>, <code>llm.runtime</code>, <code>llm.model.id</code>, <code>judgeModel</code>.</p>
+
+        <h2 id="create">Create — stamp the suite</h2>
+        <p>
+          Discovers covered targets (skills, commands, agents, hooks), runs the LLM analyser per
+          approved central primitive, stamps both static and LLM backends, and writes
+          <code>manifest.yml</code> + <code>manifest.history.yml</code>.
+        </p>
+        <pre><code class="language-bash">/z-eval-create</code></pre>
+        <p>What lands on disk:</p>
+        <ul>
+          <li><code>evals/</code> — pytest backend (or vitest/jest if configured).</li>
+          <li><code>evals/_llm/</code> — <code>@cursor/sdk</code> runner, graders, writer, update engine.</li>
+          <li><code>.zoto/eval-system/manifest.yml</code> — covered targets + discovery snapshot.</li>
+          <li><code>.zoto/eval-system/manifest.history.yml</code> — append-only history.</li>
+          <li><code>.env.example</code> — placeholder for <code>CURSOR_API_KEY</code> (only created if absent).</li>
+        </ul>
+
+        <h2 id="update">Update — review and approve eval changes after code drift</h2>
+        <p>
+          Run after any edit to a covered target (skill body, agent body, command, library export,
+          hook script). Or run in CI as <code>pnpm run eval:update --check</code> for a drift gate.
+        </p>
+        <table>
+          <thead><tr><th>Invocation</th><th>Mode</th><th>Interactive?</th><th>Writes?</th></tr></thead>
+          <tbody>
+            <tr><td><code>/z-eval-update</code></td><td>rediscovery dry-run</td><td>no</td><td>no</td></tr>
+            <tr><td><code>/z-eval-update --apply</code></td><td>rediscovery apply</td><td>yes (askQuestion per change)</td><td>yes</td></tr>
+            <tr><td><code>/z-eval-update &lt;file-or-glob&gt;</code></td><td>targeted dry-run</td><td>no</td><td>no</td></tr>
+            <tr><td><code>/z-eval-update &lt;file-or-glob&gt; --apply</code></td><td>targeted apply</td><td>yes</td><td>yes</td></tr>
+            <tr><td><code>pnpm run eval:update --check</code></td><td>CI check</td><td>no</td><td>no</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Rediscovery uses the snapshot in <code>manifest.discovery_config</code>, not the current
+          <code>config.yml</code> — config edits never masquerade as code drift.
+        </p>
+
+        <h2 id="execute">Execute — capture a baseline</h2>
+        <p>
+          The orchestrator invokes the host <code>package.json</code> scripts and writes the run
+          directory under <code>{evalsDir}/_runs/&lt;ts&gt;/</code>.
+        </p>
+        <pre><code class="language-bash">/z-eval-execute            # static only — fast, no API key required
+/z-eval-execute --full     # static + LLM — gated on CURSOR_API_KEY</code></pre>
+        <p>What lands on disk per run:</p>
+        <pre><code class="language-bash">evals/_runs/20260506T080011Z/
+  static.yml          # pytest totals + per-case rows
+  llm.yml             # LLM totals + soft metrics + per-case rows
+  report.yml          # aggregate of static + llm
+  .run-meta.json      # run id, started_at, model id, git_ref
+  logs/&lt;case-id&gt;.log  # per-case verbose logs</code></pre>
+
+        <figure>
+          <img src="../images/diagrams/eval-run-report.svg" alt="Three-panel run-report layout: timestamped run directory on the left, three output files in the middle, /canvas hand-off on the right.">
+          <figcaption>Each run produces three YAML outputs. <code>report.yml</code> is the authoritative aggregate.</figcaption>
+        </figure>
+
+        <h2 id="judge">Judge — adversarial review of the latest run</h2>
+        <p>
+          The judge agent reads <code>static.yml</code>, <code>llm.yml</code>, the merged
+          <code>report.yml</code>, and per-case logs, then appends <code>judge:</code> annotations
+          into <code>llm.yml</code>.
+        </p>
+        <pre><code class="language-bash">/z-eval-judge</code></pre>
+        <p>What it surfaces:</p>
+        <ul>
+          <li><strong>Weak graders</strong> — <code>contains</code> where <code>regex</code> would be stricter.</li>
+          <li><strong>Verbosity spikes</strong> — token totals far above the per-case baseline.</li>
+          <li><strong>Accuracy regressions</strong> — soft-metric drops vs the previous run.</li>
+        </ul>
+        <p>
+          The command (not the skill) offers, via <code>askQuestion</code>, to run
+          <code>/z-eval-update</code> on the affected skills. The judge subagent never calls
+          <code>askQuestion</code> directly.
+        </p>
+
+        <h2 id="advise">Advise — pre-hoc coverage gap analysis</h2>
+        <p>
+          Where Judge tells you how a run performed, <strong>Advise</strong> tells you what tests
+          are missing before you run anything. Reads source definitions and eval files only — never
+          run artefacts — and scores five dimensions:
+        </p>
+        <pre><code class="language-bash">/z-eval-advise                      # full scan
+/z-eval-advise &lt;plugin-name&gt;        # scope to one plugin
+/z-eval-advise &lt;skill-name&gt;         # scope to one skill</code></pre>
+        <p>
+          Two interactive breakpoints — drill-down on per-dimension severity, then accept / walk /
+          skip the recommendations. Accepted recommendations hand off to
+          <code>/z-eval-create</code> (no eval file exists) or <code>/z-eval-update --target &lt;glob&gt; --apply</code>.
+          The adviser never modifies files itself.
+        </p>
+
+        <h2 id="compare">Compare — cross-run on /canvas</h2>
+        <p>
+          Pass two or more run ids. The comparer locates each run's <code>report.yml</code>, emits a
+          flat dataset (<code>runs × cases × dimensions</code>), and hands a rendering instruction
+          to the host agent — which invokes Cursor's built-in <code>/canvas</code> tool. The skill
+          never renders charts itself.
+        </p>
+        <pre><code class="language-bash">/z-eval-compare run-A run-B</code></pre>
+
+        <figure>
+          <img src="../images/mockups/eval-canvas-compare.svg" alt="Cursor IDE mockup: /z-eval-compare run-A run-B rendering a /canvas chart with two run series.">
+          <figcaption>Drilldown opens the per-case log under <code>{evalsDir}/_runs/&lt;ts&gt;/logs/&lt;case-id&gt;.log</code>.</figcaption>
+        </figure>
+
+        <h2 id="ci">CI integration</h2>
+        <p>
+          A drop-in GitHub Actions gate. Critical drift exits the workflow with code 2; LLM evals
+          stay opt-in via the <code>CURSOR_API_KEY</code> secret.
+        </p>
+        <pre><code class="language-yaml">- run: pnpm install
+- run: pnpm run eval:update --check   # exits 2 on critical drift
+- run: pnpm run eval                  # static
+- if: env.CURSOR_API_KEY != ''
+  run: pnpm run eval:full             # LLM — gated on secret
+  env:
+    CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}</code></pre>
+
+        <h2 id="next">Next steps</h2>
+        <div class="grid grid-3">
+          <a class="link-card" href="design.html">
+            <span class="link-card-title">Design</span>
+            <span class="link-card-desc">Architecture, the static + LLM split, the user-confirmation contract.</span>
+            <span class="link-card-arrow">→</span>
+          </a>
+          <a class="link-card" href="configuration.html">
+            <span class="link-card-title">Configuration</span>
+            <span class="link-card-desc">Field reference for <code>.zoto/eval-system/config.yml</code>.</span>
+            <span class="link-card-arrow">→</span>
+          </a>
+          <a class="link-card" href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-eval-system/README.md" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">README</span>
+            <span class="link-card-desc">Source-of-truth: the plugin README on GitHub.</span>
+            <span class="link-card-arrow">→</span>
+          </a>
+        </div>
+
+        <nav class="page-nav" aria-label="Page navigation">
+          <a class="page-nav-link" href="index.html">
+            <span class="page-nav-label">Previous</span>
+            <span class="page-nav-title">← Overview</span>
+          </a>
+          <a class="page-nav-link page-nav-next" href="design.html">
+            <span class="page-nav-label">Next</span>
+            <span class="page-nav-title">Design →</span>
+          </a>
+        </nav>
+
+      </div>
+      <footer class="site-footer">
+        <p>Eval System v0.2.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

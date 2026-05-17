@@ -1,0 +1,36 @@
+schema_version: 1
+subtask_id: "04"
+feature: Eval Adviser
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Command file: `plugins/zoto-eval-system/commands/zoto-eval-advise.md`"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: Command follows frontmatter conventions (`name`, `description`)
+    done: false
+    evidence_path: null
+  - id: D03
+    text: Command defines pre-collect phase (initial scope via `askQuestion`)
+    done: false
+    evidence_path: null
+  - id: D04
+    text: Command defines spawn phase (Task with `zoto-eval-adviser` subagent)
+    done: false
+    evidence_path: null
+  - id: D05
+    text: Command defines resume loop for multi-turn interaction
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Command defines handoff routing to `/zoto-eval-create` or `/zoto-eval-update`
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

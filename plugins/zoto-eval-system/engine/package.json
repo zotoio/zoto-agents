@@ -1,0 +1,4 @@
+{
+  "private": true,
+  "description": "Eval engine runtime — canonical source for sdk-bridge, sandbox, graders, case loading, etc."
+}

@@ -1,0 +1,28 @@
+{
+  "scripts": {
+    "eval": "tsx scripts/eval-orchestrate.ts",
+    "eval:full": "tsx scripts/eval-orchestrate.ts --full",
+    "eval:gc": "tsx scripts/eval-gc.ts --dry-run",
+    "eval:gc:apply": "tsx scripts/eval-gc.ts --apply",
+    "eval:static": "python3 scripts/test.py",
+    "eval:static:pytest": "pytest evals/ -v --tb=short",
+    "eval:llm": "tsx scripts/eval-orchestrate.ts --llm-only",
+    "eval:list": "tsx evals/_llm/runner.ts --list",
+    "eval:manual": "python3 scripts/test.py --mode manual",
+    "eval:judge": "tsx evals/_llm/runner.ts --judge-only",
+    "eval:update": "tsx evals/_llm/update.ts",
+    "eval:update:check": "tsx evals/_llm/update.ts --check",
+    "eval:compare": "tsx evals/_llm/compare.ts",
+    "eval:static:jest": "NODE_OPTIONS=--experimental-vm-modules jest --config evals/jest.config.ts",
+    "eval:static:vitest": "vitest run --config evals/vitest.config.ts"
+  },
+  "devDependencies": {
+    "@cursor/sdk": "^1.0.12",
+    "ajv": "^8.17.0",
+    "dotenv": "^17.4.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "yaml": "^2.6.0",
+    "minimatch": "^10.2.5"
+  }
+}

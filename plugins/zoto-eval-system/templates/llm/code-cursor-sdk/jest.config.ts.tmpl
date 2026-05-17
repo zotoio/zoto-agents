@@ -1,0 +1,59 @@
+// _meta.generated: true
+/**
+ * Jest configuration for the LLM `code` strategy.
+ *
+ * Stamped at `<host-repo>/evals/llm/jest.config.ts` by
+ * `scripts/eval-stamp.ts#stampLlmCodePerPrimitive` (subtask 09) when
+ * `llm.codeFramework === "jest"`.
+ *
+ * Wires the bundled LLM reporter at
+ * `evals/llm/_shared/reporters/zoto-llm-reporter.ts` which writes
+ * `evals/_runs/<runId>/llm.yml` matching `result.schema.json`.
+ *
+ * Coexists with the static framework's jest config when
+ * `static.framework === "jest"`. See the matching
+ * `vitest.config.ts.tmpl` header for the cross-field rule.
+ */
+import type { Config } from "jest";
+
+const config: Config = {
+  preset: "ts-jest/presets/default-esm",
+  testEnvironment: "node",
+  rootDir: "../..",
+  testMatch: ["<rootDir>/evals/llm/**/*.test.ts"],
+  testPathIgnorePatterns: [
+    "/node_modules/",
+    "/evals/_runs/",
+    "/evals/fixtures/",
+    "/evals/llm/_shared/",
+  ],
+  extensionsToTreatAsEsm: [".ts"],
+  moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+  },
+  setupFiles: ["<rootDir>/evals/llm/_shared/setup.ts"],
+  testTimeout: 180_000,
+  reporters: [
+    "default",
+    ["<rootDir>/evals/llm/_shared/reporters/zoto-llm-reporter.ts", {}],
+  ],
+  transform: {
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        useESM: true,
+        tsconfig: {
+          target: "ES2022",
+          module: "ESNext",
+          moduleResolution: "Bundler",
+          esModuleInterop: true,
+          allowSyntheticDefaultImports: true,
+          strict: true,
+          skipLibCheck: true,
+        },
+      },
+    ],
+  },
+};
+
+export default config;

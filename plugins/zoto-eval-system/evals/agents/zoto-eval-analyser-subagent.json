@@ -1,0 +1,141 @@
+{
+  "target_id": "agent:zoto-eval-analyser-subagent",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "CI host job: rerun primitive analysis against the command docs at plugins/zoto-eval-system/commands/z-eval-help.md while locking `schema_version` to 1, `analyser_version` string 2026.05.03-1, model_id composer-2, target_id command:z-eval-help, kind command, the relative source_path field, and matching 64-character source_hash fed from the indexer. Paste the ingest bundle that already flattened the frontmatter and body. Produce only the lone JSON artefact parsers expect downstream.",
+      "assertions": [
+        "Stdout is a single UTF-8 document beginning with `{` and ending with `}` with no preamble or trailing narration so `extractJsonObject` succeeds.",
+        "Top-level JSON properties are limited strictly to analyser-schema keys and omit interactive question hooks like askQuestion payloads anywhere in emitted tool traces tied to this run.",
+        "schema_version resolves to integer 1 and target_id prefixes `command:` mirroring ingress while duplicated analyser_version, model_id, kind, source_path, and source_hash echo the pasted envelope verbatim.",
+        "At least one case prompt begins with slash-led command wording consistent with tailoring rules for analysed commands rather than SKILL.md loading prose.",
+        "Every string field under cases avoids guarded boilerplate leakage patterns such as angle-bracket instruction stubs or canned Latin fillers referenced by hardened evaluation guard catalogs.",
+        "cases either omit fixtures objects or expose empty files arrays absent fixture_justifications when no workspace overlay beyond the stamped baseline is warranted."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+        "last_updated": "2026-05-17T13:36:46.848Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+          "analysed_at": "2026-05-17T13:36:46.848Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "`pnpm run eval:analyse` should drive `zoto-eval-analyser-subagent` such that stamped AnalyserPayload output is lone JSON keyed only by analyser-schema fields while mirroring ingress envelope metadata per artefact and switching prompt/assertion wording for each analysed primitive kind, including the guarded comparer-only orchestration storyline without interactive tooling chatter."
+        }
+      },
+      "expected_output": "One machine-readable envelope whose cases reference palette-style `/z-eval-help` probes and mention manifest or reporter checks without inventing overlays when the baseline already models the workspace."
+    },
+    {
+      "id": 2,
+      "prompt": "From the evaluator workspace daemon, ingest plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md (frontmatter trimmed) alongside envelope fields pinning target_id skill:zoto-create-evals, analyser_version 2026.05.03-1, model_id composer-2, and the recorded source_hash blob. Respond with strictly valid AnalyserPayload JSON capturing realistic eval drills for this skill primitive only.",
+      "assertions": [
+        "At least one case prompt reads like tooling priming that would hydrate the SKILL rather than emitting `/`-prefixed command palette lines as the analysed skill voice.",
+        "Assertions mention sequencing or read-before-write contracts consistent with SKILL guidance instead of Cursor hook exit codes.",
+        "The payload keeps additionalProperties-compatible shape with no unexplained sibling keys beside schema_version through cases entries."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+        "last_updated": "2026-05-17T13:36:46.849Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+          "analysed_at": "2026-05-17T13:36:46.849Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "`pnpm run eval:analyse` should drive `zoto-eval-analyser-subagent` such that stamped AnalyserPayload output is lone JSON keyed only by analyser-schema fields while mirroring ingress envelope metadata per artefact and switching prompt/assertion wording for each analysed primitive kind, including the guarded comparer-only orchestration storyline without interactive tooling chatter."
+        }
+      },
+      "expected_output": "Generator-ready JSON whose cases articulate upstream agent chatter that implies the Cursor skill loader rather than direct palette keystrokes."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "Operator thread: analyse plugins/zoto-eval-system/agents/zoto-eval-generator.md assuming ingress pins target_id agent:zoto-eval-generator, kind agent, documented source_path, deterministic source_hash digest, analyser_version 2026.05.03-1, model_id composer-2. Deliver AnalyserPayload JSON only.",
+      "assertions": [
+        "Emitted cases omit the comparer-exclusive dual-thread requirement because the analysed artefact lacks comparer specialization rules.",
+        "Prompts resemble human operator chat delegating eval generation work and assertions cite structured responses or manifests instead of Hook stdout JSON conformity.",
+        "No case fabricates unjustified overlays: fixtures remain absent unless the narration explicitly cites missing baseline assets."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+        "last_updated": "2026-05-17T13:36:46.849Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+          "analysed_at": "2026-05-17T13:36:46.849Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "`pnpm run eval:analyse` should drive `zoto-eval-analyser-subagent` such that stamped AnalyserPayload output is lone JSON keyed only by analyser-schema fields while mirroring ingress envelope metadata per artefact and switching prompt/assertion wording for each analysed primitive kind, including the guarded comparer-only orchestration storyline without interactive tooling chatter."
+        }
+      },
+      "expected_output": "JSON whose generated cases mimic natural conversational eval requests invoking generator workflows rather than Cursor lifecycle chatter or palette-only stubs."
+    },
+    {
+      "id": 4,
+      "prompt": "Need you to rerun `eval:analyse` on plugins/zoto-eval-system/agents/zoto-eval-comparer.md with ingress fields locking target_id agent:zoto-eval-comparer and the usual echoed analyser envelope strings. Explicitly insist the regenerated AnalyserPayload must blend multi-run rollup reconciliation chatter with judge-tier columns surviving flatten merges, cite schema-shaped blocker payloads when sibling run folders collide, forbid markdown chart dumps in chat transcripts, honour the verbatim compare-hand-off template inside JSON, and forbid interactive clarifications from comparer narration. Respond with solitary JSON conforming strictly to templates/schema/analyser-payload.schema.json semantics.",
+      "assertions": [
+        "Generated comparer-linked prompts weave conversational delegation before any optionally quoted `/z-eval-compare` echoes so palette tokens never headline the synthesized user briefing.",
+        "At least one case couples multi-directory report ingestion expectations with adjudication artefacts such as accuracy or confidence telemetry surviving YAML flatten merges.",
+        "Assertions reaffirm silent comparer semantics by stating no AskQuestion payloads or analogous interactive prompts originate from analysed comparer eval loops."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+        "last_updated": "2026-05-17T13:36:46.849Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+          "analysed_at": "2026-05-17T13:36:46.849Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "`pnpm run eval:analyse` should drive `zoto-eval-analyser-subagent` such that stamped AnalyserPayload output is lone JSON keyed only by analyser-schema fields while mirroring ingress envelope metadata per artefact and switching prompt/assertion wording for each analysed primitive kind, including the guarded comparer-only orchestration storyline without interactive tooling chatter."
+        }
+      },
+      "expected_output": "Comparer-target analysis whose cases embed pasted orchestration briefs plus assertions pairing compare-table duties with adjudication artefacts and emphasising deterministic JSON hand-offs without question tooling."
+    },
+    {
+      "id": 5,
+      "prompt": "Headless indexer requests AnalyserPayload JSON for hooks/zoto-eval-system.json plus linked hook sources with envelope pinning target_id hook:zoto-eval-system, captured source_hash checksum, analyser_version 2026.05.03-1, model_id composer-2. Do not prepend commentary.",
+      "assertions": [
+        "At least one case prompt names a concrete Cursor lifecycle event such as filesystem edits firing the hook scripts instead of SKILL loader messaging.",
+        "Assertions reference nonzero success exit statuses or Cursor hook stdout JSON conformance rather than Slash command palettes.",
+        "cases respect fixture minimization rules tied to guarded path naming without absolute filesystem prefixes."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+        "last_updated": "2026-05-17T13:36:46.849Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+          "analysed_at": "2026-05-17T13:36:46.849Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "`pnpm run eval:analyse` should drive `zoto-eval-analyser-subagent` such that stamped AnalyserPayload output is lone JSON keyed only by analyser-schema fields while mirroring ingress envelope metadata per artefact and switching prompt/assertion wording for each analysed primitive kind, including the guarded comparer-only orchestration storyline without interactive tooling chatter."
+        }
+      },
+      "expected_output": "JSON instructing graders to cite lifecycle-phase triggers for hook executions and deterministic binary stdout expectations."
+    },
+    {
+      "id": 6,
+      "prompt": "`eval:analyse` batch item: ingest plugins/zoto-eval-system/rules/zoto-eval-system.mdc with envelope keys forcing target_id rule:zoto-eval-system, canonical source_hash, analyser_version 2026.05.03-1, model_id composer-2. Return strict AnalyserPayload JSON now.",
+      "assertions": [
+        "Emitted prompts resemble human-coded maintenance tasks such as moving helper modules while assertions tie outcomes to enforced glob scopes or evaluator reactions noted in rule copy.",
+        "No generated case repurposes Slash palette strings as primary triggers because analysed kind is rule, not command.",
+        "Summary plus cases reaffirm behavioural assertions instead of trusting vague satisfied checks without externally visible signals."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+        "last_updated": "2026-05-17T13:36:46.849Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5906ead493d7b9e28c1f8775b3608e129cbf3b397ff595327150e50e526285fd",
+          "analysed_at": "2026-05-17T13:36:46.849Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "`pnpm run eval:analyse` should drive `zoto-eval-analyser-subagent` such that stamped AnalyserPayload output is lone JSON keyed only by analyser-schema fields while mirroring ingress envelope metadata per artefact and switching prompt/assertion wording for each analysed primitive kind, including the guarded comparer-only orchestration storyline without interactive tooling chatter."
+        }
+      },
+      "expected_output": "Rule-target JSON whose cases articulate everyday refactor chats that ought to collide with evaluator rule guardrails alongside observable adherence checks."
+    },],
+  "agent_name": "zoto-eval-analyser-subagent"
+}

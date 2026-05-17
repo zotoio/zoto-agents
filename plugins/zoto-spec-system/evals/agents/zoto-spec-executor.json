@@ -1,0 +1,213 @@
+{
+  "target_id": "agent:zoto-spec-executor",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "I need zoto-spec-executor to drive /z-spec-execute on the current dated initiative: read .zoto/spec-system/config.yml, treat the configured unit-of-work term in user-facing wording, validate the index manifest and dependency order, ask me to approve the run before any spawns, background the aggregator from repo root the way the skill describes, spawn each subtask with the manifest’s subagent type unchanged, run a fresh zoto-spec-judge after every subtask, write the execution report under the spec directory, run pnpm exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human with a repo-root argument resolved from this workspace before you show me anything final, and only then ask whether to mark the initiative Completed.",
+      "assertions": [
+        "The agent reads .zoto/spec-system/config.yml and reflects specsDir, workDir, unitOfWork, spec.parallelLimit, and spec.adversarialVerification in what it tells the operator.",
+        "At /z-spec-execute start it launches pnpm exec tsx plugins/zoto-spec-system/scripts/spec-aggregator.ts --watch with the dated spec directory and repository root arguments from the workspace and avoids pnpm --filter wrappers that would change the working directory.",
+        "The watch-only process is described as reading status/*.status.yml while writing only the spec-root status.md and status.yml digest, without rewriting a subtask’s own status pair.",
+        "Before any execution it presents the manifest summary and uses askQuestion for structured approval.",
+        "For each phase it spawns exactly the subagent named in the manifest row and requires those workers to use TodoWrite while ticking deliverables in the subtask markdown.",
+        "After each subtask completes it spawns a new zoto-spec-judge that records verdict and a structured fix_list only under the subtask .status.yml extra.judge block.",
+        "During parallel phases it instructs subagents not to run the whole-repo test suite and defers the comprehensive suite to the final verification phase.",
+        "After subtask work it checks lints on modified files via ReadLints as part of completion discipline.",
+        "It writes execution-report-[feature]-[yyyymmdd].md inside the dated spec directory with consolidated results.",
+        "Before showing the execution report it shells to pnpm exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human from the repository root and treats exit code 2 as a hard blocker until issues are cleared.",
+        "It mentions the separate Cursor stop hook at hooks/zoto-onstop-check.mjs as the same consistency check running on stop events.",
+        "After a clean onStop result it uses askQuestion again for structured approval, then updates the index Status toward Completed as documented.",
+        "Throughout user-visible copy it uses the configured unitOfWork label instead of generic synonyms like “plan” when that label differs."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+        "last_updated": "2026-05-17T13:36:46.918Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+          "analysed_at": "2026-05-17T13:36:46.918Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases exercise the executor’s configuration-driven runbook, live aggregator and spawn-prefix behaviour, adversarial judge routing, mandatory onStop consistency gating, cancellation handling, unit-of-work messaging, memory-extension hand-off, and legacy trees that lack a status directory."
+        }
+      },
+      "expected_output": "A concise run plan referencing the configured directories and limits, explicit approval prompts, the correct watcher command form, judge passes after subtasks, an execution-report filename under the dated spec folder, and a stated onStop exit status before completion.",
+      "follow_ups": [
+        "Approved — proceed with phased execution, keep concurrent spawns within spec.parallelLimit, use ReadLints on files touched in a subtask before moving on, reserve the full test sweep for the final verification pass, and remind me the defence-in-depth stop hook runs the same onStop check on agent stops."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "When the dated spec folder already has a status/ tree, walk me through how you shell out to spec-spawn-prefix.ts for each new subagent spawn and what must appear as the first line of the prompt returned on stdout.",
+      "assertions": [
+        "The answer states that each spawn runs tsx plugins/zoto-spec-system/scripts/spec-spawn-prefix.ts with --role, --status-yml, and --status-md when the live per-subtask status paths exist.",
+        "It explains that the helper resolves loadConfig from the repository root and that token budget tweaks apply on the very next spawn without restarting the executor session.",
+        "It quotes the required opening line form beginning with Token budget: and ties it to writing token_budget into status.yml and warn-level errors[] on overrun."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+        "last_updated": "2026-05-17T13:36:46.918Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+          "analysed_at": "2026-05-17T13:36:46.918Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases exercise the executor’s configuration-driven runbook, live aggregator and spawn-prefix behaviour, adversarial judge routing, mandatory onStop consistency gating, cancellation handling, unit-of-work messaging, memory-extension hand-off, and legacy trees that lack a status directory."
+        }
+      },
+      "expected_output": "A precise description of invoking the tsx plugins/zoto-spec-system/scripts/spec-spawn-prefix.ts helper with role plus both status paths, loading config from .zoto/spec-system/config.yml via the process cwd, and echoing the token-budget first line the subagent must record."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "Suppose .zoto/spec-system/config.yml picks up a schema-breaking edit while spec-aggregator --watch is already running. What happens to polling, configuration selection, and the next digest write to the spec root?",
+      "assertions": [
+        "It states the watcher keeps using the last valid configuration after a ConfigValidationError on reload rather than stopping cold.",
+        "It specifies that the next successful aggregate write records an events[] entry with kind set to config_reload_failed in the spec-root status.yml."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+        "last_updated": "2026-05-17T13:36:46.918Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+          "analysed_at": "2026-05-17T13:36:46.918Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases exercise the executor’s configuration-driven runbook, live aggregator and spawn-prefix behaviour, adversarial judge routing, mandatory onStop consistency gating, cancellation handling, unit-of-work messaging, memory-extension hand-off, and legacy trees that lack a status directory."
+        }
+      },
+      "expected_output": "An explanation that polling continues with the last good configuration, and the upcoming aggregate write notes a reload failure in events[]."
+    },
+    {
+      "id": 4,
+      "prompt": "If I cancel the /z-spec-execute session while the background aggregator child is still alive, spell out the signal choreography: what you send first, how long you wait, and what follows if the process does not exit cleanly.",
+      "assertions": [
+        "It sends SIGINT to the tracked aggregator PID when the operator cancels the execute command.",
+        "It waits up to one current aggregator.pollIntervalMs window for a clean shutdown before issuing SIGTERM."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+        "last_updated": "2026-05-17T13:36:46.918Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+          "analysed_at": "2026-05-17T13:36:46.918Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases exercise the executor’s configuration-driven runbook, live aggregator and spawn-prefix behaviour, adversarial judge routing, mandatory onStop consistency gating, cancellation handling, unit-of-work messaging, memory-extension hand-off, and legacy trees that lack a status directory."
+        }
+      },
+      "expected_output": "A stepwise shutdown that matches SIGINT first, waits one configured pollIntervalMs, then SIGTERM if needed."
+    },
+    {
+      "id": 5,
+      "prompt": "We inherited a dated folder under specs/ that never created status/. How does zoto-spec-executor behave so execution stays compatible, and what gets logged?",
+      "assertions": [
+        "It emits the single warning line status/ directory absent — running legacy spawn path.",
+        "It does not start spec-aggregator --watch for that run.",
+        "It does not call spec-spawn-prefix.ts, noting that spawns omit status-path wiring in that mode."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+        "last_updated": "2026-05-17T13:36:46.918Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+          "analysed_at": "2026-05-17T13:36:46.918Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases exercise the executor’s configuration-driven runbook, live aggregator and spawn-prefix behaviour, adversarial judge routing, mandatory onStop consistency gating, cancellation handling, unit-of-work messaging, memory-extension hand-off, and legacy trees that lack a status directory."
+        }
+      },
+      "expected_output": "A legacy path that skips the watcher and spawn-prefix shell-outs, with the exact one-line warning string called out."
+    },
+    {
+      "id": 6,
+      "prompt": "zoto-spec-judge returned Partial on subtask 04 with a non-empty structured fix_list. As the executor, what do you do next—who edits the repo, who re-verifies, and what you refuse to do yourself?",
+      "assertions": [
+        "It commits to re-spawning the same manifest-assigned subagent type for that ID and passes the fix_list through without translating it into executor-authored patches.",
+        "It schedules a fresh zoto-spec-judge after the rework, rather than reusing the prior judge instance.",
+        "It states that judges never modify deliverable source material and that the executor likewise does not implement fixes from the list—only coordinates reruns."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+        "last_updated": "2026-05-17T13:36:46.918Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+          "analysed_at": "2026-05-17T13:36:46.918Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases exercise the executor’s configuration-driven runbook, live aggregator and spawn-prefix behaviour, adversarial judge routing, mandatory onStop consistency gating, cancellation handling, unit-of-work messaging, memory-extension hand-off, and legacy trees that lack a status directory."
+        }
+      },
+      "expected_output": "Routing that re-spawns the originally listed manifest subagent with the structured list, then spins a brand-new judge, while the executor avoids direct code edits."
+    },
+    {
+      "id": 7,
+      "prompt": "Assume extensions.memory.enabled is true and extensions.memory.plugin points at a memory plugin. After a successful spec execution and green onStop check, what should you tell me about capturing learnings?",
+      "assertions": [
+        "It recommends running the named memory plugin’s dream or extract workflow after completion when the flag is on.",
+        "It clarifies that memory persistence happens inside that plugin, not through ad-hoc knowledge files authored here."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+        "last_updated": "2026-05-17T13:36:46.918Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+          "analysed_at": "2026-05-17T13:36:46.918Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases exercise the executor’s configuration-driven runbook, live aggregator and spawn-prefix behaviour, adversarial judge routing, mandatory onStop consistency gating, cancellation handling, unit-of-work messaging, memory-extension hand-off, and legacy trees that lack a status directory."
+        }
+      },
+      "expected_output": "A brief suggestion to run that plugin’s dream or extraction workflow, clarifying the executor does not persist memories directly."
+    },
+    {
+      "id": 8,
+      "prompt": "After we finish this initiative, how should we treat the dated tree under the configured specs directory when future agents load skills or rules?",
+      "assertions": [
+        "It states that specs under the configured specsDir are coordination artifacts rather than standing knowledge stores for unrelated agents.",
+        "It avoids proposing new evergreen knowledge files sourced only from the spec dump."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+        "last_updated": "2026-05-17T13:36:46.918Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+          "analysed_at": "2026-05-17T13:36:46.918Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases exercise the executor’s configuration-driven runbook, live aggregator and spawn-prefix behaviour, adversarial judge routing, mandatory onStop consistency gating, cancellation handling, unit-of-work messaging, memory-extension hand-off, and legacy trees that lack a status directory."
+        }
+      },
+      "expected_output": "Framing specs as ephemeral coordination and audit-only material, not a runtime knowledge base."
+    },
+    {
+      "id": 9,
+      "prompt": "The index shows subtask 05 blocked on 03 and 04 while 01 and 02 can run together. How will you order phases and keep total concurrent subagents within the configured ceiling?",
+      "assertions": [
+        "It refuses to start a subtask until every listed dependency in the manifest reads complete.",
+        "It limits simultaneous in-flight spawns to at most spec.parallelLimit from configuration while scheduling independent peers within a phase together when safe."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+        "last_updated": "2026-05-17T13:36:46.918Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c",
+          "analysed_at": "2026-05-17T13:36:46.918Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "These cases exercise the executor’s configuration-driven runbook, live aggregator and spawn-prefix behaviour, adversarial judge routing, mandatory onStop consistency gating, cancellation handling, unit-of-work messaging, memory-extension hand-off, and legacy trees that lack a status directory."
+        }
+      },
+      "expected_output": "Phasing that waits for prerequisites, parallelises independent rows, and obeys spec.parallelLimit."
+    }
+  ],
+  "agent_name": "zoto-spec-executor"
+}

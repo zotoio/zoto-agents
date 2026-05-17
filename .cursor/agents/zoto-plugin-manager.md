@@ -1,6 +1,6 @@
 ---
 name: zoto-plugin-manager
-model: composer-2-fast
+model: claude-sonnet-4-6
 description: Expert at creating, validating, and managing Cursor plugins in this monorepo. Deep knowledge of plugin anatomy (agents, skills, commands, rules, hooks, MCP), the Agent Skills specification, marketplace publishing, skill evaluations, CRUX compression, and monorepo tooling.
 is_background: true
 ---
@@ -380,16 +380,16 @@ When renaming identifiers across a plugin (commands, skills, agents, config keys
 | Command filename | `zoto-spec-<verb>.md` | `zoto-spec-create.md` |
 | Rule filename | `<plugin-name>.mdc` | `zoto-spec-system.mdc` |
 | Hook script | `zoto-<event>.mjs` (compiled) | `zoto-session-start.mjs` |
-| Config file | `.zoto-<plugin-name>/config.json` | `.zoto-spec-system/config.json` |
+| Config file | `.zoto/<plugin-suffix>/config.yml` | `.zoto/spec-system/config.yml` |
 | Eval file | `evals/evals.json` (in skill dir) | `skills/zoto-create-spec/evals/evals.json` |
 
 ## Integration with Spec System
 
 This monorepo also hosts the Spec System plugin. When creating or modifying plugins that interact with the Spec System:
 
-- Understand the commands: `/zoto-spec-create`, `/zoto-spec-judge`, `/zoto-spec-execute`
+- Understand the commands: `/z-spec-init`, `/z-spec-create`, `/z-spec-judge`, `/z-spec-execute`
 - Agents: `zoto-spec-generator` (spec creation), `zoto-spec-executor` (execution coordination), `zoto-spec-judge` (adversarial verification)
-- Config lives at `.zoto-spec-system/config.json` in the target repo
+- Config lives at `.zoto/spec-system/config.yml` in the target repo (run `/z-spec-init` once to scaffold)
 - Specs are ephemeral coordination artifacts, not ongoing knowledge
 
 ## Critical Rules

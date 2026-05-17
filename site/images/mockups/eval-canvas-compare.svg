@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900" font-family="system-ui, -apple-system, sans-serif">
+  <title>Cursor IDE  /z-eval-compare  /canvas</title>
+  <desc>Cursor IDE mockup showing /z-eval-compare run-A run-B handing off to Cursor's built-in /canvas tool. The right pane renders a runs  cases  tokens chart with two run series. The left tree highlights the two run directories under evals/_runs/.</desc>
+  <defs>
+    <style>
+      .ide-bg { fill: #000000; }
+      .ide-titlebar { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-sidebar { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-chat { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-canvas { fill: #000000; stroke: #1a3a1a; stroke-width: 1; }
+      .file-row { fill: #0a0f0a; }
+      .file-row-active { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 1.25; }
+      .chat-msg-user { fill: #0f1a0f; stroke: #5cffaf; stroke-width: 1.25; }
+      .chat-msg-agent { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 1.25; }
+      .label-title { fill: #c8ffc8; font-size: 14px; font-weight: 700; }
+      .label-mono { fill: #c8ffc8; font-size: 12px; font-family: ui-monospace, monospace; }
+      .label-mono-accent { fill: #00ff7f; font-size: 12px; font-family: ui-monospace, monospace; font-weight: 700; }
+      .label-sub { fill: #6a8a6a; font-size: 11px; }
+      .label-sub-mono { fill: #6a8a6a; font-size: 11px; font-family: ui-monospace, monospace; }
+      .header { fill: #c8ffc8; font-size: 14px; font-weight: 700; }
+      .footer { fill: #6a8a6a; font-size: 11px; }
+      .axis { stroke: #6a8a6a; stroke-width: 1; }
+      .grid { stroke: #1a3a1a; stroke-width: 0.75; }
+      .bar-a { fill: #00ff7f; }
+      .bar-b { fill: #5cffaf; opacity: 0.85; }
+      .bar-label { fill: #c8ffc8; font-size: 10px; font-family: ui-monospace, monospace; }
+      .legend-text { fill: #c8ffc8; font-size: 11px; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="900" class="ide-bg" rx="8"/>
+
+  <!-- Title bar -->
+  <rect x="0" y="0" width="1400" height="36" class="ide-titlebar"/>
+  <circle cx="20" cy="18" r="6" fill="#ff6464"/>
+  <circle cx="40" cy="18" r="6" fill="#ffd166"/>
+  <circle cx="60" cy="18" r="6" fill="#00ff7f"/>
+  <text x="700" y="22" text-anchor="middle" class="label-sub">cursor  host-repo &#8212; /z-eval-compare run-A run-B  /canvas</text>
+
+  <!-- Sidebar -->
+  <rect x="0" y="36" width="240" height="864" class="ide-sidebar"/>
+  <text x="20" y="68" class="header">Explorer</text>
+  <text x="20" y="92" class="label-sub">evals/_runs/</text>
+
+  <rect x="10" y="110" width="220" height="22" class="file-row-active"/>
+  <text x="24" y="126" class="label-mono-accent"> 20260503T152604Z (run-A)</text>
+
+  <rect x="10" y="138" width="220" height="20" class="file-row"/>
+  <text x="42" y="152" class="label-sub-mono">report.yml</text>
+
+  <rect x="10" y="164" width="220" height="20" class="file-row"/>
+  <text x="42" y="178" class="label-sub-mono">static.yml</text>
+
+  <rect x="10" y="190" width="220" height="20" class="file-row"/>
+  <text x="42" y="204" class="label-sub-mono">llm.yml</text>
+
+  <rect x="10" y="220" width="220" height="22" class="file-row-active"/>
+  <text x="24" y="236" class="label-mono-accent"> 20260506T080011Z (run-B)</text>
+
+  <rect x="10" y="248" width="220" height="20" class="file-row"/>
+  <text x="42" y="262" class="label-sub-mono">report.yml</text>
+
+  <rect x="10" y="274" width="220" height="20" class="file-row"/>
+  <text x="42" y="288" class="label-sub-mono">static.yml</text>
+
+  <rect x="10" y="300" width="220" height="20" class="file-row"/>
+  <text x="42" y="314" class="label-sub-mono">llm.yml</text>
+
+  <text x="20" y="380" class="label-sub">model A: gpt-5.2</text>
+  <text x="20" y="400" class="label-sub">model B: claude-4.6-sonnet</text>
+
+  <!-- Chat (centre) -->
+  <rect x="240" y="36" width="380" height="864" class="ide-chat"/>
+  <text x="260" y="64" class="header">Cursor Chat</text>
+
+  <rect x="252" y="84" width="356" height="60" rx="6" class="chat-msg-user"/>
+  <text x="266" y="108" class="label-title">You</text>
+  <text x="266" y="130" class="label-sub-mono">/z-eval-compare run-A run-B</text>
+
+  <rect x="252" y="160" width="356" height="160" rx="6" class="chat-msg-agent"/>
+  <text x="266" y="184" class="label-title">Eval Comparer</text>
+  <text x="266" y="208" class="label-sub">Resolved both runs from evals/_runs/.</text>
+  <text x="266" y="226" class="label-sub">Built flat dataset (8 cases  2 runs).</text>
+  <text x="266" y="248" class="label-sub-mono">Open the canvas </text>
+  <text x="266" y="276" class="label-sub"> accuracy: -2.1%</text>
+  <text x="266" y="294" class="label-sub"> tokens (median): +318</text>
+  <text x="266" y="312" class="label-mono-accent"> verbosity: +14% (warn)</text>
+
+  <rect x="252" y="336" width="356" height="80" rx="6" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1"/>
+  <text x="266" y="360" class="label-mono">tool: /canvas</text>
+  <text x="266" y="380" class="label-sub-mono">render(eval-compare-2026-05-06.canvas.tsx)</text>
+  <text x="266" y="398" class="label-sub-mono">data: 16 rows  5 dims</text>
+
+  <rect x="252" y="432" width="356" height="100" rx="6" class="chat-msg-agent"/>
+  <text x="266" y="456" class="label-title">Drilldown</text>
+  <text x="266" y="478" class="label-sub">Click a bar to open</text>
+  <text x="266" y="496" class="label-sub-mono">_runs/&lt;ts&gt;/logs/&lt;case-id&gt;.log</text>
+  <text x="266" y="516" class="label-sub">in the editor.</text>
+
+  <!-- Canvas (right) -->
+  <rect x="620" y="36" width="780" height="864" class="ide-canvas"/>
+  <text x="640" y="64" class="header">/canvas  eval-compare-2026-05-06</text>
+  <text x="640" y="84" class="label-sub">runs  cases  tokens (median per case)</text>
+
+  <!-- Chart frame -->
+  <rect x="660" y="120" width="700" height="540" rx="6" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1"/>
+
+  <!-- Y axis -->
+  <line x1="700" y1="160" x2="700" y2="600" class="axis"/>
+  <line x1="700" y1="600" x2="1340" y2="600" class="axis"/>
+  <text x="660" y="180" class="label-sub">tokens</text>
+  <text x="668" y="200" class="label-sub-mono">3000</text>
+  <text x="668" y="290" class="label-sub-mono">2000</text>
+  <text x="676" y="380" class="label-sub-mono">1000</text>
+  <text x="684" y="600" class="label-sub-mono">0</text>
+
+  <!-- Grid lines -->
+  <line x1="700" y1="200" x2="1340" y2="200" class="grid"/>
+  <line x1="700" y1="290" x2="1340" y2="290" class="grid"/>
+  <line x1="700" y1="380" x2="1340" y2="380" class="grid"/>
+  <line x1="700" y1="470" x2="1340" y2="470" class="grid"/>
+  <line x1="700" y1="560" x2="1340" y2="560" class="grid"/>
+
+  <!-- Bars: 8 cases  2 runs -->
+  <!-- case-1 -->
+  <rect x="730" y="430" width="20" height="170" class="bar-a"/>
+  <rect x="752" y="380" width="20" height="220" class="bar-b"/>
+  <text x="751" y="616" text-anchor="middle" class="bar-label">c1</text>
+
+  <!-- case-2 -->
+  <rect x="800" y="320" width="20" height="280" class="bar-a"/>
+  <rect x="822" y="290" width="20" height="310" class="bar-b"/>
+  <text x="821" y="616" text-anchor="middle" class="bar-label">c2</text>
+
+  <!-- case-3 -->
+  <rect x="870" y="380" width="20" height="220" class="bar-a"/>
+  <rect x="892" y="350" width="20" height="250" class="bar-b"/>
+  <text x="891" y="616" text-anchor="middle" class="bar-label">c3</text>
+
+  <!-- case-4 -->
+  <rect x="940" y="200" width="20" height="400" class="bar-a"/>
+  <rect x="962" y="220" width="20" height="380" class="bar-b"/>
+  <text x="961" y="616" text-anchor="middle" class="bar-label">c4</text>
+
+  <!-- case-5 -->
+  <rect x="1010" y="450" width="20" height="150" class="bar-a"/>
+  <rect x="1032" y="430" width="20" height="170" class="bar-b"/>
+  <text x="1031" y="616" text-anchor="middle" class="bar-label">c5</text>
+
+  <!-- case-6 -->
+  <rect x="1080" y="260" width="20" height="340" class="bar-a"/>
+  <rect x="1102" y="230" width="20" height="370" class="bar-b"/>
+  <text x="1101" y="616" text-anchor="middle" class="bar-label">c6</text>
+
+  <!-- case-7 -->
+  <rect x="1150" y="400" width="20" height="200" class="bar-a"/>
+  <rect x="1172" y="370" width="20" height="230" class="bar-b"/>
+  <text x="1171" y="616" text-anchor="middle" class="bar-label">c7</text>
+
+  <!-- case-8 -->
+  <rect x="1220" y="350" width="20" height="250" class="bar-a"/>
+  <rect x="1242" y="320" width="20" height="280" class="bar-b"/>
+  <text x="1241" y="616" text-anchor="middle" class="bar-label">c8</text>
+
+  <text x="1000" y="640" text-anchor="middle" class="label-sub">cases (drilldown opens per-case log)</text>
+
+  <!-- Legend -->
+  <rect x="660" y="690" width="700" height="80" rx="6" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1"/>
+  <rect x="680" y="710" width="14" height="14" class="bar-a"/>
+  <text x="702" y="722" class="legend-text">run-A . gpt-5.2 . 20260503T152604Z</text>
+  <rect x="680" y="734" width="14" height="14" class="bar-b"/>
+  <text x="702" y="746" class="legend-text">run-B . claude-4.6-sonnet . 20260506T080011Z</text>
+  <text x="950" y="722" class="label-sub"> accuracy 2.1% .  tokens +318 .  verbosity +14% (warn)</text>
+  <text x="950" y="746" class="label-sub-mono">click any bar  open _runs/&lt;ts&gt;/logs/&lt;case-id&gt;.log</text>
+
+  <text x="700" y="888" text-anchor="middle" class="footer">/canvas runs in Cursor; the comparer hands off the dataset and the rendering instruction.</text>
+</svg>

@@ -157,7 +157,7 @@
   <!-- User message -->
   <rect x="590" y="100" width="290" height="36" rx="8" class="chat-user-bg" stroke="#30363d" stroke-width="1"/>
   <text x="602" y="114" font-size="10" class="accent">You</text>
-  <text x="602" y="128" font-size="11" class="text-mono">/zoto-spec-create "add auth"</text>
+  <text x="602" y="128" font-size="11" class="text-mono">/z-spec-create "add auth"</text>
 
   <!-- Agent response 1 -->
   <rect x="590" y="148" width="290" height="148" rx="8" class="chat-agent-bg" stroke="#30363d" stroke-width="1"/>

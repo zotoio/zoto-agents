@@ -1,0 +1,51 @@
+name: Eval update (manifest drift check)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Gate: blocks PRs when the tracked manifest diverges from on-disk primitives.
+# Runs the updater engine in `--check` with `--no-analyser`, matching CI
+# policy: reuse cached primitive payloads under `.zoto/eval-system/cache/analyser/`,
+# stderr `[CI WARNING] skipping fresh primitive analysis …`.
+#
+# `CI=true` (set by Actions) lets the engine default to cached analyser payloads;
+# `--no-analyser` spells that out explicitly. Use `pnpm exec tsx
+# plugins/zoto-eval-system/engine/update.ts --check --with-analyser` locally only
+# when you intentionally want fresh analyser traffic on CI.
+#
+# Escalation: `update.failOnNoAnalyserInCI: true` in `.zoto/eval-system/config.yml`
+# makes any CI cached-analyser run exit `5` right after that stderr warning.
+#
+# To debug locally:
+#   CI=true pnpm run eval:update:check -- --no-analyser
+# ──────────────────────────────────────────────────────────────────────────────
+
+on:
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: eval-update-check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eval-update-check:
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Eval manifest drift (--check --no-analyser)
+        run: pnpm run eval:update:check -- --no-analyser

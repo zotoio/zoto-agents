@@ -7,7 +7,7 @@ description: Independent assessment of a repository or Spec System engineering s
 
 Independent assessment workflow for the repository or individual engineering specs managed by the Spec System. Provides a structured review with scores, findings, and actionable recommendations. For spec assessments, offers to apply fixes directly to the spec files after producing the report. The judge should ideally run in a **fresh agent context** to avoid bias from prior sessions.
 
-**Paths**: Resolve `{specsDir}` from `.zoto-spec-system/config.json` in the repository root (default `specs`). All report paths below are relative to the repository root unless noted.
+**Paths**: Resolve `{specsDir}` from `.zoto/spec-system/config.yml` in the repository root (default `specs`). All report paths below are relative to the repository root unless noted.
 
 ## When to Use
 
@@ -41,7 +41,7 @@ The judge evaluates specs (or the repo as a whole) across six dimensions, each s
 
 - **4.0+**: Approve — ready for execution (e.g. via the `zoto-execute-spec` skill)
 - **3.0–3.9**: Conditional — address findings before executing
-- **< 3.0**: Reject — spec needs rework via `/zoto-spec-create`
+- **< 3.0**: Reject — spec needs rework via `/z-spec-create`
 
 ## Workflow: Repository Assessment (no target)
 
@@ -170,7 +170,22 @@ After generating the assessment report, present a summary of the verdict and act
 | 2 | MEDIUM | 05 | Replace vague deliverable with specific test files |
 | 3 | LOW | — | Add rollback plan to spec index |
 
-Apply these fixes to the spec files? [Yes / No]
+```
+
+Then use **`askQuestion`** (if running as a command/executor) or return **`needs_user_input`** (if running as a subagent) to get structured approval:
+
+```json
+{
+  "title": "Spec Assessment — Apply Fixes?",
+  "questions": [{
+    "id": "apply_fixes",
+    "prompt": "Apply [N] recommended fixes to the spec files?",
+    "options": [
+      { "id": "yes", "label": "Yes — apply all fixes" },
+      { "id": "no", "label": "No — keep spec as-is" }
+    ]
+  }]
+}
 ```
 
 #### If user accepts — apply fixes
@@ -194,7 +209,7 @@ After applying all fixes:
    - [subtask-05.md]: Replaced vague deliverable with specific test file list
    - [spec-index.md]: Added rollback plan section
 
-   The spec is now ready for /zoto-spec-execute.
+   The spec is now ready for /z-spec-execute.
    ```
 
 #### If user declines

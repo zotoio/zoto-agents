@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" font-family="system-ui, -apple-system, sans-serif">
+  <title>askQuestion Flow  Command-Owned User Interaction</title>
+  <desc>Sequence-style diagram. Three lifelines from left to right: User, Command, Subagent. The Command owns askQuestion; the Subagent never calls askQuestion directly. When the Subagent needs a human decision it returns needs_user_input, and the Command resumes the Subagent after the user answers.</desc>
+  <defs>
+    <marker id="arrow-accent" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8" fill="#00ff7f"/>
+    </marker>
+    <marker id="arrow-dim" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8" fill="#6a8a6a"/>
+    </marker>
+    <style>
+      .lifeline { stroke: #1a3a1a; stroke-width: 1.5; stroke-dasharray: 4,4; }
+      .actor { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 2; }
+      .actor-user { fill: #0f1a0f; stroke: #c8ffc8; stroke-width: 2; }
+      .actor-sub { fill: #0f1a0f; stroke: #5cffaf; stroke-width: 2; }
+      .actor-label { fill: #c8ffc8; font-size: 16px; font-weight: 700; }
+      .actor-sub-label { fill: #6a8a6a; font-size: 12px; }
+      .header { fill: #c8ffc8; font-size: 22px; font-weight: 700; }
+      .step-label { fill: #c8ffc8; font-size: 12px; font-weight: 600; font-family: ui-monospace, monospace; }
+      .step-aux { fill: #6a8a6a; font-size: 11px; }
+      .footer { fill: #6a8a6a; font-size: 11px; }
+      .step-warn { fill: #ff8c8c; font-size: 11px; font-weight: 600; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="700" fill="#000000" rx="10"/>
+  <text x="600" y="44" text-anchor="middle" class="header">askQuestion Flow  Command Owns User Interaction</text>
+  <text x="600" y="68" text-anchor="middle" class="step-aux">Subagents return needs_user_input. The command owns askQuestion + resume.</text>
+
+  <!-- Actor headers -->
+  <rect x="100" y="100" width="220" height="56" rx="8" class="actor-user"/>
+  <text x="210" y="124" text-anchor="middle" class="actor-label">User</text>
+  <text x="210" y="144" text-anchor="middle" class="actor-sub-label">human-in-the-loop</text>
+
+  <rect x="490" y="100" width="220" height="56" rx="8" class="actor"/>
+  <text x="600" y="124" text-anchor="middle" class="actor-label">Command</text>
+  <text x="600" y="144" text-anchor="middle" class="actor-sub-label">/z-eval-* (askQuestion owner)</text>
+
+  <rect x="880" y="100" width="220" height="56" rx="8" class="actor-sub"/>
+  <text x="990" y="124" text-anchor="middle" class="actor-label">Subagent</text>
+  <text x="990" y="144" text-anchor="middle" class="actor-sub-label">skill / agent (no askQuestion)</text>
+
+  <!-- Lifelines -->
+  <line x1="210" y1="156" x2="210" y2="640" class="lifeline"/>
+  <line x1="600" y1="156" x2="600" y2="640" class="lifeline"/>
+  <line x1="990" y1="156" x2="990" y2="640" class="lifeline"/>
+
+  <!-- Step 1: User invokes command -->
+  <line x1="210" y1="200" x2="595" y2="200" stroke="#00ff7f" stroke-width="2" marker-end="url(#arrow-accent)"/>
+  <text x="402" y="192" text-anchor="middle" class="step-label">/z-eval-configure</text>
+  <text x="402" y="208" text-anchor="middle" class="step-aux">user invokes command</text>
+
+  <!-- Step 2: Command askQuestion to user -->
+  <line x1="595" y1="250" x2="215" y2="250" stroke="#00ff7f" stroke-width="2" marker-end="url(#arrow-accent)"/>
+  <text x="402" y="242" text-anchor="middle" class="step-label">askQuestion("framework?")</text>
+  <text x="402" y="258" text-anchor="middle" class="step-aux">command collects answer</text>
+
+  <!-- Step 3: User replies -->
+  <line x1="215" y1="300" x2="595" y2="300" stroke="#00ff7f" stroke-width="2" marker-end="url(#arrow-accent)"/>
+  <text x="402" y="292" text-anchor="middle" class="step-label">"pytest"</text>
+  <text x="402" y="308" text-anchor="middle" class="step-aux">answer flows back</text>
+
+  <!-- Step 4: Command spawns subagent with pre-collected answers -->
+  <line x1="600" y1="360" x2="985" y2="360" stroke="#00ff7f" stroke-width="2" marker-end="url(#arrow-accent)"/>
+  <text x="792" y="352" text-anchor="middle" class="step-label">spawn(zoto-eval-configurer, answers)</text>
+  <text x="792" y="368" text-anchor="middle" class="step-aux">pre-collected answers passed in</text>
+
+  <!-- Step 5: Subagent processes (self-loop) -->
+  <path d="M 990 410 C 1100 410 1100 460 990 460" fill="none" stroke="#5cffaf" stroke-width="2" marker-end="url(#arrow-accent)"/>
+  <text x="1080" y="438" text-anchor="middle" class="step-aux">validate +</text>
+  <text x="1080" y="452" text-anchor="middle" class="step-aux">draft cleanup_plan</text>
+
+  <!-- Step 6: Subagent returns needs_user_input (ambiguous) -->
+  <line x1="985" y1="510" x2="605" y2="510" stroke="#ff8c8c" stroke-width="2" marker-end="url(#arrow-dim)"/>
+  <text x="792" y="502" text-anchor="middle" class="step-label">needs_user_input</text>
+  <text x="792" y="518" text-anchor="middle" class="step-warn">subagent NEVER calls askQuestion itself</text>
+
+  <!-- Step 7: Command askQuestion + resume -->
+  <line x1="595" y1="560" x2="215" y2="560" stroke="#00ff7f" stroke-width="2" marker-end="url(#arrow-accent)"/>
+  <text x="402" y="552" text-anchor="middle" class="step-label">askQuestion("static.framework?")</text>
+  <text x="402" y="568" text-anchor="middle" class="step-aux">command resumes the subagent</text>
+
+  <line x1="215" y1="600" x2="595" y2="600" stroke="#00ff7f" stroke-width="2" marker-end="url(#arrow-accent)"/>
+  <line x1="600" y1="610" x2="985" y2="610" stroke="#00ff7f" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-accent)"/>
+  <text x="402" y="592" text-anchor="middle" class="step-label">"pytest"</text>
+  <text x="792" y="600" text-anchor="middle" class="step-label">resume(answers)</text>
+
+  <!-- Footer -->
+  <text x="600" y="668" text-anchor="middle" class="footer">Skills + agents never call askQuestion. Only commands do. needs_user_input is the contract.</text>
+</svg>

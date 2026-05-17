@@ -1,0 +1,163 @@
+{
+  "target_id": "agent:zoto-eval-generator",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-eval-create asked you to scaffold the entire repository, but `.zoto/eval-system/config.yml` is unavailable and no prior configuring command supplied answers yet—report what happens next instead of scaffolding.",
+      "assertions": [
+        "The agent returns structured `needs_user_input` citing missing configuration and instructing the upstream command (via `reason` plus optional `questions`) to run `/z-eval-configure` first.",
+        "Available transcripts show zero `askQuestion` tool emissions from the generator."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "fb6c6130928650cea7923fc4712caa097ca47567f4631a58a68df180c80c5bd5",
+        "last_updated": "2026-05-17T13:36:46.889Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "fb6c6130928650cea7923fc4712caa097ca47567f4631a58a68df180c80c5bd5",
+          "analysed_at": "2026-05-17T13:36:46.889Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The generator reads configuration, discovers targets, stamps pytest beside `@cursor/sdk` scaffolding, merges package tooling, persists manifests plus append-only history, validates collectors, and finishes with `zoto-update-evals` while confining writes to documented evaluator artefacts plus related templates. If configuration is absent it returns structured `needs_user_input` urging `/z-eval-configure`, never calls `askQuestion`, honours command-side approvals, interacts with `zoto-configure-evals` only after answers arrive, skips mutating non-generated rows, and aligns harness selection with `static.framework`, `llm.strategy`, `llm.codeFramework`, `evalsDir`, `skillsRoots`, `discoveryTargets`, `manualChecklists.enabled`, model identification fields, and readme copy."
+        }
+      },
+      "expected_output": "The agent emits a concise hand-off directing the commanding workflow through `/z-eval-configure` before generation and withholds scaffolding work until configuration exists."
+    },
+    {
+      "id": 2,
+      "prompt": "You spawned from `/z-eval-create`; the preceding command fused approval lists covering skills, commands, agents, and hooks plus confirmed `.zoto/eval-system/config.yml` parses—materialize sanctioned eval scaffolding, keep history append-only, and exit validations cleanly.",
+      "assertions": [
+        "Logged operations include `pnpm run eval:discover` executed via the documented explore-assisted route before authoring generated rows.",
+        "The workflow proceeds with approvals already fused by `/z-eval-create` without revisiting selective targeting debates.",
+        "The agent stamps simultaneous pytest-backed static scaffolding and `@cursor/sdk` oriented LLM evaluators for each approved primitive kind surfaced through discovery approvals.",
+        "Every freshly authored eval row declares `_meta.generated` true alongside a normalized sha256 `source_hash`, ISO-8601 `last_updated`, and `generated_by: zoto-create-evals`.",
+        "If `.env.example` was absent beforehand, transcripts show stamping from `templates/env/.env.example.tmpl`; otherwise narration documents skipping merges while forbidding edits to `.env` itself.",
+        "The generator merges `templates/package-scripts/base.json` into package metadata—including dotenv-related dev tooling—without discarding unrelated package.json fields.",
+        "`.zoto/eval-system/manifest.yml` refreshes discovery metadata while `.zoto/eval-system/manifest.history.yml` gains a new trailing entry without rewriting prior records.",
+        "Command logs confirm `pnpm run eval:list`, `pnpm run eval -- --collect-only`, and `pnpm run eval:update --check` exited with status zero immediately after scaffolding.",
+        "Closing guidance reminds operators to rerun their installer once plus notes when `.env.example` creation was skipped owing to existing files.",
+        "After stamping, traces show `zoto-update-evals` proving drift-free regenerated content versus repository state.",
+        "Touchpoints with `zoto-configure-evals` occur solely when the commanding payload already conveys answers produced by `/z-eval-configure`.",
+        "Repository diffs omit mutations for evaluator rows lacking `_meta` markers or asserting `_meta.generated` false.",
+        "Reviewers observe no undocumented assistant tooling or edits beyond sanctioned scaffolding trees, manifests, ancillary templates including optional checklists plus environment templates when newly created only, scripted package merges, discovery outputs, and validation logs.",
+        "Across the trajectory the generator never emits `askQuestion`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "fb6c6130928650cea7923fc4712caa097ca47567f4631a58a68df180c80c5bd5",
+        "last_updated": "2026-05-17T13:36:46.889Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "fb6c6130928650cea7923fc4712caa097ca47567f4631a58a68df180c80c5bd5",
+          "analysed_at": "2026-05-17T13:36:46.889Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The generator reads configuration, discovers targets, stamps pytest beside `@cursor/sdk` scaffolding, merges package tooling, persists manifests plus append-only history, validates collectors, and finishes with `zoto-update-evals` while confining writes to documented evaluator artefacts plus related templates. If configuration is absent it returns structured `needs_user_input` urging `/z-eval-configure`, never calls `askQuestion`, honours command-side approvals, interacts with `zoto-configure-evals` only after answers arrive, skips mutating non-generated rows, and aligns harness selection with `static.framework`, `llm.strategy`, `llm.codeFramework`, `evalsDir`, `skillsRoots`, `discoveryTargets`, `manualChecklists.enabled`, model identification fields, and readme copy."
+        }
+      },
+      "expected_output": "The agent recounts stamped evaluator trees spanning pytest and `@cursor/sdk`, cites manifest refreshes paired with appended history tails, summarizes `.env.example` merges versus skips alongside installer reminders about devDeps, shows zero-valued exit statuses for evaluator listing, collector dry-run, and update auditing, and underscores untouched authored evaluator rows confined to sanctioned paths."
+    }
+  ,
+    {
+      "id": 3,
+      "prompt": "Continue `/z-eval-create` approvals; honour every knob in the evaluator configuration embedded for this workspace when deciding harnesses and auxiliary markdown.",
+      "assertions": [
+        "Static artefacts align with configuration declaring `static.framework` as jest.",
+        "`llm.strategy: code` with `llm.codeFramework: vitest` yields vitest-flavoured `@cursor/sdk` scaffolding distinct from declarative-only layouts.",
+        "Evaluator files remain rooted beneath the configured `evalsDir`.",
+        "Discovery tooling respects declared `skillsRoots` when locating candidate primitives.",
+        "Generated README prose references both primary-test-model and adjudicator-test-model per configured narration fields tied to modelling knobs.",
+        "`manualChecklists.enabled: true` causes `USER_EVAL_CHECKLISTS.md` to accompany generated collateral."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "fb6c6130928650cea7923fc4712caa097ca47567f4631a58a68df180c80c5bd5",
+        "last_updated": "2026-05-17T13:36:46.889Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "fb6c6130928650cea7923fc4712caa097ca47567f4631a58a68df180c80c5bd5",
+          "analysed_at": "2026-05-17T13:36:46.889Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The generator reads configuration, discovers targets, stamps pytest beside `@cursor/sdk` scaffolding, merges package tooling, persists manifests plus append-only history, validates collectors, and finishes with `zoto-update-evals` while confining writes to documented evaluator artefacts plus related templates. If configuration is absent it returns structured `needs_user_input` urging `/z-eval-configure`, never calls `askQuestion`, honours command-side approvals, interacts with `zoto-configure-evals` only after answers arrive, skips mutating non-generated rows, and aligns harness selection with `static.framework`, `llm.strategy`, `llm.codeFramework`, `evalsDir`, `skillsRoots`, `discoveryTargets`, `manualChecklists.enabled`, model identification fields, and readme copy.",
+          "fixture_justifications": [
+            "Pins static jest harnessing with code-strategy Cursor SDK vitest reporter wiring, evaluator directory naming, scoped discovery roots and kinds, checklist emission, readme model narration, judged alias strings, evaluator directory locality—allowing deterministic filesystem correlation independent of unstated ambient defaults."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "static:\n  framework: jest\nllm:\n  strategy: code\n  codeFramework: vitest\n  model:\n    id: primary-test-model\nevalsDir: evals\nskillsRoots:\n  - skills\ndiscoveryTargets:\n  skills: true\n  commands: true\nmanualChecklists:\n  enabled: true\njudgeModel: adjudicator-test-model\n"
+          }
+        ]
+      },
+      "expected_output": "Scaffolding lands under evals pairing jest static artefacts with `@cursor/sdk` layers wired for vitest-oriented codegen harnesses while surfaced README segments highlight primary-test-model and adjudicator-test-model plus checklist markdown because stamping stayed enabled."
+    },
+    {
+      "id": 4,
+      "prompt": "/z-eval-create finished approvals; honour declarative `llm.strategy` semantics so generated Cursor SDK artefacts avoid code-strategy harness wiring while stamping static vitest tests.",
+      "assertions": [
+        "Static artefacts adhere to vitest selection while declarative Cursor SDK artefacts differ materially from snapshots produced under `llm.strategy: code` with parallel `llm.codeFramework` stamping.",
+        "LLM artefacts reflect `llm.strategy: declarative` by omitting code-strategy-only harness directories or reporter wiring exclusive to codegen flows.",
+        "When approvals echo `discoveryTargets` limiting work to agents, generated rows omit counterpart slots for withheld kinds.",
+        "`manualChecklists.enabled: false` keeps checklist markdown unstamped unlike enabled scenarios."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "fb6c6130928650cea7923fc4712caa097ca47567f4631a58a68df180c80c5bd5",
+        "last_updated": "2026-05-17T13:36:46.889Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "fb6c6130928650cea7923fc4712caa097ca47567f4631a58a68df180c80c5bd5",
+          "analysed_at": "2026-05-17T13:36:46.889Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The generator reads configuration, discovers targets, stamps pytest beside `@cursor/sdk` scaffolding, merges package tooling, persists manifests plus append-only history, validates collectors, and finishes with `zoto-update-evals` while confining writes to documented evaluator artefacts plus related templates. If configuration is absent it returns structured `needs_user_input` urging `/z-eval-configure`, never calls `askQuestion`, honours command-side approvals, interacts with `zoto-configure-evals` only after answers arrive, skips mutating non-generated rows, and aligns harness selection with `static.framework`, `llm.strategy`, `llm.codeFramework`, `evalsDir`, `skillsRoots`, `discoveryTargets`, `manualChecklists.enabled`, model identification fields, and readme copy.",
+          "fixture_justifications": [
+            "Encodes declarative LLM scaffolding with vitest-static pairing, customised evaluator directory naming, narrower discoveryKinds, suppressed checklists, non-default roots, plus divergent readme model strings so branching behaviour stays falsifiable without undeclared repository defaults."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "static:\n  framework: vitest\nllm:\n  strategy: declarative\n  model:\n    id: routing-test-model\nevalsDir: evaluations\nskillsRoots:\n  - library\ndiscoveryTargets:\n  agents: true\nmanualChecklists:\n  enabled: false\njudgeModel: panel-test-model\n"
+          }
+        ]
+      },
+      "expected_output": "Repositories show vitest static harnesses anchored under evaluations while LLM artefacts follow declarative layouts without duplicated code-strategy harness bundles produced for strategy-code runs; readme lines cite routing-test-model and panel-test-model; supplemental checklist markdown remains absent despite manifest-history growth behaving append-only."
+    },
+    {
+      "id": 5,
+      "prompt": "Follow `/z-eval-create` with approvals locked; configuration demands jest-specific `@cursor/sdk` harness layers while static harnessing remains pytest-oriented.",
+      "assertions": [
+        "`llm.strategy: code` with `llm.codeFramework: jest` produces jest-oriented `@cursor/sdk` harness structures instead of vitest-flavoured codegen wiring.",
+        "Static layers still honor `static.framework: pytest` alongside the jest LLM harness pairing."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "fb6c6130928650cea7923fc4712caa097ca47567f4631a58a68df180c80c5bd5",
+        "last_updated": "2026-05-17T13:36:46.889Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "fb6c6130928650cea7923fc4712caa097ca47567f4631a58a68df180c80c5bd5",
+          "analysed_at": "2026-05-17T13:36:46.889Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The generator reads configuration, discovers targets, stamps pytest beside `@cursor/sdk` scaffolding, merges package tooling, persists manifests plus append-only history, validates collectors, and finishes with `zoto-update-evals` while confining writes to documented evaluator artefacts plus related templates. If configuration is absent it returns structured `needs_user_input` urging `/z-eval-configure`, never calls `askQuestion`, honours command-side approvals, interacts with `zoto-configure-evals` only after answers arrive, skips mutating non-generated rows, and aligns harness selection with `static.framework`, `llm.strategy`, `llm.codeFramework`, `evalsDir`, `skillsRoots`, `discoveryTargets`, `manualChecklists.enabled`, model identification fields, and readme copy.",
+          "fixture_justifications": [
+            "Isolates `llm.codeFramework: jest` under `llm.strategy: code` alongside pytest static selection and hook-only discovery so graders can spot jest reporter bundles without conflating vitest wiring."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "static:\n  framework: pytest\nllm:\n  strategy: code\n  codeFramework: jest\n  model:\n    id: runner-test-model\nevalsDir: evals\nskillsRoots:\n  - repo\ndiscoveryTargets:\n  hooks: true\nmanualChecklists:\n  enabled: false\njudgeModel: bench-test-model\n"
+          }
+        ]
+      },
+      "expected_output": "Repositories gain pytest static runners plus jest-flavoured `@cursor/sdk` harness trees while omitting checklist markdown and still narrating runner-test-model with bench-test-model inside README fragments."
+    }
+  ],
+  "agent_name": "zoto-eval-generator"
+}

@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import YAML from "yaml";
 
 const PLUGIN_DIR = resolve(import.meta.dirname, "..");
 
@@ -10,6 +11,10 @@ function readText(path: string): string {
 
 function loadJson(path: string): Record<string, unknown> {
   return JSON.parse(readText(path));
+}
+
+function loadYaml(path: string): Record<string, unknown> {
+  return YAML.parse(readText(path)) as Record<string, unknown>;
 }
 
 function isDir(path: string): boolean {
@@ -70,8 +75,8 @@ describe("Plugin Structure", () => {
     expect(missing, `Missing fields: ${missing.join(", ")}`).toHaveLength(0);
   });
 
-  it("directories referenced in plugin.json exist", () => {
-    for (const d of ["agents", "skills", "commands", "rules"]) {
+  it("required runtime directories exist", () => {
+    for (const d of ["agents", "skills", "commands", "rules", "hooks", "scripts", "src", "templates"]) {
       expect(isDir(join(PLUGIN_DIR, d)), `${d}/ missing`).toBe(true);
     }
   });
@@ -99,16 +104,24 @@ describe("Plugin Structure", () => {
 // ---------------------------------------------------------------------------
 
 describe("Config Schema", () => {
-  it("example config is valid JSON", () => {
-    loadJson(join(PLUGIN_DIR, "docs", "example-config.json"));
+  it("example config is valid YAML", () => {
+    loadYaml(join(PLUGIN_DIR, "docs", "example-config.yml"));
   });
 
-  it("template config is valid JSON", () => {
+  it("template config (internal default baseline) is valid JSON", () => {
     loadJson(join(PLUGIN_DIR, "templates", "config.json"));
   });
 
+  it("init template (user-facing) is valid YAML and parses to an empty mapping when all keys are commented", () => {
+    const parsed = YAML.parse(
+      readText(join(PLUGIN_DIR, "templates", "init-config.yml")),
+    );
+    // An all-commented YAML file parses to null; we treat that as an empty mapping.
+    expect(parsed === null || (typeof parsed === "object" && !Array.isArray(parsed))).toBe(true);
+  });
+
   it("example config has required fields", () => {
-    const c = loadJson(join(PLUGIN_DIR, "docs", "example-config.json"));
+    const c = loadYaml(join(PLUGIN_DIR, "docs", "example-config.yml"));
     const required = [
       "unitOfWork",
       "specsDir",
@@ -171,10 +184,10 @@ describe("Content Integrity", () => {
 // ---------------------------------------------------------------------------
 
 describe("Naming Convention", () => {
-  it("command files use zoto- prefix", () => {
+  it("command files use z- prefix", () => {
     const cmdDir = join(PLUGIN_DIR, "commands");
     for (const f of readdirSync(cmdDir).filter((n) => n.endsWith(".md"))) {
-      expect(f, `${f} missing zoto- prefix`).toMatch(/^zoto-/);
+      expect(f, `${f} missing z- prefix`).toMatch(/^z-/);
     }
   });
 
@@ -217,9 +230,10 @@ describe("Naming Convention", () => {
 // ---------------------------------------------------------------------------
 
 describe("Cross-References", () => {
-  it("commands reference an agent", () => {
+  it("canonical commands that spawn agents reference an agent", () => {
     const cmdDir = join(PLUGIN_DIR, "commands");
-    for (const f of readdirSync(cmdDir).filter((n) => n.startsWith("zoto-"))) {
+    const agentCommands = ["z-spec-create.md", "z-spec-execute.md", "z-spec-judge.md"];
+    for (const f of agentCommands) {
       const text = readText(join(cmdDir, f));
       expect(
         text.includes("zoto-spec-generator") || text.includes("zoto-spec-executor") || text.includes("zoto-spec-judge"),
@@ -229,12 +243,12 @@ describe("Cross-References", () => {
   });
 
   it("judge command references judge agent", () => {
-    const text = readText(join(PLUGIN_DIR, "commands", "zoto-spec-judge.md"));
+    const text = readText(join(PLUGIN_DIR, "commands", "z-spec-judge.md"));
     expect(text).toContain("zoto-spec-judge");
   });
 
   it("execute command references executor agent", () => {
-    const text = readText(join(PLUGIN_DIR, "commands", "zoto-spec-execute.md"));
+    const text = readText(join(PLUGIN_DIR, "commands", "z-spec-execute.md"));
     expect(text).toContain("zoto-spec-executor");
   });
 
@@ -249,17 +263,17 @@ describe("Cross-References", () => {
   });
 
   it("create command references create skill", () => {
-    const text = readText(join(PLUGIN_DIR, "commands", "zoto-spec-create.md"));
+    const text = readText(join(PLUGIN_DIR, "commands", "z-spec-create.md"));
     expect(text).toContain("zoto-create-spec");
   });
 
   it("judge command references judge skill", () => {
-    const text = readText(join(PLUGIN_DIR, "commands", "zoto-spec-judge.md"));
+    const text = readText(join(PLUGIN_DIR, "commands", "z-spec-judge.md"));
     expect(text).toContain("zoto-judge-spec");
   });
 
   it("execute command references execute skill", () => {
-    const text = readText(join(PLUGIN_DIR, "commands", "zoto-spec-execute.md"));
+    const text = readText(join(PLUGIN_DIR, "commands", "z-spec-execute.md"));
     expect(text).toContain("zoto-execute-spec");
   });
 

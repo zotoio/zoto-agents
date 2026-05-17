@@ -1,0 +1,25 @@
+aggregates:
+  duration_ms_total: 0
+  tokens_total: 0
+backend: static
+cases: []
+drift:
+  exit_code: 2
+  message: |-
+    modified: 10 (critical), added: 17 (critical)
+    {"status":"drift","checked":43,"parity_drift":null,"deltas":[{"target_id":"skill:zoto-compare-evals","path":"plugins/zoto-eval-system/skills/zoto-compare-evals/SKILL.md","kind":"modified","critical":true,"reason":"skill frontmatter name/description changed"},{"target_id":"skill:zoto-configure-evals","path":"plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md","kind":"modified","critical":true,"reason":"skill frontmatter name/description changed"},{"target_id":"skill:zoto-create-evals","path":"plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md","kind":"modified","critical":true,"reason":"public-surface change on covered target"},{"target_id":"skill:zoto-execute-evals","path":"plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md","kind":"modified","critical":true,"reason":"public-surface change on covered target"},{"target_id":"skill:zoto-help-evals","path":"plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md","kind":"modified","critical":true,"reason":"skill frontmatter name/description changed"},{"target_id":"skill:zoto-judge-evals","path":"plugins/zoto-eval-system/skills/zoto-judge-evals/SKILL.md","kind":"modified","critical":true,"reason":"skill frontmatter name/description changed"},{"target_id":"skill:zoto-update-evals","path":"plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md","kind":"modified","critical":true,"reason":"skill frontmatter name/description changed"},{"target_id":"skill:zoto-create-spec","path":"plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md","kind":"modified","critical":true,"reason":"public-surface change on covered target"},{"target_id":"skill:zoto-execute-spec","path":"plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md","kind":"modified","critical":true,"reason":"public-surface change on covered target"},{"target_id":"skill:zoto-judge-spec","path":"plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md","kind":"modified","critical":true,"reason":"public-surface change on covered target"},{"target_id":"skill:zoto-advise-evals","path":"plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md","kind":"added","critical":true,"reason":"added skill with no eval coverage"},{"target_id":"skill:zoto-eval-tooling","path":"plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md","kind":"added","critical":true,"reason":"added skill with no eval coverage"},{"target_id":"command:z-eval-advise","path":"plugins/zoto-eval-system/commands/z-eval-advise.md","kind":"added","critical":true,"reason":"added command with no eval coverage"},{"target_id":"command:z-eval-compare","path":"plugins/zoto-eval-system/commands/z-eval-compare.md","kind":"added","critical":true,"reason":"added command with no eval coverage"},{"target_id":"command:z-eval-configure","path":"plugins/zoto-eval-system/commands/z-eval-configure.md","kind":"added","critical":true,"reason":"added command with no eval coverage"},{"target_id":"command:z-eval-create","path":"plugins/zoto-eval-system/commands/z-eval-create.md","kind":"added","critical":true,"reason":"added command with no eval coverage"},{"target_id":"command:z-eval-execute","path":"plugins/zoto-eval-system/commands/z-eval-execute.md","kind":"added","critical":true,"reason":"added command with no eval coverage"},{"target_id":"command:z-eval-help","path":"plugins/zoto-eval-system/commands/z-eval-help.md","kind":"added","critical":true,"reason":"added command with no eval coverage"},{"target_id":"command:z-eval-init","path":"plugins/zoto-eval-system/commands/z-eval-init.md","kind":"added","critical":true,"reason":"added command with no eval coverage"},{"target_id":"command:z-eval-judge","path":"plugins/zoto-eval-system/commands/z-eval-judge.md","kind":"added","critical":true,"reason":"added command with no eval coverage"},{"target_id":"command:z-eval-update","path":"plugins/zoto-eval-system/commands/z-eval-update.md","kind":"added","critical":true,"reason":"added command with no eval coverage"
+  status: critical
+ended_at: 2026-05-07T10:05:44.225Z
+model: composer-2
+notes: "llm_skip: --full not passed; static-only run | static_runner_exit_1: no
+  static.yml emitted"
+report:
+  backend: static
+run_id: 20260507T100543Z
+schema_version: 1
+started_at: 2026-05-07T10:05:43.426Z
+totals:
+  cases: 0
+  failed: 0
+  passed: 0
+  skipped: 0

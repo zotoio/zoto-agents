@@ -1,0 +1,78 @@
+schema_version: 1
+subtask_id: "06"
+feature: spec-system-live-status
+assigned_agent: crux-software-engineer
+model: composer-2-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md` — add a new section `### Status File Ownership` immediately after the existing **Step 3: Execute Subtasks** block. Required content:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+  - id: D02
+    text: 'Modify Step 3 of `zoto-execute-spec/SKILL.md` so the "Provide each subagent with" bullet list adds a new bullet: `Status file pair (paths from the prompt prefix from subtask 04). Subagent must own these per the Status File Ownership section.`'
+    done: true
+    evidence_path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+  - id: D03
+    text: "Modify Step 4 (Adversarial Verification) of `zoto-execute-spec/SKILL.md`:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+  - id: D04
+    text: "`plugins/zoto-spec-system/agents/zoto-spec-executor.md` — append a paragraph under **Subagent Coordination → Delegation Guidelines** restating: \"Every spawned subagent owns its `.status.yml` + `.status.md` pair. The executor never writes to a subtask's `.status.yml` after spawning (the aggregator only reads); the subagent's own writes are the truth.\" Same wording added under `## Critical Rules → During Execution`."
+    done: true
+    evidence_path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+  - id: D05
+    text: "`plugins/zoto-spec-system/agents/zoto-spec-judge.md` — add a paragraph under Mode 1 (Adversarial Verification) describing the `extra.judge` write and the round-trip helper invocation."
+    done: true
+    evidence_path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
+  - id: D06
+    text: "`plugins/zoto-spec-system/commands/zoto-spec-execute.md` — extend the **Execution safeguards** table with a new row: `| Status pair ownership | Each spawned subagent owns its .status.md + .status.yml; aggregator only reads |`."
+    done: true
+    evidence_path: plugins/zoto-spec-system/commands/zoto-spec-execute.md
+  - id: D07
+    text: "`plugins/zoto-spec-system/scripts/spec-status-roundtrip.ts` — add a new sub-command `heartbeat`:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/scripts/spec-status-roundtrip.ts
+  - id: D08
+    text: "Extend `spec-status-roundtrip.test.ts` from subtask 05:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/scripts/spec-status-roundtrip.test.ts
+artifacts:
+  - path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+    kind: modified
+    note: Status File Ownership; heartbeat checklist guidance
+  - path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+    kind: modified
+    note: Step 3 status pair bullet
+  - path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+    kind: modified
+    note: Step 4 judge verdict + heartbeat nuance
+  - path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+    kind: modified
+    note: Delegation + Critical Rules ownership
+  - path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
+    kind: modified
+    note: Mode 1 extra.judge + round-trip + heartbeat
+  - path: plugins/zoto-spec-system/commands/zoto-spec-execute.md
+    kind: modified
+    note: Execution safeguards row
+  - path: plugins/zoto-spec-system/scripts/spec-status-roundtrip.ts
+    kind: modified
+    note: heartbeat verified compliant
+  - path: plugins/zoto-spec-system/scripts/spec-status-roundtrip.test.ts
+    kind: modified
+    note: heartbeat tests + atomic tmp assertions
+  - path: plugins/zoto-spec-system/docs/status-schema.md
+    kind: modified
+    note: Atomic write contract incl. heartbeat
+errors: []
+notes: ""
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-06T08:27:00.000Z
+    notes: "All D01–D08 confirmed on disk. Skill (SKILL.md) has Status File Ownership section after Step 3 with full heartbeat/checklist/artifacts/errors/completion contract; Step 3 includes status-pair bullet; Step 4 documents extra.judge + round-trip + heartbeat nuance. Executor agent has ownership paragraph under Delegation Guidelines AND Critical Rules → During Execution with verbatim wording. Judge agent Mode 1 paragraph documents extra.judge write + round-trip helper. Command zoto-spec-execute safeguards table includes the Status pair ownership row. Helper heartbeat subcommand implements --in/--state/--tick/--artifact/--error, atomic write, schema validation, non-zero on failure, MD re-render. Tests pass (11/11) including completed-gate, unknown-id, atomic .tmp contract. `rg \"owns its\" plugins/zoto-spec-system` confirms consistent wording across skill + executor + judge. Dependencies (yaml/ajv/ajv-formats) unchanged. md/yml round-trip diff = 0."
+last_heartbeat: 2026-05-06T08:16:54.225Z
+started_at: 2026-05-06T08:15:45.535Z
+completed_at: 2026-05-06T08:16:54.225Z
