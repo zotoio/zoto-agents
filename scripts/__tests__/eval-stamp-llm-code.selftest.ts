@@ -167,6 +167,10 @@ function runStampTest(): void {
       configBody.includes('setupFiles: ["./_shared/setup.ts"]'),
       "vitest config wires setup.ts",
     );
+    expect(
+      configBody.includes("root: __dirname"),
+      "vitest config pins root to evals/llm so include globs do not escape",
+    );
 
     const sdkBridgeBody = readFileSync(res.sdkBridgeFile, "utf-8");
     expect(

@@ -15,7 +15,8 @@
  *    See subtask 04 of the eval-system-v2 spec.
  *
  * Usage: tsx scripts/eval-analyse.ts [--target <path-or-target-id>] [--pretty]
- *        [--max-calls <n>] [--concurrency <n>] [--legacy] [--out <file>]
+ *        [--invalidate] [--max-calls <n>] [--concurrency <n>] [--legacy] [--out <file>]
+ *        Set ZOTO_EVAL_ANALYSER_EMIT_SDK_RAW=1 to echo the pre-parse SDK response body on stderr (between sentinel lines).
  */
 import {
   existsSync,
@@ -44,7 +45,7 @@ export function sha256(s: string): string {
   return createHash("sha256").update(s, "utf-8").digest("hex");
 }
 
-export type TargetKind = "skill" | "command" | "agent" | "hook";
+export type TargetKind = "skill" | "command" | "agent" | "hook" | "rule";
 
 export interface ResolvedTarget {
   kind: TargetKind;
@@ -204,7 +205,8 @@ export function resolveTarget(
     kind !== "skill" &&
     kind !== "command" &&
     kind !== "agent" &&
-    kind !== "hook"
+    kind !== "hook" &&
+    kind !== "rule"
   )
     return null;
 
@@ -276,12 +278,31 @@ export function resolveTarget(
   }
 
   if (kind === "command") {
-    const cand = [
-      join(repoRoot, ".cursor", "commands", `${rawName}.md`),
-      ...pluginsDirs(repoRoot).map((pd) =>
-        join(pd, "commands", `${rawName}.md`)
-      ),
-    ];
+    /** Marketing / legacy slash names → basename of the markdown file (discovery id). */
+    const commandPathAliases: Record<string, string> = {
+      "zoto-eval-help": "z-eval-help",
+    };
+    const cand: string[] = [];
+    const cursorNs = /^cursor\/(.+)$/.exec(rawName);
+    const upstreamNs = /^upstream-vendor\/(.+)$/.exec(rawName);
+    const pathBase = commandPathAliases[rawName] ?? rawName;
+    const canonicalCommandId =
+      pathBase !== rawName ? `command:${pathBase}` : targetId;
+    if (cursorNs) {
+      cand.push(join(repoRoot, ".cursor", "commands", `${cursorNs[1]}.md`));
+    } else if (upstreamNs) {
+      cand.push(
+        join(repoRoot, "upstream-vendor", "commands", `${upstreamNs[1]}.md`),
+      );
+    } else {
+      cand.push(
+        join(repoRoot, ".cursor", "commands", `${pathBase}.md`),
+        ...pluginsDirs(repoRoot).map((pd) =>
+          join(pd, "commands", `${pathBase}.md`),
+        ),
+        join(repoRoot, "upstream-vendor", "commands", `${pathBase}.md`),
+      );
+    }
     for (const c of cand) {
       if (existsSync(c)) {
         let pluginDir: string | null = null;
@@ -290,6 +311,31 @@ export function resolveTarget(
         if (pm) pluginDir = join(repoRoot, "plugins", pm[1]);
         return {
           kind: "command",
+          targetId: canonicalCommandId,
+          name: pathBase !== rawName ? pathBase : rawName,
+          sourcePath: c,
+          pluginDir,
+        };
+      }
+    }
+    return null;
+  }
+
+  if (kind === "rule") {
+    const candRule = [
+      join(repoRoot, ".cursor", "rules", `${rawName}.mdc`),
+      ...pluginsDirs(repoRoot).map((pd) =>
+        join(pd, "rules", `${rawName}.mdc`),
+      ),
+    ];
+    for (const c of candRule) {
+      if (existsSync(c)) {
+        let pluginDir: string | null = null;
+        const rel = relative(repoRoot, c);
+        const pm = rel.match(/^plugins\/([^/]+)\//);
+        if (pm) pluginDir = join(repoRoot, "plugins", pm[1]);
+        return {
+          kind: "rule",
           targetId,
           name: rawName,
           sourcePath: c,
@@ -301,10 +347,22 @@ export function resolveTarget(
   }
 
   // agent
-  const cand = [
-    join(repoRoot, ".cursor", "agents", `${rawName}.md`),
-    ...pluginsDirs(repoRoot).map((pd) => join(pd, "agents", `${rawName}.md`)),
-  ];
+  const cand: string[] = [];
+  const cursorAgNs = /^cursor\/(.+)$/.exec(rawName);
+  const upstreamAgNs = /^upstream-vendor\/(.+)$/.exec(rawName);
+  if (cursorAgNs) {
+    cand.push(join(repoRoot, ".cursor", "agents", `${cursorAgNs[1]}.md`));
+  } else if (upstreamAgNs) {
+    cand.push(
+      join(repoRoot, "upstream-vendor", "agents", `${upstreamAgNs[1]}.md`),
+    );
+  } else {
+    cand.push(
+      join(repoRoot, ".cursor", "agents", `${rawName}.md`),
+      ...pluginsDirs(repoRoot).map((pd) => join(pd, "agents", `${rawName}.md`)),
+      join(repoRoot, "upstream-vendor", "agents", `${rawName}.md`),
+    );
+  }
   for (const c of cand) {
     if (existsSync(c)) {
       let pluginDir: string | null = null;
@@ -320,6 +378,7 @@ export function resolveTarget(
       };
     }
   }
+
   return null;
 }
 
@@ -361,7 +420,8 @@ function heuristicPaths(text: string): string[] {
       g.endsWith(".yaml") ||
       g.endsWith(".ts") ||
       g.endsWith(".py") ||
-      g.endsWith(".mjs")
+      g.endsWith(".mjs") ||
+      g.endsWith(".mdc")
     ) {
       found.push(g.replace(/^\/+/, ""));
     }
@@ -443,6 +503,8 @@ function toolsFromText(fullText: string): string[] {
 
 function interactionFor(kind: TargetKind, fm: Record<string, unknown>): string {
   if (kind === "command") return "command — owns askQuestion";
+  if (kind === "rule")
+    return "rule — constrains assistant behaviour on matched workspace globs";
   if (kind === "hook")
     return "hook — non-interactive event handler invoked by Cursor hooks.json";
   if (kind === "agent") {
@@ -583,7 +645,7 @@ function defaultTwoCases(
 ): SuggestedCase[] {
   const relSelf = relative(REPO_ROOT, resolved.sourcePath).replace(/\\/g, "/");
   const displayName =
-    resolved.kind === "skill"
+    resolved.kind === "skill" || resolved.kind === "rule"
       ? String(fm.name ?? resolved.name)
       : resolved.name;
   const configHint = operates.some((x) => x.includes("zoto-eval-system"))
@@ -628,11 +690,24 @@ function defaultTwoCases(
   const edgeMissingConfig =
     /config\.json.*absent|missing.*config|\bConfigure\b|\bNeeds.*config/i.test(fullText);
 
-  const assertionsHappy: string[] = [
-    `Primitive '${displayName}' followed documented sequencing for ${resolved.kind} targets`,
-    "Hybrids respected: command-layer askQuestion only when declaring command ownership elsewhere",
-    "Referenced paths from the corpus were honoured without silent destructive overrides",
-  ];
+  const corpusSuggestsIdempotent =
+    /\bidempotent|noop|already exists|no-op\b/i.test(fullText);
+
+  const isComparerAgent =
+    resolved.kind === "agent" &&
+    resolved.targetId === "agent:zoto-eval-comparer";
+
+  const assertionsHappy: string[] = isComparerAgent
+    ? [
+        "`zoto-eval-comparer` ran compare-mode sequencing end-to-end: resolve each run folder via `report.yml`, flatten supplemental measures from `static.yml`/`llm.yml` only when normalization demands it, preserve row fidelity without downsampling, then emit the `/canvas` JSON bundle plus explicit host routing — charts stay off chat markdown.",
+        "When `/z-eval-judge` adjudication leaves judge-tier columns such as `accuracy` or `confidence` on flattened rows, merged comparisons kept those fields intact alongside status and telemetry rather than collapsing to coarse pass/fail-only summaries.",
+        "Ambiguous timestamp fragments under `evals/_runs/` produced schema-valid `needs_user_input` with full candidate paths in `options[].label`; comparer binaries never emitted `askQuestion`.",
+      ]
+    : [
+        `Primitive '${displayName}' followed documented sequencing for ${resolved.kind} targets`,
+        "Hybrids respected: command-layer askQuestion only when declaring command ownership elsewhere",
+        "Referenced paths from the corpus were honoured without silent destructive overrides",
+      ];
 
   let case2Assertions: string[];
   let case2Scenario: string;
@@ -654,7 +729,7 @@ function defaultTwoCases(
       modified: [],
       unchanged: uniqSorted(["workspace/package-lock.json", wsPath(relSelf)]),
     };
-  } else if (/\bidempotent|noop|already exists|no-op\b/i.test(fullText)) {
+  } else if (corpusSuggestsIdempotent) {
     case2Scenario = "idempotent replay — duplicates do not mutate user-authored artefacts";
     case2Assertions = [
       "Second invocations left user-authored `_meta.generated: false` cases untouched",
@@ -678,24 +753,88 @@ function defaultTwoCases(
     };
   }
 
+  let case2ExpectedOutput =
+    "Deterministic escalation path without overwriting protected assets.";
+  if (isComparerAgent) {
+    if (edgeMissingConfig && configHint) {
+      case2ExpectedOutput =
+        "Conversational orchestration surfaced structured **`needs_user_input`** tying unreadable **`workspace/.zoto/eval-system/config.yml`** to judge-aware reconciliation prerequisites; delegated comparer abstained from guess-writing YAML, fabricating merges, or substituting **`askQuestion`**, deferring `/z-eval-compare` sequencing until prerequisites clear.";
+      case2Assertions = [
+        ...case2Assertions,
+        "Escalation named judge-facing configuration (`judgeModel` / eval-system knobs) unavailable while config paths were unreachable — **`zoto-eval-comparer`** honoured schema-only flows without interactive prompts.",
+      ];
+    } else if (corpusSuggestsIdempotent) {
+      case2ExpectedOutput =
+        "Repeated conversational rehearsal of **`/z-eval-compare`** operands reproduced identical flattened telemetry and `/canvas` payloads, proving idempotency—including stable adjudication-bearing columns when **`/z-eval-judge`** had graded those rows upstream.";
+      case2Assertions = [
+        ...case2Assertions,
+        "Replayer proved dedupe rules stable across identical operand paths while preserving judge-tier columns sourced from adjudicated snapshots alongside untouched `_meta.generated: false` user rows whenever referenced.",
+      ];
+    } else {
+      case2ExpectedOutput =
+        "Minimal natural-language shorthand (`diff my runs`) forced exhaustive **`needs_user_input`** payloads listing each colliding **`evals/_runs/<timestamp>/`** candidate by full POSIX path prior to conversational compare sequencing and verbatim **`templates/canvas/compare-prompt.md.tmpl`** hand-off preparation.";
+      case2Assertions = [
+        ...case2Assertions,
+        "**`zoto-eval-comparer`** refused silent disambiguation for colliding timestamps—each ambiguous operand returned schema-valid **`needs_user_input`** with **`options[].label`** carrying full POSIX run paths usable from **`/z-eval-compare`**, never **`askQuestion`**.",
+      ];
+    }
+  }
+
   const partialThin = fullText.length < 800;
+
+  const happyPrompt = isComparerAgent
+    ? [
+        "From this Cursor agent thread, orchestrate the next steps conversationally: spawn **`zoto-eval-comparer`** as a delegated Task/subagent and steer **`zoto-compare-evals`** compare-mode work until the canvas payload is ready.",
+        "Ask it to reconcile two pinned **`evals/_runs/<timestamp>/`** snapshots—each must expose **`report.yml`**—into one flattened dataset keyed per run (`run_id`, `case_id`, status, tokens, durations, verbosity, **`accuracy`**, **`confidence`**, log drill-down paths). Downsample nothing.",
+        "To exercise adjudication-heavy flows, deliberately pick snapshots where **`/z-eval-judge`** has already graded at least some rows—the merged flat dataset must preserve those judge-derived columns end-to-end, not silently collapse scoring back to coarse pass/fail aggregates.",
+        "Finish by packaging the verbatim **`templates/canvas/compare-prompt.md.tmpl`** instructions inside the JSON **`/canvas`** hand-off and tell me exactly how you'll route it through Cursor's **`/canvas`** tool instead of sketching charts here.",
+      ].join("\n")
+    : [
+        `Drive the '${displayName}' ${resolved.kind} through its primary documented flow.`,
+        "Assume repository already passes template validation gates.",
+        resolved.pluginDir
+          ? `Host plugin root for this primitive: workspace/${relative(REPO_ROOT, resolved.pluginDir).replace(/\\/g, "/")}/`
+          : "Host resides under workspace/",
+      ].join("\n");
+
+  let case2Prompt: string;
+  if (resolved.kind === "command") {
+    case2Prompt = `Operator omits checklist detail for ${displayName}: require command-owned recovery.`;
+  } else if (isComparerAgent) {
+    if (edgeMissingConfig && configHint) {
+      case2Prompt = [
+        "Keep orchestrating via chat: spin up **`zoto-eval-comparer`** again, but we're supposedly blocked before any merge — **`workspace/.zoto/eval-system/config.yml`** is missing or read-only.",
+        "Have the comparer surface structured **`needs_user_input`** explaining we cannot honour **`judgeModel`** contract or downstream judge-aware reconciliation until that config lands; don't silently invent writable YAML.",
+      ].join("\n");
+    } else if (corpusSuggestsIdempotent) {
+      case2Prompt = [
+        "Please re-drive **`zoto-eval-comparer`** on the exact same pair of **`evals/_runs/...`** folders we already compared — I need confirmation the compare flow is idempotent.",
+        "Expect duplicate flattened rows to stay deduped, user-authored **`_meta.generated: false`** artefacts untouched if referenced, and any regenerated hashes limited to generated-only rows.",
+        "If those runs still showed **`/z-eval-judge`** signals on **`accuracy`**/**`confidence`**, verify the replay didn't drift judge-tier columns between passes.",
+      ].join("\n");
+    } else {
+      case2Prompt = [
+        "I only said \"diff my last two green runs\" without naming folders — stay in conversational orchestration but keep **`zoto-eval-comparer`** honest.",
+        "Force **`needs_user_input`** listing every ambiguous **`evals/_runs/`** candidate with full paths until each compare operand resolves uniquely; never fall back to **`askQuestion`**.",
+        "Once disambiguated, continue through flattening and the **`/canvas`** routing narrative exactly like compare-mode docs describe.",
+      ].join("\n");
+    }
+  } else {
+    case2Prompt = `Minimal prompt for '${displayName}' with missing optional context.`;
+  }
 
   const c1: SuggestedCase = {
     id: 1,
     scenario: "happy path — typical authorised invocation",
-    prompt: [
-      `Drive the '${displayName}' ${resolved.kind} through its primary documented flow.`,
-      "Assume repository already passes template validation gates.",
-      resolved.pluginDir
-        ? `Host plugin root for this primitive: workspace/${relative(REPO_ROOT, resolved.pluginDir).replace(/\\/g, "/")}/`
-        : "Host resides under workspace/",
-    ].join("\n"),
+    prompt: happyPrompt,
     fixtures: { files: baseFixtures },
     expected_filesystem: baseFs,
     expected_output:
       resolved.kind === "command"
         ? "askQuestion checkpoints completed once; generator task spawned with enumerated approvals."
-        : "Sub-agent completed loop or yielded needs_user_input with structured blocker fields only.",
+        : isComparerAgent
+          ? "Comparer Task emitted `/canvas` JSON with flattened rows (including judge-tier columns when present) plus explicit host routing instructions; no inline charts."
+          : "Sub-agent completed loop or yielded needs_user_input with structured blocker fields only.",
     assertions: assertionsHappy,
     graders: [],
   };
@@ -703,10 +842,7 @@ function defaultTwoCases(
   const c2: SuggestedCase = {
     id: 2,
     scenario: case2Scenario,
-    prompt:
-      resolved.kind === "command"
-        ? `Operator omits checklist detail for ${displayName}: require command-owned recovery.`
-        : `Minimal prompt for '${displayName}' with missing optional context.`,
+    prompt: case2Prompt,
     fixtures: {
       files: partialThin
         ? baseFixtures
@@ -716,7 +852,7 @@ function defaultTwoCases(
           }],
     },
     expected_filesystem: case2Filesystem,
-    expected_output: "Deterministic escalation path without overwriting protected assets.",
+    expected_output: case2ExpectedOutput,
     assertions: case2Assertions,
     graders: [],
   };
@@ -947,56 +1083,26 @@ export function primitiveAnalysisHash(payload: AnalysisPayload): string {
 export const ANALYSER_VERSION = "2026.05.03-1";
 
 /**
- * Primitive kinds the analyser supports. `rule` is recognised here but the
- * legacy `resolveTarget` function only handles skill/command/agent/hook —
- * subtask 13 will add rule discovery; `runAnalyser` accepts the kind so future
- * work doesn't need to revisit this contract.
+ * Canonical analyser types — imported from `plugins/zoto-eval-system/engine/analyser-payload.ts`
+ * (the single source of truth for these shapes). Re-exported here so
+ * existing consumers of `scripts/eval-analyse.ts` don't break.
  */
-export type PrimitiveKind = "skill" | "command" | "agent" | "hook" | "rule";
-
-export interface AnalyserFixtureFile {
-  path: string;
-  content?: string;
-  /**
-   * Repo-relative source path. Mirrored as `from_` in the Python dataclass
-   * because `from` is a Python keyword; the parity gate tolerates the rename.
-   */
-  from?: string;
-}
-
-export interface AnalyserFixtures {
-  files: AnalyserFixtureFile[];
-}
-
-export interface AnalyserExpectedFilesystem {
-  created?: string[];
-  modified?: string[];
-  removed?: string[];
-  unchanged?: string[];
-}
-
-export interface AnalyserCase {
-  scenario: string;
-  prompt: string;
-  assertions: string[];
-  follow_ups?: string[];
-  fixtures?: AnalyserFixtures;
-  fixture_justifications?: string[];
-  expected_filesystem?: AnalyserExpectedFilesystem;
-  expected_output?: string;
-}
-
-export interface AnalyserPayload {
-  schema_version: 1;
-  analyser_version: string;
-  model_id: string;
-  target_id: string;
-  kind: PrimitiveKind;
-  source_path: string;
-  source_hash: string;
-  summary: string;
-  cases: AnalyserCase[];
-}
+import type {
+  PrimitiveKind,
+  AnalyserFixtureFile,
+  AnalyserFixtures,
+  AnalyserExpectedFilesystem,
+  AnalyserCase,
+  AnalyserPayload,
+} from "../plugins/zoto-eval-system/engine/analyser-payload.js";
+export type {
+  PrimitiveKind,
+  AnalyserFixtureFile,
+  AnalyserFixtures,
+  AnalyserExpectedFilesystem,
+  AnalyserCase,
+  AnalyserPayload,
+};
 
 /**
  * Parity manifest consumed by `scripts/check-analyser-payload-parity.ts`. The
@@ -1384,7 +1490,32 @@ export function resolveAnalyserTarget(
   )
     return resolveTarget("hook:cursor-workspace", repoRoot);
 
+  const ruleMatch = rel.match(/(?:^|\/)rules\/([^/]+)\.mdc$/);
+  if (ruleMatch)
+    return resolveTarget(`rule:${ruleMatch[1]}`, repoRoot);
+
   return null;
+}
+
+/**
+ * When the analyser target resolves but its source matches `config.ignore`,
+ * tooling should skip LLM / cache work and emit `{ ignored: true, … }`.
+ */
+export function ignoredAnalyserTargetIfAny(
+  target: string,
+  repoRoot: string = REPO_ROOT,
+): IgnoredPayload | null {
+  const resolved = resolveAnalyserTarget(target, repoRoot);
+  if (!resolved) return null;
+  const sourceRel = relative(repoRoot, resolved.sourcePath).replace(/\\/g, "/");
+  const matched = matchIgnoreGlob(sourceRel, loadIgnoreGlobs(repoRoot));
+  if (!matched) return null;
+  return {
+    ignored: true,
+    target_id: resolved.targetId,
+    matched_glob: matched,
+    source_path: sourceRel,
+  };
 }
 
 function readFixturePayload(
@@ -1688,6 +1819,14 @@ export async function runAnalyser(
   budget.callsMade += 1;
   budget.totalTokensEstimate += estimateTokens(prompt) + estimateTokens(responseRaw);
 
+  if (process.env.ZOTO_EVAL_ANALYSER_EMIT_SDK_RAW === "1") {
+    process.stderr.write(
+      "---BEGIN_SDK_RAW_RESPONSE_FOR_JSON_PARSE---\n" +
+        responseRaw +
+        "\n---END_SDK_RAW_RESPONSE_FOR_JSON_PARSE---\n",
+    );
+  }
+
   let parsed: AnalyserPayload;
   try {
     parsed = JSON.parse(extractJsonObject(responseRaw)) as AnalyserPayload;
@@ -1745,6 +1884,7 @@ interface CliArgs {
   outPath: string | null;
   maxCalls: number | null;
   concurrency: number | null;
+  invalidate: boolean;
 }
 
 function parseAnalyserArgs(argv: string[]): CliArgs {
@@ -1755,11 +1895,13 @@ function parseAnalyserArgs(argv: string[]): CliArgs {
     outPath: null,
     maxCalls: null,
     concurrency: null,
+    invalidate: false,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]!;
     if (a === "--pretty") out.pretty = true;
     else if (a === "--legacy") out.legacy = true;
+    else if (a === "--invalidate") out.invalidate = true;
     else if (a === "--target" && argv[i + 1]) out.target = argv[++i]!;
     else if (a === "--out" && argv[i + 1]) out.outPath = argv[++i]!;
     else if (a === "--max-calls" && argv[i + 1]) {
@@ -1780,14 +1922,15 @@ async function mainAsync(argv: string[]): Promise<number> {
       `${JSON.stringify({
         error: "usage",
         message:
-          "tsx scripts/eval-analyse.ts --target <path-or-target-id> [--pretty] [--out <file>] [--max-calls <n>] [--concurrency <n>] [--legacy]",
+          "tsx scripts/eval-analyse.ts --target <path-or-target-id> [--pretty] [--invalidate] [--out <file>] [--max-calls <n>] [--concurrency <n>] [--legacy]",
       })}\n`,
     );
     return 1;
   }
 
   if (args.legacy) {
-    const out = analyse(args.target);
+    const pathMapped = resolveAnalyserTarget(args.target);
+    const out = analyse(pathMapped?.targetId ?? args.target);
     if ("error" in out) {
       process.stderr.write(`${JSON.stringify(out)}\n`);
       return 1;
@@ -1795,6 +1938,17 @@ async function mainAsync(argv: string[]): Promise<number> {
     const txt = JSON.stringify(out, null, args.pretty ? 2 : undefined);
     if (args.outPath) writeFileSync(resolve(REPO_ROOT, args.outPath), `${txt}\n`, "utf-8");
     else process.stdout.write(`${txt}\n`);
+    return 0;
+  }
+
+  const ignEarly = ignoredAnalyserTargetIfAny(args.target);
+  if (ignEarly) {
+    const txt = JSON.stringify(ignEarly, null, args.pretty ? 2 : undefined);
+    if (args.outPath) {
+      writeFileSync(resolve(REPO_ROOT, args.outPath), `${txt}\n`, "utf-8");
+    } else {
+      process.stdout.write(`${txt}\n`);
+    }
     return 0;
   }
 
@@ -1808,7 +1962,7 @@ async function mainAsync(argv: string[]): Promise<number> {
   try {
     const result = await runAnalyser(
       { target: args.target },
-      { config: overrides, budget },
+      { config: overrides, budget, invalidate: args.invalidate },
     );
     const payloadTxt = JSON.stringify(
       result.payload,

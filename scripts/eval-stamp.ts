@@ -47,6 +47,19 @@ import {
 
 const REPO_ROOT = resolve(process.cwd());
 
+/**
+ * Only these `skill:*` ids may be stamped to `skills/<name>/evals/evals.json`
+ * by the central `eval-stamp` JSON flow. All other skills still refuse —
+ * operators bootstrap from `templates/skill-evals/evals.json.tmpl` instead.
+ */
+export const CENTRAL_STAMP_SKILL_ALLOWLIST: ReadonlySet<string> = new Set([
+  "skill:zoto-eval-tooling",
+]);
+
+function isAllowlistedSkillStampTarget(targetId: string): boolean {
+  return CENTRAL_STAMP_SKILL_ALLOWLIST.has(targetId.trim());
+}
+
 /* ---------------------------------------------------------------------- */
 /* Baseline fixture stamping                                              */
 /* ---------------------------------------------------------------------- */
@@ -315,6 +328,12 @@ interface StampedDoc {
   cases: StampedCase[];
 }
 
+/** On-disk shape for allowlisted skills (`evals.json` beside `SKILL.md`). */
+interface SkillStampedDoc {
+  skill_name: string;
+  evals: StampedCase[];
+}
+
 function isUserAuthored(c: StampedCase): boolean {
   const m = c._meta;
   if (!m) return true;
@@ -350,7 +369,10 @@ function materializeFixtures(
 function defaultOutPath(targetId: string): string | null {
   const r = resolveTarget(targetId);
   if (!r) return null;
-  if (r.kind === "skill") return null;
+  if (r.kind === "skill") {
+    if (!isAllowlistedSkillStampTarget(r.targetId)) return null;
+    return join(dirname(r.sourcePath), "evals", "evals.json");
+  }
   const name = r.name;
   if (r.kind === "command") {
     const base = r.pluginDir
@@ -371,17 +393,15 @@ function defaultOutPath(targetId: string): string | null {
   return join(r.pluginDir, "evals", "hooks", `${name}.json`);
 }
 
-function buildDocument(
+function buildGeneratedCases(
   payload: AnalysisPayload,
   primitiveHash: string,
   sourceHash: string,
   nowIso: string,
-  rawSource: string
-): StampedDoc {
+  rawSource: string,
+): StampedCase[] {
   const thin = normaliseContent(rawSource).length < 450;
-  const name = payload.target_id.split(":")[1] ?? payload.target_id;
-
-  const cases: StampedCase[] = payload.suggested_cases.map((s: SuggestedCase) => {
+  return payload.suggested_cases.map((s: SuggestedCase) => {
     const partial =
       payload.kind !== "hook" &&
       (thin ||
@@ -407,6 +427,23 @@ function buildDocument(
       },
     };
   });
+}
+
+function buildDocument(
+  payload: AnalysisPayload,
+  primitiveHash: string,
+  sourceHash: string,
+  nowIso: string,
+  rawSource: string,
+): StampedDoc {
+  const name = payload.target_id.split(":")[1] ?? payload.target_id;
+  const cases = buildGeneratedCases(
+    payload,
+    primitiveHash,
+    sourceHash,
+    nowIso,
+    rawSource,
+  );
 
   const doc: StampedDoc = {
     target_id: payload.target_id,
@@ -414,7 +451,7 @@ function buildDocument(
   };
   if (payload.kind === "command") doc.command_name = name;
   else if (payload.kind === "agent") doc.agent_name = name;
-  else doc.hook_plugin = name;
+  else if (payload.kind === "hook") doc.hook_plugin = name;
 
   doc.cases = cases;
   return doc;
@@ -433,11 +470,62 @@ function mergeWithExisting(existing: StampedDoc | null, fresh: StampedDoc): Stam
   };
 }
 
-function formatDoc(doc: StampedDoc): string {
+function mergeSkillWithExisting(
+  existing: SkillStampedDoc | null,
+  fresh: SkillStampedDoc,
+): SkillStampedDoc {
+  if (!existing) return fresh;
+  const kept = existing.evals.filter(isUserAuthored);
+  return {
+    skill_name: fresh.skill_name,
+    evals: [...kept, ...fresh.evals.sort((a, b) => Number(a.id) - Number(b.id))],
+  };
+}
+
+function parseExistingStampedDoc(
+  raw: string,
+): StampedDoc | SkillStampedDoc | null {
+  try {
+    const o = JSON.parse(raw) as Record<string, unknown>;
+    if (typeof o.skill_name === "string" && Array.isArray(o.evals)) {
+      return o as SkillStampedDoc;
+    }
+    if (Array.isArray(o.cases)) {
+      return o as StampedDoc;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function mergeStampedUnion(
+  existing: StampedDoc | SkillStampedDoc | null,
+  fresh: StampedDoc | SkillStampedDoc,
+): StampedDoc | SkillStampedDoc {
+  if ("skill_name" in fresh) {
+    const ex =
+      existing && "skill_name" in existing ? (existing as SkillStampedDoc) : null;
+    return mergeSkillWithExisting(ex, fresh);
+  }
+  return mergeWithExisting(
+    existing && "cases" in existing ? (existing as StampedDoc) : null,
+    fresh as StampedDoc,
+  );
+}
+
+function stampedCaseCount(doc: StampedDoc | SkillStampedDoc): number {
+  return "skill_name" in doc ? doc.evals.length : doc.cases.length;
+}
+
+function formatDoc(doc: StampedDoc | SkillStampedDoc): string {
   return `${JSON.stringify(doc, null, 2)}\n`;
 }
 
-function printDiff(a: StampedDoc | null, b: StampedDoc): void {
+function printDiff(
+  a: StampedDoc | SkillStampedDoc | null,
+  b: StampedDoc | SkillStampedDoc,
+): void {
   const sa = a ? `${JSON.stringify(a, null, 2)}\n` : "(empty)\n";
   const sb = `${JSON.stringify(b, null, 2)}\n`;
   if (sa === sb) {
@@ -523,14 +611,14 @@ interface AnalyserApplyOutcome {
 }
 
 /**
- * Best-effort per-primitive analyser invocation. Mutates `doc.cases` in
- * place: every generated case receives an up-to-date
- * `_meta.primitive_analysis` block. Failures are logged to stderr and the
- * function returns `{ applied: false }` rather than throwing — the stamper
- * must remain usable in offline / no-API-key environments.
+ * Best-effort per-primitive analyser invocation. Mutates generated rows in
+ * `doc.cases` or `doc.evals` in place: every generated case receives an
+ * up-to-date `_meta.primitive_analysis` block. Failures are logged to stderr
+ * and the function returns `{ applied: false }` rather than throwing — the
+ * stamper must remain usable in offline / no-API-key environments.
  */
 async function applyPrimitiveAnalysisToDoc(
-  doc: StampedDoc,
+  doc: StampedDoc | SkillStampedDoc,
   targetId: string,
   opts: { enabled: boolean },
 ): Promise<AnalyserApplyOutcome> {
@@ -548,11 +636,12 @@ async function applyPrimitiveAnalysisToDoc(
     };
   }
   const budget = mod.newAnalyserBudget();
+  const rows = "skill_name" in doc ? doc.evals : doc.cases;
   try {
     const result = await mod.runAnalyser({ target: targetId }, { budget });
     const now = new Date().toISOString();
     let mutated = 0;
-    for (const c of doc.cases) {
+    for (const c of rows) {
       if (!c._meta?.generated) continue;
       c._meta.primitive_analysis = {
         source_hash: result.payload.source_hash,
@@ -671,16 +760,20 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (targetId.startsWith("skill:")) {
-    console.error(
-      JSON.stringify({
-        error: "skill targets are not stamped to central JSON by eval-stamp",
-        detail:
-          "Skill evals live at skills/<name>/evals/evals.json; run eval-analyse for hints, then merge manually or extend zoto-create-evals.",
-        target_id: targetId,
-      })
-    );
-    process.exit(2);
+  const trimmedTarget = targetId.trim();
+  if (trimmedTarget.startsWith("skill:")) {
+    const skillResolved = resolveTarget(trimmedTarget);
+    if (skillResolved && !isAllowlistedSkillStampTarget(trimmedTarget)) {
+      console.error(
+        JSON.stringify({
+          error: "skill targets are not stamped to central JSON by eval-stamp",
+          detail:
+            "Skill evals live at skills/<name>/evals/evals.json; run eval-analyse for hints, then merge manually, copy templates/skill-evals/evals.json.tmpl, or use eval-stamp only for allowlisted skills (see CENTRAL_STAMP_SKILL_ALLOWLIST in scripts/eval-stamp.ts).",
+          target_id: trimmedTarget,
+        })
+      );
+      process.exit(2);
+    }
   }
 
   const rawResolved = resolveTarget(targetId);
@@ -713,26 +806,55 @@ async function main(): Promise<void> {
   }
 
   const rawSource = readFileSync(rawResolved.sourcePath, "utf-8");
-  const prim = primitiveAnalysisHash(analysis);
   const now = new Date().toISOString();
-  const built = buildDocument(analysis, prim, analysis.source_hash, now, rawSource);
 
-  let existing: StampedDoc | null = null;
+  const allowlistedSkill =
+    analysis.kind === "skill" &&
+    isAllowlistedSkillStampTarget(targetId.trim());
+
+  let built: StampedDoc | SkillStampedDoc;
+  /** True when stamping `skill:zoto-eval-tooling` rows from the LLM analyser cache only. */
+  let skillStampFromAnalyserCache = false;
+
+  if (allowlistedSkill) {
+    const cached = readCachedAnalyserPayload(REPO_ROOT, targetId);
+    if (!cached?.cases?.length) {
+      console.error(
+        JSON.stringify({
+          error: "skill_stamp_requires_cached_analyser_payload",
+          detail:
+            "Run `pnpm run eval:analyse -- <target-id>` first so the analyser payload is cached under .zoto/eval-system/cache/analyser/, then re-run eval-stamp.",
+          target_id: targetId,
+        }),
+      );
+      process.exit(1);
+    }
+    built = buildSkillStampedDocFromCachedAnalyser(cached, now);
+    skillStampFromAnalyserCache = true;
+  } else {
+    const prim = primitiveAnalysisHash(analysis);
+    built = buildDocument(analysis, prim, analysis.source_hash, now, rawSource);
+  }
+
+  let existing: StampedDoc | SkillStampedDoc | null = null;
   if (existsSync(outPath)) {
     try {
-      existing = JSON.parse(readFileSync(outPath, "utf-8")) as StampedDoc;
+      existing = parseExistingStampedDoc(readFileSync(outPath, "utf-8"));
     } catch {
       existing = null;
     }
   }
 
-  const merged = mergeWithExisting(existing, built);
+  const merged = mergeStampedUnion(existing, built);
 
-  /* Subtask 04 — annotate generated cases with the analyser's
-   * primitive_analysis block before formatting/write. Best-effort: never
-   * blocks stamping when the analyser cannot run. */
+  /* Subtask 04 — annotate heuristic-generated cases with a fresh analyser
+   * run. Rows stamped from an on-disk analyser cache already carry
+   * primitive_analysis; re-run only when the operator passes --with-analyser. */
+  const analyserAnnotateEnabled =
+    shouldEnableAnalyser({ withAnalyser, noAnalyser }) &&
+    (!skillStampFromAnalyserCache || withAnalyser);
   const analyserOutcome = await applyPrimitiveAnalysisToDoc(merged, targetId, {
-    enabled: shouldEnableAnalyser({ withAnalyser, noAnalyser }),
+    enabled: analyserAnnotateEnabled,
   });
 
   if (existing && formatDoc(existing) === formatDoc(merged)) {
@@ -759,7 +881,7 @@ async function main(): Promise<void> {
         dry_run: true,
         target_id: targetId,
         path: relative(REPO_ROOT, outPath),
-        would_write_cases: merged.cases.length,
+        would_write_cases: stampedCaseCount(merged),
         analyser: analyserOutcome.applied
           ? {
               source: analyserOutcome.source,
@@ -780,7 +902,7 @@ async function main(): Promise<void> {
       written: true,
       target_id: targetId,
       path: relative(REPO_ROOT, outPath),
-      cases: merged.cases.length,
+      cases: stampedCaseCount(merged),
       analyser: analyserOutcome.applied
         ? {
             source: analyserOutcome.source,
@@ -1328,18 +1450,6 @@ async function resolveStampPytestTargets(
 }
 /* === Subtask 06 END === */
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().then(
-    () => {
-      /* main handles its own exit codes via process.exit when needed. */
-    },
-    (err) => {
-      console.error(err);
-      process.exit(1);
-    },
-  );
-}
-
 // === Subtask 08 START ===
 /* Subtask 08 — Jest static-backend stamping.                              */
 /*                                                                          */
@@ -1840,17 +1950,22 @@ function writeVitestIfChanged(
 /*     vitest.config.ts | jest.config.ts     (rendered inline per framework)*/
 /*     test_<primitive.slug>.test.ts         (one per primitive)           */
 /*     _shared/                                                             */
-/*       sdk-bridge.ts             (COPY of evals/_llm/sdk-bridge.ts)      */
 /*       sandbox-helpers.ts        (re-export + preSnapshot/postSnapshot)  */
 /*       setup.ts                  (dotenv + CURSOR_API_KEY gate)          */
 /*       zoto-llm-reporter.ts      (framework-agnostic reporter)           */
-/*       graders/{common,contains,regex,tool-called,llm-judge}.ts          */
+/*       run-code-strategy-suite.ts (central harness)                      */
+/*       code-strategy-case.ts     (case type definitions)                 */
+/*                                                                          */
+/* When the host has `evals/_llm/` (canonical source), sdk-bridge,         */
+/* _user-case-guards, and graders are imported directly from there         */
+/* instead of being copied into `_shared/`. For external repos without     */
+/* `evals/_llm/`, copies are still stamped into `_shared/`.                */
 /*                                                                          */
 /* Every emitted *.test.ts file carries `// _meta.generated: true` as its */
 /* literal first line (subtasks 03 & 11 deletion / overwrite gate via      */
 /* `evals/_llm/_user-case-guards.ts#isGeneratedFile`).                     */
 
-import { isGeneratedFile as isLlmCodeGeneratedTestFile } from "../evals/_llm/_user-case-guards.ts";
+import { isGeneratedFile as isLlmCodeGeneratedTestFile } from "../plugins/zoto-eval-system/engine/_user-case-guards.ts";
 import { loadEvalConfig } from "../plugins/zoto-eval-system/src/config-loader.js";
 
 const LLM_CODE_TEMPLATE_REL =
@@ -1963,12 +2078,12 @@ export function assertNoConflictingLlmStrategy(
   const conflicts: string[] = [];
 
   if (target === "code") {
-    const runnerPath = join(hostRepoRoot, "evals", "_llm", "runner.ts");
+    const runnerPath = join(hostRepoRoot, "plugins", "zoto-eval-system", "engine", "runner.ts");
     if (existsSync(runnerPath)) {
       try {
         const body = readFileSync(runnerPath, "utf-8");
         if (body.includes("/* zoto-declarative-strategy:active */")) {
-          conflicts.push("evals/_llm/runner.ts (declarative strategy active)");
+          conflicts.push("plugins/zoto-eval-system/engine/runner.ts (declarative strategy active)");
         }
       } catch {
         /* unreadable runner.ts — let other tooling surface the error */
@@ -2137,16 +2252,31 @@ function renderLlmFrameworkConfig(framework: LlmCodeFramework): string {
   if (framework === "vitest") {
     return [
       "// _meta.generated: true",
+      `import { dirname, resolve } from "node:path";`,
+      `import { fileURLToPath } from "node:url";`,
       `import { defineConfig } from "vitest/config";`,
       "",
+      `const __dirname = dirname(fileURLToPath(import.meta.url));`,
+      "",
+      "/** Maps `#eval-engine/*` to the zoto-eval-system engine package (sdk-bridge, graders, case). */",
+      `const evalEngineRoot = resolve(__dirname, "../../plugins/zoto-eval-system/engine");`,
+      "",
       "export default defineConfig({",
+      "  root: __dirname,",
+      "  resolve: {",
+      "    alias: {",
+      '      "#eval-engine": evalEngineRoot,',
+      "    },",
+      "  },",
       "  test: {",
       `    include: ["**/*.test.ts"],`,
+      `    exclude: ["**/_shared/**"],`,
       `    setupFiles: ["./_shared/setup.ts"],`,
       "    testTimeout: 300_000,",
       "    hookTimeout: 60_000,",
       `    pool: "forks",`,
       `    reporters: ["default"],`,
+      "    passWithNoTests: false,",
       "  },",
       "});",
       "",
@@ -2204,13 +2334,16 @@ function writeLlmCodeIfChanged(
  * Framework-config (vitest.config.ts / jest.config.ts): rendered
  * inline by `renderLlmFrameworkConfig(...)` — there is no template
  * file for these; the stamper owns the canonical config shape.
- * Shared files (sandbox-helpers, setup, reporter, graders) are
- * stamped verbatim from their respective `.tmpl` files.
- * The `sdk-bridge.ts` file is COPIED verbatim from
- * `<REPO_ROOT>/evals/_llm/sdk-bridge.ts` so the host repo executes
- * against the exact same bridge surface this repo was developed on.
- * Likewise `_user-case-guards.ts` is copied so the host's stamper /
- * updater / cleanup engine see the same detection contract.
+ * Shared files (sandbox-helpers, setup, reporter) are stamped
+ * verbatim from their respective `.tmpl` files.
+ *
+ * When the host repo already has `evals/_llm/` (the canonical
+ * source directory — always present in the zoto-agents monorepo),
+ * `sdk-bridge.ts`, `_user-case-guards.ts`, and the graders are NOT
+ * copied into `_shared/`; the harness imports them directly from
+ * `../../_llm/`. For external repos that lack `evals/_llm/`, the
+ * stamper falls back to the copy behaviour so the layout stays
+ * self-contained.
  */
 export function stampLlmCodeStrategy(
   hostRepoRoot: string,
@@ -2225,7 +2358,7 @@ export function stampLlmCodeStrategy(
   const templateRoot =
     opts.templateRoot ?? join(REPO_ROOT, LLM_CODE_TEMPLATE_REL);
   const sharedSourceRoot =
-    opts.sharedSourceRoot ?? join(REPO_ROOT, "evals", "_llm");
+    opts.sharedSourceRoot ?? join(REPO_ROOT, "plugins", "zoto-eval-system", "engine");
   const evalsDirRel = opts.evalsDir ?? "evals";
   const evalsDir = join(hostRepoRoot, evalsDirRel);
   const llmDir = join(hostRepoRoot, evalsDirRel, "llm");
@@ -2277,21 +2410,31 @@ export function stampLlmCodeStrategy(
     loadLlmCodeTemplate(join(templateRoot, "graders", "llm-judge.ts.tmpl")),
   ];
 
-  const sdkBridgeSrc = join(sharedSourceRoot, "sdk-bridge.ts");
-  if (!existsSync(sdkBridgeSrc)) {
-    throw new Error(
-      `sdk-bridge source missing at ${sdkBridgeSrc}; subtask 09 requires evals/_llm/sdk-bridge.ts`,
-    );
-  }
-  const sdkBridgeBody = readFileSync(sdkBridgeSrc, "utf-8");
+  const engineDir = join(REPO_ROOT, "plugins", "zoto-eval-system", "engine");
+  const hostHasCanonicalSource =
+    existsSync(join(engineDir, "sdk-bridge.ts")) &&
+    existsSync(join(engineDir, "_user-case-guards.ts"));
 
-  const userCaseGuardsSrc = join(sharedSourceRoot, "_user-case-guards.ts");
-  if (!existsSync(userCaseGuardsSrc)) {
-    throw new Error(
-      `_user-case-guards source missing at ${userCaseGuardsSrc}; subtask 09 requires evals/_llm/_user-case-guards.ts`,
-    );
+  let sdkBridgeBody: string | null = null;
+  let userCaseGuardsBody: string | null = null;
+
+  if (!hostHasCanonicalSource) {
+    const sdkBridgeSrc = join(sharedSourceRoot, "sdk-bridge.ts");
+    if (!existsSync(sdkBridgeSrc)) {
+      throw new Error(
+        `sdk-bridge source missing at ${sdkBridgeSrc}; requires plugins/zoto-eval-system/engine/sdk-bridge.ts`,
+      );
+    }
+    sdkBridgeBody = readFileSync(sdkBridgeSrc, "utf-8");
+
+    const userCaseGuardsSrc = join(sharedSourceRoot, "_user-case-guards.ts");
+    if (!existsSync(userCaseGuardsSrc)) {
+      throw new Error(
+        `_user-case-guards source missing at ${userCaseGuardsSrc}; requires plugins/zoto-eval-system/engine/_user-case-guards.ts`,
+      );
+    }
+    userCaseGuardsBody = readFileSync(userCaseGuardsSrc, "utf-8");
   }
-  const userCaseGuardsBody = readFileSync(userCaseGuardsSrc, "utf-8");
 
   const renderedTest = ensureLlmCodeGeneratedMarker(
     renderLlmCodePerPrimitiveTest(
@@ -2309,13 +2452,28 @@ export function stampLlmCodeStrategy(
   writeLlmCodeIfChanged(testFile, renderedTest, state, dryRun);
   writeLlmCodeIfChanged(configFile, renderedConfig, state, dryRun);
   writeLlmCodeIfChanged(setupFile, setupTemplate, state, dryRun);
-  writeLlmCodeIfChanged(reporterFile, reporterTemplate, state, dryRun);
-  writeLlmCodeIfChanged(sdkBridgeFile, sdkBridgeBody, state, dryRun);
-  writeLlmCodeIfChanged(sandboxHelpersFile, sandboxHelpersTemplate, state, dryRun);
-  writeLlmCodeIfChanged(userCaseGuardsFile, userCaseGuardsBody, state, dryRun);
-  for (let i = 0; i < graderFiles.length; i++) {
-    writeLlmCodeIfChanged(graderFiles[i]!, graderTemplates[i]!, state, dryRun);
+
+  if (hostHasCanonicalSource) {
+    const patchedReporter = reporterTemplate
+      .replace(
+        /from\s+["']\.\.\/(_shared\/)?graders\/common\.js["']/g,
+        'from "#eval-engine/graders/common.js"',
+      )
+      .replace(
+        /from\s+["']\.\.\/(_shared\/)?sandbox-helpers\.js["']/g,
+        'from "./sandbox-helpers.js"',
+      );
+    writeLlmCodeIfChanged(reporterFile, patchedReporter, state, dryRun);
+  } else {
+    writeLlmCodeIfChanged(reporterFile, reporterTemplate, state, dryRun);
+    writeLlmCodeIfChanged(sdkBridgeFile, sdkBridgeBody!, state, dryRun);
+    writeLlmCodeIfChanged(userCaseGuardsFile, userCaseGuardsBody!, state, dryRun);
+    for (let i = 0; i < graderFiles.length; i++) {
+      writeLlmCodeIfChanged(graderFiles[i]!, graderTemplates[i]!, state, dryRun);
+    }
   }
+
+  writeLlmCodeIfChanged(sandboxHelpersFile, sandboxHelpersTemplate, state, dryRun);
 
   if (opts.tokenFieldNotes) {
     process.stderr.write(
@@ -2522,6 +2680,7 @@ export interface DeclarativeStampedCaseRow {
       analysed_at: string;
       analyser_version: string;
       summary: string;
+      invalidate?: boolean;
       fixture_justifications?: string[];
     };
   };
@@ -2619,5 +2778,38 @@ export function buildDeclarativeStampedCase(
     row.follow_ups = c.follow_ups.slice();
   }
   return row;
+}
+
+/**
+ * Build a full `skills/.../evals/evals.json` document from a cached LLM
+ * analyser payload (`skill:zoto-eval-tooling` allowlist only).
+ */
+function buildSkillStampedDocFromCachedAnalyser(
+  payload: AnalyserPayload,
+  nowIso: string,
+): SkillStampedDoc {
+  const name = payload.target_id.split(":")[1] ?? payload.target_id;
+  const evals = payload.cases.map((_, idx) => {
+    try {
+      return buildDeclarativeStampedCase(payload, idx, nowIso) as StampedCase;
+    } catch (e) {
+      throw new Error(
+        `eval-stamp skill: case ${idx + 1}: ${(e as Error).message}`,
+      );
+    }
+  });
+  return { skill_name: name, evals };
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().then(
+    () => {
+      /* main handles its own exit codes via process.exit when needed. */
+    },
+    (err) => {
+      console.error(err);
+      process.exit(1);
+    },
+  );
 }
 // === Subtask 10 END ===

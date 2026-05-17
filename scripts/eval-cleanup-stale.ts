@@ -96,7 +96,7 @@ import {
   matchIgnoreGlob,
   repoRelPosix,
 } from "./eval-analyse.ts";
-import { isGeneratedFile } from "../evals/_llm/_user-case-guards.ts";
+import { isGeneratedFile } from "../plugins/zoto-eval-system/engine/_user-case-guards.ts";
 import { loadEvalConfig } from "../plugins/zoto-eval-system/src/config-loader.js";
 
 // ---------------------------------------------------------------------------
@@ -240,6 +240,7 @@ const HELP_TEXT = `\
 Usage: tsx scripts/eval-cleanup-stale.ts [options]
 
 Modes:
+  (default)               Same as --dry-run (used by pnpm run eval:cleanup-stale).
   --dry-run               Compute the cleanup plan, write a session-token
                           lockfile, and emit the plan as JSON on stdout.
   --apply                 Execute the deletions enumerated by an earlier
@@ -1290,13 +1291,13 @@ export function runMain(opts: MainOptions = {}): number {
     return 0;
   }
 
+  // Default to --dry-run when invoked with no mode flag (pnpm `eval:cleanup-stale` contract).
+  if (!args.dryRun && !args.apply && !args.check) {
+    args.dryRun = true;
+  }
+
   // Mode validation
   const modes = [args.dryRun, args.apply, args.check].filter(Boolean).length;
-  if (modes === 0) {
-    stderrWrite("error: must pass exactly one of --dry-run, --apply, --check\n");
-    stderrWrite(HELP_TEXT);
-    return 1;
-  }
   if (modes > 1) {
     stderrWrite("error: --dry-run, --apply, and --check are mutually exclusive\n");
     return 1;
