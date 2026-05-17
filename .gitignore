@@ -39,3 +39,7 @@ plugins/*/skills/*/evals/workspace/
 
 # Python virtual environment (skills-ref)
 .venv/
+.zoto/eval-system/cache/
+
+__pycache__/
+_runs/
