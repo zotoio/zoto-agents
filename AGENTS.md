@@ -19,34 +19,71 @@ This repository uses CRUX notation for semantic compression. **If not already lo
 
 ### Available Agents
 
-| Agent | Definition | Purpose |
-|-------|-----------|---------|
-| `crux-cursor-rule-manager` | `.cursor/agents/crux-cursor-rule-manager.md` | CRUX compression, decompression, and validation |
-| `integrity-expert` | `.cursor/agents/integrity-expert.md` | Code quality audits, test coverage, security, CI/CD |
-| `docs-sync-agent` | `.cursor/agents/docs-sync-agent.md` | Documentation synchronization on source changes |
-| `crux-cursor-memory-manager` | `.cursor/agents/crux-cursor-memory-manager.md` | Memory lifecycle management (dream, REM sleep, Recall, Forget, Remember, Meditate) |
-| `crux-platform-architect` | `.cursor/agents/crux-platform-architect.md` | Platform architecture, Cursor/LLM harness design, documentation, and eval strategy |
-| `crux-software-engineer` | `.cursor/agents/crux-software-engineer.md` | Core implementation — Python, shell, MCP server, hooks, skills, and evals |
+| Agent | Definition | Purpose | Status |
+|-------|-----------|---------|--------|
+| `crux-cursor-rule-manager` | `.cursor/agents/crux-cursor-rule-manager.md` | CRUX compression, decompression, and validation | Available |
+| `crux-cursor-memory-manager` | `.cursor/agents/crux-cursor-memory-manager.md` | Memory lifecycle management (dream, REM sleep, Recall, Forget, Remember, Meditate) | Available |
+| `zoto-plugin-manager` | `.cursor/agents/zoto-plugin-manager.md` | Cursor plugin creation, audit, marketplace publishing, validation pipeline, monorepo conventions | Available |
+| `zoto-eval-architect` | `.cursor/agents/zoto-eval-architect.md` | Eval-system architecture, ergonomics, token/quality performance, strategy-deprecation analysis, eval-strategy design | Available |
+| `zoto-eval-engineer` | `.cursor/agents/zoto-eval-engineer.md` | Eval-system code review, 7 JSON schemas, hard-coded contracts (`preserveUserAuthoredCases`, `writeMetaMarker`), drift detection, repo application audit | Available |
+| `integrity-expert` | `.cursor/agents/integrity-expert.md` | Code quality audits, test coverage, security, CI/CD | **Planned** (definition not yet authored) |
+| `docs-sync-agent` | `.cursor/agents/docs-sync-agent.md` | Documentation synchronization on source changes | **Planned** (definition not yet authored) |
+| `crux-platform-architect` | `.cursor/agents/crux-platform-architect.md` | Platform architecture, Cursor/LLM harness design, documentation, and eval strategy | **Planned** (definition not yet authored) |
+| `crux-software-engineer` | `.cursor/agents/crux-software-engineer.md` | Core implementation — Python, shell, MCP server, hooks, skills, and evals | **Planned** (definition not yet authored) |
+
+**Important**: rows marked **Planned** are referenced by older specs and conventions but do not yet have a corresponding definition file. The spec executor will not be able to spawn them as subagents until the file is created. Specs targeting eval-system review/work should prefer `zoto-eval-architect` and `zoto-eval-engineer`; other plugin/monorepo work should prefer `zoto-plugin-manager`. Treat **Planned** rows as roadmap, not as available subagent types.
+
+### User Input Escalation — Subagent Protocol
+
+Subagents NEVER call `AskQuestion` directly. All user-facing prompts must be handled by the **parent agent** (the top-level agent that the user interacts with).
+
+**Two supported patterns** — choose the one that fits the workflow:
+
+#### Pattern A: Pre-collect then spawn
+
+Use when all user choices are known before the subagent starts (e.g. memory type, tags).
+
+1. Parent uses `AskQuestion` to collect all answers
+2. Parent spawns subagent with pre-collected answers in the task prompt
+3. Subagent executes using the provided answers without asking again
+
+#### Pattern B: Work first, then escalate
+
+Use when the subagent must do analysis, search, or computation before it can formulate the right questions (e.g. resolve memory matches before asking which to delete, analyse artifacts before presenting candidates).
+
+1. Parent spawns subagent (foreground recommended for complex workflows)
+2. Subagent does its work (search, analysis, extraction, etc.)
+3. Subagent returns results **plus** a `needs_user_input` section describing the decisions needed
+4. Parent displays the subagent's analysis to the user
+5. Parent uses `AskQuestion` to collect the user's decisions
+6. Parent resumes the subagent with the collected answers
+7. Subagent applies the confirmed decisions
+
+**Mixing patterns is fine.** A command can pre-collect simple choices (Pattern A) while using Pattern B for decisions that depend on subagent analysis. For example, `/crux-remember` pre-collects type and tags, but if the subagent discovers a conflict with an existing memory, it escalates that decision via Pattern B.
+
+Commands that invoke subagents (e.g. `/crux-dream`, `/crux-remember`, `/crux-forget`, `/crux-recall`, `/crux-meditate`) document which pattern applies to each interaction point.
 
 ### Spec Execution — Agent Allocation
 
-When building or executing engineering specs in this repository, **always use the CRUX agents** instead of `generalPurpose`. Assign subtasks based on their nature:
+When building or executing engineering specs in this repository, **prefer the dedicated specialist agents** over `generalPurpose`. Assign subtasks based on their nature. Only **Available** agents (see status column above) can actually be spawned; **Planned** entries are documented for forward-compatibility.
 
-| Subtask Type | Assign To |
-|-------------|-----------|
-| Architecture, design, trade-off analysis | `crux-platform-architect` |
-| Documentation updates (README, AGENTS.md, CONTRIBUTORS) | `crux-platform-architect` |
-| Eval strategy and test design | `crux-platform-architect` |
-| Code implementation (Python, shell, MCP, hooks, skills) | `crux-software-engineer` |
-| Bug fixes, refactoring, feature implementation | `crux-software-engineer` |
-| Writing evals and tests | `crux-software-engineer` |
-| Integration testing and verification | `crux-software-engineer` |
-| CRUX compression or decompression tasks | `crux-cursor-rule-manager` |
-| Memory lifecycle operations (dream, REM, recall) | `crux-cursor-memory-manager` |
-| Code quality audits, security reviews, CI/CD checks | `integrity-expert` |
-| Documentation sync after source changes | `docs-sync-agent` |
+| Subtask Type | Assign To | Status |
+|-------------|-----------|--------|
+| Eval-system architecture, ergonomics, token/quality performance, strategy design | `zoto-eval-architect` | Available |
+| Eval-system code review, schema/contract consistency, drift detection, repo application audit | `zoto-eval-engineer` | Available |
+| Plugin creation, audit, marketplace publishing, validation, monorepo conventions | `zoto-plugin-manager` | Available |
+| CRUX compression or decompression tasks | `crux-cursor-rule-manager` | Available |
+| Memory lifecycle operations (dream, REM, recall) | `crux-cursor-memory-manager` | Available |
+| Plugin-meta documentation (README, CHANGELOG, marketplace.json) | `zoto-plugin-manager` | Available |
+| General architecture, design, trade-off analysis (non-eval-system) | `crux-platform-architect` | **Planned** — fall back to `zoto-plugin-manager` if work overlaps plugin meta |
+| Documentation updates (README, AGENTS.md, CONTRIBUTORS) (non-plugin-meta) | `crux-platform-architect` | **Planned** |
+| Code implementation (Python, shell, MCP, hooks, skills) (non-eval-system) | `crux-software-engineer` | **Planned** |
+| Bug fixes, refactoring (non-eval-system) | `crux-software-engineer` | **Planned** |
+| Writing evals and tests (non-eval-system) | `crux-software-engineer` | **Planned** |
+| Code quality audits, security reviews, CI/CD checks | `integrity-expert` | **Planned** — fall back to `zoto-plugin-manager` for plugin-readiness work |
+| Documentation sync after source changes | `docs-sync-agent` | **Planned** |
 
-**Do not default to `generalPurpose`** — every subtask in a spec should map to the most appropriate CRUX agent above.
+**Do not default to `generalPurpose`** — every subtask in a spec should map to the most appropriate available specialist agent. When the ideal agent is **Planned** but not yet authored, prefer the closest **Available** agent and explicitly note the fallback in the spec's Key Decisions, rather than silently routing to `generalPurpose`.
 
 ### Eval Strategy for Agents
 
