@@ -90,6 +90,8 @@
           <strong>static backend</strong> (pytest, vitest, or jest) for fast, deterministic checks,
           and an <strong>LLM backend</strong> powered by <code>@cursor/sdk</code> for agent-based
           evaluations with soft metrics — tokens, duration, verbosity, accuracy, confidence.
+          LLM cases may be stamped as <strong>declarative JSON</strong> or <strong>code-strategy
+          TypeScript per target</strong> after analyser classification — not as a single global mode.
         </p>
         <p>
           A diff-aware updater detects when covered targets have changed, classifies each change as
@@ -140,7 +142,7 @@
             <tr>
               <td><code>report.yml</code></td>
               <td>aggregator</td>
-              <td>Merged rollup. Primary input for <code>/z-eval-compare</code> and CI summaries.</td>
+              <td>Merged rollup with per-case <code>backend: declarative|code</code>. Primary input for <code>/z-eval-compare</code> and CI summaries. Hybrid suites can populate both artifact shapes under one run.</td>
             </tr>
           </tbody>
         </table>
@@ -157,15 +159,35 @@
           In CI, the <code>--check</code> mode detects drift without writing — it is your gate, not
           an auto-fixer.
         </p>
-        <figure>
-          <img src="../images/diagrams/eval-askquestion-flow.svg" alt="User confirmation flow: User ↔ Command ↔ Subagent. Each proposed change is presented for approval before writing.">
-          <figcaption>Each proposed change is presented for user approval. Under the hood, commands collect answers via <code>askQuestion</code> and relay them to subagents through a structured <code>needs_user_input</code> / resume contract.</figcaption>
-        </figure>
         <p>
+          Operator approval (configure, update apply) is <strong>orthogonal</strong> to eval-time
+          <code>AskQuestion</code> simulation: code-strategy LLM evals replay scripted answers via
+          <code>evals/llm/_shared/askquestion-bridge.ts</code> without a human in the loop.
+          See <a href="design.html#strategy-bridge">Strategy bridge</a> on the Design page.
+        </p>
+        <p>
+          Under the hood, commands collect operator answers via <code>askQuestion</code> and relay
+          them to subagents through a structured <code>needs_user_input</code> / resume contract.
           Run <code>/z-eval-init</code> once per repository to drop a fully-commented config template
           into <code>.zoto/eval-system/config.yml</code>. Then either edit the YAML by hand or run
           <code>/z-eval-configure</code> for the interactive flow.
         </p>
+
+        <h2 id="strategy-bridge">Strategy bridge</h2>
+        <p>
+          The LLM analyser classifies each covered primitive with
+          <code>requiresInteraction</code> (and optional <code>interactionStyle</code>). The stamper
+          routes non-interactive targets to <strong>declarative JSON</strong>
+          (<code>plugins/*/evals/**/evals.json</code>) and interactive targets to
+          <strong>code-strategy TypeScript</strong> (<code>evals/llm/test_*.test.ts</code>).
+          Both backends can coexist in one hybrid suite; global <code>llm.strategy</code> in
+          <code>.zoto/eval-system/config.yml</code> is the fallback default when classification is
+          unavailable, not the per-target choice.
+        </p>
+        <figure>
+          <img src="../images/diagrams/eval-askquestion-flow.svg" alt="Eval strategy bridge pipeline: source primitive through analyser classification and stamper routing to declarative JSON or code-strategy TypeScript, with askquestion-bridge on the interactive path, then @cursor/sdk and report.yml with backend annotation.">
+          <figcaption>Analyser-driven per-target routing. Interactive code-strategy cases pass through <code>askquestion-bridge.ts</code> before <code>@cursor/sdk</code>. Full flow on the <a href="design.html#strategy-bridge">Design page</a>.</figcaption>
+        </figure>
 
         <h2 id="meta-generated">The <code>_meta.generated</code> contract</h2>
         <p>
@@ -180,6 +202,7 @@
           <li>The updater <strong>never</strong> modifies user-authored cases.</li>
           <li>It flags them for "may need review" and moves on.</li>
           <li>The validator rejects any <code>update.ts</code> source that does not enforce this guard at compile time (literal-string check for <code>_meta?.generated === true</code>).</li>
+          <li>Classification metadata (<code>requiresInteraction</code>, <code>interactionStyle</code>) lives in <code>_meta.primitive_analysis</code> on stamped cases — see <a href="design.html#llm-backend">LLM backend</a>.</li>
         </ul>
 
         <h2 id="see-also">See also</h2>
@@ -191,7 +214,7 @@
           </a>
           <a class="link-card" href="design.html">
             <span class="link-card-title">Design</span>
-            <span class="link-card-desc">Architecture, the <code>_meta.generated</code> contract, user-confirmation flow, run outputs.</span>
+            <span class="link-card-desc">Architecture, strategy bridge + hybrid stamping, the <code>_meta.generated</code> contract, run outputs.</span>
             <span class="link-card-arrow">→</span>
           </a>
           <a class="link-card" href="configuration.html">

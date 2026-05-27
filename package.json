@@ -14,7 +14,6 @@
     "eval:gc:apply": "tsx scripts/eval-gc.ts --apply",
     "eval:static": "python3 scripts/test.py",
     "eval:static:pytest": "pytest evals/ -v --tb=short",
-    "eval:llm": "tsx scripts/eval-orchestrate.ts --llm-only",
     "eval:list": "tsx plugins/zoto-eval-system/engine/runner.ts --list",
     "eval:manual": "python3 scripts/test.py --mode manual",
     "eval:judge": "tsx plugins/zoto-eval-system/engine/runner.ts --judge-only",
@@ -34,8 +33,8 @@
     "eval:static:vitest": "vitest run --config evals/vitest.config.ts",
     "eval:static:jest": "NODE_OPTIONS=--experimental-vm-modules jest --config evals/jest.config.ts",
     "eval:bootstrap-llm-code": "tsx scripts/bootstrap-llm-code-from-cache.ts",
-    "eval:llm:code": "vitest run --config evals/llm/vitest.config.ts",
-    "eval:llm:declarative": "tsx plugins/zoto-eval-system/engine/runner.ts --full"
+    "eval:llm": "vitest run --config evals/llm/vitest.config.ts",
+    "eval:ensure-host": "tsx scripts/eval-ensure-host.ts"
   },
   "devDependencies": {
     "@cursor/sdk": "^1.0.12",

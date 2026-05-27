@@ -1,9 +1,9 @@
 // _meta.generated: true
 /**
- * Sandbox helpers for `code`-strategy LLM evals.
+ * Sandbox helpers for the unified LLM eval harness.
  *
  * Stamped into `evals/llm/_shared/sandbox-helpers.ts` by
- * `scripts/eval-stamp.ts#stampLlmCodeStrategy`.
+ * `scripts/eval-stamp.ts#stampLlmTarget`.
  *
  * This module is a thin wrapper around `evals/_llm/sandbox.ts`. The
  * heavy lifting (baseline copy, overlay application, stable

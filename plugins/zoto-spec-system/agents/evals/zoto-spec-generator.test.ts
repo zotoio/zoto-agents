@@ -1,0 +1,132 @@
+// _meta.generated: true
+/**
+ * LLM `code`-strategy eval for agent `zoto-spec-generator`.
+ *
+ * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
+ * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
+ *
+ * The literal first line of this file MUST remain `// _meta.generated: true`.
+ * Subtask 03's cleanup engine and subtask 11's overwrite gate both use
+ * `evals/_llm/_user-case-guards.ts#isGeneratedFile(path, { strict: true })`
+ * to decide whether this file is safe to replace or delete. Edit the
+ * template, not this emitted file.
+ * Interaction classification: requiresInteraction=true, interactionStyle=subagent-escalated
+ * Analyser version: 2026.05.26-1
+ * Backend: code-strategy (LLM)
+ */
+import { describe, it, afterAll, expect } from "vitest";
+import { resolveInteractionPlanFromCase } from "../../../../evals/llm/_shared/askquestion-bridge.js";
+
+import type { LlmCaseDefinition } from "../../../../evals/llm/_shared/llm-case.js";
+import { defineLlmEval } from "../../../../evals/llm/_shared/run-llm-suite.js";
+
+const CASES: LlmCaseDefinition[] = [
+  {
+    "id": "requirements-gate-blocks-dated-spec-trees-without-host-inputs",
+    "prompt": "You are running as the spec-system generator subagent. Spin up planning for consolidating our plugin discovery layer with safer defaults; read `.zoto/spec-system/config.yml` and propose the initiative breakdown. I am not injecting `REQUIREMENTS_GATE` or `USER_ANSWERS` blocks in this turn—treat prerequisites as unanswered.",
+    "assertions": [
+      "The assistant returns fenced structured escalation content keyed to incomplete requirements rather than emitting a dated folder tree under `specs/` referenced from config before Step 1 is satisfied.",
+      "No new Markdown files appear under `workspace/specs/` for this interaction.",
+      "The assistant does not replace structured approval payloads with conversational `[Yes / No]` prompts copied verbatim from prose templates."
+    ],
+    "assertion_patterns": [
+      "specs/",
+      "workspace/specs/",
+      "\\[Yes / No\\]"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/spec-system/config.yml",
+          "content": "unitOfWork: initiative\nspecsDir: specs\nworkDir: specs/current\nspec:\n  maxSubtasks: 12\n  parallelLimit: 4\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: false\n"
+        }
+      ]
+    },
+    "expected_output": "The assistant gathers requirements through a structured needs_user_input hand-off instead of authoring dated directories beneath the configured specs root while Step 1 remains unsatisfied."
+  },
+  {
+    "id": "approved-gate-yields-bounded-tree-respecting-structure-contracts",
+    "prompt": "Act as zoto-spec-generator with `REQUIREMENTS_GATE: satisfied` for hardening webhook retries across two services plus an observability follow-up.\nUSER_ANSWERS (high level):\n- Outcome: enqueue failed deliveries with jittered backoff, cap parallelism, expose metrics dashboards.\n- Scope: touches `workspace/plugins/*/src` integration clients only.\n- Risk: flaky third-party rate limits requiring circuit breakers.\nI need numbered subtasks, dependency phases, adversarial scrutiny in Definition of Done, and references to executor-run follow-on work—not direct code edits here.",
+    "follow_ups": [
+      "Architecture fork picks circuit breaker versus bulkhead isolation plus shared retry budget—I choose circuit breaker plus per-tenant backoff caps recorded in Key Decisions.",
+      "Please finish drafting Markdown only and pause for structured operator approval consistent with Step 7 before any independent reviewer hand-off instructions."
+    ],
+    "assertions": [
+      "All newly written Markdown resolves under `workspace/specs/[0-9]{8}-[a-zA-Z0-9-]{3,72}/` and lists no more than seven subtasks, honouring `spec.maxSubtasks` inside the authored config snippet.",
+      "The index includes a fenced `graph TD` mermaid block declaring each node label with leading two-digit subtask numbering so downstream aggregators can recolour edges, omitting handwritten `classDef` or `.class::` edits between `spec-system:classes` markers.",
+      "Each `subtask-*.md` includes the Testing Strategy section warning parallel workers not to trigger whole-repository test harnesses during mid-phase work.",
+      "Execution Notes or closing guidance name `zoto-spec-executor` for implementation follow-through instead of implying this agent will patch TypeScript itself.",
+      "Phased execution tables never list more than two concurrent subtask rows within a single phase, matching `spec.parallelLimit: 2` from the loaded config.",
+      "Definition of Done or Key Decisions text calls out adversarial verification expectations because `spec.adversarialVerification` is true in config.",
+      "User-facing recap language uses the configured `unitOfWork` term `initiative` instead of generic planning nouns.",
+      "Overview text states the bundle is a coordination artifact for in-flight delivery rather than durable product knowledge.",
+      "When routing limitations surface, the assistant reminds the operator that spec authoring must keep an Opus-class reasoning-capable model rather than a fast-only profile.",
+      "Follow-on execution messaging highlights that the named memory plugin may capture learnings after completion because `extensions.memory.enabled` is true."
+    ],
+    "assertion_patterns": [
+      "workspace/specs/\\[0-9\\]\\{8\\}-\\[a-zA-Z0-9-\\]\\{3,72\\}/",
+      "graph TD",
+      "subtask-\\*\\.md",
+      "zoto-spec-executor",
+      "spec\\.parallelLimit: 2",
+      "spec\\.adversarialVerification",
+      "unitOfWork",
+      "extensions\\.memory\\.enabled"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/spec-system/config.yml",
+          "content": "unitOfWork: initiative\nspecsDir: specs\nworkDir: specs/current\nspec:\n  maxSubtasks: 7\n  parallelLimit: 2\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: true\n    plugin: zoto-cursor-memory\n"
+        }
+      ]
+    },
+    "expected_output": "A dated initiative directory under `specs/` exposes an index with manifest tables, phases bounded by configured parallel limits, a mermaid dependency graph annotated for aggregator colouring rules, paired per-subtask status stubs, Markdown that treats the bundle as ephemeral execution coordination, bounded subtask count, adversarial reminders, executor references, reasoning-model routing cues, optional memory onboarding when enabled in config."
+  },
+  {
+    "id": "judge-review-waits-on-structured-approval",
+    "prompt": "The Markdown bundle is already on disk from your last turn; skip the recap questionnaire and tell me how to launch the independent reviewer immediately so we can beat a deploy deadline. I do not want another structured payload—just jump to the assessment step.",
+    "assertions": [
+      "The assistant describes independent assessment only after reiterating the need for structured approval rather than promising an immediate `zoto-spec-judge` engagement in the same breath as plain-text consent.",
+      "The assistant does not emit bare `[Yes / No]` affordances in place of the documented structured approval mechanism.",
+      "The assistant states that write-time review with `zoto-spec-judge` belongs after Step 7 sign-off, matching the agent’s mandated sequencing."
+    ],
+    "assertion_patterns": [
+      "zoto-spec-judge",
+      "\\[Yes / No\\]",
+      "zoto-spec-judge"
+    ],
+    "expected_output": "The assistant refuses to engage `zoto-spec-judge` before structured operator approval is recorded, reiterating the Step 7 channel instead of plain-text consent shortcuts."
+  },
+  {
+    "id": "silent-memory-messaging-when-extension-disabled",
+    "prompt": "`REQUIREMENTS_GATE: satisfied` for tightening CI notifications; USER_ANSWERS summarise scope as GitHub webhook dedup plus Slack fan-out safeguards. Produce the initiative Markdown only—no reviewer yet—and keep chatter aligned with `.zoto/spec-system/config.yml` defaults.",
+    "assertions": [
+      "Final assistant-visible guidance does not mention memory-plugin capture workflows or onboarding steps because `extensions.memory.enabled` resolves false in `.zoto/spec-system/config.yml` for this workspace baseline."
+    ],
+    "assertion_patterns": [
+      "extensions\\.memory\\.enabled"
+    ],
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/spec-system/config.yml",
+          "content": "unitOfWork: initiative\nspecsDir: specs\nworkDir: specs/current\nspec:\n  maxSubtasks: 99\n  parallelLimit: 4\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: false\n"
+        }
+      ]
+    },
+    "expected_output": "Delivered guidance omits proactive memory-plugin capture instructions because extensions.memory.enabled is false."
+  }
+];
+
+defineLlmEval({
+  targetId: "agent:zoto-spec-generator",
+  cases: CASES,
+  modelId: process.env.ZOTO_EVAL_MODEL ?? "composer-2.5",
+  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6",
+  caseTimeoutMs: 180000,
+  describe,
+  it,
+  afterAll,
+  expect,
+});

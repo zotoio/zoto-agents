@@ -75,7 +75,7 @@ function makePayload(
   return {
     schema_version: 1,
     analyser_version: "2026.05.03-1",
-    model_id: "composer-2",
+    model_id: "composer-2.5",
     target_id: `${kind}:${name}`,
     kind,
     source_path: sourcePath,

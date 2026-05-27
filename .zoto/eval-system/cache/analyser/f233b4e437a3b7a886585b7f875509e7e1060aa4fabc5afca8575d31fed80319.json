@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "command:z-spec-judge",
   "kind": "command",
   "source_path": "plugins/zoto-spec-system/commands/z-spec-judge.md",
@@ -11,16 +11,20 @@
     {
       "scenario": "Abort when Spec System config is absent",
       "prompt": "/z-spec-judge",
-      "expected_output": "The run stops before delegation, prints the initialisation error, and leaves specs without a new assessment report.",
+      "expected_output": "The invocation stops before any spawned judge runs, emitting only the mandated spec-system initialisation error and leaving no new assessment markdown behind.",
       "assertions": [
-        "After `/z-spec-judge`, the assistant output contains the exact text: Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.",
-        "After `/z-spec-judge`, no new `specs/assessment-repo-*.md` file appears and no file matching `specs/*/assessment-*-*.md` is created."
+        "When `.zoto/spec-system/config.yml` is absent at the repository root, the command does not spawn `zoto-spec-judge` and does not synthesise a replacement config file.",
+        "The surfaced text is exactly: Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.",
+        "After `/z-spec-judge`, the manifest records the `z-spec-judge` attempt and shows no completed hand-off to `zoto-spec-judge` because execution halted during precondition checking.",
+        "Judge assessments save under filenames matching `assessment-repo-<YYYYMMDD>.md` or `assessment-<spec-slug>-<YYYYMMDD>.md`.",
+        "Assessments score each spec against the documented rubric headings: `Completeness`, `Feasibility`, `Structure`, `Specificity`, `Risk Awareness`, and `Convention Compliance`.",
+        "The verdict line emits one of `Approve`, `Conditional`, or `Reject`."
       ]
     },
     {
       "scenario": "Repo-wide assessment writes rubric-backed report under specsDir",
-      "prompt": "/z-spec-judge",
-      "expected_output": "With Spec System initialised, the command delegates to `zoto-spec-judge`, produces a dated repository health report under `specs/`, and states a score with Approve, Conditional, or Reject per the documented cutoffs.",
+      "prompt": "/z-spec-judge @specs/20260508-refactor-llm-eval-approach",
+      "expected_output": "A fresh repository assessment report appears under the configured specs directory using the assessment-repo date-stamped filename pattern and summarises health across the six mandated review axes.",
       "fixtures": {
         "files": [
           {
@@ -33,16 +37,20 @@
         "Creates `.zoto/spec-system/config.yml` at the workspace root so the precondition passes and Mode 1 can run."
       ],
       "assertions": [
-        "After `/z-spec-judge`, the visible transcript records handing the work to `zoto-spec-judge` with an empty argument list before publishing scores.",
-        "After `/z-spec-judge`, a Markdown file matching `specs/assessment-repo-*.md` exists and its sections discuss completeness, feasibility, structure, specificity, risk awareness, and convention compliance of the repository.",
-        "That repository assessment names a numeric score and assigns Approve only at 4.0 or above, Conditional between 3.0 and 3.9 inclusive, or Reject below 3.0, consistent with the command table.",
-        "After `/z-spec-judge`, the delegated flow references the `zoto-judge-spec` skill name in operator-visible output before the report is finalized."
+        "After `/z-spec-judge` with no arguments, a new `zoto-spec-judge` subagent starts in isolation and receives empty `$ARGUMENTS` for the full-repo pass.",
+        "The subagent executes through the `zoto-judge-spec` skill while walking agents, skills, commands, hooks, automated tests, scripts, and configuration layout.",
+        "A markdown file is written to `{specsDir}/assessment-repo-[yyyymmdd].md` using the repo’s configured `{specsDir}` segment.",
+        "The written analysis visibly covers completeness, feasibility, structure, specificity, risk awareness, and convention compliance before stating any readiness opinion.",
+        "After `/z-spec-judge`, the manifest MUST record at least two targets tying the palette command to the repository assessment outcome.",
+        "Judge assessments save under filenames matching `assessment-repo-<YYYYMMDD>.md` or `assessment-<spec-slug>-<YYYYMMDD>.md`.",
+        "Assessments score each spec against the documented rubric headings: `Completeness`, `Feasibility`, `Structure`, `Specificity`, `Risk Awareness`, and `Convention Compliance`.",
+        "The verdict line emits one of `Approve`, `Conditional`, or `Reject`."
       ]
     },
     {
       "scenario": "Directory argument auto-finds index and audits spec depth",
-      "prompt": "/z-spec-judge specs/20260403-circuit-breaker-api",
-      "expected_output": "The judge resolves the directory, ingests the `spec-*.md` index and linked subtasks, evaluates the six dimensions in spec context, audits dependencies and subtask quality, and asks before editing spec Markdown.",
+      "prompt": "/z-spec-judge specs/20260403-feature-name",
+      "expected_output": "The spec assessment finishes, askQuestion prompts whether to apply structured fixes, accepted changes touch solely spec-side documents, and the assessment file records which remediations landed.",
       "fixtures": {
         "files": [
           {
@@ -65,16 +73,22 @@
         "Provides a linked subtask so subtask-quality and dependency checks have concrete material beyond the index page alone."
       ],
       "assertions": [
-        "After `/z-spec-judge specs/20260403-circuit-breaker-api`, the transcript shows the spawned `zoto-spec-judge` subagent receives that directory path in its forwarded arguments.",
-        "After `/z-spec-judge specs/20260403-circuit-breaker-api`, a Markdown report matching `specs/20260403-circuit-breaker-api/assessment-circuit-breaker-api-*.md` exists in the spec directory.",
-        "That spec assessment narrative explicitly discusses dependency graph integrity and the quality of individual subtasks, not only high-level goals.",
-        "Before proposing file-editing tool calls against spec sources, the assistant surfaces an explicit offer to apply recommended corrections limited to spec Markdown (index, subtasks, dependency graph materials)."
+        "For directory-scoped spec assessments the judge surfaces actionable findings and issues `askQuestion` before altering any spec index, subtask file, or dependency graph artifact.",
+        "When the operator accepts, modifications stay limited to spec markdown and dependency metadata—runtime service code and libraries remain untouched.",
+        "The assessment markdown is revised to spell out which automated fixes executed so reviewers see a complete audit trail.",
+        "After `/z-spec-judge`, the manifest MUST capture the `askQuestion` prompt prior to logging any write operations against spec paths.",
+        "Judge assessments save under filenames matching `assessment-repo-<YYYYMMDD>.md` or `assessment-<spec-slug>-<YYYYMMDD>.md`.",
+        "Assessments score each spec against the documented rubric headings: `Completeness`, `Feasibility`, `Structure`, `Specificity`, `Risk Awareness`, and `Convention Compliance`.",
+        "The verdict line emits one of `Approve`, `Conditional`, or `Reject`."
+      ],
+      "follow_ups": [
+        "Proceed with the remediation: tighten the listed subtasks, repair the dependency edges, and refresh the assessment appendix to list the edits you applied."
       ]
     },
     {
       "scenario": "Index file argument targets one spec tree",
-      "prompt": "/z-spec-judge specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md",
-      "expected_output": "The judge consumes the named index path directly and still writes the assessment beside that spec without requiring a separate directory-only invocation.",
+      "prompt": "/z-spec-judge specs/20260403-feature-name/spec-feature-name-20260403.md",
+      "expected_output": "Assessment is anchored on the supplied index file, keeps generated notes within the same spec directory hierarchy, and confines automatic edits later to spec artefacts only.",
       "fixtures": {
         "files": [
           {
@@ -97,8 +111,13 @@
         "Includes a dependent subtask file so the judge can verify linked content when given an explicit index path."
       ],
       "assertions": [
-        "After `/z-spec-judge specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md`, the delegated arguments mention that exact index path ending in `spec-circuit-breaker-api-20260403.md`.",
-        "After `/z-spec-judge specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md`, the assessment Markdown lands under `specs/20260403-circuit-breaker-api/` alongside the index file."
+        "After `/z-spec-judge specs/20260403-feature-name/spec-feature-name-20260403.md`, judgement work uses that explicit index path when resolving the spec package.",
+        "Report output remains co-located with the spec directory housing the named index instead of drifting into unrelated product modules.",
+        "Passive review inspects implementation areas only for verification and does not rewrite application source files before any optional fix offer.",
+        "After `/z-spec-judge`, the manifest MUST echo the precise file argument so traceability matches the operator-supplied path.",
+        "Judge assessments save under filenames matching `assessment-repo-<YYYYMMDD>.md` or `assessment-<spec-slug>-<YYYYMMDD>.md`.",
+        "Assessments score each spec against the documented rubric headings: `Completeness`, `Feasibility`, `Structure`, `Specificity`, `Risk Awareness`, and `Convention Compliance`.",
+        "The verdict line emits one of `Approve`, `Conditional`, or `Reject`."
       ]
     },
     {
@@ -134,5 +153,10 @@
         "After remediation completes, the assessment Markdown in that directory states which spec edits were applied, satisfying the documented post-fix logging expectation."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

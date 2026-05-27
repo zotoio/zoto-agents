@@ -27,17 +27,17 @@
 
 # ──────────────────────────────  backends  ───────────────────────────────────
 # `static` is the non-LLM backend (pytest for Python, vitest|jest for TS).
-# `llm` selects how LLM evals are emitted: `declarative` keeps a central
-# evals.json + runner.ts; `code` emits per-primitive *.test.ts files.
-# When llm.strategy is "code", llm.codeFramework MUST equal static.framework.
+# `llm` configures the single unified LLM harness — every non-skill primitive
+# emits a co-located `<kind>/evals/<name>.test.ts`. The runtime branch
+# (scripted askQuestion answers vs single sendPrompt) is decided per case by
+# the analyser's `requiresInteraction` flag — there is no `llm.strategy` /
+# `llm.codeFramework` knob.
 # static:
 #   framework: pytest          # pytest | vitest | jest
 # llm:
 #   runtime: tsx               # tsx | node
-#   strategy: declarative      # declarative | code
-#   codeFramework: vitest      # vitest | jest  (only meaningful when strategy=code)
 #   model:
-#     id: composer-2           # composer-2 | opus-4.6 | sonnet
+#     id: composer-2.5           # composer-2.5 | opus-4.6 | sonnet
 
 
 # ────────────────────────────────  judge  ────────────────────────────────────

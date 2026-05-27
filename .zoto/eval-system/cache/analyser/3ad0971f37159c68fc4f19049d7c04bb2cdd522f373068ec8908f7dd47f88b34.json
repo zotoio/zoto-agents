@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "command:z-eval-update",
   "kind": "command",
   "source_path": "plugins/zoto-eval-system/commands/z-eval-update.md",
@@ -12,10 +12,13 @@
       "scenario": "abort when eval-system configuration file is absent",
       "prompt": "/z-eval-update",
       "assertions": [
-        "Before any subagent spawn or filesystem mutation, the command MUST surface the exact single-line guidance that Eval System is not initialised and instruct running `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
-        "No regeneration helpers (`regeneratePytest`, `regenerateVitest`, `regenerateJest`, `regenerateLlmCode`, `regenerateLlmDeclarative`) run because execution stops at the precondition gate."
+        "When `.zoto/eval-system/config.yml` is missing at the repository root, `/z-eval-update` aborts with the exact message: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+        "No `zoto-eval-updater` subagent starts and no drift regeneration runs in this failure path.",
+        "Process exit codes are constrained to the documented set `{0, 2, 5}` (clean / critical drift / CI-no-analyser failure) per the update contract.",
+        "Cached-analyser CI runs emit the `[CI WARNING] --no-analyser` stderr banner before reusing payloads from `.zoto/eval-system/cache/analyser/`.",
+        "Case mutations are gated by `_meta.generated === true` — user-authored cases (missing `_meta`, or `_meta.generated === false`) are never touched."
       ],
-      "expected_output": "The operator sees only the initialisation failure message and no drift summaries or patch proposals."
+      "expected_output": "The command prints the initialisation error and stops before spawning helpers or touching manifests."
     },
     {
       "scenario": "rediscovery dry-run without apply writes nothing pending confirmation",
@@ -28,27 +31,30 @@
     },
     {
       "scenario": "scoped dry-run limits discovery output to targets matching glob",
-      "prompt": "/z-eval-update --target \"**/plugins/zoto-eval-system/commands/*.md\"",
+      "prompt": "/z-eval-update --target \"plugins/zoto-eval-system/commands/z-eval-*.md\"",
       "assertions": [
-        "Minimatch-style matching MUST evaluate against both `target.path` and `target.id` so only targets whose path or id satisfies the glob appear in the drift scope.",
-        "Non-interactive dry-run semantics remain in effect: no `--apply` flag means no confirmed writes even inside the narrowed scope."
+        "After `/z-eval-update --target \"plugins/zoto-eval-system/commands/z-eval-*.md\"`, drift findings exclude primitives outside the minimatch on `target.path` or `target.id`.",
+        "The command stays in dry-run posture, so no regeneration writes occur and no `askQuestion` prompts fire.",
+        "Process exit codes are constrained to the documented set `{0, 2, 5}` (clean / critical drift / CI-no-analyser failure) per the update contract.",
+        "Cached-analyser CI runs emit the `[CI WARNING] --no-analyser` stderr banner before reusing payloads from `.zoto/eval-system/cache/analyser/`.",
+        "Case mutations are gated by `_meta.generated === true` — user-authored cases (missing `_meta`, or `_meta.generated === false`) are never touched."
       ],
-      "expected_output": "Only commands whose tracked paths sit under the commands directory show up in the narrowed drift report while unrelated primitives stay omitted."
+      "expected_output": "Only command markdown targets whose recorded `target.path` or `target.id` matches the glob appear in the drift narrative, mirroring rediscovery semantics with a narrowed scope."
     },
     {
       "scenario": "interactive apply loops askQuestion and resumes until completion",
-      "prompt": "/z-eval-update --apply",
+      "prompt": "/z-eval-update --target \"command:z-eval-help\" --apply",
       "follow_ups": [
-        "Answer accept on the first `askQuestion` presenting a critical drift diff.",
-        "Answer reject on the next proposed change to prove per-change branching works."
+        "Keep only the first refreshed plan and discard the second suggestion"
       ],
       "assertions": [
-        "Each proposed regeneration MUST be mediated through `askQuestion` (accept, reject, edit, or skip-rest) rather than silent writes.",
-        "After each answer the orchestrator MUST resume the subagent with the chosen decision until no further `needs_user_input` payloads remain.",
-        "Accepted patches MUST refresh `.zoto/eval-system/manifest.yml`, bump metadata fields such as `git_ref` and `updated_at`, and append `.zoto/eval-system/manifest.history.yml`.",
-        "Helpers MUST refuse to overwrite files lacking the generated header and MUST refuse mutating cases flagged as user-authored per `_user-case-guards.ts`."
+        "After `/z-eval-update --target \"command:z-eval-help\" --apply`, `askQuestion` chatter and stamper dispatches mention solely targets that satisfy the provided glob.",
+        "Non-matching primitives do not receive new analyser invalidations or helper rewrites during this invocation.",
+        "Process exit codes are constrained to the documented set `{0, 2, 5}` (clean / critical drift / CI-no-analyser failure) per the update contract.",
+        "Cached-analyser CI runs emit the `[CI WARNING] --no-analyser` stderr banner before reusing payloads from `.zoto/eval-system/cache/analyser/`.",
+        "Case mutations are gated by `_meta.generated === true` — user-authored cases (missing `_meta`, or `_meta.generated === false`) are never touched."
       ],
-      "expected_output": "The closing summary JSON reports `{ mode, regenerated_targets, files_written, files_preserved_user_authored, user_cases_preserved, reports[] }` reflecting accepted versus skipped decisions."
+      "expected_output": "Apply mode runs, but regeneration and questioning only target `command:z-eval-help`, leaving other primitives alone for this pass."
     },
     {
       "scenario": "targeted apply regenerates only matched primitives",
@@ -66,24 +72,26 @@
       "scenario": "CI check runs parity gate then exits with configured drift codes",
       "prompt": "/z-eval-update --check",
       "assertions": [
-        "Execution MUST invoke `pnpm exec tsx scripts/check-analyser-payload-parity.ts` before emitting drift findings so `parity_drift` reflects that self-check.",
-        "Exit status MUST be `config.update.checkExitCodeOnCriticalDrift` when critical drift exists and zero when only non-critical drift or parity passes.",
-        "No `askQuestion` prompts appear because `--check` is fully non-interactive."
+        "After `/z-eval-update --check`, `pnpm exec tsx scripts/check-analyser-payload-parity.ts` finishes before drift reporting so `parity_drift` reflects that self-check.",
+        "No `askQuestion` calls occur in this mode.",
+        "The process exits with `config.update.checkExitCodeOnCriticalDrift` (default 2) on critical drift and 0 otherwise, matching `pnpm run eval:update -- --check` for automation hooks.",
+        "Process exit codes are constrained to the documented set `{0, 2, 5}` (clean / critical drift / CI-no-analyser failure) per the update contract.",
+        "Cached-analyser CI runs emit the `[CI WARNING] --no-analyser` stderr banner before reusing payloads from `.zoto/eval-system/cache/analyser/`.",
+        "Case mutations are gated by `_meta.generated === true` — user-authored cases (missing `_meta`, or `_meta.generated === false`) are never touched."
       ],
-      "expected_output": "Stderr or structured logs contain parity results followed by a concise drift verdict matching CI expectations."
+      "expected_output": "The command executes the parity script, emits structured `parity_drift`, stays fully non-interactive, and returns 0 when drift is non-critical or the configured failure exit code when drift is critical."
     },
     {
       "scenario": "reuse cached analyser payloads without LLM invalidation",
-      "prompt": "/z-eval-update --no-analyser --apply",
-      "follow_ups": [
-        "Confirm proceed when warned about cached payloads unless CI forbids it."
-      ],
+      "prompt": "/z-eval-update --check --no-analyser",
       "assertions": [
-        "The updater MUST skip `runAnalyser({ invalidate: true })` and reuse `_meta.primitive_analysis` blobs from `.zoto/eval-system/cache/analyser/` instead of issuing fresh LLM calls.",
-        "When `process.env.CI` equals the literal string `true`, stderr MUST include the documented `[CI WARNING] --no-analyser used in CI; cached analyser payloads may be stale and produce drift` banner.",
-        "If `update.failOnNoAnalyserInCI` is enabled while CI is active, the command MUST abort early with exit code 5 instead of regenerating."
+        "When `process.env.CI` equals `true`, stderr after `/z-eval-update --check --no-analyser` includes `[CI WARNING] --no-analyser used in CI; cached analyser payloads may be stale and produce drift`.",
+        "With `update.failOnNoAnalyserInCI` enabled, the same invocation aborts with exit code 5 before rewriting eval assets.",
+        "Process exit codes are constrained to the documented set `{0, 2, 5}` (clean / critical drift / CI-no-analyser failure) per the update contract.",
+        "Cached-analyser CI runs emit the `[CI WARNING] --no-analyser` stderr banner before reusing payloads from `.zoto/eval-system/cache/analyser/`.",
+        "Case mutations are gated by `_meta.generated === true` — user-authored cases (missing `_meta`, or `_meta.generated === false`) are never touched."
       ],
-      "expected_output": "Generation proceeds from cached analyser JSON without `CURSOR_API_KEY` traffic unless configuration escalates to a failure."
+      "expected_output": "In CI, stderr carries the prescribed warning when cached analyser payloads are reused, and an optional config switch upgrades that situation to a hard exit 5."
     },
     {
       "scenario": "abort when manifest.yml is missing after config loads",
@@ -94,5 +102,10 @@
       ],
       "expected_output": "The operator receives a clear failure that the manifest path could not be loaded rather than partial drift analysis."
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

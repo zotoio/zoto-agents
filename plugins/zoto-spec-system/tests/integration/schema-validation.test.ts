@@ -73,7 +73,7 @@ const SUBTASK_VARS: Record<string, string> = {
   subtask_id: "01",
   feature: "demo-feature",
   assigned_agent: "explore",
-  model: "composer-2-fast",
+  model: "composer-2.5-fast",
   token_budget: "200000",
   state: "in_progress",
   started_at: "2026-05-06T08:00:00.000Z",

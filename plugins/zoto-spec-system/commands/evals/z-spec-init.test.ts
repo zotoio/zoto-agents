@@ -1,0 +1,173 @@
+// _meta.generated: true
+/**
+ * LLM eval for command `z-spec-init`.
+ *
+ * Generated from the legacy declarative JSON eval payload by
+ * `scripts/eval-relocate-migration.ts` as part of spec
+ * `20260526-eval-single-backend-colocated-restructure` (subtask 08).
+ *
+ * The literal first line of this file MUST remain `// _meta.generated: true`.
+ * The cleanup engine and overwrite gate both use
+ * `plugins/zoto-eval-system/engine/_user-case-guards.ts#isGeneratedFile(path, { strict: true })`
+ * to decide whether this file is safe to replace or delete. Edit the
+ * source primitive and re-run `pnpm run eval:update --apply`, not this
+ * emitted file.
+ */
+import { describe, it, afterAll, expect } from "vitest";
+
+import type { LlmCaseDefinition } from "../../../../evals/llm/_shared/llm-case.js";
+import { defineLlmEval } from "../../../../evals/llm/_shared/run-llm-suite.js";
+
+const CASES = [
+  {
+    "id": 1,
+    "prompt": "/z-spec-init",
+    "assertions": [
+      "After `/z-spec-init`, `.zoto/spec-system/config.yml` exists under the resolved repository root with content byte-identical to `plugins/zoto-spec-system/templates/init-config.yml`.",
+      "The printed confirmation cites `plugins/zoto-spec-system/docs/config-schema.md` and reiterates that defaults remain inactive while every key stays commented.",
+      "The closing assistant output does not launch or delegate to `/z-spec-create`, `/z-spec-execute`, or `/z-spec-judge` in the same completion.",
+      "The write occurs after resolving the repository root from `CURSOR_WORKING_DIRECTORY` or the active working directory, so the path reported in the confirmation matches that root."
+    ],
+    "_meta": {
+      "generated": true,
+      "source_hash": "5c2ef61e64e46a9d21acff0b9208018d54830345ab4656e3398d8dbc8105de84",
+      "last_updated": "2026-05-26T03:22:55.819Z",
+      "generated_by": "zoto-create-evals",
+      "primitive_analysis": {
+        "source_hash": "5c2ef61e64e46a9d21acff0b9208018d54830345ab4656e3398d8dbc8105de84",
+        "analysed_at": "2026-05-26T03:22:55.819Z",
+        "analyser_version": "2026.05.26-1",
+        "summary": "This command only scaffolds `.zoto/spec-system/config.yml` from the bundled init template, blocking silent overwrites, honouring `--force`, and surfacing the documented error strings for missing templates or permission faults.",
+        "requiresInteraction": false,
+        "interactionStyle": "none"
+      }
+    },
+    "expected_output": "A single confirmation line that names the absolute path to `.zoto/spec-system/config.yml`, explains defaults stay commented until lines are uncommented, and points to `plugins/zoto-spec-system/docs/config-schema.md`, without proposing an immediate `/z-spec-create` run."
+  },
+  {
+    "id": 2,
+    "prompt": "/z-spec-init",
+    "assertions": [
+      "`/z-spec-init` ends unsuccessfully with copy that includes `.zoto/spec-system/config.yml already exists; pass --force to overwrite`.",
+      "The pre-seeded `.zoto/spec-system/config.yml` contents remain the single-line stub and are not replaced by the plugin template on this execution."
+    ],
+    "_meta": {
+      "generated": true,
+      "source_hash": "5c2ef61e64e46a9d21acff0b9208018d54830345ab4656e3398d8dbc8105de84",
+      "last_updated": "2026-05-26T03:22:55.819Z",
+      "generated_by": "zoto-create-evals",
+      "primitive_analysis": {
+        "source_hash": "5c2ef61e64e46a9d21acff0b9208018d54830345ab4656e3398d8dbc8105de84",
+        "analysed_at": "2026-05-26T03:22:55.819Z",
+        "analyser_version": "2026.05.26-1",
+        "summary": "This command only scaffolds `.zoto/spec-system/config.yml` from the bundled init template, blocking silent overwrites, honouring `--force`, and surfacing the documented error strings for missing templates or permission faults.",
+        "requiresInteraction": false,
+        "interactionStyle": "none",
+        "fixture_justifications": [
+          "Seeds `.zoto/spec-system/config.yml` so a second bare init must hit the documented exists-without-force branch rather than overwriting."
+        ]
+      }
+    },
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/spec-system/config.yml",
+          "content": "# operator-tuned stub\n"
+        }
+      ]
+    },
+    "expected_output": "Non-zero completion with the exact refusal string and no silent modification of the existing file."
+  },
+  {
+    "id": 3,
+    "prompt": "/z-spec-init --force",
+    "assertions": [
+      "Running `/z-spec-init --force` replaces `.zoto/spec-system/config.yml` with bytes matching `plugins/zoto-spec-system/templates/init-config.yml`, removing the stale marker line.",
+      "Stdout still includes the absolute path, the reminder that defaults stay commented until uncommented, and the `plugins/zoto/spec-system/docs/config-schema.md` reference."
+    ],
+    "_meta": {
+      "generated": true,
+      "source_hash": "5c2ef61e64e46a9d21acff0b9208018d54830345ab4656e3398d8dbc8105de84",
+      "last_updated": "2026-05-26T03:22:55.819Z",
+      "generated_by": "zoto-create-evals",
+      "primitive_analysis": {
+        "source_hash": "5c2ef61e64e46a9d21acff0b9208018d54830345ab4656e3398d8dbc8105de84",
+        "analysed_at": "2026-05-26T03:22:55.819Z",
+        "analyser_version": "2026.05.26-1",
+        "summary": "This command only scaffolds `.zoto/spec-system/config.yml` from the bundled init template, blocking silent overwrites, honouring `--force`, and surfacing the documented error strings for missing templates or permission faults.",
+        "requiresInteraction": false,
+        "interactionStyle": "none",
+        "fixture_justifications": [
+          "Provides an existing config file so `--force` can be validated as a full template rewrite instead of a no-op."
+        ]
+      }
+    },
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/spec-system/config.yml",
+          "content": "# stale marker for overwrite detection\n"
+        }
+      ]
+    },
+    "expected_output": "Success path matching the first-run confirmation: absolute path, commented-default reminder, and documentation pointer after the file is replaced."
+  },
+  {
+    "id": 4,
+    "prompt": "/z-spec-init",
+    "assertions": [
+      "When `plugins/zoto-spec-system/templates/init-config.yml` cannot be read from the resolved plugin checkout, stderr or termination text reports `templates/init-config.yml not found at` alongside the inspected location.",
+      "No substitute configuration body is synthesized; `.zoto/spec-system/config.yml` is not populated with improvised defaults after the lookup failure message."
+    ],
+    "_meta": {
+      "generated": true,
+      "source_hash": "5c2ef61e64e46a9d21acff0b9208018d54830345ab4656e3398d8dbc8105de84",
+      "last_updated": "2026-05-26T03:22:55.819Z",
+      "generated_by": "zoto-create-evals",
+      "primitive_analysis": {
+        "source_hash": "5c2ef61e64e46a9d21acff0b9208018d54830345ab4656e3398d8dbc8105de84",
+        "analysed_at": "2026-05-26T03:22:55.819Z",
+        "analyser_version": "2026.05.26-1",
+        "summary": "This command only scaffolds `.zoto/spec-system/config.yml` from the bundled init template, blocking silent overwrites, honouring `--force`, and surfacing the documented error strings for missing templates or permission faults.",
+        "requiresInteraction": false,
+        "interactionStyle": "none"
+      }
+    },
+    "expected_output": "A failing run that cites the missing templates path using the prescribed wording and stops before emitting the success banner or inventing YAML."
+  },
+  {
+    "id": 5,
+    "prompt": "/z-spec-init",
+    "assertions": [
+      "If mkdir or atomic write raises a permission denial, the surfaced error echoes the verbatim platform denial text supplied by the operating system.",
+      "Following the denial, the assistant does not print the one-line confirmation that bundles the absolute path plus the commented-default reminder required for successful writes."
+    ],
+    "_meta": {
+      "generated": true,
+      "source_hash": "5c2ef61e64e46a9d21acff0b9208018d54830345ab4656e3398d8dbc8105de84",
+      "last_updated": "2026-05-26T03:22:55.819Z",
+      "generated_by": "zoto-create-evals",
+      "primitive_analysis": {
+        "source_hash": "5c2ef61e64e46a9d21acff0b9208018d54830345ab4656e3398d8dbc8105de84",
+        "analysed_at": "2026-05-26T03:22:55.819Z",
+        "analyser_version": "2026.05.26-1",
+        "summary": "This command only scaffolds `.zoto/spec-system/config.yml` from the bundled init template, blocking silent overwrites, honouring `--force`, and surfacing the documented error strings for missing templates or permission faults.",
+        "requiresInteraction": false,
+        "interactionStyle": "none"
+      }
+    },
+    "expected_output": "A failing run showing the genuine operating-system refusal text rather than pretending the write succeeded."
+  }
+] as unknown as LlmCaseDefinition[];
+
+defineLlmEval({
+  targetId: "command:z-spec-init",
+  cases: CASES,
+  modelId: process.env.ZOTO_EVAL_MODEL ?? "composer-2.5",
+  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6",
+  caseTimeoutMs: 180000,
+  describe,
+  it,
+  afterAll,
+  expect,
+});

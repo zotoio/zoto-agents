@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "agent:zoto-spec-generator",
   "kind": "agent",
   "source_path": "plugins/zoto-spec-system/agents/zoto-spec-generator.md",
@@ -9,7 +9,7 @@
   "summary": "Evaluates configuration-driven spec scaffolding, gated clarification and approval turns, explore-before-write sequencing, mandatory dependency graphs and judge review, subtask testing discipline, memory-extension messaging, max-subtask limits, and refusal to treat specs as durable knowledge.",
   "cases": [
     {
-      "scenario": "configured directories drive scaffolding vocabulary",
+      "scenario": "configured-directories-drive-scaffolding-vocabulary",
       "prompt": "Break down the OAuth token refresh hardening effort into an executable engineering initiative with numbered subtasks; follow our spec-system workflow and honor whichever directories the repository configuration assigns.",
       "fixtures": {
         "files": [
@@ -33,11 +33,14 @@
         "Scheduling commentary acknowledges at most three concurrent subagents when parallel phases arise, honoring `spec.parallelLimit`.",
         "Planning or judge narration stresses adversarial verification expectations aligned with `spec.adversarialVerification` being true.",
         "When routing new intake items the agent references `planning/specs/current`, consistent with the configured `workDir`.",
-        "With memory disabled the assistant issues no unsolicited reminders about memory plugins capturing lessons."
+        "With memory disabled the assistant issues no unsolicited reminders about memory plugins capturing lessons.",
+        "Spec files land under `<yyyymmdd>-<feature-slug>/spec-<feature-slug>-<yyyymmdd>.md` (e.g. `20260507-oauth-refresh/spec-oauth-refresh-20260507.md`) inside the configured specs directory.",
+        "Per-subtask files follow the `subtask-NN-<slug>-<yyyymmdd>.md` naming pattern (e.g. `subtask-04-rate-limit-20260507.md`).",
+        "Mermaid graph node labels expose the numbered phase via leading `subtask-NN` substrings (e.g. `subtask-01`, `subtask-02`)."
       ]
     },
     {
-      "scenario": "command palette creation cadence",
+      "scenario": "command-palette-creation-cadence",
       "prompt": "/z-spec-create migrating our background job runner to a queue-backed Postgres worker pool with idempotent consumers—stay inside vendors we already operate.",
       "follow_ups": [
         "Budget stays on existing regions and binaries; no net-new hosted services beyond Postgres already running."
@@ -45,19 +48,25 @@
       "expected_output": "The assistant drives the guided creation flow with narrowly scoped clarifications, explores affected job runner code, confirms structural decisions, writes markdown planning artifacts exclusively under the specs directory from configuration, and finishes with judge output before closure.",
       "assertions": [
         "Clarifying prompts arrive at most once per assistant turn until scope constraints are settled.",
-        "No edits touch application source outside the spec-system markdown tree during planning."
+        "No edits touch application source outside the spec-system markdown tree during planning.",
+        "Spec files land under `<yyyymmdd>-<feature-slug>/spec-<feature-slug>-<yyyymmdd>.md` (e.g. `20260507-oauth-refresh/spec-oauth-refresh-20260507.md`) inside the configured specs directory.",
+        "Per-subtask files follow the `subtask-NN-<slug>-<yyyymmdd>.md` naming pattern (e.g. `subtask-04-rate-limit-20260507.md`).",
+        "Mermaid graph node labels expose the numbered phase via leading `subtask-NN` substrings (e.g. `subtask-01`, `subtask-02`)."
       ]
     },
     {
-      "scenario": "parallel-phase testing discipline",
+      "scenario": "parallel-phase-testing-discipline",
       "prompt": "Produce the structured initiative package for splitting monolithic payment webhook handling into modular validators; include phases that could run concurrently once execution starts.",
       "expected_output": "Subtask markdown repeats that parallel phases must run targeted tests only and defer whole-repository suites until later verification.",
       "assertions": [
-        "Every authored subtask file carries explicit guidance forbidding repository-wide automated tests during parallel execution phases."
+        "Every authored subtask file carries explicit guidance forbidding repository-wide automated tests during parallel execution phases.",
+        "Spec files land under `<yyyymmdd>-<feature-slug>/spec-<feature-slug>-<yyyymmdd>.md` (e.g. `20260507-oauth-refresh/spec-oauth-refresh-20260507.md`) inside the configured specs directory.",
+        "Per-subtask files follow the `subtask-NN-<slug>-<yyyymmdd>.md` naming pattern (e.g. `subtask-04-rate-limit-20260507.md`).",
+        "Mermaid graph node labels expose the numbered phase via leading `subtask-NN` substrings (e.g. `subtask-01`, `subtask-02`)."
       ]
     },
     {
-      "scenario": "memory extension acknowledgment",
+      "scenario": "memory-extension-acknowledgment",
       "prompt": "Stand up the rate-limit telemetry dashboards initiative through our standard spec workflow so downstream agents know how to instrument collectors.",
       "fixtures": {
         "files": [
@@ -72,11 +81,14 @@
       ],
       "expected_output": "After judging completes the assistant closes by noting the named memory plugin may ingest lessons once execution finishes.",
       "assertions": [
-        "Final messaging mentions that `org-memory-recorder` may capture learnings after execution while clarifying this agent does not perform memory writes itself."
+        "Final messaging mentions that `org-memory-recorder` may capture learnings after execution while clarifying this agent does not perform memory writes itself.",
+        "Spec files land under `<yyyymmdd>-<feature-slug>/spec-<feature-slug>-<yyyymmdd>.md` (e.g. `20260507-oauth-refresh/spec-oauth-refresh-20260507.md`) inside the configured specs directory.",
+        "Per-subtask files follow the `subtask-NN-<slug>-<yyyymmdd>.md` naming pattern (e.g. `subtask-04-rate-limit-20260507.md`).",
+        "Mermaid graph node labels expose the numbered phase via leading `subtask-NN` substrings (e.g. `subtask-01`, `subtask-02`)."
       ]
     },
     {
-      "scenario": "maxSubtasks ceiling binds decomposition",
+      "scenario": "maxsubtasks-ceiling-binds-decomposition",
       "prompt": "Produce the finest-grained feasible decomposition for rewriting our configuration loader while preserving backward compatibility across every consumer surface.",
       "fixtures": {
         "files": [
@@ -91,16 +103,27 @@
       ],
       "expected_output": "The assistant respects the five-subtask ceiling while still delivering coherent phased coverage and completes judge review.",
       "assertions": [
-        "The subtask manifest enumerates at most five numbered initiatives matching `spec.maxSubtasks`."
+        "The subtask manifest enumerates at most five numbered initiatives matching `spec.maxSubtasks`.",
+        "Spec files land under `<yyyymmdd>-<feature-slug>/spec-<feature-slug>-<yyyymmdd>.md` (e.g. `20260507-oauth-refresh/spec-oauth-refresh-20260507.md`) inside the configured specs directory.",
+        "Per-subtask files follow the `subtask-NN-<slug>-<yyyymmdd>.md` naming pattern (e.g. `subtask-04-rate-limit-20260507.md`).",
+        "Mermaid graph node labels expose the numbered phase via leading `subtask-NN` substrings (e.g. `subtask-01`, `subtask-02`)."
       ]
     },
     {
-      "scenario": "decline immortalizing coordination markdown",
+      "scenario": "decline-immortalizing-coordination-markdown",
       "prompt": "The OAuth initiative package reads perfectly—mirror its narrative into `docs/architecture` as everlasting reference material and delete the dated copies under specs.",
       "expected_output": "The assistant refuses to promote spec markdown into permanent architecture canon or discard audit-oriented coordination artifacts, reaffirming their ephemeral role.",
       "assertions": [
-        "The assistant rejects relocating spec narratives into immortal documentation hierarchies outside the spec-system workflow."
+        "The assistant rejects relocating spec narratives into immortal documentation hierarchies outside the spec-system workflow.",
+        "Spec files land under `<yyyymmdd>-<feature-slug>/spec-<feature-slug>-<yyyymmdd>.md` (e.g. `20260507-oauth-refresh/spec-oauth-refresh-20260507.md`) inside the configured specs directory.",
+        "Per-subtask files follow the `subtask-NN-<slug>-<yyyymmdd>.md` naming pattern (e.g. `subtask-04-rate-limit-20260507.md`).",
+        "Mermaid graph node labels expose the numbered phase via leading `subtask-NN` substrings (e.g. `subtask-01`, `subtask-02`)."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

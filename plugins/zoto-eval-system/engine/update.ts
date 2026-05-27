@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Diff-aware eval updater (subtask 11 — eval-system v2 rewrite).
+ * Diff-aware eval updater.
  *
  * CORE CONTRACT — ENFORCED AT RUNTIME AND AT COMPILE TIME:
  *
@@ -9,32 +9,49 @@
  *      when its first line carries the `// _meta.generated: true` (or
  *      `# _meta.generated: True`) marker.
  *
- * Both invariants funnel through the canonical guards owned by subtask 09
- * at `evals/_llm/_user-case-guards.ts` (`isGeneratedCase` /
- * `isGeneratedFile`). This file is a CONSUMER and never re-implements the
- * predicates.
+ * Both invariants funnel through the canonical guards at
+ * `plugins/zoto-eval-system/engine/_user-case-guards.ts`
+ * (`isGeneratedCase` / `isGeneratedFile`). This file is a CONSUMER and
+ * never re-implements the predicates.
  *
- * Architecture:
+ * Architecture (post single-backend collapse — KD-2 / KD-3 of
+ * `spec-eval-single-backend-colocated-restructure-20260526`):
  *
  *   parseArgs ─► main() ─► dispatchRegeneration() ─► regenerate{Pytest,
  *                                                                Vitest,
  *                                                                Jest,
- *                                                                LlmCode,
- *                                                                LlmDeclarative}
+ *                                                                Llm}
  *
- * Each framework helper:
+ * The static-framework helpers (`regeneratePytest`, `regenerateVitest`,
+ * `regenerateJest`) keep their separate dispatch — operators still pick a
+ * single static backend per repo. The LLM branch collapsed into a single
+ * `regenerateLlm` helper that:
+ *
+ *   - For non-skill primitives: stamps the co-located
+ *     `<kind-dir>/evals/<name>.test.ts` via the unified
+ *     `stampTarget(...)` emitter from `scripts/eval-stamp.ts`.
+ *   - For skills (KD-1 — skills retain `evals.json`): surgically merges
+ *     generated rows into the existing `evals/evals.json`, preserving
+ *     user-authored rows byte-identical via `json-source-map`. Rows whose
+ *     stamped payload is `isDeepStrictEqual` to the existing value skip
+ *     replacement.
+ *   - For rules: skipped (rules are not eval-stamped).
+ *
+ * Each helper:
  *   - Resolves an `AnalyserPayload` (fresh via `runAnalyser`, cached under
  *     `--no-analyser` or when `CI=true` defaults to cached payloads unless
  *     overridden with `--with-analyser`).
  *   - Calls `isGeneratedFile(path)` before overwriting any test file.
- *   - For declarative `evals.json`, calls `isGeneratedCase(c)` first and
- *     uses `json-source-map` to surgically replace generated rows while
- *     leaving user-authored rows byte-identical. Rows whose stamped payload
- *     is `isDeepStrictEqual` to the existing value skip replacement. No
- *     generated rows yet implies a user-only file — injecting machine cases
- *     requires `--overwrite` (mirroring test-file guards).
+ *   - Calls `isGeneratedCase(c)` before mutating any case row.
  *   - Returns a structured report; the dispatcher aggregates and updates
  *     the manifest + appends to `manifest.history.yml`.
+ *
+ * Drift detection (`--check`) ALSO surfaces *layout drift* — files that
+ * still live at the legacy locations (`evals/llm/test_*.test.ts` for the
+ * old central LLM tree; `plugins/<plugin>/evals/{commands,agents,hooks}/<name>.json`
+ * for the old declarative central JSON tree) are reported with the
+ * expected new co-located path so the migration script in subtask 08 has
+ * a deterministic source-of-truth list.
  *
  * This file is parsed as a string by the plugin validator, which searches
  * for the literal guard expression: `_meta?.generated === true`.
@@ -73,20 +90,20 @@ import {
   loadRawConfigDiscoveryTargets,
   readManifestSnapshot,
   type ManifestSnapshot,
+  type StaticFramework,
 } from "./manifest-snapshot.js";
 import {
+  resolveTarget,
   runAnalyser,
   AnalyserError,
   type AnalyserPayload,
 } from "../../../scripts/eval-analyse.ts";
 import {
-  buildDeclarativeStampedCase,
+  resolveLlmTargetPath,
   stampJestPerPrimitive,
-  stampLlmCodeStrategy,
-  stampLlmDeclarativeStrategy,
   stampPytestPerPrimitive,
+  stampTarget,
   stampVitestPerPrimitive,
-  type LlmCodeFramework,
   type PrimitiveMeta,
 } from "../../../scripts/eval-stamp.ts";
 
@@ -122,6 +139,7 @@ export interface ParsedArgs {
   mode: Mode;
   glob: string | null;
   noAnalyser: boolean;
+  withAnalyser: boolean;
   /** When true, regenerates overwrite files missing the `_meta.generated` guard. */
   overwrite: boolean;
 }
@@ -157,12 +175,13 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (positional.length > 0) glob = positional[0] ?? null;
   }
 
-  if (check) return { mode: "check", glob, noAnalyser, overwrite };
+  if (check) return { mode: "check", glob, noAnalyser, withAnalyser: explicitWithAnalyser, overwrite };
   if (glob) {
     return {
       mode: apply ? "targeted-apply" : "targeted-dry",
       glob,
       noAnalyser,
+      withAnalyser: explicitWithAnalyser,
       overwrite,
     };
   }
@@ -170,6 +189,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     mode: apply ? "rediscovery-apply" : "rediscovery-dry",
     glob: null,
     noAnalyser,
+    withAnalyser: explicitWithAnalyser,
     overwrite,
   };
 }
@@ -200,6 +220,29 @@ function resolveUpdatePaths(repoRoot: string): { manifestPath: string; historyPa
 function loadManifestAt(manifestPath: string): Record<string, unknown> | null {
   if (!existsSync(manifestPath)) return null;
   return YAML.parse(readFileSync(manifestPath, "utf-8")) as Record<string, unknown>;
+}
+
+/**
+ * Merge a refreshed (targeted-scope) target list back into the full manifest
+ * baseline so a `--target <glob>` apply does not truncate the persisted
+ * manifest. Refreshed entries overwrite baseline rows with the same id;
+ * baseline rows without a refreshed counterpart are preserved verbatim;
+ * brand-new targets in the refreshed scope (not previously in baseline) are
+ * appended to the end. Ordering of pre-existing baseline rows is preserved.
+ */
+function mergeTargetsBaseline(
+  baseline: TargetSnapshot[],
+  refreshed: TargetSnapshot[],
+): TargetSnapshot[] {
+  const refreshedById = new Map(refreshed.map((t) => [t.id, t]));
+  const baselineIds = new Set(baseline.map((t) => t.id));
+  const merged: TargetSnapshot[] = baseline.map(
+    (t) => refreshedById.get(t.id) ?? t,
+  );
+  for (const t of refreshed) {
+    if (!baselineIds.has(t.id)) merged.push(t);
+  }
+  return merged;
 }
 
 function headSha(): string {
@@ -921,48 +964,165 @@ export function regenerateJest(opts: RegenerationCommonOpts): RegenerationReport
 }
 
 /**
- * Regenerate the per-primitive `*.test.ts` file under `evals/llm/` with
- * the `// _meta.generated: true` first-line guard.
+ * Regenerate the LLM eval artefact for a single target.
+ *
+ * Single co-located emitter (KD-2 / KD-3 of the single-backend
+ * restructure):
+ *
+ *   - **command / agent / hook** → stamp the co-located
+ *     `<kind-dir>/evals/<name>.test.ts` via `stampTarget(...)` from
+ *     `scripts/eval-stamp.ts`. The stamper produces vitest-shaped tests
+ *     with the literal `// _meta.generated: true` first-line marker so
+ *     the file-level guard recognises subsequent regenerations.
+ *   - **skill** (KD-1 — skills retain `evals.json`) → surgically merge
+ *     generated rows into the existing `evals/evals.json`, preserving
+ *     user-authored rows byte-identical via `json-source-map`. Rows
+ *     whose stamped payload is `isDeepStrictEqual` to the existing value
+ *     skip replacement.
+ *   - **rule** → not eval-stamped; skipped with a note.
+ *
+ * Both paths gate writes through the canonical case- and file-level
+ * guards (`isGeneratedCase` / `isGeneratedFile`) so a user-authored case
+ * row or test file is preserved verbatim. The generated-case partition
+ * is enforced by `_user-case-guards.ts`.
  */
-export function regenerateLlmCode(opts: RegenerationCommonOpts): RegenerationReport {
-  const report = newRegenerationReport(opts.target.id, null, "code");
-  const primitive = buildPrimitiveMeta(opts.payload, opts.target);
-  const codeFramework: LlmCodeFramework =
-    (opts.snapshot.llm.codeFramework as LlmCodeFramework) ?? "vitest";
-  const llm = (opts.config.llm as Record<string, unknown> | undefined) ?? {};
-  const model = (llm.model as Record<string, unknown> | undefined) ?? {};
-  const modelId = typeof model.id === "string" ? model.id : "composer-2";
-  const judgeModel =
-    typeof opts.config.judgeModel === "string"
-      ? (opts.config.judgeModel as string)
-      : "opus-4.6";
-  const outPath = join(
+export async function regenerateLlm(
+  opts: RegenerationCommonOpts,
+): Promise<RegenerationReport> {
+  const report = newRegenerationReport(opts.target.id, null, "llm");
+
+  // Skills retain their `evals.json` (KD-1) — surgically merge generated
+  // rows into the existing JSON, preserving user-authored rows.
+  if (opts.target.kind === "skill") {
+    return regenerateSkillEvalsJson(opts, report);
+  }
+
+  // Rules are not eval-stamped.
+  if (opts.target.kind === "rule") {
+    report.notes.push("skipped_rule: rules are not eval-stamped");
+    return report;
+  }
+
+  // Non-skill primitives stamp the co-located test file at
+  // `<kind-dir>/evals/<name>.test.ts`. Resolve the new path so the
+  // file-level guard fires before `stampTarget` touches disk.
+  const resolved = resolveTarget(opts.target.id, opts.hostRepoRoot);
+  if (!resolved) {
+    report.notes.push(`unresolved_target: ${opts.target.id}`);
+    return report;
+  }
+  const newPath = resolveLlmTargetPath(resolved);
+  if (!newPath) {
+    report.notes.push(`no_co_located_path: ${opts.target.id}`);
+    return report;
+  }
+
+  // File-level guard: refuse to overwrite a user-authored test file
+  // that lacks the `// _meta.generated: true` marker.
+  if (existsSync(newPath) && !opts.overwrite && !isGeneratedFile(newPath)) {
+    report.files_preserved.push(newPath);
+    report.notes.push(
+      `manual_merge_required: regenerateLlm would overwrite user-authored ${relative(opts.hostRepoRoot, newPath)} (no _meta.generated marker)`,
+    );
+    return report;
+  }
+
+  const stampResult = await stampTarget(
     opts.hostRepoRoot,
-    "evals",
-    "llm",
-    `test_${primitive.slug}.test.ts`,
-  );
-  guardedFileWrite(
-    report,
-    outPath,
-    () => {
-      const r = stampLlmCodeStrategy(
-        opts.hostRepoRoot,
-        opts.payload,
-        primitive,
-        {
-          codeFramework,
-          modelId,
-          judgeModel,
-          dryRun: opts.dryRun,
-          bypassGuard: true,
-        },
-      );
-      return r.written;
+    opts.target.id,
+    opts.payload,
+    {
+      dryRun: opts.dryRun,
+      sourcePath: opts.target.path,
     },
-    "regenerateLlmCode",
-    Boolean(opts.overwrite),
   );
+
+  if (stampResult.skipped === "skill" || stampResult.skipped === "rule") {
+    report.notes.push(`skipped_${stampResult.skipped}: ${stampResult.note ?? ""}`);
+    return report;
+  }
+
+  if (stampResult.written) {
+    const absPath = resolve(opts.hostRepoRoot, stampResult.path);
+    report.files_written.push(absPath);
+  } else if (opts.dryRun) {
+    report.notes.push(
+      `dry-run: would update ${stampResult.path}`,
+    );
+  }
+
+  return report;
+}
+
+/**
+ * Skill-only declarative regen path (KD-1). Surgically merges generated
+ * rows into the skill's existing `evals/evals.json`, preserving every
+ * user-authored row byte-identically.
+ */
+function regenerateSkillEvalsJson(
+  opts: RegenerationCommonOpts,
+  report: RegenerationReport,
+): RegenerationReport {
+  const evalFiles = opts.target.eval_files ?? [];
+  const evalFile =
+    evalFiles[0] ?? inferDefaultEvalFilePath(opts.hostRepoRoot, opts.target);
+  if (!evalFile) {
+    report.notes.push("no_eval_file: skill has no covering evals.json");
+    return report;
+  }
+  const abs = resolve(opts.hostRepoRoot, evalFile);
+
+  const stamped = opts.payload.cases.map((_, i) =>
+    buildSkillStampedCase(opts.payload, i, new Date().toISOString()),
+  );
+
+  if (!existsSync(abs)) {
+    if (opts.dryRun) {
+      report.cases_added = stamped.length;
+      report.notes.push(`dry-run: would create ${relative(opts.hostRepoRoot, abs)}`);
+      return report;
+    }
+    mkdirSync(dirname(abs), { recursive: true });
+    const fileBody = serialiseFreshEvalFile(opts.target, stamped);
+    writeFileSync(abs, fileBody, "utf-8");
+    report.files_written.push(abs);
+    report.cases_added = stamped.length;
+    return report;
+  }
+
+  // Mixed-file path: surgical replacement preserving user-authored rows.
+  const raw = readFileSync(abs, "utf-8");
+  if (opts.noAnalyser) {
+    mergePrimitiveAnalysisInvalidateFromExisting(raw, stamped);
+  }
+  const result = surgicallyReplaceGeneratedCases(raw, stamped);
+  report.cases_replaced = result.replaced;
+  report.cases_added = result.added;
+  report.cases_removed = result.removed;
+  report.user_cases_preserved = result.userPreserved;
+  if (result.casesGuarded > 0) {
+    report.notes.push(
+      `case-level guard skipped ${result.casesGuarded} non-generated case(s) — preserved verbatim`,
+    );
+  }
+  if (result.text !== raw) {
+    const wouldInjectIntoUserOnly =
+      stamped.length > 0 &&
+      !skillEvalsJsonHasGeneratedRow(raw) &&
+      !opts.overwrite;
+    if (wouldInjectIntoUserOnly) {
+      report.files_preserved.push(abs);
+      report.notes.push(
+        `manual_merge_required: skill eval would add generated cases to user-authored-only ${relative(opts.hostRepoRoot, abs)} (pass --overwrite)`,
+      );
+    } else if (opts.dryRun) {
+      report.notes.push(`dry-run: would update ${relative(opts.hostRepoRoot, abs)}`);
+      report.files_written.push(abs);
+    } else {
+      writeFileSync(abs, result.text, "utf-8");
+      report.files_written.push(abs);
+    }
+  }
   return report;
 }
 
@@ -1001,8 +1161,8 @@ function mergePrimitiveAnalysisInvalidateFromExisting(
   }
 }
 
-/** True when the on-disk declarative JSON already contains at least one generated case. */
-function declarativeEvalJsonHasGeneratedRow(raw: string): boolean {
+/** True when the on-disk skill `evals.json` already contains at least one generated case. */
+function skillEvalsJsonHasGeneratedRow(raw: string): boolean {
   try {
     const data = JSON.parse(raw) as EvalFile;
     return casesOf(data).some((c) => isGeneratedCase(c));
@@ -1012,80 +1172,95 @@ function declarativeEvalJsonHasGeneratedRow(raw: string): boolean {
 }
 
 /**
- * Regenerate generated cases inside a declarative `evals.json` while
- * preserving user-authored cases byte-identically. Uses
- * `json-source-map` for surgical AST-position replacement so unchanged
- * regions of the file are not reformatted.
+ * Build a stamped skill case row from a cached LLM analyser payload.
+ *
+ * Inlined locally so `regenerateSkillEvalsJson` does not depend on
+ * symbols that the single-backend collapse retired from the central
+ * stamper. Mirrors the historical
+ * `eval-stamp.ts#buildDeclarativeStampedCase` shape so the existing skill
+ * `evals.json` schema (and subtask 11's surgical merge) keeps its
+ * stamped rows byte-identical when the analyser output is unchanged.
  */
-export function regenerateLlmDeclarative(
-  opts: RegenerationCommonOpts,
-): RegenerationReport {
-  const report = newRegenerationReport(opts.target.id, null, "declarative");
+interface SkillStampedCaseRow {
+  id: number;
+  prompt: string;
+  assertions: string[];
+  fixtures?: { files: Array<{ path: string; content?: string; from?: string }> };
+  expected_filesystem?: {
+    created?: string[];
+    modified?: string[];
+    removed?: string[];
+    unchanged?: string[];
+  };
+  expected_output?: string;
+  graders?: Array<Record<string, unknown>>;
+  _meta: {
+    generated: true;
+    source_hash: string;
+    last_updated: string;
+    generated_by: "zoto-create-evals";
+    primitive_analysis: {
+      source_hash: string;
+      analysed_at: string;
+      analyser_version: string;
+      summary: string;
+      fixture_justifications?: string[];
+    };
+  };
+}
 
-  // Find the eval file path. Prefer the manifest snapshot's eval_files;
-  // fall back to inferring the conventional location.
-  const evalFiles = opts.target.eval_files ?? [];
-  const evalFile =
-    evalFiles[0] ??
-    inferDefaultEvalFilePath(opts.hostRepoRoot, opts.target);
-  if (!evalFile) {
-    report.notes.push("no_eval_file: target has no covering evals.json");
-    return report;
-  }
-  const abs = resolve(opts.hostRepoRoot, evalFile);
-
-  const stamped = opts.payload.cases.map((_, i) =>
-    buildDeclarativeStampedCase(opts.payload, i, new Date().toISOString()),
-  );
-
-  if (!existsSync(abs)) {
-    if (opts.dryRun) {
-      report.cases_added = stamped.length;
-      report.notes.push(`dry-run: would create ${relative(opts.hostRepoRoot, abs)}`);
-      return report;
-    }
-    mkdirSync(dirname(abs), { recursive: true });
-    const fileBody = serialiseFreshEvalFile(opts.target, stamped);
-    writeFileSync(abs, fileBody, "utf-8");
-    report.files_written.push(abs);
-    report.cases_added = stamped.length;
-    return report;
-  }
-
-  // Mixed-file path: surgical replacement preserving user-authored rows.
-  const raw = readFileSync(abs, "utf-8");
-  if (opts.noAnalyser) {
-    mergePrimitiveAnalysisInvalidateFromExisting(raw, stamped);
-  }
-  const result = surgicallyReplaceGeneratedCases(raw, stamped);
-  report.cases_replaced = result.replaced;
-  report.cases_added = result.added;
-  report.cases_removed = result.removed;
-  report.user_cases_preserved = result.userPreserved;
-  if (result.casesGuarded > 0) {
-    report.notes.push(
-      `case-level guard skipped ${result.casesGuarded} non-generated case(s) — preserved verbatim`,
+function buildSkillStampedCase(
+  payload: AnalyserPayload,
+  caseIdx: number,
+  nowIso: string,
+): SkillStampedCaseRow {
+  const c = payload.cases[caseIdx];
+  if (!c) {
+    throw new Error(
+      `buildSkillStampedCase: payload has no case at index ${caseIdx}`,
     );
   }
-  if (result.text !== raw) {
-    const wouldInjectIntoUserOnly =
-      stamped.length > 0 &&
-      !declarativeEvalJsonHasGeneratedRow(raw) &&
-      !opts.overwrite;
-    if (wouldInjectIntoUserOnly) {
-      report.files_preserved.push(abs);
-      report.notes.push(
-        `manual_merge_required: declarative eval would add generated cases to user-authored-only ${relative(opts.hostRepoRoot, abs)} (pass --overwrite)`,
-      );
-    } else if (opts.dryRun) {
-      report.notes.push(`dry-run: would update ${relative(opts.hostRepoRoot, abs)}`);
-      report.files_written.push(abs);
-    } else {
-      writeFileSync(abs, result.text, "utf-8");
-      report.files_written.push(abs);
-    }
+  if (!Array.isArray(c.assertions) || c.assertions.length === 0) {
+    throw new Error(
+      `Refusing to stamp skill case for ${payload.target_id}#${caseIdx}: no assertions in analyser payload`,
+    );
   }
-  return report;
+  const row: SkillStampedCaseRow = {
+    id: caseIdx + 1,
+    prompt: c.prompt,
+    assertions: c.assertions.slice(),
+    _meta: {
+      generated: true,
+      source_hash: payload.source_hash,
+      last_updated: nowIso,
+      generated_by: "zoto-create-evals",
+      primitive_analysis: {
+        source_hash: payload.source_hash,
+        analysed_at: nowIso,
+        analyser_version: payload.analyser_version,
+        summary: payload.summary,
+        ...(c.fixture_justifications && c.fixture_justifications.length > 0
+          ? { fixture_justifications: c.fixture_justifications.slice() }
+          : {}),
+      },
+    },
+  };
+  if (c.fixtures?.files?.length) {
+    row.fixtures = {
+      files: c.fixtures.files.map((f) => ({
+        path: f.path,
+        ...(f.content !== undefined ? { content: f.content } : {}),
+        ...(f.from !== undefined ? { from: f.from } : {}),
+      })),
+    };
+  }
+  if (c.expected_filesystem) {
+    row.expected_filesystem = c.expected_filesystem;
+  }
+  if (typeof c.expected_output === "string" && c.expected_output.length > 0) {
+    row.expected_output = c.expected_output;
+  }
+  return row;
 }
 
 function inferDefaultEvalFilePath(
@@ -1278,32 +1453,41 @@ export function surgicallyReplaceGeneratedCases(
   };
 }
 
+function resolveStaticFrameworkFromOpts(
+  opts: RegenerationCommonOpts,
+): StaticFramework | undefined {
+  if (opts.snapshot.static.framework) return opts.snapshot.static.framework;
+  const fw = (opts.config.static as Record<string, unknown> | undefined)?.framework;
+  return fw === "pytest" || fw === "vitest" || fw === "jest" ? fw : undefined;
+}
+
 /**
- * Top-level dispatcher. Routes a regeneration request through the
- * framework- and strategy-specific helpers based on the manifest
- * snapshot's `static.framework` and `llm.strategy` fields.
+ * Top-level dispatcher. Routes regeneration through:
+ *
+ *   - The configured static framework helper (`regeneratePytest` /
+ *     `regenerateVitest` / `regenerateJest`) when one is set on the
+ *     manifest snapshot or `config.yml#/static/framework`. Operators
+ *     still pick a single static backend per repo — the static
+ *     dispatchers stay separate.
+ *   - The unified `regenerateLlm` helper (always invoked) — there is no
+ *     longer a strategy split. The single emitter co-locates one
+ *     `<kind-dir>/evals/<name>.test.ts` per non-skill primitive and
+ *     surgically merges generated rows into the skill `evals.json`
+ *     when the target is a skill.
  */
 export async function dispatchRegeneration(
   opts: RegenerationCommonOpts,
 ): Promise<RegenerationReport[]> {
   const reports: RegenerationReport[] = [];
-  const fw = opts.snapshot.static.framework;
-  const strategy = opts.snapshot.llm.strategy;
+  const fw = resolveStaticFrameworkFromOpts(opts);
 
-  // Static-framework regeneration
+  // Static-framework regeneration (separate dispatch — pick-one model).
   if (fw === "pytest") reports.push(regeneratePytest(opts));
   else if (fw === "vitest") reports.push(regenerateVitest(opts));
   else if (fw === "jest") reports.push(regenerateJest(opts));
 
-  // LLM-strategy regeneration
-  if (strategy === "code") reports.push(regenerateLlmCode(opts));
-  else if (strategy === "declarative") reports.push(regenerateLlmDeclarative(opts));
-
-  // When neither strategy is configured, fall back to declarative so
-  // existing skill/agent/command evals.json files still get refreshed.
-  if (!strategy && !fw) {
-    reports.push(regenerateLlmDeclarative(opts));
-  }
+  // Unified LLM regeneration — single co-located emitter per primitive.
+  reports.push(await regenerateLlm(opts));
 
   return reports;
 }
@@ -1332,6 +1516,172 @@ function loadCachedAnalyserPayload(
     }
   }
   return null;
+}
+
+/**
+ * Resolve the stamped LLM eval test path for a manifest target id.
+ *
+ * Returns the absolute path to the new co-located emitter target —
+ * `<kind-dir>/evals/<name>.test.ts` — produced by
+ * `resolveLlmTargetPath()` in `scripts/eval-stamp.ts`. Returns `null`
+ * for skills (which retain `evals.json`) and rules (not eval-stamped),
+ * or when the target id cannot be resolved.
+ */
+export function llmTestPathForTarget(
+  hostRepoRoot: string,
+  targetId: string,
+): string | null {
+  const resolved = resolveTarget(targetId, hostRepoRoot);
+  if (!resolved) return null;
+  return resolveLlmTargetPath(resolved);
+}
+
+/**
+ * When `--apply --with-analyser` runs, extend drifted targets to every
+ * scoped target that already has an LLM test (legacy or co-located)
+ * and/or cached analyser payload so the regen sweep covers latent
+ * stamps even without source-hash drift.
+ */
+function expandTargetsForRoutingMigration(
+  hostRepoRoot: string,
+  scoped: TargetSnapshot[],
+  drifted: TargetSnapshot[],
+): TargetSnapshot[] {
+  const seen = new Set(drifted.map((t) => t.id));
+  const expanded = drifted.slice();
+  for (const t of scoped) {
+    if (seen.has(t.id)) continue;
+    const newPath = llmTestPathForTarget(hostRepoRoot, t.id);
+    const legacyPath = legacyLlmTestPathForTarget(hostRepoRoot, t.id, t.kind);
+    const cached = loadCachedAnalyserPayload(hostRepoRoot, t);
+    if (
+      (newPath !== null && existsSync(newPath)) ||
+      existsSync(legacyPath) ||
+      cached
+    ) {
+      expanded.push(t);
+      seen.add(t.id);
+    }
+  }
+  return expanded;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Layout drift detection (new co-located paths vs legacy locations)        */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * Legacy central LLM test path produced by the pre-migration stamper —
+ * `<hostRepoRoot>/evals/llm/test_<kind>_<slug>.test.ts`.
+ * Subtask 08 migrates these to the co-located `<kind-dir>/evals/<name>.test.ts`.
+ */
+function legacyLlmTestPathForTarget(
+  hostRepoRoot: string,
+  targetId: string,
+  kind: string,
+): string {
+  const namePart = targetId.includes(":")
+    ? targetId.split(":")[1] ?? targetId
+    : targetId;
+  const slug = `${kind}_${namePart
+    .replace(/[^A-Za-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase()}`;
+  return join(hostRepoRoot, "evals", "llm", `test_${slug}.test.ts`);
+}
+
+/**
+ * Legacy declarative eval JSON path for a non-skill primitive —
+ * `plugins/<plugin>/evals/{commands,agents,hooks}/<name>.json` (or the
+ * `.cursor/evals/...` mirror for cursor-workspace primitives). Returns
+ * `null` for skills (their `evals.json` is retained — KD-1) and for
+ * targets whose source is outside the recognised plugin / cursor trees.
+ */
+function legacyDeclarativeJsonPathForTarget(
+  hostRepoRoot: string,
+  target: TargetSnapshot,
+): string | null {
+  const [kind, name] = target.id.split(":");
+  if (!kind || !name) return null;
+  if (kind === "skill" || kind === "rule") return null;
+  const pluginMatch = target.path.match(/^plugins\/([^/]+)\//);
+  if (pluginMatch) {
+    const subdir = kind === "hook" ? "hooks" : `${kind}s`;
+    const fname = kind === "hook" ? `${pluginMatch[1]}.json` : `${name}.json`;
+    return join(hostRepoRoot, "plugins", pluginMatch[1], "evals", subdir, fname);
+  }
+  if (target.path.startsWith(".cursor/")) {
+    const subdir = kind === "hook" ? "hooks" : `${kind}s`;
+    const fname =
+      kind === "hook"
+        ? name === "cursor-workspace" || name === "cursor"
+          ? "hooks.json"
+          : `${name}.json`
+        : `${name}.json`;
+    return join(hostRepoRoot, ".cursor", "evals", subdir, fname);
+  }
+  return null;
+}
+
+export interface LayoutDrift {
+  target_id: string;
+  kind: string;
+  legacy_path: string;
+  new_path: string;
+  message: string;
+}
+
+/**
+ * Scan every manifest target for layout drift between the legacy
+ * locations and the new co-located paths. Used by `--check` so the
+ * migration script in subtask 08 has a deterministic source-of-truth
+ * list of files to move.
+ *
+ * Each drift record carries:
+ *   - `legacy_path`  — repo-relative path of the file that still lives
+ *     at the pre-migration location;
+ *   - `new_path`     — repo-relative path of the expected co-located
+ *     file (`<kind-dir>/evals/<name>.test.ts` for non-skill primitives);
+ *   - `message`      — human-readable string explaining the move.
+ *
+ * Skills are skipped (they retain their `evals.json` per KD-1). Rules
+ * are skipped (not eval-stamped).
+ */
+export function detectLayoutDrift(
+  hostRepoRoot: string,
+  targets: TargetSnapshot[],
+): LayoutDrift[] {
+  const drifts: LayoutDrift[] = [];
+  for (const t of targets) {
+    if (t.kind === "skill" || t.kind === "rule") continue;
+    const newPath = llmTestPathForTarget(hostRepoRoot, t.id);
+    const newPathRel = newPath ? relative(hostRepoRoot, newPath) : null;
+
+    const legacyLlmTest = legacyLlmTestPathForTarget(hostRepoRoot, t.id, t.kind);
+    if (existsSync(legacyLlmTest) && newPathRel) {
+      const rel = relative(hostRepoRoot, legacyLlmTest);
+      drifts.push({
+        target_id: t.id,
+        kind: t.kind,
+        legacy_path: rel,
+        new_path: newPathRel,
+        message: `drift: file at LEGACY path \`${rel}\` should be at \`${newPathRel}\``,
+      });
+    }
+
+    const legacyDeclarative = legacyDeclarativeJsonPathForTarget(hostRepoRoot, t);
+    if (legacyDeclarative && existsSync(legacyDeclarative) && newPathRel) {
+      const rel = relative(hostRepoRoot, legacyDeclarative);
+      drifts.push({
+        target_id: t.id,
+        kind: t.kind,
+        legacy_path: rel,
+        new_path: newPathRel,
+        message: `drift: file at LEGACY path \`${rel}\` should be at \`${newPathRel}\``,
+      });
+    }
+  }
+  return drifts;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -1378,17 +1728,30 @@ function runParityCheck(repoRoot: string): ParityCheckResult {
     return { status: "ok", summary: "skipped-no-parity-harness" };
   }
   try {
-    const r = spawnSync("pnpm", ["exec", "tsx", ANALYSER_PARITY_SCRIPT_REL], {
-      cwd: repoRoot,
-      encoding: "utf-8",
-      stdio: ["ignore", "pipe", "pipe"],
-      env: {
-        ...process.env,
-        PNPM_NONINTERACTIVE: "1",
-        npm_config_yes: "true",
-        COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
-      },
-    });
+    const scriptAbs = join(repoRoot, ANALYSER_PARITY_SCRIPT_REL);
+    const tsxCli = join(repoRoot, "node_modules", "tsx", "dist", "cli.mjs");
+    const envBase = {
+      ...process.env,
+      npm_config_yes: "true",
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+    };
+    /** Prefer bundled `tsx` so parity runs without `pnpm exec`/`yarn exec` PM friction. */
+    const r = existsSync(tsxCli)
+      ? spawnSync(process.execPath, [tsxCli, scriptAbs], {
+          cwd: repoRoot,
+          encoding: "utf-8",
+          stdio: ["ignore", "pipe", "pipe"],
+          env: envBase,
+        })
+      : spawnSync("pnpm", ["exec", "tsx", ANALYSER_PARITY_SCRIPT_REL], {
+          cwd: repoRoot,
+          encoding: "utf-8",
+          stdio: ["ignore", "pipe", "pipe"],
+          env: {
+            ...envBase,
+            PNPM_NONINTERACTIVE: "1",
+          },
+        });
     const out = (r.stdout ?? "").trim();
     const err = (r.stderr ?? "").trim();
     if (r.status === 0) {
@@ -1533,15 +1896,17 @@ async function main(): Promise<number> {
   const manifestForDelta = { ...manifest, targets: manifestBaseline };
   const deltas = computeDeltas(manifestForDelta, current, config);
   const critical = deltas.filter((d) => d.critical);
+  const layoutDrift = detectLayoutDrift(REPO_ROOT, current);
 
   if (args.mode === "check") {
     const driftBlock = critical.map((d) => d);
-    if (critical.length === 0) {
+    if (critical.length === 0 && layoutDrift.length === 0) {
       console.log(
         JSON.stringify({
           status: "clean",
           checked: current.length,
           critical_count: 0,
+          layout_drift_count: 0,
           parity_drift: null,
         }),
       );
@@ -1551,23 +1916,39 @@ async function main(): Promise<number> {
     for (const d of critical) {
       countsByKind[d.kind] = (countsByKind[d.kind] ?? 0) + 1;
     }
-    const summaryLine = Object.entries(countsByKind)
-      .map(([k, v]) => `${k}: ${v} (critical)`)
-      .join(", ");
-    if (summaryLine) console.log(summaryLine);
+    const summaryLineParts = Object.entries(countsByKind).map(
+      ([k, v]) => `${k}: ${v} (critical)`,
+    );
+    if (layoutDrift.length > 0) {
+      summaryLineParts.push(
+        `layout_drift: ${layoutDrift.length} legacy file(s) need migration`,
+      );
+    }
+    if (summaryLineParts.length > 0) {
+      console.log(summaryLineParts.join(", "));
+    }
     console.log(
       JSON.stringify({
         status: "drift",
         checked: current.length,
         critical_count: critical.length,
+        layout_drift_count: layoutDrift.length,
         parity_drift: null,
         deltas: driftBlock,
+        layout_drift: layoutDrift,
       }),
     );
     for (const d of critical) {
       console.error(JSON.stringify(d));
     }
-    return exitCodeOnCriticalDrift;
+    for (const ld of layoutDrift) {
+      console.error(ld.message);
+      console.error(JSON.stringify(ld));
+    }
+    if (critical.length > 0 || layoutDrift.length > 0) {
+      return exitCodeOnCriticalDrift;
+    }
+    return 0;
   }
 
   if (args.mode === "rediscovery-dry" || args.mode === "targeted-dry") {
@@ -1578,12 +1959,19 @@ async function main(): Promise<number> {
     return 0;
   }
 
-  // Apply mode — actual regeneration (per drifted target: invalidated analyser
-  // refresh → fresh manifest snapshot for framework + LLM strategy → stampers).
-  const driftedTargets = current.filter((t) => {
-    const d = deltas.find((x) => x.target_id === t.id);
-    return d && (d.kind === "added" || d.kind === "modified");
-  });
+  // Apply mode — actual regeneration (per drifted target: invalidated
+  // analyser refresh → fresh manifest snapshot for the static framework
+  // → static + unified LLM stampers).
+  const driftedTargets = (() => {
+    let targets = current.filter((t) => {
+      const d = deltas.find((x) => x.target_id === t.id);
+      return d && (d.kind === "added" || d.kind === "modified");
+    });
+    if (args.withAnalyser) {
+      targets = expandTargetsForRoutingMigration(REPO_ROOT, current, targets);
+    }
+    return targets;
+  })();
 
   const allReports: RegenerationReport[] = [];
   for (const target of driftedTargets) {
@@ -1630,21 +2018,44 @@ async function main(): Promise<number> {
 
     const snapshot = readManifestSnapshot(REPO_ROOT);
 
-    const reports = await dispatchRegeneration({
-      hostRepoRoot: REPO_ROOT,
-      payload,
-      target,
-      config,
-      snapshot,
-      dryRun: false,
-      overwrite: args.overwrite,
-      noAnalyser: args.noAnalyser,
-    });
-    for (const r of reports) allReports.push(r);
+    try {
+      const reports = await dispatchRegeneration({
+        hostRepoRoot: REPO_ROOT,
+        payload,
+        target,
+        config,
+        snapshot,
+        dryRun: false,
+        overwrite: args.overwrite,
+        noAnalyser: args.noAnalyser,
+      });
+      for (const r of reports) allReports.push(r);
+    } catch (e) {
+      console.error(
+        JSON.stringify({
+          target_id: target.id,
+          regeneration_error: (e as Error).name ?? "Error",
+          message: (e as Error).message,
+        }),
+      );
+      continue;
+    }
   }
 
   // Update manifest with refreshed content_hashes (current discovery view)
   // and append one multi-doc chunk to history (never rewrite prior entries).
+  //
+  // CRITICAL — targeted-scope merge: when `--target` filters `current` to a
+  // subset (e.g. `[command:sync-plugins]`), writing `current` directly to the
+  // manifest truncates the full baseline to just the matched targets. Merge
+  // the refreshed scope back into the original manifest baseline so untouched
+  // targets retain their prior snapshot rows.
+  const mergedTargets: TargetSnapshot[] = isTargetedScope
+    ? mergeTargetsBaseline(
+        ((manifest.targets as TargetSnapshot[]) ?? []),
+        current,
+      )
+    : current;
   const newSnapshot: Record<string, unknown> = {
     schema_version: 1,
     created_at: manifest.created_at,
@@ -1652,7 +2063,7 @@ async function main(): Promise<number> {
     git_ref: headSha(),
     generated_by: "zoto-update-evals",
     discovery_config: manifest.discovery_config,
-    targets: current,
+    targets: mergedTargets,
   };
   mkdirSync(dirname(manifestPath), { recursive: true });
   writeFileSync(manifestPath, YAML.stringify(newSnapshot), "utf-8");

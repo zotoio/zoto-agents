@@ -30,17 +30,22 @@ ignore:
 
 
 # ──────────────────────────────  backends  ───────────────────────────────────
-# Active overrides: this repo runs vitest for static evals and the `code`
-# strategy (per-primitive *.test.ts files) for LLM evals.
+# Active overrides: this repo runs vitest for static evals. The single
+# unified LLM harness emits `<kind>/evals/<name>.test.ts` co-located with
+# every non-skill primitive; there is no `llm.strategy` / `llm.codeFramework`
+# knob any more.
 static:
   framework: vitest          # default: pytest
 
+
+# ────────────────────────────────  llm  ──────────────────────────────────────
+# Active override: pin the analyser model explicitly. Schema enum:
+# composer-2.5 | opus-4.6 | sonnet. composer-2.5 matches the schema default;
+# pinning it here lets us swap with one edit if composer empties out again.
 llm:
-  # runtime: tsx
-  strategy: code             # default: declarative
-  codeFramework: vitest
+  runtime: tsx
   model:
-    id: composer-2
+    id: composer-2.5
 
 
 # ────────────────────────────────  judge  ────────────────────────────────────

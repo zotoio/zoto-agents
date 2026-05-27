@@ -59,7 +59,7 @@ export interface CaseExpectedFilesystem {
 }
 
 /**
- * Declarative grader entries — kept in sync with `evals/llm/_shared/run-code-strategy-suite.ts`
+ * Declarative grader entries — kept in sync with `evals/llm/_shared/run-llm-suite.ts`
  * (`#eval-engine/graders/*.js`) dispatch.
  */
 export type DeclarativeGraderConfig =
@@ -72,6 +72,17 @@ export type DeclarativeGraderConfig =
       passThreshold?: number;
       judgeModel?: string;
     };
+
+/**
+ * Scripted AskQuestion payload — **forbidden** on declarative `EvalCase`.
+ * Belongs exclusively to the code-strategy backend. The declarative runner
+ * rejects any loaded case whose JSON carries a non-empty `interactions` block
+ * via `validateEnriched` / `assertNoDeclarativeInteractions`.
+ */
+export interface DeclarativeForbiddenInteractions {
+  questions?: string[];
+  answers?: string[];
+}
 
 export interface EvalCase {
   id: number | string;
@@ -86,6 +97,11 @@ export interface EvalCase {
   follow_ups?: string[];
   _meta?: CaseMeta;
 }
+
+/** Widen eval JSON that may carry forbidden `interactions` from a mis-stamped file. */
+export type EvalCaseWithOptionalInteractions = EvalCase & {
+  interactions?: DeclarativeForbiddenInteractions | null;
+};
 
 export interface EvalFile {
   skill_name?: string;
@@ -115,6 +131,41 @@ export function isGenerated(c: EvalCase): boolean {
 }
 
 export { isGeneratedCase, isUserAuthoredCase };
+
+/* ----------------------------------------------------------------------- */
+/* Declarative mutual-exclusion — interactions forbidden                   */
+/* ----------------------------------------------------------------------- */
+
+/**
+ * Returns true when case JSON carries scripted interaction data that only
+ * the code-strategy backend may execute (ADR field: `interactions`).
+ */
+export function caseDeclaresInteractions(c: EvalCaseWithOptionalInteractions): boolean {
+  const ix = c.interactions;
+  if (ix == null) return false;
+  if (typeof ix !== "object" || Array.isArray(ix)) return true;
+  const answers = ix.answers;
+  const questions = ix.questions;
+  if (Array.isArray(answers) && answers.length > 0) return true;
+  if (Array.isArray(questions) && questions.length > 0) return true;
+  return Object.keys(ix).length > 0;
+}
+
+export function declarativeInteractionsRejectionReason(
+  c: EvalCaseWithOptionalInteractions,
+): string | null {
+  if (!caseDeclaresInteractions(c)) return null;
+  return (
+    `declarative runner cannot handle scripted interactions; case ${c.id} declares interactions ` +
+    `but the analyser classified its target as requiresInteraction:false`
+  );
+}
+
+/** Throws when `caseDeclaresInteractions` — strict loader / unit-test hook. */
+export function assertNoDeclarativeInteractions(c: EvalCaseWithOptionalInteractions): void {
+  const reason = declarativeInteractionsRejectionReason(c);
+  if (reason) throw new Error(reason);
+}
 
 /* ----------------------------------------------------------------------- */
 /* Subtask 10 — enriched-shape validation                                  */
@@ -332,6 +383,13 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
 }
 
 export function validateEnriched(c: EvalCase): ValidateEnrichedResult {
+  const interactionsReason = declarativeInteractionsRejectionReason(
+    c as EvalCaseWithOptionalInteractions,
+  );
+  if (interactionsReason) {
+    return { ok: false, reason: interactionsReason };
+  }
+
   const placeholder = detectPlaceholderPrompt(c.prompt);
   if (placeholder) {
     return { ok: false, reason: placeholder };

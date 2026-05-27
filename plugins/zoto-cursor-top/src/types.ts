@@ -6,6 +6,12 @@ export type AgentKind =
   | "ide"
   | "cli"
   | "cloud"
+  /**
+   * A chat / agent session hosted inside a Cursor IDE window. Distinct
+   * from `"ide"` (the OS process tree) so the TUI can render a separate
+   * `[AGENT]` badge and nest these rows under their owning IDE PID.
+   */
+  | "agent"
   | "subagent"
   | "unknown";
 
@@ -74,6 +80,47 @@ export interface CollectorOptions {
   psRunner?: () => Promise<string>;
   /** Inject a filesystem facade (used for tests). */
   fs?: FsLike;
+  /**
+   * When true, prune any subtree whose root is `kind: "unknown"`. Only
+   * processes recognised as Cursor (IDE / CLI / Cloud Agent VM) — and
+   * their PID descendants regardless of kind — survive. Equivalent to
+   * passing `--cursor-only` on the CLI.
+   */
+  cursorOnly?: boolean;
+  /**
+   * When true, keep only nodes that produced readable agent output
+   * (`recentLogs.length > 0`) — plus the ancestor chain of any such
+   * node so the hierarchy stays navigable. Equivalent to passing
+   * `--with-logs` on the CLI.
+   *
+   * Useful for hiding the dozens of IDE renderer / GPU helper processes
+   * that don't drive an agent loop and never write to a session log.
+   */
+  withLogs?: boolean;
+  /**
+   * Drop transcript records whose source file was last modified more
+   * than `transcriptMaxAgeMs` ago. Defaults to 24 hours so the live
+   * view only surfaces recently-active chats; pass `Infinity` (or 0)
+   * to disable the cap.
+   */
+  transcriptMaxAgeMs?: number;
+  /**
+   * When true (the default), drop any node whose status is `"done"`
+   * unless it has a non-done descendant — and recursively drop
+   * parents whose surviving subtree contains no active agent. The
+   * result is an "active agents only" view.
+   *
+   * Set to `false` (CLI: `--no-active-only`) to surface completed
+   * agents alongside running / waiting / idle ones — useful for
+   * post-mortem inspection of a recently-finished chat.
+   */
+  activeOnly?: boolean;
+  /**
+   * Inject a custom runner for the composer-model lookup against
+   * Cursor's `state.vscdb` (used by tests so we don't spawn a real
+   * `sqlite3` child process). Defaults to `defaultComposerModelRunner`.
+   */
+  composerModelRunner?: import("./discovery/composer-models.js").ComposerModelRunner;
 }
 
 /**

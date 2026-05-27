@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "skill:zoto-create-evals",
   "kind": "skill",
   "source_path": "plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md",
@@ -45,7 +45,7 @@
         "files": [
           {
             "path": "workspace/.zoto/eval-system/config.yml",
-            "content": "{\"evalsDir\":\"evals\",\"skillsRoots\":[\"plugins/*/skills\"],\"discoveryTargets\":[\"skill\",\"command\",\"agent\",\"hook\"],\"llm\":{\"model\":{\"id\":\"composer-2\"}},\"ignore\":[\"plugins/upstream-mirror/**\"]}"
+            "content": "{\"evalsDir\":\"evals\",\"skillsRoots\":[\"plugins/*/skills\"],\"discoveryTargets\":[\"skill\",\"command\",\"agent\",\"hook\"],\"llm\":{\"model\":{\"id\":\"composer-2.5\"}},\"ignore\":[\"plugins/upstream-mirror/**\"]}"
           }
         ]
       },
@@ -86,7 +86,7 @@
         "files": [
           {
             "path": "workspace/.zoto/eval-system/config.yml",
-            "content": "{\"evalsDir\":\"evals\",\"skillsRoots\":[\"plugins/*/skills\"],\"discoveryTargets\":[\"skill\"],\"llm\":{\"model\":{\"id\":\"composer-2\"}},\"manualChecklists\":{\"enabled\":true},\"ignore\":[]}"
+            "content": "{\"evalsDir\":\"evals\",\"skillsRoots\":[\"plugins/*/skills\"],\"discoveryTargets\":[\"skill\"],\"llm\":{\"model\":{\"id\":\"composer-2.5\"}},\"manualChecklists\":{\"enabled\":true},\"ignore\":[]}"
           }
         ]
       },
@@ -106,5 +106,10 @@
         "The agent explains that `eval-cleanup-vendored.ts` stops with `needs_user_input` when user-authored cases share files with generated rows, rather than deleting blindly."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

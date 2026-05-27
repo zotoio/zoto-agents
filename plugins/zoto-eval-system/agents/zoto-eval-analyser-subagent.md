@@ -51,6 +51,118 @@ If you emit a single case for this target, that prompt MUST still weave both com
 - Does the case justify its `fixtures.files[]` overlay (if any)? If not, drop the fixtures.
 - Is the `expected_output` written in plain English (no JSON envelopes, no placeholder vocabulary, no verbatim quotes from prompt templates)?
 
+## Forbidden internal-mechanic vocabulary
+
+Never emit these phrases (or close paraphrases) in `cases[].prompt`, `cases[].assertions[]`, or `cases[].expected_output`. They describe harness internals, not operator-visible outcomes. Replace each with a user-visible equivalent (manifest rows, CLI stdout, on-screen guidance, exit codes, filesystem paths under the sandbox).
+
+- `Available transcripts show zero askQuestion tool emissions` — cite the contract outcome instead: "the agent returned structured `needs_user_input` without emitting askQuestion from the subagent loop."
+- `The spawned Task named … referenced the … skill` — cite what the operator sees after the run (manifest entries, generated eval rows, closing guidance).
+- `Inside the generator flow the assistant invoked …` — cite post-run artefacts (`manifest.yml` targets, `pnpm run eval:list` output, stamped eval JSON paths).
+- `traces show zoto-update-evals proving drift-free regenerated content` — cite manifest or eval-file diffs the operator can inspect on disk.
+- `Repository diffs omit mutations for evaluator rows lacking _meta markers` — cite the `_meta.generated: true` contract on stamped rows (allowed contract-assertion family).
+- `Touchpoints with zoto-configure-evals occur solely when …` — cite whether `.zoto/eval-system/config.yml` was written or refused with on-screen text.
+- `Across the trajectory the generator never emits askQuestion` — same replacement as the transcript/askQuestion pattern above.
+- `Reviewers observe no undocumented assistant tooling or edits` — cite concrete filesystem or stdout checks instead.
+- Third-person harness narration (`You spawned from /z-eval-create`, `You are running as the zoto-eval-adviser agent`) — rewrite as first-person operator chat the user would paste.
+- Slash-led agent prompts (`/z-eval-create asked you to …` as the primary agent case voice) — agents are delegated in natural English; slash tokens may appear only as quoted operator text inside longer prose.
+
+Contract-assertion families (`schema_version: 1`, `_meta.generated: true`, exact precondition refuse strings, comparer `/canvas` template byte-equality) **may** remain when they encode hard invariants — see the contract-assertion exception list in `specs/20260525-eval-prompt-realism-audit/audit/realism-rubric.md`.
+
+## Interaction classification
+
+Every payload MUST include top-level `requiresInteraction` (boolean) and `interactionStyle` (enum). These fields are the **single input** the unified LLM eval harness uses at runtime to choose the scripted-answer branch vs the single-prompt branch — misclassification ships the wrong runtime flow inside a co-located `<kind>/evals/<name>.test.ts` file (the file shape itself is identical for every target).
+
+**Heuristic (scan instruction sections only):**
+
+| Signal in source | `requiresInteraction` | `interactionStyle` |
+|------------------|----------------------|--------------------|
+| Command markdown instructs the **parent command** to call `AskQuestion` (or `askQuestion`) before spawning subagents | `true` | `command-owned` |
+| Agent or skill markdown returns structured `needs_user_input` and explicitly forbids calling `AskQuestion` from the subagent loop | `true` | `subagent-escalated` |
+| Hook binaries, lifecycle scripts, or primitives with no interactive hand-off contract | `false` | `none` |
+| Skill with no multi-turn escalation (pure read/dispatch, no operator Q&A) | `false` | `none` |
+
+**Exclusion rule:** Ignore matches inside markdown code fences, inline code spans, and quoted/example blocks. Only imperative usage in instruction sections counts — documenting or citing `AskQuestion` in examples does **not** make a primitive interactive.
+
+**Corpus baseline (Subtask 02):** Reference classifications in `specs/20260526-eval-askquestion-strategy-bridge/audit/eval-corpus-baseline.json` (`requires_interaction`, `interaction_style` per target). The baseline recorded 30 interactive and 22 non-interactive targets across 52 manifest entries; align with those labels when the source matches.
+
+### Worked examples (this repo)
+
+**`command-owned` — `command:z-eval-configure`**
+
+Source instructs command-owned `askQuestion` for every config field before spawning `zoto-eval-configurer`. Emit:
+
+```json
+"requiresInteraction": true,
+"interactionStyle": "command-owned"
+```
+
+**`subagent-escalated` — `agent:zoto-eval-generator`**
+
+Source says: return `needs_user_input` when config is missing; **never** call `AskQuestion`. Emit:
+
+```json
+"requiresInteraction": true,
+"interactionStyle": "subagent-escalated"
+```
+
+**`none` — `hook:zoto-eval-system`**
+
+Hook bundle runs on lifecycle events with no operator Q&A. Emit:
+
+```json
+"requiresInteraction": false,
+"interactionStyle": "none"
+```
+
+## Bare-command exception register
+
+When `kind` is `command`, the default prompt shape is `/<cmd-name> <realistic args>` — exactly what an operator would type into Cursor's command palette.
+
+**KD-2 rule:** A bare `/cmd` prompt (no arguments beyond the command name) is allowed **only** when the case explicitly exercises one of these two paths:
+
+1. **Precondition-abort** — the command's own markdown documents an early refuse when setup is missing (e.g. Eval System not initialised, missing `.zoto/eval-system/config.yml`). The case prompt stays bare; assertions cite the exact refuse string and the on-disk absence proof.
+2. **Documented no-args capability** — the command's Usage section shows bare `/cmd` as the intended invocation (e.g. `/z-eval-init`, `/z-eval-start`, `/zoto-create-plugin`).
+
+Every other command case MUST include realistic flags or arguments (`/z-eval-update --check`, `/z-eval-help configuration`, `/z-eval-execute --full --model opus-4.6`, …). Do not emit bare `/cmd` for generic smoke tests, assertion tightening, or "operator forgot args" scenarios unless the analysed primitive's source documents that path.
+
+The canonical register of retained bare prompts (file, case id, exemption, code ref) lives in `specs/20260525-eval-prompt-realism-audit/audit/realism-rubric.md` under **Bare-command exception register (KD-2)**. When stamping a command whose bare case is **not** on that register, rewrite the prompt to include realistic args.
+
+## Worked rewrite examples
+
+Pattern-match these before/after pairs when rewriting stale analyser output.
+
+### Command — `command:z-eval-create` case 2
+
+**Before** (synthetic bare prompt + internal-mechanic assertion):
+
+> Prompt: `/z-eval-create`
+>
+> Assertion: "The spawned Task named zoto-eval-generator referenced the zoto-create-evals skill…"
+
+**After** (realistic args + user-visible outcome):
+
+> Prompt: "Scaffold evals for this repo — approve all skills, plugin commands, plugin agents, and hook bundles from the checklists."
+>
+> Assertion: "After scaffolding completes, `.zoto/eval-system/manifest.yml` lists every operator-approved target and the closing guidance mentions pnpm validation gates."
+
+**Why**: Bare `/z-eval-create` without a documented precondition-abort or no-args exemption is synthetic; internal Task/skill trace assertions are unstable — the operator observes manifest rows and closing guidance.
+
+### Agent — `agent:zoto-eval-generator` case 2
+
+**Before** (third-person narration + transcript-side assertion):
+
+> Prompt: "You spawned from `/z-eval-create`; the preceding command fused approval lists…"
+>
+> Assertion: "Available transcripts show zero askQuestion tool emissions from the generator."
+
+**After** (natural delegation + contract + outcome):
+
+> Prompt: "I ran `/z-eval-create`, approved skills/commands/agents/hooks, and config.yml is present. Scaffold the eval suite…"
+>
+> Assertion: "The agent returns structured `needs_user_input` (when configuration is missing) without emitting askQuestion from the subagent loop."
+
+**Why**: Agent prompts must read like parent-command delegation, not harness stage directions; transcript vocabulary is forbidden — cite the subagent escalation contract and observable responses instead.
+
 ## Output envelope reminder
 
 The caller appends a "Required output envelope" template that pre-fills `schema_version`, `analyser_version`, `model_id`, `target_id`, `kind`, `source_path`, and `source_hash` for you. Your job is to fill `summary` (one or two sentences) and `cases` (at least one case, every required field populated, all hard rules respected).

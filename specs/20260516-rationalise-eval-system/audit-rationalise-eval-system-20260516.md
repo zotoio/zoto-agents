@@ -155,7 +155,7 @@ The `.gitignore` change in this diff only adds `.ruff_cache/` — no eval-relate
 ### F-17 [coherent] [—]
 **Path(s):** `.zoto/eval-system/config.yml`, `.zoto/eval-system/manifest.yml`, `.zoto/eval-system/manifest.history.yml`
 **Observation:**
-- `config.yml`: Uncomments `model.id: composer-2` and `judgeModel: opus-4.6` — valid schema keys, values are known model identifiers
+- `config.yml`: Uncomments `model.id: composer-2.5` and `judgeModel: opus-4.6` — valid schema keys, values are known model identifiers
 - `manifest.yml`: Updates `updated_at`, `git_ref`, and content hashes for several skills/targets. Description text for `zoto-compare-evals` is refined. All changes align with schema (no broken keys, no missing required fields)
 - `manifest.history.yml`: Appends a new snapshot entry — standard append-only behaviour
 **Recommended action:** None.

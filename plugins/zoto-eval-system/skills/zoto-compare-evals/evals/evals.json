@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/z-eval-compare run-a run-b where both runs have 10 cases and run-b used opus-4.6 vs run-a using composer-2.",
+      "prompt": "/z-eval-compare run-a run-b where both runs have 10 cases and run-b used opus-4.6 vs run-a using composer-2.5.",
       "expected_output": "A JSON payload is emitted containing tool: \"/canvas\", instructions from templates/canvas/compare-prompt.md.tmpl, and a flat dataset of 20 rows. No charts are rendered in chat.",
       "files": [],
       "assertions": [

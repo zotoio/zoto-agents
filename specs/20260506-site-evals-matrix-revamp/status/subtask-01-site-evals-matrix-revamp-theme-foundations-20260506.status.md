@@ -7,7 +7,7 @@
 | subtask_id | 01 |
 | feature | site-evals-matrix-revamp |
 | assigned_agent | crux-software-engineer |
-| model | composer-2-fast |
+| model | composer-2.5-fast |
 | token_budget | 200000 |
 | state | completed |
 | started_at | 2026-05-06T12:31:33Z |

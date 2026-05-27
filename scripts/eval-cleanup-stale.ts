@@ -3,11 +3,10 @@
  * Eval cleanup engine — subtask 03 of eval-system-v2.
  *
  * Diffs the **active** eval-system config (`.zoto/eval-system/config.yml`)
- * against the most recent **manifest snapshot** (`discovery_config.static`,
- * `discovery_config.llm`) and enumerates every file that should be deleted as
- * part of a framework switch, strategy switch, or removed-target change. The
- * script is invoked by `/z-eval-configure` (subtask 02) — never by the
- * skill or agent directly.
+ * against the most recent **manifest snapshot** (`discovery_config.static`)
+ * and enumerates every file that should be deleted as part of a framework
+ * switch or a removed-target change. The script is invoked by
+ * `/z-eval-configure` (subtask 02) — never by the skill or agent directly.
  *
  * --------------------------------------------------------------------------
  * STDOUT CONTRACT
@@ -22,10 +21,10 @@
  *     "schema_version": 1,
  *     "generated_at": "<ISO-8601>",
  *     "generated_by": "eval-cleanup-stale",
- *     "old_snapshot": { "static": { "framework": "..." }, "llm": { ... }, "source": "..." },
+ *     "old_snapshot": { "static": { "framework": "..." }, "source": "..." },
  *     "new_snapshot": { ... },
  *     "groups": [
- *       { "reason": "framework-switch" | "strategy-switch" | "removed-target",
+ *       { "reason": "framework-switch" | "removed-target",
  *         "from": "<old>", "to": "<new>", "summary": "...", "files": [...] }
  *     ],
  *     "totals": { "files": <int>, "groups": <int> },
@@ -104,21 +103,17 @@ import { loadEvalConfig } from "../plugins/zoto-eval-system/src/config-loader.js
 // ---------------------------------------------------------------------------
 
 export type StaticFramework = "pytest" | "vitest" | "jest";
-export type LlmStrategy = "code" | "declarative";
-export type LlmCodeFramework = "vitest" | "jest";
 
 export interface Snapshot {
   static?: { framework?: StaticFramework };
-  llm?: { strategy?: LlmStrategy; codeFramework?: LlmCodeFramework };
   source: "manifest" | "filesystem" | "config" | "missing";
 }
 
-export type GroupReason = "framework-switch" | "strategy-switch" | "removed-target";
+export type GroupReason = "framework-switch" | "removed-target";
 
 export type FileKind =
   | "framework-fingerprint"
   | "static-test"
-  | "llm-test"
   | "llm-case"
   | "eval-json"
   | "directory"
@@ -250,8 +245,8 @@ Modes:
                           config (no stale files), exit 2 otherwise.
 
 Diff overrides:
-  --from <framework|strategy>     Override the OLD snapshot value.
-  --to <framework|strategy>       Override the NEW snapshot value.
+  --from <framework>     Override the OLD static framework value.
+  --to <framework>       Override the NEW static framework value.
 
 Apply gating:
   --session <runId>      Pair with --apply: must match a recent --dry-run
@@ -280,27 +275,10 @@ const STATIC_FRAMEWORKS: ReadonlySet<StaticFramework> = new Set([
   "vitest",
   "jest",
 ]);
-const LLM_STRATEGIES: ReadonlySet<LlmStrategy> = new Set(["code", "declarative"]);
-const LLM_CODE_FRAMEWORKS: ReadonlySet<LlmCodeFramework> = new Set([
-  "vitest",
-  "jest",
-]);
 
 function asStaticFramework(s: unknown): StaticFramework | undefined {
   return typeof s === "string" && STATIC_FRAMEWORKS.has(s as StaticFramework)
     ? (s as StaticFramework)
-    : undefined;
-}
-
-function asLlmStrategy(s: unknown): LlmStrategy | undefined {
-  return typeof s === "string" && LLM_STRATEGIES.has(s as LlmStrategy)
-    ? (s as LlmStrategy)
-    : undefined;
-}
-
-function asLlmCodeFramework(s: unknown): LlmCodeFramework | undefined {
-  return typeof s === "string" && LLM_CODE_FRAMEWORKS.has(s as LlmCodeFramework)
-    ? (s as LlmCodeFramework)
     : undefined;
 }
 
@@ -317,20 +295,6 @@ export function detectFromFilesystem(repoRoot: string): Snapshot {
   ) {
     snap.static = { framework: "jest" };
   }
-  // LLM strategy fingerprints
-  // declarative: central evals/_llm/runner.ts present
-  // code: any *.test.ts under evals/ with the generated marker
-  const runner = join(repoRoot, "evals", "_llm", "runner.ts");
-  if (existsSync(runner)) {
-    snap.llm = { strategy: "declarative" };
-  }
-  // Check for code-strategy artefacts (overrides declarative if both present)
-  const codeTests = listFilesRecursive(join(repoRoot, "evals"), (p) =>
-    p.toLowerCase().endsWith(".test.ts"),
-  ).filter(isGeneratedFile);
-  if (codeTests.length > 0) {
-    snap.llm = { strategy: "code" };
-  }
   return snap;
 }
 
@@ -346,24 +310,15 @@ export function readManifestSnapshot(repoRoot: string): Snapshot {
   if (!doc || typeof doc !== "object") return { source: "missing" };
   const cfg = (doc as { discovery_config?: unknown }).discovery_config;
   if (!cfg || typeof cfg !== "object") return { source: "missing" };
-  const c = cfg as { static?: unknown; llm?: unknown };
+  const c = cfg as { static?: unknown };
   const snap: Snapshot = { source: "manifest" };
   if (c.static && typeof c.static === "object") {
     const fw = asStaticFramework((c.static as { framework?: unknown }).framework);
     if (fw) snap.static = { framework: fw };
   }
-  if (c.llm && typeof c.llm === "object") {
-    const lo = c.llm as { strategy?: unknown; codeFramework?: unknown };
-    const llm: Snapshot["llm"] = {};
-    const strat = asLlmStrategy(lo.strategy);
-    if (strat) llm.strategy = strat;
-    const cf = asLlmCodeFramework(lo.codeFramework);
-    if (cf) llm.codeFramework = cf;
-    if (llm.strategy || llm.codeFramework) snap.llm = llm;
-  }
-  // If the manifest snapshot had no static/llm block at all, fall back to
-  // filesystem detection so consumers always get something usable.
-  if (!snap.static && !snap.llm) {
+  // If the manifest snapshot had no static block, fall back to filesystem
+  // detection so consumers always get something usable.
+  if (!snap.static) {
     const fs = detectFromFilesystem(repoRoot);
     return { ...fs, source: "filesystem" };
   }
@@ -376,12 +331,6 @@ export function readConfigSnapshot(repoRoot: string): Snapshot {
     const snap: Snapshot = { source: "config" };
     const fw = asStaticFramework(config.static.framework);
     if (fw) snap.static = { framework: fw };
-    const llm: Snapshot["llm"] = {};
-    const strat = asLlmStrategy(config.llm.strategy);
-    if (strat) llm.strategy = strat;
-    const cf = asLlmCodeFramework(config.llm.codeFramework);
-    if (cf) llm.codeFramework = cf;
-    if (llm.strategy || llm.codeFramework) snap.llm = llm;
     return snap;
   } catch {
     return { source: "missing" };
@@ -394,16 +343,6 @@ function applyFromTo(snap: Snapshot, value: string | undefined): Snapshot {
   const fw = asStaticFramework(value);
   if (fw) {
     out.static = { framework: fw };
-    return out;
-  }
-  const strat = asLlmStrategy(value);
-  if (strat) {
-    out.llm = { ...(out.llm ?? {}), strategy: strat };
-    return out;
-  }
-  const cf = asLlmCodeFramework(value);
-  if (cf) {
-    out.llm = { ...(out.llm ?? {}), codeFramework: cf };
     return out;
   }
   // Unknown: leave as-is. The caller will have warned via stderr.
@@ -590,79 +529,6 @@ function enumerateStaticFrameworkAssets(
       } else {
         warnings.push(
           `preserved user-authored: ${rel} (no _meta.generated header)`,
-        );
-      }
-    }
-  }
-
-  return { files, warnings };
-}
-
-function enumerateLlmStrategyAssets(
-  repoRoot: string,
-  strategy: LlmStrategy,
-): EnumerateResult {
-  const files: PlanFile[] = [];
-  const warnings: string[] = [];
-
-  if (strategy === "code") {
-    const candidates: string[] = [];
-    candidates.push(
-      ...listFilesRecursive(join(repoRoot, "evals"), (p) =>
-        p.toLowerCase().endsWith(".test.ts"),
-      ),
-    );
-    for (const pd of pluginDirs(repoRoot)) {
-      candidates.push(
-        ...listFilesRecursive(join(pd, "evals"), (p) =>
-          p.toLowerCase().endsWith(".test.ts"),
-        ),
-      );
-    }
-    for (const f of candidates) {
-      const rel = repoRelPosix(f, repoRoot);
-      if (isGeneratedFile(f)) {
-        files.push({
-          path: rel,
-          kind: "llm-test",
-          reason: "code-strategy *.test.ts (generated marker present)",
-        });
-      } else {
-        warnings.push(
-          `preserved user-authored: ${rel} (no _meta.generated header)`,
-        );
-      }
-    }
-  }
-
-  if (strategy === "declarative") {
-    const evalJsonPaths = collectAllEvalJson(repoRoot);
-    for (const f of evalJsonPaths) {
-      const rel = repoRelPosix(f, repoRoot);
-      const cls = classifyEvalJsonForCleanup(f);
-      if (cls.kind === "all-generated") {
-        files.push({
-          path: rel,
-          kind: "eval-json",
-          reason: "declarative-strategy evals.json (every case _meta.generated)",
-        });
-      } else if (cls.kind === "mixed") {
-        files.push({
-          path: rel,
-          kind: "llm-case",
-          reason: "declarative-strategy evals.json (mixed user + generated)",
-          preserve_user_authored: true,
-        });
-        warnings.push(
-          `manual_merge_required: ${rel} (mixed user + generated cases — surgical row deletion only)`,
-        );
-      } else if (cls.kind === "all-user") {
-        warnings.push(
-          `preserved user-authored: ${rel} (no generated cases)`,
-        );
-      } else {
-        warnings.push(
-          `skipped: ${rel} (${cls.reason})`,
         );
       }
     }
@@ -894,13 +760,12 @@ export function computePlan(
   let oldSnap = readManifestSnapshot(repoRoot);
   let newSnap = readConfigSnapshot(repoRoot);
 
-  // If the config has no static/llm block, fall back to filesystem detection
-  // for the new snapshot too.
-  if (!newSnap.static && !newSnap.llm) {
+  // If the snapshot has no static block, fall back to filesystem detection.
+  if (!newSnap.static) {
     const fs = detectFromFilesystem(repoRoot);
     newSnap = { ...fs, source: fs.source };
   }
-  if (!oldSnap.static && !oldSnap.llm) {
+  if (!oldSnap.static) {
     const fs = detectFromFilesystem(repoRoot);
     oldSnap = { ...fs, source: fs.source };
   }
@@ -928,49 +793,7 @@ export function computePlan(
     }
   }
 
-  // 2. Strategy switch (LLM)
-  const oldStrat = oldSnap.llm?.strategy;
-  const newStrat = newSnap.llm?.strategy;
-  if (oldStrat && newStrat && oldStrat !== newStrat) {
-    const r = enumerateLlmStrategyAssets(repoRoot, oldStrat);
-    warnings.push(...r.warnings);
-    if (r.files.length > 0) {
-      groups.push({
-        reason: "strategy-switch",
-        from: oldStrat,
-        to: newStrat,
-        summary: `LLM strategy switch: ${oldStrat} → ${newStrat}. Removing ${r.files.length} stale strategy file(s).`,
-        files: r.files,
-      });
-    }
-  }
-
-  // 2b. Code-framework switch (only when strategy stays "code")
-  if (
-    oldStrat === "code" &&
-    newStrat === "code" &&
-    oldSnap.llm?.codeFramework &&
-    newSnap.llm?.codeFramework &&
-    oldSnap.llm.codeFramework !== newSnap.llm.codeFramework
-  ) {
-    const oldCf = oldSnap.llm.codeFramework;
-    const newCf = newSnap.llm.codeFramework;
-    // Treat code-framework swap as a strategy-switch group with from/to set
-    // to the framework names (schema doesn't distinguish further).
-    const r = enumerateLlmStrategyAssets(repoRoot, "code");
-    warnings.push(...r.warnings);
-    if (r.files.length > 0) {
-      groups.push({
-        reason: "strategy-switch",
-        from: oldCf,
-        to: newCf,
-        summary: `LLM code-framework switch: ${oldCf} → ${newCf}. Re-stamping required.`,
-        files: r.files,
-      });
-    }
-  }
-
-  // 3. Removed targets (config.ignore globs)
+  // 2. Removed targets (config.ignore globs)
   {
     const r = enumerateRemovedTargets(repoRoot);
     warnings.push(...r.warnings);
@@ -983,7 +806,7 @@ export function computePlan(
     }
   }
 
-  // 4. Bats template orphan removal (always a candidate; only emitted when
+  // 3. Bats template orphan removal (always a candidate; only emitted when
   //    files actually exist on disk).
   {
     const r = enumerateBatsTemplateOrphans(repoRoot);
@@ -1399,11 +1222,9 @@ export function runMain(opts: MainOptions = {}): number {
       migrated_at: new Date().toISOString(),
       from: {
         framework: plan.old_snapshot.static?.framework ?? null,
-        strategy: plan.old_snapshot.llm?.strategy ?? null,
       },
       to: {
         framework: plan.new_snapshot.static?.framework ?? null,
-        strategy: plan.new_snapshot.llm?.strategy ?? null,
       },
       deleted: result.deleted,
       kept_user_authored: [

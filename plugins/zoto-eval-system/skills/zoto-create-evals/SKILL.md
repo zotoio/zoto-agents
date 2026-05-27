@@ -13,16 +13,19 @@ Reads `.zoto/eval-system/config.yml`. If missing, return `needs_user_input` so `
 
 ### Configuration honoured (v2)
 
-Stamping selects backends using **`static.framework`** (`pytest` | `vitest` | `jest`), **`llm.strategy`** (`code` | `declarative`), and **`llm.codeFramework`** (`vitest` | `jest` when strategy is `code`). Operators edit these in `.zoto/eval-system/config.yml` (via `/z-eval-configure`); flipping them is mutually exclusive cleanup work, not silent drift.
+Stamping selects the static backend using **`static.framework`** (`pytest` | `vitest` | `jest`). The LLM backend is single-shape: every approved primitive is stamped as a co-located `<kind>/evals/<name>.test.ts` that imports `defineLlmEval` from the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts`. Operators edit `static.framework` in `.zoto/eval-system/config.yml` (via `/z-eval-configure`); flipping it is cleanup work, not silent drift.
 
 Writes:
 - `{evalsDir}/` — pytest backend (from `templates/static/pytest/`).
 - `{evalsDir}/_llm/` — LLM backend (from `templates/llm/agent-sdk/`).
 - Per-target eval files (see Step 4).
 - `.env.example` at the repo root (from `templates/env/.env.example.tmpl`) — placeholder for `CURSOR_API_KEY` and optional `ZOTO_EVAL_MODEL`. **Never overwritten** if it already exists.
+- `.gitignore` at the repo root — three rule lines (`.env`, `.env.*`, `!.env.example`) are appended under a labelled header if missing. `.gitignore` is created if absent. Existing entries are never duplicated or rewritten.
 - `.zoto/eval-system/manifest.yml` — current state.
 - `.zoto/eval-system/manifest.history.yml` — append-only snapshot.
 - Updates to the host repo's `package.json` via `scripts/package-json-merger.ts` (includes `dotenv` as a devDependency so the LLM runner can auto-load `.env`).
+
+`.env.example` and `.gitignore` are both handled by the same idempotent helper: `scripts/ensure-host-env-and-gitignore.ts`. It returns a JSON report describing the actions taken (`created` / `skipped-existing` / `appended` / `no-change`) so the agent can surface them in the final report.
 
 ## When to Use
 
@@ -56,7 +59,10 @@ Every invocation ALWAYS stamps both backends (no opt‑out):
 - LLM: copy `templates/llm/agent-sdk/*` to `{evalsDir}/_llm/`.
 - Copy `templates/runner/test.py.tmpl` to `scripts/test.py`.
 - Copy `templates/schema/result.schema.json` to `{evalsDir}/_llm/result.schema.json`.
-- Copy `templates/env/.env.example.tmpl` to `.env.example` at the repo root **only if `.env.example` does not already exist**. If it does, do not overwrite — instead surface a one-line note in the final report so operators can confirm `CURSOR_API_KEY=` is present. Never write `.env` itself.
+- Copy `templates/runner/eval-ensure-host.ts.tmpl` to the host repo's `scripts/eval-ensure-host.ts` (operators rerun it via `pnpm run eval:ensure-host`).
+- Run `pnpm exec tsx <plugin>/scripts/ensure-host-env-and-gitignore.ts --repo-root <host>` (during the scaffold flow) — or, after the package.json merge, the equivalent `pnpm run eval:ensure-host`. Both perform the same two operations:
+  - Copy `templates/env/.env.example.tmpl` to `.env.example` at the repo root **only if `.env.example` does not already exist** — never overwrite, surface a one-line note in the final report so operators can confirm `CURSOR_API_KEY=` is present.
+  - Ensure the host `.gitignore` covers `.env` (`.env`, `.env.*`, `!.env.example` under a labelled section). Creates `.gitignore` if missing; appends missing lines only — existing operator-authored entries are left alone. Never write `.env` itself.
 
 Skills still consume `skills/<name>/evals/evals.json` via **`templates/skill-evals/evals.json.tmpl`** inside each approved skill folder. **`eval-stamp.ts` refuses most `skill:*` ids** (exit code 2) — optional `pnpm run eval:analyse -- skill:<name>` supplies hints, then operators merge manually or copy the template. **Exception:** `skill:zoto-eval-tooling` is allowlisted (`CENTRAL_STAMP_SKILL_ALLOWLIST` in `scripts/eval-stamp.ts`); refresh it with analyse then **`pnpm run eval:stamp -- skill:zoto-eval-tooling`** so rows come straight from the cached analyser payload.
 
@@ -144,7 +150,7 @@ If any gate fails, report errors in your final output; if user decision is neede
 
 ## Conventions
 
-- Never write outside `{evalsDir}/`, skill/plugin eval paths documented above, `.zoto/eval-system/`, `scripts/test.py`, `package.json`, and the repo-root `.env.example` (placeholder only — never `.env`).
+- Never write outside `{evalsDir}/`, skill/plugin eval paths documented above, `.zoto/eval-system/`, `scripts/test.py`, `package.json`, the repo-root `.env.example` (placeholder only — never `.env`), and the repo-root `.gitignore` (append-only rule lines under a labelled section — never rewrite existing entries).
 - Every generated case gets a `_meta` marker with `generated: true`.
 - `manifest.history.yml` is append-only.
 - `.env.example` is **never** overwritten if it already exists — operators may have other env vars in there.

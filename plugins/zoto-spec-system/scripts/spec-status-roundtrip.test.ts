@@ -41,7 +41,7 @@ function minimalStatusYml(): string {
 subtask_id: "01"
 feature: demo
 assigned_agent: generalPurpose
-model: composer-2-fast
+model: composer-2.5-fast
 token_budget: 0
 state: pending
 checklist:
@@ -85,7 +85,7 @@ describe("spec-status-roundtrip", () => {
       subtask_id: "03",
       feature: "demo-feature",
       assigned_agent: "shell",
-      model: "composer-2-fast",
+      model: "composer-2.5-fast",
       token_budget: 1000,
       state: "in_progress",
       started_at: "2026-05-06T12:00:00.000Z",
@@ -123,7 +123,7 @@ describe("spec-status-roundtrip", () => {
       subtask_id: "02",
       feature: "x",
       assigned_agent: "generalPurpose",
-      model: "composer-2-fast",
+      model: "composer-2.5-fast",
       token_budget: 0,
       state: "pending",
       checklist: [

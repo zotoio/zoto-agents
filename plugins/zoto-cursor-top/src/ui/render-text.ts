@@ -7,8 +7,9 @@
 import type { AgentSnapshot } from "../types.js";
 import { flattenVisible } from "./Tree.js";
 import {
-  formatStart,
-  kindBadge,
+  agentBodyIndent,
+  formatAgentRowLine,
+  headerRow,
   truncate,
 } from "./format.js";
 
@@ -28,26 +29,19 @@ export function renderText(snapshot: AgentSnapshot, now = Date.now()): string {
   for (const { id, depth } of visible) {
     const node = snapshot.nodes[id];
     if (!node) continue;
-    const indent = "  ".repeat(depth);
-    const chevron = (node.children?.length ?? 0) > 0 ? "▼" : " ";
-    const label = `${indent}${chevron} ${truncate(node.label, 28)}`;
-    const pid = node.pid != null ? String(node.pid).padStart(6) : "  --  ";
+    const hasChildren = (node.children?.length ?? 0) > 0;
+    const bodyIndent = agentBodyIndent(depth);
     lines.push(
-      [
-        `[${kindBadge(node.kind)}]`,
-        pid,
-        label.padEnd(40),
-        truncate(node.model ?? "-", 18).padEnd(18),
-        truncate(node.repo ?? "-", 24).padEnd(24),
-        formatStart(node.startedAt, now),
-        node.status,
-      ].join(" "),
+      formatAgentRowLine(node, depth, now, { expanded: hasChildren, hasChildren }),
     );
     if (node.title) {
-      lines.push(`${indent}      ${truncate(node.title, 96)}`);
+      lines.push(`${bodyIndent}${truncate(node.title, 96)}`);
     }
-    for (const log of node.recentLogs) {
-      lines.push(`${indent}      log: ${truncate(log, 100)}`);
+    // Newest log first — recentLogs is captured oldest→newest so we
+    // walk it backwards. Latest activity is the most useful and
+    // belongs at the top of the per-row block.
+    for (let i = node.recentLogs.length - 1; i >= 0; i--) {
+      lines.push(`${bodyIndent}log: ${truncate(node.recentLogs[i]!, 100)}`);
     }
   }
 
@@ -56,18 +50,6 @@ export function renderText(snapshot: AgentSnapshot, now = Date.now()): string {
     for (const d of snapshot.diagnostics) lines.push(`! ${d}`);
   }
   return lines.join("\n") + "\n";
-}
-
-function headerRow(): string {
-  return [
-    "TYPE".padEnd(5),
-    "   PID",
-    " AGENT".padEnd(40),
-    " MODEL".padEnd(18),
-    " REPO".padEnd(24),
-    " START (elapsed)",
-    " STATUS",
-  ].join(" ");
 }
 
 interface Totals {

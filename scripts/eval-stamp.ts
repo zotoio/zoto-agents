@@ -560,18 +560,17 @@ function printHelp(): void {
   process.stdout.write(
     [
       "Usage:",
-      "  tsx scripts/eval-stamp.ts <target-id> [--out <path>] [--dry-run]",
-      "                            [--with-analyser] [--no-analyser]",
+      "  tsx scripts/eval-stamp.ts <target-id> [--dry-run] [--with-analyser] [--no-analyser]",
       "  tsx scripts/eval-stamp.ts --baseline-only [--out <dir>] [--dry-run]",
       "  tsx scripts/eval-stamp.ts --stamp-pytest [--target <id>] [--out <dir>] [--dry-run]",
       "",
       "Modes:",
-      "  <target-id>        Stamp central eval JSON for a single target.",
+      "  <target-id>        Stamp the co-located LLM eval test file for a single",
+      "                     primitive. Path: <kind-dir>/evals/<name>.test.ts.",
+      "                     Skills are skipped — their evals.json is retained.",
       "  --baseline-only    Stamp ONLY the baseline-fixtures skeleton from",
       "                     plugins/zoto-eval-system/templates/baseline-fixtures/",
       "                     into evals/fixtures/baseline/ (idempotent).",
-      "                     Used by `pnpm run eval:baseline-stamp` and by",
-      "                     subtask 14's live-repo migration.",
       "  --stamp-pytest     Stamp per-primitive pytest test files for either a",
       "                     single --target (any kind, including skills) or for",
       "                     every primitive in .zoto/eval-system/manifest.yml.",
@@ -579,11 +578,10 @@ function printHelp(): void {
       "                     the cached analyser payload contains zero assertions.",
       "",
       "Flags:",
-      "  --out <path>       Override output path (file for case stamp, dir for baseline,",
-      "                     dir for --stamp-pytest).",
+      "  --out <path>       Override output (baseline / --stamp-pytest modes only).",
       "  --target <id>      Restrict --stamp-pytest to a single target id.",
       "  --dry-run          Compute changes without writing.",
-      "  --with-analyser    Force-enable the LLM analyser pass (subtask 04).",
+      "  --with-analyser    Force-enable the LLM analyser pass.",
       "  --no-analyser      Force-disable the LLM analyser pass.",
       "  --help, -h         Show this help.",
       "",
@@ -760,22 +758,6 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const trimmedTarget = targetId.trim();
-  if (trimmedTarget.startsWith("skill:")) {
-    const skillResolved = resolveTarget(trimmedTarget);
-    if (skillResolved && !isAllowlistedSkillStampTarget(trimmedTarget)) {
-      console.error(
-        JSON.stringify({
-          error: "skill targets are not stamped to central JSON by eval-stamp",
-          detail:
-            "Skill evals live at skills/<name>/evals/evals.json; run eval-analyse for hints, then merge manually, copy templates/skill-evals/evals.json.tmpl, or use eval-stamp only for allowlisted skills (see CENTRAL_STAMP_SKILL_ALLOWLIST in scripts/eval-stamp.ts).",
-          target_id: trimmedTarget,
-        })
-      );
-      process.exit(2);
-    }
-  }
-
   const rawResolved = resolveTarget(targetId);
   if (!rawResolved) {
     console.error(
@@ -795,132 +777,92 @@ async function main(): Promise<void> {
     return;
   }
 
-  const outPath = outOverride
-    ? resolve(REPO_ROOT, outOverride)
-    : defaultOutPath(targetId);
-  if (!outPath) {
+  /* === Subtask 06 (single-LLM-emitter co-located) ===                    */
+  /* Skills retain their `evals.json` (KD-1); rules are not eval-stamped.  */
+  if (analysis.kind === "skill") {
+    const evalsJson = join(
+      dirname(rawResolved.sourcePath),
+      "evals",
+      "evals.json",
+    );
+    const relPath = relative(REPO_ROOT, evalsJson);
+    process.stdout.write(
+      JSON.stringify({
+        skipped: "skill",
+        target_id: targetId,
+        path: relPath,
+        note: `skill — no TS sidecar; eval JSON at \`${relPath}\` retained`,
+      }) + "\n",
+    );
+    return;
+  }
+  if (analysis.kind === "rule") {
+    process.stdout.write(
+      JSON.stringify({
+        skipped: "rule",
+        target_id: targetId,
+        path: relative(REPO_ROOT, rawResolved.sourcePath),
+        note: "rule — not eval-stamped",
+      }) + "\n",
+    );
+    return;
+  }
+
+  const payload = await tryLoadAnalyserPayload(targetId, {
+    withAnalyser,
+    noAnalyser,
+  });
+
+  if (!payload?.cases?.length) {
     console.error(
-      JSON.stringify({ error: "cannot derive output path", target_id: targetId })
+      JSON.stringify({
+        error: "missing_cached_analyser_payload",
+        detail:
+          "stampTarget requires a cached analyser payload (or a live analyser run with --with-analyser). Run `pnpm run eval:analyse -- <target-id>` first.",
+        target_id: targetId,
+      }),
     );
     process.exit(1);
   }
 
-  const rawSource = readFileSync(rawResolved.sourcePath, "utf-8");
-  const now = new Date().toISOString();
-
-  const allowlistedSkill =
-    analysis.kind === "skill" &&
-    isAllowlistedSkillStampTarget(targetId.trim());
-
-  let built: StampedDoc | SkillStampedDoc;
-  /** True when stamping `skill:zoto-eval-tooling` rows from the LLM analyser cache only. */
-  let skillStampFromAnalyserCache = false;
-
-  if (allowlistedSkill) {
-    const cached = readCachedAnalyserPayload(REPO_ROOT, targetId);
-    if (!cached?.cases?.length) {
-      console.error(
-        JSON.stringify({
-          error: "skill_stamp_requires_cached_analyser_payload",
-          detail:
-            "Run `pnpm run eval:analyse -- <target-id>` first so the analyser payload is cached under .zoto/eval-system/cache/analyser/, then re-run eval-stamp.",
-          target_id: targetId,
-        }),
-      );
-      process.exit(1);
-    }
-    built = buildSkillStampedDocFromCachedAnalyser(cached, now);
-    skillStampFromAnalyserCache = true;
-  } else {
-    const prim = primitiveAnalysisHash(analysis);
-    built = buildDocument(analysis, prim, analysis.source_hash, now, rawSource);
+  if (outOverride !== null) {
+    process.stderr.write(
+      JSON.stringify({
+        warn: "outOverride_unused",
+        detail:
+          "--out is ignored by the single-LLM-emitter flow; the emit path is co-located at <kind>/evals/<name>.test.ts.",
+        target_id: targetId,
+      }) + "\n",
+    );
   }
 
-  let existing: StampedDoc | SkillStampedDoc | null = null;
-  if (existsSync(outPath)) {
-    try {
-      existing = parseExistingStampedDoc(readFileSync(outPath, "utf-8"));
-    } catch {
-      existing = null;
-    }
-  }
-
-  const merged = mergeStampedUnion(existing, built);
-
-  /* Subtask 04 — annotate heuristic-generated cases with a fresh analyser
-   * run. Rows stamped from an on-disk analyser cache already carry
-   * primitive_analysis; re-run only when the operator passes --with-analyser. */
-  const analyserAnnotateEnabled =
-    shouldEnableAnalyser({ withAnalyser, noAnalyser }) &&
-    (!skillStampFromAnalyserCache || withAnalyser);
-  const analyserOutcome = await applyPrimitiveAnalysisToDoc(merged, targetId, {
-    enabled: analyserAnnotateEnabled,
+  const stampResult = await stampTarget(REPO_ROOT, targetId, payload, {
+    dryRun: dry,
+    sourcePath: rawResolved.sourcePath,
   });
 
-  if (existing && formatDoc(existing) === formatDoc(merged)) {
-    process.stdout.write(
-      JSON.stringify({
-        noop: true,
-        target_id: targetId,
-        path: relative(REPO_ROOT, outPath),
-        analyser: analyserOutcome.applied
-          ? {
-              source: analyserOutcome.source,
-              source_hash: analyserOutcome.payloadSourceHash,
-            }
-          : { source: analyserOutcome.source },
-      }) + "\n"
-    );
-    return;
-  }
-
-  if (dry) {
-    printDiff(existing ?? null, merged);
-    process.stdout.write(
-      JSON.stringify({
-        dry_run: true,
-        target_id: targetId,
-        path: relative(REPO_ROOT, outPath),
-        would_write_cases: stampedCaseCount(merged),
-        analyser: analyserOutcome.applied
-          ? {
-              source: analyserOutcome.source,
-              source_hash: analyserOutcome.payloadSourceHash,
-            }
-          : { source: analyserOutcome.source },
-      }) + "\n"
-    );
-    return;
-  }
-
-  atomicWriteJson(outPath, merged);
-  /* === Subtask 06 START === (per-target pytest stamp wire-in) */
   const pytestOutcome = maybeStampPytestForTarget(REPO_ROOT, targetId);
-  /* === Subtask 06 END === */
-  process.stdout.write(
-    JSON.stringify({
-      written: true,
-      target_id: targetId,
-      path: relative(REPO_ROOT, outPath),
-      cases: stampedCaseCount(merged),
-      analyser: analyserOutcome.applied
-        ? {
-            source: analyserOutcome.source,
-            source_hash: analyserOutcome.payloadSourceHash,
-          }
-        : { source: analyserOutcome.source },
-      /* === Subtask 06 START === (pytest stamp report) */
-      pytest_stamp: "skipped" in pytestOutcome
-        ? { skipped: true, reason: pytestOutcome.reason }
-        : {
-            written: pytestOutcome.written,
-            path: relative(REPO_ROOT, pytestOutcome.outPath),
-            cases: pytestOutcome.cases,
-            assertions: pytestOutcome.assertions,
-          },
-      /* === Subtask 06 END === */
-    }) + "\n"
-  );
+
+  const reportRecord: Record<string, unknown> = {
+    target_id: targetId,
+    backend: stampResult.backend,
+    written: stampResult.written,
+    path: stampResult.path,
+    files_written: stampResult.llm.files_written,
+    pytest_stamp: "skipped" in pytestOutcome
+      ? { skipped: true, reason: pytestOutcome.reason }
+      : {
+          written: pytestOutcome.written,
+          path: relative(REPO_ROOT, pytestOutcome.outPath),
+          cases: pytestOutcome.cases,
+          assertions: pytestOutcome.assertions,
+        },
+  };
+  if (dry) {
+    reportRecord.dry_run = true;
+    reportRecord.would_write = stampResult.path;
+  }
+  process.stdout.write(JSON.stringify(reportRecord) + "\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1931,52 +1873,48 @@ function writeVitestIfChanged(
 }
 // === Subtask 07 END ===
 
-// === Subtask 09 START ===
-/* Subtask 09 — LLM `code` strategy stamping (canonical fence).            */
-/*                                                                          */
-/* Coordination with adjacent fences:                                       */
-/*   • `PrimitiveMeta` and `AnalyserPayload` are defined in subtask 08's   */
-/*     fence above; this fence imports them by name without redeclaring.   */
-/*   • `isGeneratedFile` is owned by `evals/_llm/_user-case-guards.ts`     */
-/*     (this subtask's deliverable). The stamper imports it for the        */
-/*     bidirectional declarative-strategy mutual-exclusion guard.          */
-/*   • Subtask 10 (declarative strategy) consumes the same                  */
-/*     `LlmStrategyConflictError` shape via the cleanup engine; do NOT     */
-/*     rename or re-locate the symbol without coordinating with subtask 10.*/
-/*                                                                          */
-/* Layout produced for `llm.strategy === "code"`:                          */
-/*                                                                          */
-/*   <hostRepoRoot>/evals/llm/                                             */
-/*     vitest.config.ts | jest.config.ts     (rendered inline per framework)*/
-/*     test_<primitive.slug>.test.ts         (one per primitive)           */
-/*     _shared/                                                             */
-/*       sandbox-helpers.ts        (re-export + preSnapshot/postSnapshot)  */
-/*       setup.ts                  (dotenv + CURSOR_API_KEY gate)          */
-/*       zoto-llm-reporter.ts      (framework-agnostic reporter)           */
-/*       run-code-strategy-suite.ts (central harness)                      */
-/*       code-strategy-case.ts     (case type definitions)                 */
-/*                                                                          */
-/* When the host has `evals/_llm/` (canonical source), sdk-bridge,         */
-/* _user-case-guards, and graders are imported directly from there         */
-/* instead of being copied into `_shared/`. For external repos without     */
-/* `evals/_llm/`, copies are still stamped into `_shared/`.                */
-/*                                                                          */
-/* Every emitted *.test.ts file carries `// _meta.generated: true` as its */
-/* literal first line (subtasks 03 & 11 deletion / overwrite gate via      */
-/* `evals/_llm/_user-case-guards.ts#isGeneratedFile`).                     */
+// === Subtask 06 (single LLM emitter) — canonical fence ===
+/* The single LLM-emitter stamping fence. The legacy `code`/`declarative`
+ * split has been retired (KD-3 of
+ * spec-eval-single-backend-colocated-restructure-20260526). One emitter,
+ * one path per primitive:
+ *
+ *   <kind-dir>/evals/<name>.test.ts         (one per non-skill primitive,
+ *                                            co-located beside source)
+ *   evals/llm/_shared/                      (shared harness — sandbox,
+ *                                            setup, reporter, sdk-bridge)
+ *
+ * Skills retain their existing `evals.json` (KD-1) — `resolveLlmTargetPath`
+ * returns `null` for skill targets and the stamper short-circuits.
+ *
+ * When the host has the engine package (canonical source), `sdk-bridge`,
+ * `_user-case-guards`, and graders are imported via `#eval-engine` instead
+ * of being copied into `_shared/`. For external repos that lack the
+ * engine, copies are still stamped into `_shared/`.
+ *
+ * Every emitted `*.test.ts` carries `// _meta.generated: true` as its
+ * literal first line so the cleanup engine and overwrite gate can detect
+ * the file via
+ * `plugins/zoto-eval-system/engine/_user-case-guards.ts#isGeneratedFile`. */
 
-import { isGeneratedFile as isLlmCodeGeneratedTestFile } from "../plugins/zoto-eval-system/engine/_user-case-guards.ts";
+/* `_user-case-guards` are imported by the harness at runtime; the
+ * stamper no longer queries them directly (the mutual-exclusion guard
+ * was retired in subtask 06 of the single-backend collapse). */
 import { loadEvalConfig } from "../plugins/zoto-eval-system/src/config-loader.js";
 
 const LLM_CODE_TEMPLATE_REL =
   "plugins/zoto-eval-system/templates/llm/code-cursor-sdk";
 const LLM_CODE_DEST_REL = "evals/llm";
 
-export type LlmCodeFramework = "vitest" | "jest";
+/**
+ * Retained as a type alias so the legacy `engine/update.ts` declarative
+ * regeneration path still type-checks against the unified backend until
+ * subtask 07 collapses the dispatch. After this subtask the emitted LLM
+ * eval files are always Vitest.
+ */
+export type LlmCodeFramework = "vitest";
 
-export interface LlmCodeStampOptions {
-  /** Target framework for emitted test files. Required. */
-  codeFramework: LlmCodeFramework;
+export interface LlmStampOptions {
   /** Model id (pass-through from `.zoto/eval-system/config.yml#/llm/model/id`). */
   modelId: string;
   /** Judge model id (pass-through from config `#/judgeModel`). */
@@ -1987,14 +1925,14 @@ export interface LlmCodeStampOptions {
   templateRoot?: string;
   /**
    * Override the in-repo source for `sdk-bridge.ts` / `_user-case-guards.ts`
-   * (test seam; defaults to `<REPO_ROOT>/evals/_llm/`). Stamped verbatim
-   * so the host repo always executes against the same bridge surface
-   * this repo was developed against.
+   * (test seam; defaults to `<REPO_ROOT>/plugins/zoto-eval-system/engine/`).
+   * Stamped verbatim so the host repo always executes against the same
+   * bridge surface this repo was developed against.
    */
   sharedSourceRoot?: string;
   /** Per-case test timeout in ms (default 180000). */
   caseTimeoutMs?: number;
-  /** Skip the strategy mutual-exclusion guard (test-only escape hatch). */
+  /** Reserved for the migration / regeneration flow (no-op today). */
   bypassGuard?: boolean;
   /** When true, compute changes without writing. */
   dryRun?: boolean;
@@ -2006,12 +1944,11 @@ export interface LlmCodeStampOptions {
   tokenFieldNotes?: string;
 }
 
-export interface LlmCodeStampResult {
+export interface LlmStampResult {
   hostRepoRoot: string;
   evalsDir: string;
   llmDir: string;
   testFile: string;
-  configFile: string;
   setupFile: string;
   reporterFile: string;
   sdkBridgeFile: string;
@@ -2020,115 +1957,6 @@ export interface LlmCodeStampResult {
   graderFiles: string[];
   written: string[];
   unchanged: string[];
-  framework: LlmCodeFramework;
-}
-
-/**
- * Mutual-exclusion guard — refuses to stamp the named LLM strategy when
- * artefacts from the OTHER strategy are present in the host repo. Subtask
- * 09 owns the `code` direction; subtask 10 owns the `declarative`
- * direction (it imports this symbol and reuses the bidirectional logic).
- *
- * Emitted error message points operators at `/z-eval-configure` (which
- * routes the strategy decision via `askQuestion`) AND at
- * `scripts/eval-cleanup-stale.ts` (the cleanup engine that removes the
- * unused strategy's stamped assets after explicit user confirmation).
- */
-export class LlmStrategyConflictError extends Error {
-  readonly target: "code" | "declarative";
-  readonly conflicts: string[];
-
-  constructor(target: "code" | "declarative", conflicts: string[]) {
-    const other = target === "code" ? "declarative" : "code";
-    super(
-      `Refusing to stamp LLM ${target} strategy: detected conflicting ${other} ` +
-        `artefacts in host repo (${conflicts.join(", ")}). Run /z-eval-configure ` +
-        `to pick a single LLM strategy, or invoke the cleanup engine ` +
-        `(scripts/eval-cleanup-stale.ts) to remove the unused strategy ` +
-        `before retrying.`,
-    );
-    this.name = "LlmStrategyConflictError";
-    this.target = target;
-    this.conflicts = conflicts;
-  }
-}
-
-/**
- * Bidirectional guard for the LLM strategies. Detection signals:
- *
- *   target = "code" → declarative footprint:
- *     • `evals/_llm/cases.json` exists, OR
- *     • `evals/_llm/runner.ts` carries the explicit
- *       "zoto-declarative-strategy:active" marker (subtask 10).
- *
- *   target = "declarative" → code footprint:
- *     • any `*.test.ts` under `evals/llm/` carries the
- *       `// _meta.generated: true` first-line marker (this fence's
- *       deliverable).
- *
- * The host's `evals/_llm/runner.ts` (this repo's dogfood source) is NOT
- * considered a conflict on its own — we look for an explicit "active"
- * marker so subtask 14's live-repo migration can proceed without
- * tripping the guard.
- */
-export function assertNoConflictingLlmStrategy(
-  target: "code" | "declarative",
-  hostRepoRoot: string,
-): void {
-  const conflicts: string[] = [];
-
-  if (target === "code") {
-    const runnerPath = join(hostRepoRoot, "plugins", "zoto-eval-system", "engine", "runner.ts");
-    if (existsSync(runnerPath)) {
-      try {
-        const body = readFileSync(runnerPath, "utf-8");
-        if (body.includes("/* zoto-declarative-strategy:active */")) {
-          conflicts.push("plugins/zoto-eval-system/engine/runner.ts (declarative strategy active)");
-        }
-      } catch {
-        /* unreadable runner.ts — let other tooling surface the error */
-      }
-    }
-    const centralCasesPath = join(hostRepoRoot, "evals", "_llm", "cases.json");
-    if (existsSync(centralCasesPath)) {
-      conflicts.push("evals/_llm/cases.json");
-    }
-  } else {
-    const llmDir = join(hostRepoRoot, "evals", "llm");
-    if (existsSync(llmDir)) {
-      const stack = [llmDir];
-      while (stack.length) {
-        const cur = stack.pop()!;
-        let names: string[];
-        try {
-          names = readdirSync(cur);
-        } catch {
-          continue;
-        }
-        for (const name of names) {
-          const full = join(cur, name);
-          let st;
-          try {
-            st = statSync(full);
-          } catch {
-            continue;
-          }
-          if (st.isDirectory()) stack.push(full);
-          else if (
-            st.isFile() &&
-            full.endsWith(".test.ts") &&
-            isLlmCodeGeneratedTestFile(full)
-          ) {
-            conflicts.push(relative(hostRepoRoot, full));
-          }
-        }
-      }
-    }
-  }
-
-  if (conflicts.length > 0) {
-    throw new LlmStrategyConflictError(target, conflicts);
-  }
 }
 
 function loadLlmCodeTemplate(absolute: string): string {
@@ -2210,19 +2038,17 @@ function escapeLlmCodeRegExpSource(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function renderLlmCodePerPrimitiveTest(
+function renderLlmPerPrimitiveTest(
   template: string,
   payload: AnalyserPayload,
   primitive: PrimitiveMeta,
-  framework: LlmCodeFramework,
   modelId: string,
   judgeModel: string,
   caseTimeoutMs: number,
+  harnessRel: string,
 ): string {
   const frameworkImports =
-    framework === "vitest"
-      ? 'import { describe, it, afterAll, expect } from "vitest";'
-      : 'import { describe, it, afterAll, expect } from "@jest/globals";';
+    'import { describe, it, afterAll, expect } from "vitest";';
 
   const name = primitive.target_id.includes(":")
     ? primitive.target_id.split(":")[1]
@@ -2235,6 +2061,7 @@ function renderLlmCodePerPrimitiveTest(
 
   return template
     .replaceAll("{{FRAMEWORK_IMPORTS}}", frameworkImports)
+    .replaceAll("{{HARNESS_REL_PATH}}", harnessRel)
     .replaceAll("{{CASES_JSON}}", casesJson)
     .replaceAll("{{TARGET_ID}}", primitive.target_id)
     .replaceAll("{{PRIMITIVE_KIND}}", payload.kind)
@@ -2244,59 +2071,8 @@ function renderLlmCodePerPrimitiveTest(
     .replaceAll("{{CASE_TIMEOUT_MS}}", String(caseTimeoutMs))
     .replaceAll("{{SOURCE_PATH}}", primitive.source_path)
     .replaceAll("{{SOURCE_HASH}}", primitive.source_hash)
-    .replaceAll("{{CODE_FRAMEWORK}}", framework)
+    .replaceAll("{{CODE_FRAMEWORK}}", "vitest")
     .replaceAll("{{PAYLOAD_JSON}}", JSON.stringify(payload, null, 2));
-}
-
-function renderLlmFrameworkConfig(framework: LlmCodeFramework): string {
-  if (framework === "vitest") {
-    return [
-      "// _meta.generated: true",
-      `import { dirname, resolve } from "node:path";`,
-      `import { fileURLToPath } from "node:url";`,
-      `import { defineConfig } from "vitest/config";`,
-      "",
-      `const __dirname = dirname(fileURLToPath(import.meta.url));`,
-      "",
-      "/** Maps `#eval-engine/*` to the zoto-eval-system engine package (sdk-bridge, graders, case). */",
-      `const evalEngineRoot = resolve(__dirname, "../../plugins/zoto-eval-system/engine");`,
-      "",
-      "export default defineConfig({",
-      "  root: __dirname,",
-      "  resolve: {",
-      "    alias: {",
-      '      "#eval-engine": evalEngineRoot,',
-      "    },",
-      "  },",
-      "  test: {",
-      `    include: ["**/*.test.ts"],`,
-      `    exclude: ["**/_shared/**"],`,
-      `    setupFiles: ["./_shared/setup.ts"],`,
-      "    testTimeout: 300_000,",
-      "    hookTimeout: 60_000,",
-      `    pool: "forks",`,
-      `    reporters: ["default"],`,
-      "    passWithNoTests: false,",
-      "  },",
-      "});",
-      "",
-    ].join("\n");
-  }
-  return [
-    "// _meta.generated: true",
-    `import type { Config } from "jest";`,
-    "",
-    "const config: Config = {",
-    `  preset: "ts-jest",`,
-    `  testEnvironment: "node",`,
-    `  testMatch: ["**/*.test.ts"],`,
-    `  setupFiles: ["<rootDir>/_shared/setup.ts"],`,
-    "  testTimeout: 300_000,",
-    "};",
-    "",
-    "export default config;",
-    "",
-  ].join("\n");
 }
 
 function writeLlmCodeIfChanged(
@@ -2320,41 +2096,101 @@ function writeLlmCodeIfChanged(
 }
 
 /**
- * Stamp the LLM `code` strategy backend into a host repo for a single
- * primitive. Idempotent — files are only written when their content
- * differs from the existing on-disk content. The mutual-exclusion guard
- * runs first and throws `LlmStrategyConflictError` when declarative
- * artefacts are detected. Use `bypassGuard: true` only from unit tests.
+ * Resolve the co-located eval file path for a non-skill primitive
+ * (KD-2 of spec-eval-single-backend-colocated-restructure-20260526):
+ *
+ *   <kind-dir>/evals/<name>.test.ts
+ *
+ * - `command` / `agent` → `dirname(sourcePath)/evals/<name>.test.ts`
+ * - `hook`              → `<hooks-dir>/evals/hooks.test.ts` (one
+ *   bundled file per hook source; `.cursor/hooks.json` canonicalises
+ *   to `.cursor/hooks/evals/hooks.test.ts`)
+ * - `skill` / `rule`    → `null` (skills retain `evals.json`; rules
+ *   are not eval-stamped)
+ */
+export function resolveLlmTargetPath(
+  resolved: { kind: string; sourcePath: string; name: string },
+): string | null {
+  if (resolved.kind === "skill" || resolved.kind === "rule") return null;
+  if (resolved.kind === "hook") {
+    const dir = dirname(resolved.sourcePath);
+    const base = dir.split(sep).pop() ?? "";
+    const hooksDir = base === "hooks" ? dir : join(dir, "hooks");
+    return join(hooksDir, "evals", "hooks.test.ts");
+  }
+  return join(
+    dirname(resolved.sourcePath),
+    "evals",
+    `${resolved.name}.test.ts`,
+  );
+}
+
+/**
+ * Compute the relative-from-`testFile`-dir path string used by stamped
+ * tests to import the unified harness at `evals/llm/_shared/`. The
+ * returned string is normalised to POSIX separators so the literal lands
+ * in the emitted source unchanged on Windows hosts.
+ */
+function relativeHarnessImportPath(
+  hostRepoRoot: string,
+  testFilePath: string,
+): string {
+  const sharedDir = join(hostRepoRoot, "evals", "llm", "_shared");
+  const fromDir = dirname(testFilePath);
+  let rel = relative(fromDir, sharedDir).split(sep).join("/");
+  if (rel.length === 0) rel = ".";
+  if (!rel.startsWith(".")) rel = `./${rel}`;
+  return rel;
+}
+
+export function buildPrimitiveMetaFromPayload(
+  payload: AnalyserPayload,
+  sourcePath?: string,
+): PrimitiveMeta {
+  const namePart = payload.target_id.includes(":")
+    ? payload.target_id.split(":")[1] ?? payload.target_id
+    : payload.target_id;
+  const slug = `${payload.kind}_${namePart
+    .replace(/[^A-Za-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase()}`;
+  return {
+    slug,
+    target_id: payload.target_id,
+    source_path: payload.source_path || sourcePath || "",
+    source_hash: payload.source_hash,
+  };
+}
+
+/**
+ * Stamp the unified LLM eval into a host repo for a single primitive.
+ * Idempotent — files are only written when their content differs from
+ * the existing on-disk content.
  *
  * Template source of truth:
  *   `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/`
  *
  * Per-primitive test body: rendered from `per-primitive-test.ts.tmpl`
- * with placeholders substituted at stamp time.
- * Framework-config (vitest.config.ts / jest.config.ts): rendered
- * inline by `renderLlmFrameworkConfig(...)` — there is no template
- * file for these; the stamper owns the canonical config shape.
- * Shared files (sandbox-helpers, setup, reporter) are stamped
- * verbatim from their respective `.tmpl` files.
+ * with placeholders substituted at stamp time. The emitted test file
+ * lands at the co-located path produced by `resolveLlmTargetPath` —
+ * `<kind-dir>/evals/<name>.test.ts` — and imports the harness from a
+ * relative path back to `evals/llm/_shared/`.
  *
- * When the host repo already has `evals/_llm/` (the canonical
- * source directory — always present in the zoto-agents monorepo),
- * `sdk-bridge.ts`, `_user-case-guards.ts`, and the graders are NOT
- * copied into `_shared/`; the harness imports them directly from
- * `../../_llm/`. For external repos that lack `evals/_llm/`, the
+ * When the host repo already has `plugins/zoto-eval-system/engine/`
+ * (the canonical source directory — always present in the zoto-agents
+ * monorepo), `sdk-bridge.ts`, `_user-case-guards.ts`, and the graders
+ * are NOT copied into `_shared/`; the harness imports them via the
+ * `#eval-engine` alias. For external repos that lack the engine, the
  * stamper falls back to the copy behaviour so the layout stays
  * self-contained.
  */
-export function stampLlmCodeStrategy(
+export function stampLlmTarget(
   hostRepoRoot: string,
   payload: AnalyserPayload,
   primitive: PrimitiveMeta,
-  opts: LlmCodeStampOptions,
-): LlmCodeStampResult {
-  if (!opts.bypassGuard) {
-    assertNoConflictingLlmStrategy("code", hostRepoRoot);
-  }
-
+  resolved: { kind: string; sourcePath: string; name: string; targetId: string },
+  opts: LlmStampOptions,
+): LlmStampResult {
   const templateRoot =
     opts.templateRoot ?? join(REPO_ROOT, LLM_CODE_TEMPLATE_REL);
   const sharedSourceRoot =
@@ -2363,14 +2199,22 @@ export function stampLlmCodeStrategy(
   const evalsDir = join(hostRepoRoot, evalsDirRel);
   const llmDir = join(hostRepoRoot, evalsDirRel, "llm");
   const sharedDir = join(llmDir, "_shared");
-  const framework = opts.codeFramework;
   const caseTimeoutMs = opts.caseTimeoutMs ?? 180000;
 
-  const testFile = join(llmDir, `test_${primitive.slug}.test.ts`);
-  const configFile = join(
-    llmDir,
-    framework === "vitest" ? "vitest.config.ts" : "jest.config.ts",
-  );
+  const targetPath = resolveLlmTargetPath(resolved);
+  if (!targetPath) {
+    throw new Error(
+      `stampLlmTarget: refusing to stamp ${resolved.kind} primitive ${resolved.targetId} (skills retain evals.json; rules are not eval-stamped)`,
+    );
+  }
+
+  // Rebase the (potentially monorepo-absolute) target path under `hostRepoRoot`
+  // so the relative-harness-path computation stays inside the host tree even
+  // when callers pass a tmp `hostRepoRoot` for fixture tests.
+  const testFile = targetPath.startsWith(hostRepoRoot)
+    ? targetPath
+    : join(hostRepoRoot, relative(REPO_ROOT, targetPath));
+
   const setupFile = join(sharedDir, "setup.ts");
   const reporterFile = join(sharedDir, "zoto-llm-reporter.ts");
   const sdkBridgeFile = join(sharedDir, "sdk-bridge.ts");
@@ -2436,21 +2280,21 @@ export function stampLlmCodeStrategy(
     userCaseGuardsBody = readFileSync(userCaseGuardsSrc, "utf-8");
   }
 
+  const harnessRel = relativeHarnessImportPath(hostRepoRoot, testFile);
+
   const renderedTest = ensureLlmCodeGeneratedMarker(
-    renderLlmCodePerPrimitiveTest(
+    renderLlmPerPrimitiveTest(
       testTemplate,
       payload,
       primitive,
-      framework,
       opts.modelId,
       opts.judgeModel,
       caseTimeoutMs,
+      harnessRel,
     ),
   );
-  const renderedConfig = renderLlmFrameworkConfig(framework);
 
   writeLlmCodeIfChanged(testFile, renderedTest, state, dryRun);
-  writeLlmCodeIfChanged(configFile, renderedConfig, state, dryRun);
   writeLlmCodeIfChanged(setupFile, setupTemplate, state, dryRun);
 
   if (hostHasCanonicalSource) {
@@ -2491,7 +2335,6 @@ export function stampLlmCodeStrategy(
     evalsDir,
     llmDir,
     testFile,
-    configFile,
     setupFile,
     reporterFile,
     sdkBridgeFile,
@@ -2500,306 +2343,137 @@ export function stampLlmCodeStrategy(
     graderFiles,
     written: state.written,
     unchanged: state.unchanged,
-    framework,
   };
 }
 // === Subtask 09 END ===
 
-// === Subtask 10 START ===
-/* Subtask 10 — LLM `declarative` strategy stamping (canonical fence).      */
-/*                                                                          */
-/* Coordination with adjacent fences:                                       */
-/*   • `AnalyserPayload` is imported via the subtask 08 fence above; this   */
-/*     fence does NOT redeclare it.                                         */
-/*   • `LlmStrategyConflictError` and `assertNoConflictingLlmStrategy` are  */
-/*     defined in the subtask 09 fence above. We REUSE the symmetric        */
-/*     bidirectional guard so both stampers refuse to stamp when the OTHER  */
-/*     strategy's artefacts are present.                                    */
-/*   • `isGeneratedFile` is owned by `evals/_llm/_user-case-guards.ts`      */
-/*     (subtask 09 deliverable). The mutual-exclusion check below imports   */
-/*     it via the subtask 09 import alias.                                  */
-/*                                                                          */
-/* Layout produced for `llm.strategy === "declarative"`:                    */
-/*                                                                          */
-/*   <hostRepoRoot>/evals/_llm/                                             */
-/*     runner.ts        (declarative strategy entry; carries the literal   */
-/*                       `/* zoto-declarative-strategy:active *\u002F`     */
-/*                       marker on line 2 — subtask 09's guard reads this) */
-/*     case.ts          (with validateEnriched + _user-case-guards import)*/
-/*     writer.ts        (writes evals/_runs/<ts>/llm.yml; backend: "llm") */
-/*     metrics.ts                                                          */
-/*     compare.ts                                                          */
-/*     README.md        (enriched evals.json shape + rejection rules)     */
-/*                                                                          */
-/* Per-case `_meta.primitive_analysis` is embedded into the stamped         */
-/* `evals.json` rows. Cases with placeholder prompts are REJECTED at stamp  */
-/* time so a thin or partial analyser payload never lands on disk.          */
+// === Subtask 06 (single LLM emitter) START ===
+/* The single LLM emitter — `stampLlmTarget` — is wrapped by `stampTarget`
+ * below. The wrapper handles primitive-kind dispatch (skills retain JSON;
+ * rules are not eval-stamped; everything else flows through stampLlmTarget). */
 
-const LLM_DECLARATIVE_TEMPLATE_REL =
-  "plugins/zoto-eval-system/templates/llm/agent-sdk";
-const LLM_DECLARATIVE_DEST_REL = "evals/_llm";
-
-const DECLARATIVE_STAMPED_FILES = [
-  "runner.ts",
-  "case.ts",
-  "writer.ts",
-  "metrics.ts",
-  "compare.ts",
-  "README.md",
-] as const;
-
-type DeclarativeStampedFile = (typeof DECLARATIVE_STAMPED_FILES)[number];
-
-export interface LlmDeclarativeStampOptions {
-  /** Override source template root (test seam). */
-  templateRoot?: string;
-  /** Host-repo-relative evals directory (default `evals`). */
-  evalsDir?: string;
-  /** Skip the strategy mutual-exclusion guard (test-only escape hatch). */
-  bypassGuard?: boolean;
-  /** When true, compute changes without writing. */
+export interface StampTargetOptions {
   dryRun?: boolean;
+  bypassGuard?: boolean;
+  sourcePath?: string;
 }
 
-export interface LlmDeclarativeStampResult {
-  hostRepoRoot: string;
-  evalsDir: string;
-  llmDir: string;
-  written: string[];
-  unchanged: string[];
-  files: Record<DeclarativeStampedFile, string>;
+export interface StampTargetResult {
+  target_id: string;
+  /**
+   * Backend label retained for the orchestrator + report consumers; the
+   * only value is `"llm"` after the single-backend collapse (KD-3).
+   */
+  backend: "llm";
+  written: boolean;
+  /** Repo-relative path of the emitted (or skipped) artefact. */
+  path: string;
+  /** Repo-relative path string detailing the LLM emit (kept for shape compat). */
+  llm: {
+    test_file: string;
+    files_written: number;
+  };
+  skipped?: "skill" | "rule";
+  /** Human-friendly note when the target was skipped (e.g. skills retain JSON). */
+  note?: string;
 }
 
 /**
- * Stamp the declarative-strategy backend (the `agent-sdk` template tree)
- * into `<hostRepoRoot>/evals/_llm/`. Idempotent at the file-content level —
- * files are only touched when their bytes differ. The mutual-exclusion
- * guard runs first and throws `LlmStrategyConflictError` (defined in the
- * subtask 09 fence above) when `code` strategy artefacts are detected via
- * `isGeneratedFile` on any `evals/llm/*.test.ts` file.
+ * Stamp the single LLM eval artefact for a target. Skills are skipped
+ * (their existing `evals.json` is retained); rules are not eval-stamped.
+ * All other primitives stamp a co-located `<kind-dir>/evals/<name>.test.ts`.
  */
-export function stampLlmDeclarativeStrategy(
+export async function stampTarget(
   hostRepoRoot: string,
-  opts: LlmDeclarativeStampOptions = {},
-): LlmDeclarativeStampResult {
-  if (!opts.bypassGuard) {
-    /* Re-uses the bidirectional guard from the subtask 09 fence so both
-     * directions surface the same `LlmStrategyConflictError`. */
-    assertNoConflictingLlmStrategy("declarative", hostRepoRoot);
-  }
-
-  const templateRoot =
-    opts.templateRoot ?? join(REPO_ROOT, LLM_DECLARATIVE_TEMPLATE_REL);
-  const evalsDirRel = opts.evalsDir ?? "evals";
-  const evalsDir = join(hostRepoRoot, evalsDirRel);
-  const llmDir = join(hostRepoRoot, evalsDirRel, "_llm");
-
-  const state: { written: string[]; unchanged: string[] } = {
-    written: [],
-    unchanged: [],
-  };
-  const dryRun = opts.dryRun ?? false;
-  const filesOut: Partial<Record<DeclarativeStampedFile, string>> = {};
-
-  for (const f of DECLARATIVE_STAMPED_FILES) {
-    const tmplName = `${f}.tmpl`;
-    const tmplPath = join(templateRoot, tmplName);
-    if (!existsSync(tmplPath)) {
-      throw new Error(`declarative template missing: ${tmplPath}`);
-    }
-    const body = readFileSync(tmplPath, "utf-8");
-    const dest = join(llmDir, f);
-    filesOut[f] = dest;
-    writeDeclarativeIfChanged(dest, body, state, dryRun);
-  }
-
-  return {
-    hostRepoRoot,
-    evalsDir,
-    llmDir,
-    written: state.written,
-    unchanged: state.unchanged,
-    files: filesOut as Record<DeclarativeStampedFile, string>,
-  };
-}
-
-function writeDeclarativeIfChanged(
-  abs: string,
-  body: string,
-  state: { written: string[]; unchanged: string[] },
-  dryRun: boolean,
-): void {
-  const existing = existsSync(abs) ? readFileSync(abs, "utf-8") : null;
-  if (existing === body) {
-    state.unchanged.push(abs);
-    return;
-  }
-  if (dryRun) {
-    state.written.push(abs);
-    return;
-  }
-  mkdirSync(dirname(abs), { recursive: true });
-  writeFileSync(abs, body, "utf-8");
-  state.written.push(abs);
-}
-
-/**
- * Stamp a declarative `evals.json` row from an `AnalyserCase`. Embeds
- * `_meta.primitive_analysis` and copies `prompt` / `assertions[]` /
- * `fixtures.files[]` directly from the analyser payload. Refuses to write
- * a case with a placeholder prompt so the runner's `validateEnriched`
- * gate never sees a row that would have been rejected at runtime.
- *
- * The placeholder check is intentionally identical to
- * `evals/_llm/case.ts#detectPlaceholderPrompt` (minus the < 8 char guard
- * — short prompts are caught by the runner; the stamper only blocks the
- * unambiguous placeholder tokens).
- */
-export interface DeclarativeStampedCaseRow {
-  id: number | string;
-  prompt: string;
-  assertions: string[];
-  fixtures?: { files: Array<{ path: string; content?: string; from?: string }> };
-  expected_filesystem?: {
-    created?: string[];
-    modified?: string[];
-    removed?: string[];
-    unchanged?: string[];
-  };
-  expected_output?: string;
-  follow_ups?: string[];
-  graders?: Array<Record<string, unknown>>;
-  _meta: {
-    generated: true;
-    source_hash: string;
-    primitive_analysis_hash?: string;
-    last_updated: string;
-    generated_by: string;
-    primitive_analysis: {
-      source_hash: string;
-      analysed_at: string;
-      analyser_version: string;
-      summary: string;
-      invalidate?: boolean;
-      fixture_justifications?: string[];
-    };
-  };
-}
-
-const DECLARATIVE_PLACEHOLDER_RE =
-  /\b(?:TODO|TBD|FIXME|placeholder prompt|<placeholder>)/i;
-const DECLARATIVE_PLACEHOLDER_EXACT = new Set([
-  "placeholder",
-  "todo",
-  "tbd",
-  "fixme",
-  "...",
-  "n/a",
-  "tba",
-]);
-
-export function declarativeRejectPlaceholderPrompt(prompt: string): string | null {
-  const trimmed = (prompt ?? "").trim();
-  if (trimmed.length === 0) return "prompt is empty";
-  if (DECLARATIVE_PLACEHOLDER_EXACT.has(trimmed.toLowerCase())) {
-    return `prompt is a placeholder token: ${trimmed}`;
-  }
-  if (DECLARATIVE_PLACEHOLDER_RE.test(trimmed)) {
-    return `prompt contains placeholder marker: ${trimmed.slice(0, 80)}`;
-  }
-  return null;
-}
-
-/**
- * Build a stamped declarative `evals.json` row for one `AnalyserCase`.
- * Throws if the analyser handed us a placeholder prompt — the failure
- * surfaces immediately so the operator re-runs the analyser instead of
- * shipping a row the runner would reject anyway.
- */
-export function buildDeclarativeStampedCase(
+  targetId: string,
   payload: AnalyserPayload,
-  caseIdx: number,
-  nowIso: string,
-): DeclarativeStampedCaseRow {
-  const c = payload.cases[caseIdx];
-  if (!c) {
-    throw new Error(
-      `buildDeclarativeStampedCase: payload has no case at index ${caseIdx}`,
-    );
-  }
-  const reason = declarativeRejectPlaceholderPrompt(c.prompt);
-  if (reason) {
-    throw new Error(
-      `Refusing to stamp declarative case for ${payload.target_id}#${caseIdx}: ${reason}`,
-    );
-  }
-  if (!Array.isArray(c.assertions) || c.assertions.length === 0) {
-    throw new Error(
-      `Refusing to stamp declarative case for ${payload.target_id}#${caseIdx}: no assertions in analyser payload`,
-    );
+  opts: StampTargetOptions = {},
+): Promise<StampTargetResult> {
+  const resolved = resolveTarget(targetId, hostRepoRoot);
+  if (!resolved) {
+    throw new Error(`stampTarget: cannot resolve target ${targetId}`);
   }
 
-  const row: DeclarativeStampedCaseRow = {
-    id: caseIdx + 1,
-    prompt: c.prompt,
-    assertions: c.assertions.slice(),
-    _meta: {
-      generated: true,
-      source_hash: payload.source_hash,
-      last_updated: nowIso,
-      generated_by: "zoto-create-evals",
-      primitive_analysis: {
-        source_hash: payload.source_hash,
-        analysed_at: nowIso,
-        analyser_version: payload.analyser_version,
-        summary: payload.summary,
-        ...(c.fixture_justifications && c.fixture_justifications.length > 0
-          ? { fixture_justifications: c.fixture_justifications.slice() }
-          : {}),
-      },
+  if (resolved.kind === "skill") {
+    const evalsJson = join(dirname(resolved.sourcePath), "evals", "evals.json");
+    const relPath = relative(hostRepoRoot, evalsJson);
+    return {
+      target_id: targetId,
+      backend: "llm",
+      written: false,
+      path: relPath,
+      llm: { test_file: relPath, files_written: 0 },
+      skipped: "skill",
+      note: `skill — no TS sidecar; eval JSON at \`${relPath}\` retained`,
+    };
+  }
+
+  if (resolved.kind === "rule") {
+    const relPath = relative(hostRepoRoot, resolved.sourcePath);
+    return {
+      target_id: targetId,
+      backend: "llm",
+      written: false,
+      path: relPath,
+      llm: { test_file: relPath, files_written: 0 },
+      skipped: "rule",
+      note: `rule — not eval-stamped`,
+    };
+  }
+
+  const cfg = loadEvalConfig(hostRepoRoot).config;
+  const llm = (cfg.llm as Record<string, unknown> | undefined) ?? {};
+  const model = (llm.model as Record<string, unknown> | undefined) ?? {};
+  const modelId = typeof model.id === "string" ? model.id : "composer-2.5";
+  const judgeModel =
+    typeof cfg.judgeModel === "string" ? cfg.judgeModel : "opus-4.6";
+
+  const primitive = buildPrimitiveMetaFromPayload(payload, opts.sourcePath);
+  const result = stampLlmTarget(hostRepoRoot, payload, primitive, resolved, {
+    modelId,
+    judgeModel,
+    dryRun: opts.dryRun,
+    bypassGuard: opts.bypassGuard ?? true,
+  });
+
+  const relTestFile = relative(hostRepoRoot, result.testFile);
+  return {
+    target_id: targetId,
+    backend: "llm",
+    written: result.written.length > 0,
+    path: relTestFile,
+    llm: {
+      test_file: relTestFile,
+      files_written: result.written.length,
     },
   };
-  if (c.fixtures?.files?.length) {
-    row.fixtures = {
-      files: c.fixtures.files.map((f) => ({
-        path: f.path,
-        ...(f.content !== undefined ? { content: f.content } : {}),
-        ...(f.from !== undefined ? { from: f.from } : {}),
-      })),
-    };
-  }
-  if (c.expected_filesystem) {
-    row.expected_filesystem = c.expected_filesystem;
-  }
-  if (c.expected_output !== undefined) {
-    row.expected_output = c.expected_output;
-  }
-  if (c.follow_ups && c.follow_ups.length > 0) {
-    row.follow_ups = c.follow_ups.slice();
-  }
-  return row;
 }
 
-/**
- * Build a full `skills/.../evals/evals.json` document from a cached LLM
- * analyser payload (`skill:zoto-eval-tooling` allowlist only).
- */
-function buildSkillStampedDocFromCachedAnalyser(
-  payload: AnalyserPayload,
-  nowIso: string,
-): SkillStampedDoc {
-  const name = payload.target_id.split(":")[1] ?? payload.target_id;
-  const evals = payload.cases.map((_, idx) => {
-    try {
-      return buildDeclarativeStampedCase(payload, idx, nowIso) as StampedCase;
-    } catch (e) {
-      throw new Error(
-        `eval-stamp skill: case ${idx + 1}: ${(e as Error).message}`,
-      );
-    }
-  });
-  return { skill_name: name, evals };
+async function tryLoadAnalyserPayload(
+  targetId: string,
+  opts: { withAnalyser: boolean; noAnalyser: boolean },
+): Promise<AnalyserPayload | null> {
+  const payload = readCachedAnalyserPayload(REPO_ROOT, targetId);
+  if (payload?.cases?.length) return payload;
+  if (!shouldEnableAnalyser(opts)) return null;
+  try {
+    const mod = await import("./eval-analyse.ts");
+    const budget = mod.newAnalyserBudget();
+    const result = await mod.runAnalyser({ target: targetId }, { budget });
+    mod.emitCostSummary(budget);
+    return result.payload;
+  } catch (e) {
+    process.stderr.write(
+      `${JSON.stringify({
+        warn: "analyser_skipped",
+        target_id: targetId,
+        message: (e as Error).message,
+      })}\n`,
+    );
+    return null;
+  }
 }
+// === Subtask 06 (single LLM emitter) END ===
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().then(
@@ -2812,4 +2486,3 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     },
   );
 }
-// === Subtask 10 END ===

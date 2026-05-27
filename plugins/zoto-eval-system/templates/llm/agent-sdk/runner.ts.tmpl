@@ -7,7 +7,8 @@
  * `case.prompt`, `case.assertions[]`, `case.fixtures.files[]`, and
  * `_meta.primitive_analysis`) and runs them through `@cursor/sdk`. Every
  * case is funnelled through `validateEnriched(case)` before the SDK is
- * touched; cases without a real prompt, ≥1 assertion, or a valid
+ * touched; cases declaring scripted `interactions` (code-strategy only),
+ * without a real prompt, ≥1 assertion, or a valid
  * `_meta.primitive_analysis` block (when `_meta.generated === true`) are
  * rejected with a clear stderr message and the runner exits 1 BEFORE
  * paying for any Agent invocations.
@@ -91,7 +92,7 @@ function printHelp(): void {
   console.log("  --full        Execute LLM cases. Requires CURSOR_API_KEY.");
   console.log("  --list        List discovered cases and exit.");
   console.log("  --judge-only  Smoke: validate latest llm.yml exists (no Agent run).");
-  console.log("  --model <id>  Override model (composer-2 | opus-4.6 | sonnet).");
+  console.log("  --model <id>  Override model (composer-2.5 | opus-4.6 | sonnet).");
 }
 
 function loadConfig(): Record<string, unknown> {
@@ -105,7 +106,7 @@ function resolveModel(args: Args, config: Record<string, unknown>): string {
   if (process.env.ZOTO_EVAL_MODEL) return process.env.ZOTO_EVAL_MODEL;
   const llm = (config.llm ?? {}) as Record<string, unknown>;
   const model = (llm.model ?? {}) as Record<string, unknown>;
-  return (model.id as string) ?? "composer-2";
+  return (model.id as string) ?? "composer-2.5";
 }
 
 function discoverCaseFiles(evalsDir: string, config: Record<string, unknown>): string[] {
@@ -334,7 +335,7 @@ async function main(): Promise<number> {
   if (rejections.length > 0) {
     console.error(
       `LLM declarative runner rejected ${rejections.length} case(s) ` +
-        `(declarative strategy requires a real prompt, ≥1 assertion, and ` +
+        `(declarative strategy requires no scripted interactions, a real prompt, ≥1 assertion, and ` +
         `_meta.primitive_analysis on every generated case):`,
     );
     for (const r of rejections) {

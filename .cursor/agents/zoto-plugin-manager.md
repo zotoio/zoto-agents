@@ -1,6 +1,6 @@
 ---
 name: zoto-plugin-manager
-model: claude-sonnet-4-6
+model: claude-opus-4-7[]
 description: Expert at creating, validating, and managing Cursor plugins in this monorepo. Deep knowledge of plugin anatomy (agents, skills, commands, rules, hooks, MCP), the Agent Skills specification, marketplace publishing, skill evaluations, CRUX compression, and monorepo tooling.
 is_background: true
 ---
@@ -313,7 +313,7 @@ Both support `--dry-run`.
 
 ### Mode 1: Create Plugin (`zoto-create-plugin` skill)
 
-Guided scaffolding of a new plugin in this monorepo. See the skill for the full workflow.
+Guided scaffolding of a new plugin in this monorepo. See the skill for the full workflow. After each eval-eligible component is written in Step 6, run **Step 6e — Classify and stamp evals**: `pnpm run eval:analyse --target <path>`, read `requiresInteraction`, and stamp the correct LLM backend via `stampTargetWithBackendRouting` (declarative JSON vs code-strategy TypeScript). When `CURSOR_API_KEY` is missing or analyse fails, stamp declarative JSON with `_meta.classification_source: "fallback-default"` and tell the operator to run `pnpm run eval:update --with-analyser` later.
 
 ### Mode 2: Audit Plugin
 

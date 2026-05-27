@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "command:z-eval-configure",
   "kind": "command",
   "source_path": "plugins/zoto-eval-system/commands/z-eval-configure.md",
@@ -9,7 +9,7 @@
   "summary": "The command gates on an existing `.zoto/eval-system/config.yml`, owns a fixed-order `askQuestion` preflight, snapshots manifest state, spawns `zoto-eval-configurer`, and only runs `pnpm run eval:cleanup-stale` after explicit cleanup-plan confirmation, with resume handling for `needs_user_input`.",
   "cases": [
     {
-      "scenario": "Aborts when eval-system config file is absent",
+      "scenario": "cancel-from-first-question-halts-before-deeper-prompts",
       "prompt": "/z-eval-configure",
       "fixtures": {
         "files": [
@@ -25,7 +25,10 @@
       "expected_output": "The run stops immediately with the documented initialisation error and does not spawn the configurer subagent or write a new config file.",
       "assertions": [
         "After `/z-eval-configure`, the assistant surfaces the exact abort text telling the operator to run `/z-eval-init` first because `.zoto/eval-system/config.yml` is missing.",
-        "After `/z-eval-configure`, no Task is spawned for `zoto-eval-configurer` and no new `.zoto/eval-system/config.yml` appears in the workspace snapshot."
+        "After `/z-eval-configure`, no Task is spawned for `zoto-eval-configurer` and no new `.zoto/eval-system/config.yml` appears in the workspace snapshot.",
+        "When the configurer returns a cleanup plan, the command surfaces `cleanup_plan.totals.files: <integer>` derived from the validated plan.",
+        "Confirmed cleanup runs invoke `pnpm run eval:cleanup-stale` via the host package.json alias rather than calling a script path directly.",
+        "Cleanup plans are validated against `cleanup-plan.schema.json` before any deletion runs."
       ]
     },
     {
@@ -39,7 +42,7 @@
         "Use pytest for the static runner.",
         "Use the declarative LLM strategy.",
         "Run generated LLM specs with `tsx`.",
-        "Use `composer-2` for generation prompts.",
+        "Use `composer-2.5` for generation prompts.",
         "Use `opus-4.6` as the judge model.",
         "Enable packaged manual checklists.",
         "Add vitest automation plus bats-backed shell checks.",
@@ -50,7 +53,10 @@
         "After `/z-eval-configure`, the operator-visible transcript shows `askQuestion` prompts in the mandated order for overwrite versus show-only, evals directory choice, roots, discovery targets, static framework, LLM strategy, runtime, primary model, judge model, checklist toggle, extra automation, and the five critical-change toggles before any subagent work begins.",
         "Before spawning `zoto-eval-configurer`, the command executor calls `readManifestSnapshot` (via `evals/_llm/manifest-snapshot.ts`) and forwards both the snapshot object and every collected answer in the structured payload.",
         "After the subagent returns with `cleanup_plan.totals.files === 0`, the command MUST skip the cleanup confirmation `askQuestion` and MUST NOT invoke `pnpm run eval:cleanup-stale`.",
-        "The written `.zoto/eval-system/config.yml` reflects the operator's custom `packages/quality/evals` directory, pytest, declarative, `tsx`, `composer-2`, `opus-4.6`, checklist-on, vitest-and-bats automation mix, and all-guards-on selections without asking for `preserveUserAuthoredCases` or `writeMetaMarker`."
+        "The written `.zoto/eval-system/config.yml` reflects the operator's custom `packages/quality/evals` directory, pytest, declarative, `tsx`, `composer-2.5`, `opus-4.6`, checklist-on, vitest-and-bats automation mix, and all-guards-on selections without asking for `preserveUserAuthoredCases` or `writeMetaMarker`.",
+        "When the configurer returns a cleanup plan, the command surfaces `cleanup_plan.totals.files: <integer>` derived from the validated plan.",
+        "Confirmed cleanup runs invoke `pnpm run eval:cleanup-stale` via the host package.json alias rather than calling a script path directly.",
+        "Cleanup plans are validated against `cleanup-plan.schema.json` before any deletion runs."
       ]
     },
     {
@@ -76,7 +82,10 @@
         "After `/z-eval-configure`, any change to `static.framework` or `llm.strategy` forces the configurer to stamp `_meta.primitive_analysis.invalidate = true` on each generated manifest row it touches.",
         "When `cleanup_plan.totals.files` is greater than zero, the command MUST render each `cleanup_plan.groups[].summary` plus every listed file path before the final confirmation prompt.",
         "After the operator selects Apply, the command MUST invoke `pnpm run eval:cleanup-stale -- --plan` feeding the validated cleanup plan without altering its schema shape.",
-        "The dry-run preview from subtask 03 MUST match the executed plan bytes well enough for schema validation parity described in the command doc."
+        "The dry-run preview from subtask 03 MUST match the executed plan bytes well enough for schema validation parity described in the command doc.",
+        "When the configurer returns a cleanup plan, the command surfaces `cleanup_plan.totals.files: <integer>` derived from the validated plan.",
+        "Confirmed cleanup runs invoke `pnpm run eval:cleanup-stale` via the host package.json alias rather than calling a script path directly.",
+        "Cleanup plans are validated against `cleanup-plan.schema.json` before any deletion runs."
       ]
     },
     {
@@ -90,7 +99,7 @@
         "Move the static runner from pytest to vitest.",
         "Stay on the declarative LLM strategy.",
         "Run generated LLM specs with `tsx`.",
-        "Use `composer-2` for prompts.",
+        "Use `composer-2.5` for prompts.",
         "Judge scoring with `sonnet`.",
         "Leave manual checklists off.",
         "Skip extra automation bundles.",
@@ -100,7 +109,10 @@
       "expected_output": "The assistant captures the deferred cleanup decision in manifest history while leaving stale assets untouched until a later configure pass revisits the same drift.",
       "assertions": [
         "After `/z-eval-configure`, choosing Skip cleanup MUST append a manifest history note that cleanup was deferred while leaving files on disk unchanged.",
-        "After `/z-eval-configure`, the command MUST NOT execute `pnpm run eval:cleanup-stale` when Skip cleanup is chosen, even if the cleanup plan listed pending deletions."
+        "After `/z-eval-configure`, the command MUST NOT execute `pnpm run eval:cleanup-stale` when Skip cleanup is chosen, even if the cleanup plan listed pending deletions.",
+        "When the configurer returns a cleanup plan, the command surfaces `cleanup_plan.totals.files: <integer>` derived from the validated plan.",
+        "Confirmed cleanup runs invoke `pnpm run eval:cleanup-stale` via the host package.json alias rather than calling a script path directly.",
+        "Cleanup plans are validated against `cleanup-plan.schema.json` before any deletion runs."
       ]
     },
     {
@@ -115,7 +127,7 @@
         "Switch to the code LLM strategy with vitest scaffolding.",
         "Run generated LLM specs with `tsx`.",
         "Use `opus-4.6` for prompts.",
-        "Judge scoring with `composer-2`.",
+        "Judge scoring with `composer-2.5`.",
         "Enable manual checklists.",
         "Add jest automation only.",
         "Keep critical-change guards enabled.",
@@ -124,7 +136,10 @@
       "expected_output": "Selecting the re-run branch abandons the in-flight write, restores the prior on-disk config snapshot if needed, and returns the operator to the first overwrite question without applying cleanup.",
       "assertions": [
         "After the operator picks the re-run option at cleanup confirmation, the assistant MUST discard the in-progress `config.yml` changes and restart the questionnaire beginning with the existing-config disposition question.",
-        "After `/z-eval-configure`, the re-run path MUST NOT call `pnpm run eval:cleanup-stale` for the discarded plan."
+        "After `/z-eval-configure`, the re-run path MUST NOT call `pnpm run eval:cleanup-stale` for the discarded plan.",
+        "When the configurer returns a cleanup plan, the command surfaces `cleanup_plan.totals.files: <integer>` derived from the validated plan.",
+        "Confirmed cleanup runs invoke `pnpm run eval:cleanup-stale` via the host package.json alias rather than calling a script path directly.",
+        "Cleanup plans are validated against `cleanup-plan.schema.json` before any deletion runs."
       ]
     },
     {
@@ -149,7 +164,10 @@
       "assertions": [
         "When `llm.strategy` is `code` but `llm.codeFramework` is absent from the payload, the resumed Task MUST return `needs_user_input` instead of silently inventing a default framework.",
         "After the operator answers the resumed `askQuestion`, the command MUST resume the existing `zoto-eval-configurer` Task with the completed answers until a final report lands without `needs_user_input`.",
-        "When the configurer emits a cleanup plan that fails `cleanup-plan.schema.json` validation, the returned report MUST include `needs_user_input`, and the command MUST gather follow-up answers before resuming the same Task until the plan validates."
+        "When the configurer emits a cleanup plan that fails `cleanup-plan.schema.json` validation, the returned report MUST include `needs_user_input`, and the command MUST gather follow-up answers before resuming the same Task until the plan validates.",
+        "When the configurer returns a cleanup plan, the command surfaces `cleanup_plan.totals.files: <integer>` derived from the validated plan.",
+        "Confirmed cleanup runs invoke `pnpm run eval:cleanup-stale` via the host package.json alias rather than calling a script path directly.",
+        "Cleanup plans are validated against `cleanup-plan.schema.json` before any deletion runs."
       ]
     },
     {
@@ -163,7 +181,7 @@
         "Pin static tests to vitest.",
         "Use the code LLM strategy with jest-generated harnesses despite vitest static tests.",
         "Run generated LLM specs with `tsx`.",
-        "Use `composer-2` for prompts.",
+        "Use `composer-2.5` for prompts.",
         "Judge scoring with `opus-4.6`.",
         "Enable manual checklists.",
         "Skip extra automation bundles.",
@@ -173,7 +191,10 @@
       "expected_output": "The configurer emits cleanup warnings about mismatched TypeScript harnesses, surfaces them ahead of the Apply prompt, and still requires explicit confirmation before deleting orphaned assets.",
       "assertions": [
         "After `/z-eval-configure`, when static vitest is paired with jest-coded LLM specs, the returned `cleanup_plan.warnings[]` MUST include a human-readable drift note before the Apply question.",
-        "Even with warnings present, the command MUST still enumerate affected `cleanup_plan.groups[].files[].path` values and MUST obtain explicit Apply versus Skip consent before `pnpm run eval:cleanup-stale` may run."
+        "Even with warnings present, the command MUST still enumerate affected `cleanup_plan.groups[].files[].path` values and MUST obtain explicit Apply versus Skip consent before `pnpm run eval:cleanup-stale` may run.",
+        "When the configurer returns a cleanup plan, the command surfaces `cleanup_plan.totals.files: <integer>` derived from the validated plan.",
+        "Confirmed cleanup runs invoke `pnpm run eval:cleanup-stale` via the host package.json alias rather than calling a script path directly.",
+        "Cleanup plans are validated against `cleanup-plan.schema.json` before any deletion runs."
       ]
     },
     {
@@ -185,7 +206,10 @@
       "expected_output": "The assistant surfaces the stored eval-system parameters for inspection and ends before invoking writers, subagents, or cleanup runners.",
       "assertions": [
         "After `/z-eval-configure`, selecting the show-only path MUST display the current configuration fields yet MUST NOT spawn `zoto-eval-configurer`.",
-        "After `/z-eval-configure`, the `.zoto/eval-system/config.yml` file content stays byte-for-byte unchanged and `pnpm run eval:cleanup-stale` never executes."
+        "After `/z-eval-configure`, the `.zoto/eval-system/config.yml` file content stays byte-for-byte unchanged and `pnpm run eval:cleanup-stale` never executes.",
+        "When the configurer returns a cleanup plan, the command surfaces `cleanup_plan.totals.files: <integer>` derived from the validated plan.",
+        "Confirmed cleanup runs invoke `pnpm run eval:cleanup-stale` via the host package.json alias rather than calling a script path directly.",
+        "Cleanup plans are validated against `cleanup-plan.schema.json` before any deletion runs."
       ]
     },
     {
@@ -197,8 +221,16 @@
       "expected_output": "The assistant acknowledges the cancellation and stops before collecting later fields or mutating eval-system assets.",
       "assertions": [
         "After `/z-eval-configure`, choosing cancel on the initial existing-config question MUST stop the questionnaire before the evals directory prompt appears.",
-        "After `/z-eval-configure`, neither `zoto-eval-configurer` nor `pnpm run eval:cleanup-stale` runs, and no eval-system files are created or modified."
+        "After `/z-eval-configure`, neither `zoto-eval-configurer` nor `pnpm run eval:cleanup-stale` runs, and no eval-system files are created or modified.",
+        "When the configurer returns a cleanup plan, the command surfaces `cleanup_plan.totals.files: <integer>` derived from the validated plan.",
+        "Confirmed cleanup runs invoke `pnpm run eval:cleanup-stale` via the host package.json alias rather than calling a script path directly.",
+        "Cleanup plans are validated against `cleanup-plan.schema.json` before any deletion runs."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

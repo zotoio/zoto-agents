@@ -90,7 +90,7 @@ export interface AwaitedRun {
 export interface CreateAgentOptions {
   /** Cursor API key; defaults to `process.env.CURSOR_API_KEY`. */
   apiKey?: string;
-  /** Concrete Cursor model id (e.g. `composer-2`, `opus-4.6`). */
+  /** Concrete Cursor model id (e.g. `composer-2.5`, `opus-4.6`). */
   modelId: string;
   /** Sandbox / workspace cwd — the agent executes against this tree. */
   cwd: string;
@@ -113,7 +113,7 @@ export interface CreateAgentOptions {
  *   ZOTO_EVAL_MODEL_ALIASES='{"opus-4.6":"claude-opus-4-7"}'
  *
  * Unknown labels pass through unchanged so concrete ids
- * (`claude-opus-4-7`, `composer-2`, etc.) keep working without any
+ * (`claude-opus-4-7`, `composer-2.5`, etc.) keep working without any
  * rewrite.
  */
 const DEFAULT_MODEL_ALIASES: Record<string, string> = {

@@ -138,7 +138,7 @@ function printHelp(): void {
   console.log(
     "  --judge-only  Smoke: validate latest llm.yml exists (no Agent run).",
   );
-  console.log("  --model <id>  Override model (composer-2 | opus-4.6 | sonnet).");
+  console.log("  --model <id>  Override model (composer-2.5 | opus-4.6 | sonnet).");
 }
 
 function loadConfig(): Record<string, unknown> {
@@ -154,7 +154,7 @@ function resolveModel(args: Args, config: Record<string, unknown>): string {
   if (process.env.ZOTO_EVAL_MODEL) return process.env.ZOTO_EVAL_MODEL;
   const llm = (config.llm ?? {}) as Record<string, unknown>;
   const model = (llm.model ?? {}) as Record<string, unknown>;
-  return (model.id as string) ?? "composer-2";
+  return (model.id as string) ?? "composer-2.5";
 }
 
 function discoverCentralPluginEvalJson(): string[] {

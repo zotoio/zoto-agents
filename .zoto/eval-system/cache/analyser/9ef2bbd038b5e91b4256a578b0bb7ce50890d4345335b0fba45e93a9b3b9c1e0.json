@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "command:z-eval-help",
   "kind": "command",
   "source_path": "plugins/zoto-eval-system/commands/z-eval-help.md",
@@ -11,24 +11,29 @@
     {
       "scenario": "abort when eval-system config missing",
       "prompt": "/z-eval-help configuration",
-      "expected_output": "A single error line stating that Eval System is not initialised and naming `/z-eval-init` plus the expected config path, with no skill invocation and no tailored help body.",
+      "expected_output": "Answer grounded in Configuration with citations and values from the host project files.",
       "assertions": [
-        "after `/z-eval-help`, the run surfaces the exact abort sentence from the command precondition and does not call the zoto-help-evals skill",
-        "no `start:end:` README citation block appears because the command stopped before composing a tailored answer"
+        "The agent loads zoto-help-evals once `help_context` includes `selected_section` matching the Configuration README heading.",
+        "The final assistant message contains at least one fenced code-reference block whose path suffix is `plugins/zoto-eval-system/README.md` with numeric `start:end` line anchors.",
+        "The answer states at least one fact clearly tied to a file the workflow read (for instance `evalsDir`, manifest target cardinality, or a latest run id) rather than only generic plugin wording.",
+        "No askQuestion calls originate from zoto-help-evals during the skill run.",
+        "Every quoted answer carries a `<startLine>:<endLine>:plugins/zoto-eval-system/README.md` citation tied to the README source.",
+        "Code-reference fences open with ```` ```<startLine>:<endLine>:plugins/zoto-eval-system/README.md ```` so citations remain machine-checkable against the README."
       ]
     },
     {
       "scenario": "section chooser when topic omitted",
       "prompt": "/z-eval-help",
-      "follow_ups": [
-        "2"
-      ],
-      "expected_output": "First turn shows askQuestion listing numbered README sections derived from `plugins/zoto-eval-system/README.md` headings; after the operator picks an option, the zoto-help-evals skill returns prose grounded in that section with citations.",
+      "expected_output": "Help addresses troubleshooting intent using README anchors while respecting skill input rules.",
       "assertions": [
-        "after `/z-eval-help` with no arguments, the command emits askQuestion whose options correspond to the enumerated `##` sections from `plugins/zoto-eval-system/README.md`",
-        "before invoking zoto-help-evals, the command constructs `help_context` with `selected_section` matching the operator choice",
-        "after the follow-up selection, the final answer includes at least one `start:end:plugins/zoto-eval-system/README.md` citation covering quoted README lines",
-        "the zoto-help-evals skill did not emit askQuestion; any prompts came from the command owner"
+        "`help_context.user_question` records the free-form sentence instead of a numeric menu id.",
+        "zoto-help-evals returns a tailored reply without emitting askQuestion from inside the skill.",
+        "The reply still includes at least one `start:end:plugins/zoto-eval-system/README.md` citation block for any quoted README material.",
+        "Every quoted answer carries a `<startLine>:<endLine>:plugins/zoto-eval-system/README.md` citation tied to the README source.",
+        "Code-reference fences open with ```` ```<startLine>:<endLine>:plugins/zoto-eval-system/README.md ```` so citations remain machine-checkable against the README."
+      ],
+      "follow_ups": [
+        "My last static run failed pytest collection — which README section should I read and what should I check in this repo?"
       ]
     },
     {
@@ -44,15 +49,17 @@
     },
     {
       "scenario": "disambiguate topic matching multiple headings",
-      "prompt": "/z-eval-help eval",
+      "prompt": "/z-eval-help LLM",
       "follow_ups": [
-        "Pick the Overview heading"
+        "LLM eval strategies (declarative + code)"
       ],
-      "expected_output": "First turn asks which README section to use because several headings overlap the token; after the operator names a section, the skill answers with tailored prose and citations.",
+      "expected_output": "User picks which LLM-related README section to anchor; answer follows that anchor with citations.",
       "assertions": [
-        "after `/z-eval-help eval`, the command emits askQuestion that resolves ambiguity across multiple `##` headers before a final tailored answer is returned",
-        "the resumed help_context carries `selected_section` from the clarification answer",
-        "the final response includes README citations in `start:end:plugins/zoto-eval-system/README.md` form and incorporates values read from `.zoto/eval-system/config.yml` and other inspected project files rather than generic defaults"
+        "After `/z-eval-help LLM`, askQuestion lists only the competing `##` headers whose titles match the topic token before loading zoto-help-evals.",
+        "After the follow-up names a specific header, zoto-help-evals runs with `help_context.selected_section` set to that exact title.",
+        "The composed answer cites the chosen section via `start:end:plugins/zoto-eval-system/README.md` references and obeys the read-before-write guidance from the skill for project signals tied to that anchor.",
+        "Every quoted answer carries a `<startLine>:<endLine>:plugins/zoto-eval-system/README.md` citation tied to the README source.",
+        "Code-reference fences open with ```` ```<startLine>:<endLine>:plugins/zoto-eval-system/README.md ```` so citations remain machine-checkable against the README."
       ]
     },
     {
@@ -70,16 +77,23 @@
     },
     {
       "scenario": "post-answer navigation prompt",
-      "prompt": "/z-eval-help Configuration",
-      "follow_ups": [
-        "Jump to the File layout and run outputs section"
-      ],
-      "expected_output": "After the first tailored answer, the command may offer askQuestion for staying or jumping to another README section; choosing another section triggers a second zoto-help-evals call with revised help_context.",
+      "prompt": "/z-eval-help overview",
+      "expected_output": "Command bridges a needs_user_input result into a completed help_context and a second skill call.",
       "assertions": [
-        "after the first skill result for Configuration, the command optionally emits askQuestion that offers navigating to another README section versus finishing",
-        "after the operator requests another section, zoto-help-evals runs again with `selected_section` updated to the new heading",
-        "each delivered section answer cites the README with `start:end:plugins/zoto-eval-system/README.md` and keeps tailoring tied to on-disk config and run artefacts"
+        "If zoto-help-evals first returns `needs_user_input`, the command runs askQuestion before the next skill invocation.",
+        "The subsequent zoto-help-evals call includes `help_context` fields that satisfy the skill’s requested enum or section candidates.",
+        "At no point does zoto-help-evals itself call askQuestion.",
+        "Every quoted answer carries a `<startLine>:<endLine>:plugins/zoto-eval-system/README.md` citation tied to the README source.",
+        "Code-reference fences open with ```` ```<startLine>:<endLine>:plugins/zoto-eval-system/README.md ```` so citations remain machine-checkable against the README."
+      ],
+      "follow_ups": [
+        "Use the enum value the skill asked for to finish help_context, then continue."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "skill:zoto-help-evals",
   "kind": "skill",
   "source_path": "plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md",
@@ -136,5 +136,10 @@
         "No `askQuestion` calls originate from this skill invocation for routing clarification."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

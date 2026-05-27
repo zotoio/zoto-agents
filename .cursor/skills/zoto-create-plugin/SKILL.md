@@ -133,6 +133,28 @@ For each component the user requested:
 
 **Hooks**: Create `hooks/hooks.json` pointing at compiled scripts. Write TypeScript source under `hooks/` that reads JSON stdin and writes JSON stdout.
 
+**6e — Classify and stamp evals** (run after each eval-eligible component above — agents, skills, commands, hooks; skip rules):
+
+For every component file you just wrote:
+
+1. **Analyse** — `pnpm run eval:analyse --target <component-source-path>` (repo-relative path, e.g. `plugins/<plugin>/commands/<name>.md`). Parse stdout as JSON (`AnalyserPayload`). Read `requiresInteraction` (default `false` when missing).
+2. **Stamp** — dispatch to the same per-target stamper as `/z-eval-update` (`stampTargetWithBackendRouting` in `scripts/eval-stamp.ts`):
+   - `requiresInteraction: true` → code-strategy `evals/llm/test_<kind>_<name>.test.ts` (imports `askquestion-bridge` when interactive).
+   - `requiresInteraction: false` (or omitted) → declarative JSON:
+     - commands/agents/hooks → `plugins/<plugin>/evals/<kind>s/<name>.json`
+     - skills → `plugins/<plugin>/skills/<name>/evals/evals.json` (Agent Skills shape: `{ skill_name, evals[] }`).
+3. **Canonical migration pattern** — when re-classifying later, follow the migration matrix from Subtask 09 (`specs/20260526-eval-askquestion-strategy-bridge/audit/migration-matrix.md`): one backend per target, opposite-backend artefact removed only when generated.
+
+**Fallback when analyser unavailable** — plugin creation MUST NOT block when `CURSOR_API_KEY` is missing or `pnpm run eval:analyse` fails:
+
+- Stamp declarative JSON using a minimal heuristic payload (omit `requiresInteraction`).
+- Every generated case row receives `_meta.classification_source: "fallback-default"`.
+- Tell the operator: run `pnpm run eval:update --with-analyser` later to re-classify and migrate to the correct backend. Reference the Subtask 09 migration matrix as the canonical re-classification pattern.
+
+Implementation helper (for tests and automation): `evals/llm/_shared/zoto-create-plugin-strategy.ts` exports `classifyAndStampPluginComponent`.
+
+When the user requested **no** eval components (no agents/skills/commands/hooks), skip 6e entirely — no regression to the existing flow.
+
 ### Step 7: Generate Supporting Files
 
 1. **package.json** — with scripts for `build`, `test`, `validate`, `install-local`, `uninstall-local`

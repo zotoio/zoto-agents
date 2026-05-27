@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "skill:zoto-eval-tooling",
   "kind": "skill",
   "source_path": "plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md",
@@ -132,5 +132,10 @@
         "the assistant does not suggest bypassing failures by calling underlying TypeScript entrypoints directly"
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

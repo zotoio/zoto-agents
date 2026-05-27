@@ -1,31 +1,23 @@
-# LLM `code` Strategy — `@cursor/sdk` Template Tree
+# LLM Template Tree — `@cursor/sdk`
 
-This template tree is stamped by
-`scripts/eval-stamp.ts#stampLlmCodeStrategy` when the host repo's
-`.zoto/eval-system/config.yml` sets:
+> **Status:** Historic template layout. Stamped output now lives at
+> the co-located path `<kind>/evals/<name>.test.ts` adjacent to each
+> non-skill primitive, backed by the unified harness at
+> [`evals/llm/_shared/run-llm-suite.ts`](../../../../evals/llm/_shared/run-llm-suite.ts).
+> The `.tmpl` files in this tree are retained for stamper continuity
+> and may be removed in a future cleanup pass. The user-facing
+> documentation is the plugin
+> [`README.md`](../../../README.md) — refer to that for the
+> co-located layout and the [Adding an eval as a plugin author](../../../README.md#adding-an-eval-as-a-plugin-author)
+> walkthrough.
 
-```jsonc
-{
-  "llm": {
-    "strategy": "code",
-    "codeFramework": "vitest" // or "jest"
-  }
-}
-```
+## Canonical SDK pattern
 
-Every stamped file lands under `evals/llm/` in the host repo. The
-strategy is mutually exclusive with the declarative strategy
-(subtask 10's `evals/_llm/runner.ts` + `evals.json`); the stamper
-refuses to write these files while declarative assets are present.
-
-## Canonical SDK Pattern
-
-Every emitted `*.test.ts` uses the canonical pattern, routed through
-`evals/_llm/sdk-bridge.ts` (copied to `evals/llm/_shared/sdk-bridge.ts`
-at stamp time):
+Every emitted `*.test.ts` uses the canonical pattern routed through
+[`evals/llm/_shared/sdk-bridge.ts`](../../../../evals/llm/_shared/sdk-bridge.ts):
 
 ```ts
-import { createAgent, sendPrompt, awaitRun, closeAgent, resolveTokens } from "../_shared/sdk-bridge";
+import { createAgent, sendPrompt, awaitRun, closeAgent, resolveTokens } from "../../../evals/llm/_shared/sdk-bridge";
 
 const agent = await createAgent({ modelId, cwd: sandbox.rootDir });
 try {
@@ -42,7 +34,7 @@ The bridge is the ONE place that imports `@cursor/sdk`. A future SDK
 breaking change needs a single-file patch — not a sweep across every
 stamped test. Never import `@cursor/sdk` directly from a stamped file.
 
-## File-Level Contract
+## File-level contract
 
 Every emitted `*.test.ts` MUST carry the literal marker as line 1:
 
@@ -50,12 +42,13 @@ Every emitted `*.test.ts` MUST carry the literal marker as line 1:
 // _meta.generated: true
 ```
 
-Subtasks 03 (cleanup engine) and 11 (updater) both call
-`evals/_llm/_user-case-guards.ts#isGeneratedFile(path, { strict: true })`
-to decide whether a file is safe to delete or overwrite. A file
-without this marker is treated as user-authored and is preserved.
+The eval system's user-case guards
+([`evals/llm/_shared/_user-case-guards.ts`](../../../../evals/llm/_shared/_user-case-guards.ts))
+use this marker to decide whether a file is safe to delete or
+overwrite. A file without this marker is treated as user-authored
+and is preserved.
 
-## Token-Field Pinning
+## Token-field pinning
 
 `@cursor/sdk` 1.0.12 (the pinned version) does NOT expose a per-run
 token count on `RunResult` — `tokens`, `usage.totalTokens`, and
@@ -67,81 +60,22 @@ release exposes a real token count:
 
 1. Re-run `tsx evals/_llm/sdk-bridge.selftest.ts --probe-types`.
 2. Update `PINNED_SDK_VERSION` and `TOKEN_RESULT_FIELD` in
-   `evals/_llm/sdk-bridge.ts`.
+   `evals/llm/_shared/sdk-bridge.ts`.
 3. Update `resolveTokens(...)` to return the right branch.
-4. Update this README's Token-Field Pinning section.
+4. Update this README's Token-field pinning section.
 
-## Mutual Exclusion With the Declarative Strategy
+## Running the suite
 
-`scripts/eval-stamp.ts#stampLlmCodeStrategy` refuses to stamp these
-assets if the host repo already has declarative-strategy cases
-(detected via `isGeneratedCase` on any `evals/**/evals.json` row plus
-presence of `evals/_llm/runner.ts`-style artefacts). Run
-`/z-eval-configure` to flip the strategy or
-`pnpm run eval:cleanup-stale:apply` to remove the other strategy's
-files before re-stamping.
-
-## Framework Selection
-
-The stamper conditionally emits either a vitest or jest test file based
-on `llm.codeFramework`:
-
-- **vitest** — uses `vitest`'s globals (`describe`, `it`, `expect`,
-  `afterAll`). The test file imports them from `"vitest"`.
-- **jest** — uses `@jest/globals` imports. Same shape.
-
-Both frameworks invoke `evals/llm/_shared/setup.ts` via their
-`setupFiles` config so `.env` is loaded exactly once and the baseline
-fixture tree is verified before any case runs.
-
-## Files Stamped Into `evals/llm/`
-
-```
-evals/llm/
-├── test_<kind>_<slug>.test.ts         # one per primitive, canonical pattern
-├── _shared/
-│   ├── sdk-bridge.ts                   # thin wrapper around @cursor/sdk
-│   ├── sandbox-helpers.ts              # re-exports evals/_llm/sandbox.ts
-│   ├── setup.ts                        # dotenv + CURSOR_API_KEY gate
-│   ├── zoto-llm-reporter.ts            # writes evals/_runs/<ts>/llm.yml
-│   └── graders/                        # standalone grader copies
-│       ├── common.ts
-│       ├── contains.ts
-│       ├── regex.ts
-│       ├── tool-called.ts
-│       └── llm-judge.ts
-├── vitest.config.ts  (vitest only)
-└── jest.config.ts    (jest only)
-```
-
-## Running the Suite
-
-The stamper registers (alongside subtask 12's orchestration):
-
-```jsonc
-{
-  "scripts": {
-    "eval:llm:code": "vitest run evals/llm/"
-    // OR for jest:
-    // "eval:llm:code": "jest --config evals/llm/jest.config.ts"
-  }
-}
-```
-
-When `CURSOR_API_KEY` is missing every case skips cleanly with a
-prefixed `[zoto-eval-llm]` stderr message (matching the declarative
-runner's `--full` gate UX). When it is set, the suite writes
+The orchestrator (`pnpm run eval:full`) discovers every co-located
+`<kind>/evals/<name>.test.ts` through the single repo-rooted Vitest
+config at `evals/vitest.config.ts`. When `CURSOR_API_KEY` is missing,
+every case skips cleanly with a prefixed `[zoto-eval-llm]` stderr
+message. When it is set, the suite writes
 `evals/_runs/<run-id>/llm.yml` validating against
-`plugins/zoto-eval-system/templates/schema/result.schema.json` with
-`backend: "llm"`.
+[`plugins/zoto-eval-system/templates/schema/result.schema.json`](../../schema/result.schema.json).
 
-## Consumers
+## See also
 
-- **Subtask 10** (declarative strategy) — shares `sdk-bridge.ts`,
-  `_user-case-guards.ts#isGeneratedCase`, and the reporter's YAML shape.
-- **Subtask 11** (updater) — uses `_user-case-guards.ts` both helpers
-  to gate overwrites and case deletions.
-- **Subtask 12** (merged report) — merges this backend's `llm.yml` with
-  the static backend's `static.yml` into `evals/_runs/<ts>/report.yml`.
-- **`cursor-sdk` skill** — the runtime authority for canonical SDK
-  patterns. Keep this README aligned with the skill.
+- [plugins/zoto-eval-system/README.md](../../../README.md) — primary user-facing documentation.
+- [evals/llm/_shared/README.md](../../../../evals/llm/_shared/README.md) — shared harness module catalogue.
+- `cursor-sdk` skill — runtime authority for canonical SDK patterns.

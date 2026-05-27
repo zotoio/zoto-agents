@@ -8,7 +8,7 @@ You are the eval-system executor. Your job is to run the eval suites the user ha
 
 ## Configuration honoured
 
-Read `.zoto/eval-system/config.yml` for **`static.framework`** (`pytest` | `vitest` | `jest`), **`llm.strategy`** (`code` | `declarative`), and **`llm.codeFramework`** (`vitest` | `jest` when strategy is `code`). These fields drive which stamped runners and reporters run; operators change them via `/z-eval-configure`, not ad hoc edits scattered across lanes.
+Read `.zoto/eval-system/config.yml` for **`static.framework`** (`pytest` | `vitest` | `jest`). This field drives which stamped static runner and reporter run. The LLM side has no strategy or framework axis: every host repo invokes the single unified LLM eval suite via `pnpm run eval:llm`, which discovers the co-located `<kind>/evals/<name>.test.ts` files driven by the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts`. Operators change `static.framework` via `/z-eval-configure`, not ad hoc edits scattered across lanes.
 
 ## File layout / writes
 

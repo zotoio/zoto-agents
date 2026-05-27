@@ -1,18 +1,26 @@
 #!/usr/bin/env tsx
 /**
- * Eval orchestrator (subtask 12 — eval-system v2).
+ * Eval orchestrator.
  *
  * The single user-facing entry point that fans out to the per-backend
- * runners that subtasks 06–10 own:
+ * runners:
  *
  *   pnpm run eval                    → static-only
  *   pnpm run eval:full               → static + LLM (gated on CURSOR_API_KEY)
- *   pnpm run eval:llm                → LLM-only
+ *
+ * After the single-backend collapse (spec
+ * `20260526-eval-single-backend-colocated-restructure`, subtask 03) the
+ * orchestrator no longer dispatches between two LLM strategy variants
+ * (the legacy `code` / `declarative` split). There is one LLM backend,
+ * invoked via `pnpm run eval:llm`, which itself is a vitest run against
+ * the unified (co-located) LLM suite.
  *
  * Responsibilities:
  *
- *   1. Read `.zoto/eval-system/config.yml` to learn `static.framework`,
- *      `llm.strategy`, `llm.codeFramework`, and `runs.retention`.
+ *   1. Read `.zoto/eval-system/config.yml` to learn `static.framework` and
+ *      `runs.retention`. The previously-read strategy and codeFramework
+ *      fields are no longer consulted — the unified LLM backend does not
+ *      need them.
  *   2. Compute one shared `runId` / `runTs` and create
  *      `evals/_runs/<runTs>/` BEFORE any child process runs so each
  *      backend's reporter writes into the same folder.
@@ -23,7 +31,7 @@
  *   4. Spawn the active static runner (`pnpm run eval:static:<framework>`)
  *      and — when `--full` is passed and `CURSOR_API_KEY` is available
  *      (shell env or repo-root `.env` loaded via `dotenv/config` here) — the
- *      active LLM runner (`pnpm run eval:llm:<strategy>`).
+ *      unified LLM runner (`pnpm run eval:llm`).
  *   5. Read `static.yml` and `llm.yml` from the run folder, merge totals
  *      and aggregates into `report.yml` with `backend: "mixed"` (or
  *      `"static"` when LLM was skipped). The merged report references
@@ -38,8 +46,7 @@
  *      fails the orchestrator's exit code
  *      (warn-only — the orchestrator's exit reflects backend pass/fail).
  *   8. Write `evals/_runs/<runTs>/.run-meta.json` with `runId`,
- *      `static_framework`, `llm_strategy`, `llm_codeFramework`, `model`,
- *      and `git_ref`.
+ *      `static_framework`, `model`, and `git_ref`.
  *
  * The orchestrator is NOT a runner itself — it spawns the static and
  * LLM runners as child processes. This keeps each backend self-contained
@@ -84,8 +91,6 @@ export interface OrchestrateArgs {
 export interface ResolvedConfig {
   evalsDir: string;
   staticFramework: "pytest" | "vitest" | "jest";
-  llmStrategy: "code" | "declarative";
-  llmCodeFramework: "vitest" | "jest";
   modelId: string;
   retention: number;
 }
@@ -115,6 +120,28 @@ export function parseArgs(argv: string[]): OrchestrateArgs {
       args.full = true;
     } else if (a === "--model" && argv[i + 1]) {
       args.model = argv[++i];
+    } else if (
+      a === "--strategy" ||
+      a?.startsWith("--strategy=") ||
+      a === "--llm-strategy" ||
+      a?.startsWith("--llm-strategy=")
+    ) {
+      // Transitional warning — removed by spec
+      // `20260526-eval-single-backend-colocated-restructure` (subtask 03).
+      // The LLM backend is now single-flavour; the flag is silently dropped
+      // for now and the CHANGELOG (subtask 10) documents the removal.
+      // Also accept and skip a separate value token when invoked as
+      // `--strategy <value>` (no `=`).
+      if (
+        (a === "--strategy" || a === "--llm-strategy") &&
+        argv[i + 1] !== undefined &&
+        !argv[i + 1]!.startsWith("--")
+      ) {
+        i++;
+      }
+      process.stderr.write(
+        `[eval-orchestrate] ignoring legacy '${a}' flag — the eval-system now has a single LLM backend (no strategy selection).\n`,
+      );
     } else if (a === "--help" || a === "-h") {
       printHelp();
       process.exit(0);
@@ -152,8 +179,6 @@ export function loadResolvedConfig(hostRepoRoot: string = REPO_ROOT): ResolvedCo
   return {
     evalsDir: config.evalsDir,
     staticFramework: config.static.framework,
-    llmStrategy: config.llm.strategy,
-    llmCodeFramework: config.llm.codeFramework,
     modelId: config.llm.model.id,
     retention: config.runs.retention,
   };
@@ -491,23 +516,18 @@ export async function orchestrate(
     };
   }
 
+  const LLM_SCRIPT = "eval:llm";
   if (llmEnabled) {
-    const script = `eval:llm:${cfg.llmStrategy}`;
-    const llmEnv: NodeJS.ProcessEnv = {
-      ...childEnv,
-      ZOTO_EVAL_LLM_STRATEGY: cfg.llmStrategy,
-      ZOTO_EVAL_LLM_CODE_FRAMEWORK: cfg.llmCodeFramework,
-    };
-    const result = spawnFn(script, llmEnv, args.model);
+    const result = spawnFn(LLM_SCRIPT, { ...childEnv }, args.model);
     llmOutcome = {
-      ranScript: script,
+      ranScript: LLM_SCRIPT,
       exitCode: result.exitCode,
       skipped: false,
     };
   } else if (runLlm) {
     notes.push(`llm_skip: ${skipLlmReason}`);
     llmOutcome = {
-      ranScript: `eval:llm:${cfg.llmStrategy}`,
+      ranScript: LLM_SCRIPT,
       exitCode: 0,
       skipped: true,
       skipReason: skipLlmReason ?? "skipped",
@@ -619,9 +639,6 @@ export async function orchestrate(
   const meta = {
     runId: stamp.runId,
     static_framework: runStatic ? cfg.staticFramework : null,
-    llm_strategy: llmEnabled ? cfg.llmStrategy : null,
-    llm_codeFramework:
-      llmEnabled && cfg.llmStrategy === "code" ? cfg.llmCodeFramework : null,
     model: args.model ?? cfg.modelId,
     git_ref: headSha(),
     started_at: startedAt,

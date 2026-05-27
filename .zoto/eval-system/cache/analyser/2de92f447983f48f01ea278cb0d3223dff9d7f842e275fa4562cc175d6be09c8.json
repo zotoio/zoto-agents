@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "command:z-spec-execute",
   "kind": "command",
   "source_path": "plugins/zoto-spec-system/commands/z-spec-execute.md",
@@ -9,7 +9,7 @@
   "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics.",
   "cases": [
     {
-      "scenario": "Refuses before any work when spec-system config is missing",
+      "scenario": "default-invocation-selects-the-newest-spec-directory-under-specsdir",
       "prompt": "/z-spec-execute",
       "expected_output": "A refusal that quotes the required initialisation message and does not start an executor run.",
       "assertions": [
@@ -19,7 +19,7 @@
     },
     {
       "scenario": "Default invocation selects the newest spec directory under specsDir",
-      "prompt": "/z-spec-execute",
+      "prompt": "/z-spec-execute @specs/20260525-eval-prompt-realism-audit/spec-eval-prompt-realism-audit-20260525.md",
       "expected_output": "The run targets the most recently modified spec tree, validates its manifest, and proceeds toward confirmation only if `.zoto/spec-system/config.yml` is present.",
       "assertions": [
         "After `/z-spec-execute` with no extra tokens, the plan identifies a single spec directory under the configured specsDir by latest modification time.",
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "scenario": "Directory argument resolves the spec index without a direct file path",
+      "scenario": "aggregator-watches-digest-live-reload-keys-apply-on-next-spawn",
       "prompt": "/z-spec-execute specs/20260403-network-retries",
       "expected_output": "The executor resolves `spec-*.md` inside that directory, validates the manifest structure, and prepares a phase and subtask summary for approval.",
       "assertions": [
@@ -36,7 +36,7 @@
       ]
     },
     {
-      "scenario": "Index file path is executed directly when provided",
+      "scenario": "index-file-path-is-executed-directly-when-provided",
       "prompt": "/z-spec-execute specs/20260403-network-retries/spec-network-retries-20260403.md",
       "expected_output": "Execution uses that markdown file as the spec index and follows the same validation and approval pattern as directory-based runs.",
       "assertions": [
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "scenario": "Resume flag continues from the first incomplete subtask",
+      "scenario": "resume-flag-continues-from-the-first-incomplete-subtask",
       "prompt": "/z-spec-execute --resume",
       "expected_output": "The executor reads persisted progress from the spec index manifest, skips finished subtasks, and schedules only remaining work.",
       "assertions": [
@@ -105,5 +105,10 @@
         "The assistant states that `specsDir`, `unitOfWork`, `workDir`, `hooks.*`, and `extensions.*` changes only apply after a fresh `/z-spec-execute` invocation, not mid-run."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

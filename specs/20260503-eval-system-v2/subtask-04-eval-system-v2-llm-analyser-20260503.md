@@ -25,7 +25,7 @@ The analyser caches per-primitive results in the case's `_meta.primitive_analysi
   - Loads a primitive's source markdown and frontmatter.
   - Computes `source_hash` (sha256 over normalised content).
   - Short-circuits and returns the cached `_meta.primitive_analysis` if the hash is unchanged.
-  - Otherwise spawns a Cursor SDK analyser subagent (model: pulled from `config.json#/llm/model/id`, default `composer-2`) with a structured prompt that returns a JSON payload matching a documented schema.
+  - Otherwise spawns a Cursor SDK analyser subagent (model: pulled from `config.json#/llm/model/id`, default `composer-2.5`) with a structured prompt that returns a JSON payload matching a documented schema.
   - Validates the payload against `templates/schema/case-meta.schema.json`'s new `primitive_analysis` block.
 - [x] New `templates/schema/analyser-payload.schema.json` — the strict JSON shape the analyser subagent must return (prompts, follow-up turns, assertions, fixture overlays, expected_output).
 - [x] New analyser subagent prompt under `plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md` (system prompt only — invoked by the script, not by the user). The prompt must:

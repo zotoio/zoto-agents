@@ -1,11 +1,11 @@
 ---
 name: z-eval-configure
-description: Writes .zoto/eval-system/config.yml using command-owned askQuestion for every field, then spawns zoto-eval-configurer with pre-collected answers. Diffs the chosen config against the manifest snapshot (discovery_config.static / discovery_config.llm), renders the resulting cleanup_plan via askQuestion, and — only on explicit confirmation — shells out to `pnpm run eval:cleanup-stale` (subtask 03) to delete stale framework/strategy assets. Supports resume when the subagent returns needs_user_input.
+description: Writes .zoto/eval-system/config.yml using command-owned askQuestion for every field, then spawns zoto-eval-configurer with pre-collected answers. Diffs the chosen config against the manifest snapshot (discovery_config.static), renders the resulting cleanup_plan via askQuestion, and — only on explicit confirmation — shells out to `pnpm run eval:cleanup-stale` (subtask 03) to delete stale static-framework assets. The LLM backend is single-shape (unified LLM eval harness, co-located `<kind>/evals/<name>.test.ts`) so no strategy-switch prompts are issued. Supports resume when the subagent returns needs_user_input.
 ---
 
 # z-eval-configure
 
-Interactive setup that writes `.zoto/eval-system/config.yml` and orchestrates the cleanup of stale framework/strategy assets when the user changes `static.framework`, `llm.strategy`, or `llm.codeFramework`. **You** (the command executor) own every `askQuestion` prompt — the configurer subagent never prompts.
+Interactive setup that writes `.zoto/eval-system/config.yml` and orchestrates the cleanup of stale static-framework assets when the user changes `static.framework`. **You** (the command executor) own every `askQuestion` prompt — the configurer subagent never prompts.
 
 ## Usage
 
@@ -32,14 +32,14 @@ Run `askQuestion` for each field in this order. Use enum-backed options (no free
 3. **skillsRoots** — multi-select: `.cursor/skills`, `skills`, `plugins/*/skills`, custom entries.
 4. **discoveryTargets** — multi-select: `skill`, `command`, `agent`, `hook`, `cli`, `lib`.
 5. **`static.framework`** *(new — subtask 02)* — `pytest` / `vitest` / `jest`. Recommendation hint: pytest if the repo has Python primitives, vitest by default for TS-only repos, jest if the repo already ships jest tooling.
-6. **`llm.strategy`** *(new — subtask 02)* — `code` / `declarative`. Default `declarative` for new repos.
-7. **`llm.codeFramework`** *(new — subtask 02; conditional)* — only ask when `llm.strategy === "code"`. Options: `vitest` / `jest`. When `static.framework` is also a TS framework, default the suggestion to match it.
-8. **llm.runtime** — `tsx` vs `node`.
-9. **llm.model.id** — `composer-2` / `opus-4.6` / `sonnet`.
-10. **judgeModel** — same set; default `opus-4.6`.
-11. **manualChecklists.enabled** — yes / no.
-12. **additionalAutomation** — none / vitest / jest / bats (multi-select).
-13. **update.criticalChangeRules.*** — five yes/no toggles (defaults on).
+6. **llm.runtime** — `tsx` vs `node`.
+7. **llm.model.id** — `composer-2.5` / `opus-4.6` / `sonnet`.
+8. **judgeModel** — same set; default `opus-4.6`.
+9. **manualChecklists.enabled** — yes / no.
+10. **additionalAutomation** — none / vitest / jest / bats (multi-select).
+11. **update.criticalChangeRules.*** — five yes/no toggles (defaults on).
+
+Do **not** prompt for any per-repo LLM-backend selector or per-target TS-framework choice — the unified LLM eval harness is single-shape. Every host repo emits co-located `<kind>/evals/<name>.test.ts` files that import `defineLlmEval` from `evals/llm/_shared/run-llm-suite.ts`; the harness picks the scripted-answer or single-prompt runtime branch from each case's `requiresInteraction` flag.
 
 Do **not** prompt for `preserveUserAuthoredCases` or `writeMetaMarker` — always `true`.
 
@@ -57,7 +57,7 @@ const oldSnapshot = readManifestSnapshot();
 `oldSnapshot.source` is one of:
 
 - `"manifest"` — values came from `.zoto/eval-system/manifest.yml -> discovery_config.static / .llm` (canonical, post-subtask-01).
-- `"filesystem"` — manifest pre-dates subtask 01; `static.framework` was inferred from `evals/conftest.py` (`pytest`), `vitest.config.ts` (`vitest`), or `jest.config.{js,ts}` (`jest`). `llm.*` is intentionally left unset.
+- `"filesystem"` — manifest pre-dates subtask 01; `static.framework` was inferred from `evals/conftest.py` (`pytest`), `vitest.config.ts` (`vitest`), or `jest.config.{js,ts}` (`jest`). Any `llm.*` fields on a legacy snapshot are inert under the unified LLM eval harness.
 - `"missing"` — no manifest at all; the cleanup_plan will be empty.
 
 Pass `oldSnapshot` plus all collected answers in the structured payload to the subagent.
@@ -68,7 +68,7 @@ Spawn `zoto-eval-configurer` with the structured payload (answers + `oldSnapshot
 
 1. Writes `.zoto/eval-system/config.yml` atomically.
 2. Diffs the new config against `oldSnapshot` and emits a `cleanup_plan` validated against `templates/schema/cleanup-plan.schema.json`.
-3. Stamps `_meta.primitive_analysis.invalidate = true` on every generated case row in the manifest's `eval_files[]` when `static.framework` or `llm.strategy` changed.
+3. Stamps `_meta.primitive_analysis.invalidate = true` on every generated case row in the manifest's `eval_files[]` when `static.framework` changed.
 4. Returns the `cleanup_plan` (and any `warnings`) to the command for confirmation.
 
 The subagent does NOT delete anything and does NOT call `askQuestion`.
@@ -81,7 +81,7 @@ Otherwise, render each `cleanup_plan.groups[]` entry to the user via `askQuestio
 
 - Header: `groups[i].summary` (or fallback `"<reason>: <from> -> <to>"`).
 - Body: every `groups[i].files[].path` with its `kind` (`framework-fingerprint`, `static-test`, `llm-test`, `llm-case`, `eval-json`, `directory`, `config-snippet`).
-- If `cleanup_plan.warnings[]` is non-empty, surface each warning before the confirmation question (e.g. `static.framework=vitest` differs from `llm.codeFramework=jest`).
+- If `cleanup_plan.warnings[]` is non-empty, surface each warning before the confirmation question.
 - Final prompt: `Apply this cleanup plan?` with options `Apply`, `Skip cleanup`, `Re-run /z-eval-configure with different choices`.
 
 #### On `Apply`
@@ -108,15 +108,10 @@ If the final report contains `needs_user_input`, run the requested `askQuestion`
 
 Common `needs_user_input` triggers:
 
-- `llm.strategy === "code"` was selected but `llm.codeFramework` was missing from the payload.
 - The schema rejected the cleanup_plan (e.g. unknown `kind` value introduced by a future template).
+- A field required by `templates/schema/config.schema.json` is missing from the payload.
 
 If the subagent **refuses** because the bundled answers contained `false` for `preserveUserAuthoredCases` or `writeMetaMarker`, fix the payload (remove those keys or set both `true`), then **spawn or resume** with the corrected answers — do not ask the user to weaken either flag.
-
-## Cross-field validation enforced at runtime
-
-- `llm.strategy === "code"` requires a concrete `llm.codeFramework`.
-- When `llm.strategy === "code"` and `static.framework` is a TS framework (`vitest` / `jest`), `static.framework` SHOULD equal `llm.codeFramework`. Mismatch is non-blocking but produces a `cleanup_plan.warnings[]` entry and a `framework-switch` group for the orphan framework's assets — the user explicitly confirms via `askQuestion` before any deletion.
 
 ## Related
 

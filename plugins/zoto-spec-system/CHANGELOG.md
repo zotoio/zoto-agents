@@ -2,6 +2,12 @@
 
 All notable changes to the Spec System plugin will be documented in this file.
 
+## [unreleased] — 2026-05-26
+
+### Changed
+
+- **Eval restructure cross-impact.** Three Spec System eval artefacts were relocated to the co-located layout introduced by the eval-system single-backend migration: `plugins/zoto-spec-system/commands/evals/z-spec-*.test.ts` and `plugins/zoto-spec-system/agents/evals/zoto-spec-*.test.ts`. The Spec System plugin's source MD files are unchanged; only the eval test paths moved. See the repo-root [`CHANGELOG.md`](../../CHANGELOG.md) for the canonical BREAKING entry.
+
 ## [Unreleased]
 
 ### Fixed

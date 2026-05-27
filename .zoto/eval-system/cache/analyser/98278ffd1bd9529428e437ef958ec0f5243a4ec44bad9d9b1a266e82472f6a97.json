@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "skill:zoto-create-spec",
   "kind": "skill",
   "source_path": "plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md",
@@ -83,5 +83,10 @@
         "Steers subsequent effort toward authoring within `{specsDir}` directories instead of rewriting source trees prematurely."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

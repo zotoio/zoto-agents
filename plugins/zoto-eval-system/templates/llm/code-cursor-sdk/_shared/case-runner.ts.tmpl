@@ -175,7 +175,7 @@ export async function runAnalyserCaseInSandbox(
     args.modelId ??
     args.payload.model_id ??
     process.env.ZOTO_EVAL_MODEL ??
-    "composer-2";
+    "composer-2.5";
   const c = args.payload.cases[args.caseIndex];
   if (!c) {
     throw new Error(

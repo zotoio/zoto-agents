@@ -1,0 +1,137 @@
+// _meta.generated: true
+/**
+ * LLM `code`-strategy eval for command `z-spec-execute`.
+ *
+ * Stamped by `scripts/eval-stamp.ts#stampLlmCodeStrategy` from
+ * `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
+ *
+ * The literal first line of this file MUST remain `// _meta.generated: true`.
+ * Subtask 03's cleanup engine and subtask 11's overwrite gate both use
+ * `evals/_llm/_user-case-guards.ts#isGeneratedFile(path, { strict: true })`
+ * to decide whether this file is safe to replace or delete. Edit the
+ * template, not this emitted file.
+ * Interaction classification: requiresInteraction=true, interactionStyle=command-owned
+ * Analyser version: 2026.05.26-1
+ * Backend: code-strategy (LLM)
+ */
+import { describe, it, afterAll, expect } from "vitest";
+import { resolveInteractionPlanFromCase } from "../../../../evals/llm/_shared/askquestion-bridge.js";
+
+import type { LlmCaseDefinition } from "../../../../evals/llm/_shared/llm-case.js";
+import { defineLlmEval } from "../../../../evals/llm/_shared/run-llm-suite.js";
+
+const CASES: LlmCaseDefinition[] = [
+  {
+    "id": "hard-stop-when-spec-system-yaml-is-absent",
+    "prompt": "/z-spec-execute",
+    "assertions": [
+      "After `/z-spec-execute`, the closing assistant text reproduces verbatim: Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.",
+      "After refusal, `.zoto/spec-system/config.yml` remains absent rather than implicitly synthesised"
+    ],
+    "assertion_patterns": [
+      "/z-spec-execute",
+      "\\.zoto/spec-system/config\\.yml"
+    ],
+    "expected_output": "A single refusal that repeats the mandated initialisation wording and withholds spawning `zoto-spec-executor` or loading any spec manifests."
+  },
+  {
+    "id": "most-recent-specs-directory-when-no-trailing-arguments-remain",
+    "prompt": "/z-spec-execute",
+    "assertions": [
+      "After `/z-spec-execute`, the assistant declares it will inspect modification ordering under `specsDir` and selects the freshest spec workspace before opening any markdown index",
+      "The assistant repeats that it must spawn `zoto-spec-executor` with the empty `$ARGUMENTS` token and honour the bundled `zoto-execute-spec` skill orchestration"
+    ],
+    "assertion_patterns": [
+      "/z-spec-execute",
+      "zoto-spec-executor"
+    ],
+    "expected_output": "Planning copy that cites the freshest spec tree, cites manifest validation prerequisites, then moves toward confirmations instead of inventing an immediate execution plan without inspection."
+  },
+  {
+    "id": "directory-argument-auto-locates-the-spec-index-markdown",
+    "prompt": "/z-spec-execute specs/20260403-network-retries",
+    "assertions": [
+      "After `/z-spec-execute specs/20260403-network-retries`, the assistant treats the directory as the unit of work, automatically pairing it with the correct `spec-*.md` index without renaming paths",
+      "Immediately afterward the assistant verifies subtask manifests (files reachable, documented agent bindings match YAML metadata, dependency links remain acyclic)",
+      "Before spawning any subtask runners, the assistant surfaces an execution summary (phases plus per-subtask agent bindings) followed by structured askQuestion approval"
+    ],
+    "assertion_patterns": [
+      "/z-spec-execute specs/20260403-network-retries"
+    ],
+    "expected_output": "Directory-qualified routing that finds the lone index file, recounts validations, and pauses only after the scripted approval handshake."
+  },
+  {
+    "id": "explicit-markdown-index-bypasses-heuristic-discovery",
+    "prompt": "/z-spec-execute specs/20260403-network-retries/spec-network-retries-20260403.md",
+    "assertions": [
+      "Because the invocation ends with a concrete `.md` path beneath `specs/`, that file alone becomes the authoritative spec index regardless of neighbouring folders",
+      "The assistant still recounts checklist validation ordering before approving dispatch"
+    ],
+    "assertion_patterns": [
+      "\\.md"
+    ],
+    "expected_output": "File-targeted narration that honours the quoted markdown stem, echoes manifest checks aloud, then continues toward confirmations."
+  },
+  {
+    "id": "interrupted-batch-resumes-incomplete-subtasks",
+    "prompt": "/z-spec-execute --resume",
+    "assertions": [
+      "With `--resume`, the assistant states it reopen the prior spec index, diff completed versus pending subtasks, and continue numbering from the first incomplete checklist block",
+      "Resume planning explicitly pairs with progress persistence clauses from the interrupted run without forcing a redo of validated items"
+    ],
+    "assertion_patterns": [
+      "--resume"
+    ],
+    "expected_output": "Resume chatter that cites partial completion state, aligns with resumed manifest rows, then sequences the next checkpoints."
+  },
+  {
+    "id": "operational-gates-cover-launch-adversity-recap-closure",
+    "prompt": "/z-spec-execute specs/security-hardening-20260214",
+    "follow_ups": [
+      "Approve the phased execution briefing so subtask agents may start dispatch.",
+      "Approve the surfaced execution recap so the markdown report can finalize and the Completed status latch may apply after tests and lint checkpoints."
+    ],
+    "assertions": [
+      "After the recap before workers launch, structured askQuestion blocks further dispatch until affirmative answers arrive",
+      "Whenever a Deliverables checklist or judging verdict degrades below Verified, structured askQuestion offers retry versus skip versus abort before continuing",
+      "Fresh `zoto-spec-judge` passes are described as separate from the executing worker for every subtask before the next phase unlocks",
+      "After all judgements clear, the assistant schedules the full project test command, lint checks on touched files, and an overall quality scan prior to writing `execution-report-security-hardening-20260214.md`",
+      "Post-report presentation triggers another structured askQuestion gate before the spec index flips to Completed"
+    ],
+    "assertion_patterns": [
+      "zoto-spec-judge",
+      "execution-report-security-hardening-20260214\\.md"
+    ],
+    "expected_output": "Multi-turn dialogue that pauses twice for approval, narrates adversarial judging, then lists final verification plus the dated execution report before seeking permission to mark completion."
+  },
+  {
+    "id": "safeguards-across-dispatch-aggregation-and-live-config",
+    "prompt": "/z-spec-execute specs/contract-test-grid-refactor",
+    "assertions": [
+      "Phase ordering never advances until prior phases finish, dependencies stay satisfied, and any parallel batch never exceeds four concurrent subagents",
+      "Each subtask dispatches only the manifest-declared agent id with no reassignment mid-run",
+      "Long-form testing stays deferred until final verification even if earlier subtasks mention narrower checks",
+      "From the repository root the assistant states it backgrounds `pnpm exec tsx plugins/zoto-spec-system/scripts/spec-aggregator.ts --watch --spec-dir <specDir> --repo-root <repoRoot>` for the spec lifetime and explains how digest-driven rebuilds refresh spec-root `status.md` plus `status.yml`",
+      "The assistant clarifies that edits to `subagents.*.tokenBudget`, `subagents.*.model`, `aggregator.pollIntervalMs`, `aggregator.debounceMs`, `aggregator.enabled`, and `spec.parallelLimit` apply on the next spawn or aggregator tick, while `specsDir`, `unitOfWork`, `workDir`, `hooks.*`, and `extensions.*` still demand a brand-new `/z-spec-execute` invocation",
+      "Per-subtask `.status.md` and `.status.yml` files remain owned by their originating workers while the coordinator only reads them"
+    ],
+    "assertion_patterns": [
+      "pnpm exec tsx plugins/zoto-spec-system/scripts/spec-aggregator\\.ts --watch --spec-dir <specDir> --repo-root <repoRoot>",
+      "subagents\\.\\*\\.tokenBudget",
+      "\\.status\\.md"
+    ],
+    "expected_output": "Narration that ties together dependency-safe dispatch, bounded parallelism, delayed global testing, long-running aggregation, configuration reload semantics, and per-worker status file contracts."
+  }
+];
+
+defineLlmEval({
+  targetId: "command:z-spec-execute",
+  cases: CASES,
+  modelId: process.env.ZOTO_EVAL_MODEL ?? "composer-2.5",
+  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6",
+  caseTimeoutMs: 180000,
+  describe,
+  it,
+  afterAll,
+  expect,
+});

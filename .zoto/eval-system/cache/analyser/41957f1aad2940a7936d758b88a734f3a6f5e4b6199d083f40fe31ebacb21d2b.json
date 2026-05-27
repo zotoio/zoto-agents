@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "command:z-eval-advise",
   "kind": "command",
   "source_path": "plugins/zoto-eval-system/commands/z-eval-advise.md",
@@ -9,7 +9,7 @@
   "summary": "The command refuses to run without `.zoto/eval-system/config.yml`, collects analyse scope from a typed plugin or skill argument or from palette `askQuestion` choices, runs the `zoto-eval-adviser` subagent with the `zoto-advise-evals` workflow across two `needs_user_input` breakpoints, then hands accepted create and update work to `/z-eval-create` and `/z-eval-update --target … --apply` with create routed before update when both apply.",
   "cases": [
     {
-      "scenario": "Plugin argument drives drill-down then mixed create and update handoffs",
+      "scenario": "breakpoint-two-accepts-update-only-recommendations",
       "prompt": "/z-eval-advise zoto-eval-system",
       "follow_ups": [
         "Drill into trigger-phrase coverage and schema validation coverage only",
@@ -22,20 +22,26 @@
         "After the first subagent pause carrying `needs_user_input` for summary drill-down, the command MUST emit `askQuestion` that lists trigger-phrase, schema, regression, citation, and checklist severities as ok, warn, or critical with target counts, then MUST resume the subagent with the operator’s chosen dimensions.",
         "After the second subagent pause carrying `needs_user_input` for actions, the command MUST emit `askQuestion` with numbered recommendations spanning create and update work, then MUST resume with the accepted set.",
         "When accepted recommendations include both `action: create` and `action: update`, the command MUST invoke `/z-eval-create` before any `/z-eval-update --target <glob> --apply` since updates expect existing eval files.",
-        "The routed handoff MUST include `adviser_handoff.source` set to `/z-eval-advise`, an `accepted_recommendations` array whose entries carry `id`, `target_id`, `dimension`, and `action`, plus `create_targets` and `update_targets` sections matching the accepted mix."
+        "The routed handoff MUST include `adviser_handoff.source` set to `/z-eval-advise`, an `accepted_recommendations` array whose entries carry `id`, `target_id`, `dimension`, and `action`, plus `create_targets` and `update_targets` sections matching the accepted mix.",
+        "Emits a top-level `adviser_handoff:` block when forwarding accepted recommendations to downstream commands.",
+        "Each accepted recommendation carries an `action:` field whose value is either `create` or `update` so handoff routing remains unambiguous.",
+        "Routed update work is invoked as `/z-eval-update --target <glob> --apply` rather than calling `/z-eval-update` without a target glob."
       ]
     },
     {
-      "scenario": "Skill argument narrows analysis to one manifest skill",
+      "scenario": "skill-argument-narrows-analysis-to-one-manifest-skill",
       "prompt": "/z-eval-advise zoto-help-evals",
       "expected_output": "The command keeps the eval config check, constrains scanning to the zoto-help-evals skill target, and the adviser still scores all five gap dimensions before any breakpoint.",
       "assertions": [
         "The command MUST treat `zoto-help-evals` as a single-skill selection, building `advise_context` with targeted scope and a `target_glob` that isolates that skill’s files per the manifest.",
-        "The spawned `zoto-eval-adviser` MUST load `zoto-advise-evals`, read `.zoto/eval-system/config.yml` and `.zoto/eval-system/manifest.yml`, and produce an initial summary mentioning trigger-phrase coverage, schema validation coverage, regression baseline coverage, citation verification, and checklist completeness."
+        "The spawned `zoto-eval-adviser` MUST load `zoto-advise-evals`, read `.zoto/eval-system/config.yml` and `.zoto/eval-system/manifest.yml`, and produce an initial summary mentioning trigger-phrase coverage, schema validation coverage, regression baseline coverage, citation verification, and checklist completeness.",
+        "Emits a top-level `adviser_handoff:` block when forwarding accepted recommendations to downstream commands.",
+        "Each accepted recommendation carries an `action:` field whose value is either `create` or `update` so handoff routing remains unambiguous.",
+        "Routed update work is invoked as `/z-eval-update --target <glob> --apply` rather than calling `/z-eval-update` without a target glob."
       ]
     },
     {
-      "scenario": "No argument chooses full manifest scan from the palette",
+      "scenario": "no-argument-picks-one-manifest-skill-from-the-palette-list",
       "prompt": "/z-eval-advise",
       "follow_ups": [
         "Full scan — analyse every target listed in the manifest"
@@ -43,7 +49,10 @@
       "expected_output": "Palette `askQuestion` resolves to a full-manifest scope, `advise_context` marks scope as full with a null `target_glob`, and the adviser run proceeds against every manifest entry.",
       "assertions": [
         "Because no plugin or skill argument was given, the command MUST first run `askQuestion` offering full-manifest scan, picking a specific detected plugin, and picking a specific manifest skill target before building `advise_context`.",
-        "When the operator selects the full-scan option, `advise_context.scope` MUST be `full` and `target_glob` MUST be null before the `zoto-eval-adviser` Task starts."
+        "When the operator selects the full-scan option, `advise_context.scope` MUST be `full` and `target_glob` MUST be null before the `zoto-eval-adviser` Task starts.",
+        "Emits a top-level `adviser_handoff:` block when forwarding accepted recommendations to downstream commands.",
+        "Each accepted recommendation carries an `action:` field whose value is either `create` or `update` so handoff routing remains unambiguous.",
+        "Routed update work is invoked as `/z-eval-update --target <glob> --apply` rather than calling `/z-eval-update` without a target glob."
       ]
     },
     {
@@ -54,7 +63,10 @@
       ],
       "expected_output": "The palette narrows analysis to the chosen plugin folder tree while retaining the same adviser tooling and config paths.",
       "assertions": [
-        "The scope `askQuestion` MUST enumerate detected plugins and, after choosing `zoto-eval-system`, the command MUST set `advise_context` to targeted scope with a glob covering that plugin without requiring a second command invocation."
+        "The scope `askQuestion` MUST enumerate detected plugins and, after choosing `zoto-eval-system`, the command MUST set `advise_context` to targeted scope with a glob covering that plugin without requiring a second command invocation.",
+        "Emits a top-level `adviser_handoff:` block when forwarding accepted recommendations to downstream commands.",
+        "Each accepted recommendation carries an `action:` field whose value is either `create` or `update` so handoff routing remains unambiguous.",
+        "Routed update work is invoked as `/z-eval-update --target <glob> --apply` rather than calling `/z-eval-update` without a target glob."
       ]
     },
     {
@@ -65,7 +77,10 @@
       ],
       "expected_output": "The palette constrains the adviser to a single skill target taken straight from `manifest.yml` entries.",
       "assertions": [
-        "After the operator selects a specific manifest skill, the command MUST mirror the `/z-eval-advise zoto-help-evals` argument path by targeting only that skill’s glob in `advise_context`."
+        "After the operator selects a specific manifest skill, the command MUST mirror the `/z-eval-advise zoto-help-evals` argument path by targeting only that skill’s glob in `advise_context`.",
+        "Emits a top-level `adviser_handoff:` block when forwarding accepted recommendations to downstream commands.",
+        "Each accepted recommendation carries an `action:` field whose value is either `create` or `update` so handoff routing remains unambiguous.",
+        "Routed update work is invoked as `/z-eval-update --target <glob> --apply` rather than calling `/z-eval-update` without a target glob."
       ]
     },
     {
@@ -78,7 +93,10 @@
       "expected_output": "The command still surfaces severities once, resumes past breakpoint one without extra dimension passes, and ends after breakpoint two without calling `/z-eval-create` or `/z-eval-update`.",
       "assertions": [
         "At breakpoint one the command MUST still offer drill-down choices but MUST honour a skip request by resuming the subagent toward recommendations without insisting on per-dimension follow-ups.",
-        "When the operator picks no action at breakpoint two, the command MUST present the final report and MUST NOT spawn `/z-eval-create`, `/z-eval-update`, or emit further handoff `askQuestion` rounds."
+        "When the operator picks no action at breakpoint two, the command MUST present the final report and MUST NOT spawn `/z-eval-create`, `/z-eval-update`, or emit further handoff `askQuestion` rounds.",
+        "Emits a top-level `adviser_handoff:` block when forwarding accepted recommendations to downstream commands.",
+        "Each accepted recommendation carries an `action:` field whose value is either `create` or `update` so handoff routing remains unambiguous.",
+        "Routed update work is invoked as `/z-eval-update --target <glob> --apply` rather than calling `/z-eval-update` without a target glob."
       ]
     },
     {
@@ -92,7 +110,10 @@
       "expected_output": "Each recommendation receives its own accept-or-skip prompt, and the subagent resumes with only the accepted entries in the final list.",
       "assertions": [
         "Choosing walk-each mode MUST trigger sequential `askQuestion` prompts so every recommendation is accepted or skipped individually before the command resumes `zoto-eval-adviser` with the trimmed list.",
-        "The resumed payload MUST exclude skipped recommendations from `accepted_recommendations` while keeping explicit identifiers for those that were approved."
+        "The resumed payload MUST exclude skipped recommendations from `accepted_recommendations` while keeping explicit identifiers for those that were approved.",
+        "Emits a top-level `adviser_handoff:` block when forwarding accepted recommendations to downstream commands.",
+        "Each accepted recommendation carries an `action:` field whose value is either `create` or `update` so handoff routing remains unambiguous.",
+        "Routed update work is invoked as `/z-eval-update --target <glob> --apply` rather than calling `/z-eval-update` without a target glob."
       ]
     },
     {
@@ -105,7 +126,10 @@
       "expected_output": "Accepted work runs solely through `/z-eval-create` with `adviser_handoff` lists that omit update batches.",
       "assertions": [
         "After the operator selects create-only handling, the command MUST resume the subagent with only create actions and MUST hand off exclusively to `/z-eval-create` without invoking `/z-eval-update --target … --apply`.",
-        "`adviser_handoff.create_targets` MUST list each accepted create `target_id` and `update_targets` MUST be empty or omitted when no update actions were approved."
+        "`adviser_handoff.create_targets` MUST list each accepted create `target_id` and `update_targets` MUST be empty or omitted when no update actions were approved.",
+        "Emits a top-level `adviser_handoff:` block when forwarding accepted recommendations to downstream commands.",
+        "Each accepted recommendation carries an `action:` field whose value is either `create` or `update` so handoff routing remains unambiguous.",
+        "Routed update work is invoked as `/z-eval-update --target <glob> --apply` rather than calling `/z-eval-update` without a target glob."
       ]
     },
     {
@@ -118,8 +142,16 @@
       "expected_output": "Accepted work routes only to `/z-eval-update --target … --apply` while leaving `/z-eval-create` unused.",
       "assertions": [
         "After the operator selects update-only handling, the command MUST resume with update actions alone and MUST invoke `/z-eval-update` with `--target` globs plus `--apply` for each accepted update batch.",
-        "The command MUST NOT call `/z-eval-create` when every accepted recommendation carries `action: update`, and `adviser_handoff.update_targets` MUST include glob plus reason fields for each batch."
+        "The command MUST NOT call `/z-eval-create` when every accepted recommendation carries `action: update`, and `adviser_handoff.update_targets` MUST include glob plus reason fields for each batch.",
+        "Emits a top-level `adviser_handoff:` block when forwarding accepted recommendations to downstream commands.",
+        "Each accepted recommendation carries an `action:` field whose value is either `create` or `update` so handoff routing remains unambiguous.",
+        "Routed update work is invoked as `/z-eval-update --target <glob> --apply` rather than calling `/z-eval-update` without a target glob."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

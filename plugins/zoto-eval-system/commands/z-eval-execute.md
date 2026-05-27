@@ -9,7 +9,7 @@ Runs the configured eval suites.
 
 ## Configuration honoured
 
-The host `.zoto/eval-system/config.yml` selects how each backend runs: **`static.framework`** (`pytest` | `vitest` | `jest`) for the static stamper/runner shape, **`llm.strategy`** (`code` | `declarative`) for how LLM eval cases are represented, and **`llm.codeFramework`** (`vitest` | `jest`) when `llm.strategy` is `code` (the reporter/test harness scaffold). Switching framework or strategy is mutually exclusive cleanup territory — use `/z-eval-configure`.
+The host `.zoto/eval-system/config.yml` selects how the static backend runs: **`static.framework`** (`pytest` | `vitest` | `jest`) chooses the static stamper/runner shape. The LLM side is single-shape — `pnpm run eval:llm` runs the unified LLM eval suite, which discovers every co-located `<kind>/evals/<name>.test.ts` file driven by the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts` (exported as `defineLlmEval`). Switching `static.framework` is cleanup territory — use `/z-eval-configure`.
 
 ## File layout / writes
 

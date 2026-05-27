@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "skill:zoto-configure-evals",
   "kind": "skill",
   "source_path": "plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md",
@@ -10,7 +10,7 @@
   "cases": [
     {
       "scenario": "Declarative rollout after configure gathers answers",
-      "prompt": "/z-eval-configure finished: overwrite if needed; evalsDir evals; skillsRoots [\".cursor/skills\",\"skills\",\"plugins/*/skills\"]; discoveryTargets [\"skill\",\"command\",\"agent\",\"hook\"]; static.framework pytest; llm.runtime tsx; llm.model.id composer-2; llm.strategy declarative; llm.codeFramework vitest; judgeModel opus-4.6; manualChecklists.enabled true; additionalAutomation []; ignore []; update.criticalChangeRules all true. Apply zoto-configure-evals now.",
+      "prompt": "/z-eval-configure finished: overwrite if needed; evalsDir evals; skillsRoots [\".cursor/skills\",\"skills\",\"plugins/*/skills\"]; discoveryTargets [\"skill\",\"command\",\"agent\",\"hook\"]; static.framework pytest; llm.runtime tsx; llm.model.id composer-2.5; llm.strategy declarative; llm.codeFramework vitest; judgeModel opus-4.6; manualChecklists.enabled true; additionalAutomation []; ignore []; update.criticalChangeRules all true. Apply zoto-configure-evals now.",
       "expected_output": "A concise report listing the written eval-system settings, an empty or minimal cleanup plan when no prior manifest conflicts exist, update.preserveUserAuthoredCases and update.writeMetaMarker forced true, and the next human step pointing back through /z-eval-configure for cleanup confirmation before /z-eval-create.",
       "assertions": [
         "Before writing, the agent used readManifestSnapshot from evals/_llm/manifest-snapshot.ts rather than hand-rolled YAML parsing.",
@@ -42,7 +42,7 @@
           },
           {
             "path": "workspace/plugins/acme/skills/reporting/evals/evals.json",
-            "content": "[{\"id\":\"gen-row-a\",\"prompt\":\"import path survives\",\"assertions\":[\"bundle still resolves\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row a\",\"model_id\":\"composer-2\",\"source_hash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}]"
+            "content": "[{\"id\":\"gen-row-a\",\"prompt\":\"import path survives\",\"assertions\":[\"bundle still resolves\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row a\",\"model_id\":\"composer-2.5\",\"source_hash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}]"
           }
         ]
       },
@@ -71,7 +71,7 @@
           },
           {
             "path": "workspace/plugins/acme/skills/reporting/evals/evals.json",
-            "content": "[{\"id\":\"gen-row-b\",\"prompt\":\"route coverage\",\"assertions\":[\"export still public\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row b\",\"model_id\":\"composer-2\",\"source_hash\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}}}]"
+            "content": "[{\"id\":\"gen-row-b\",\"prompt\":\"route coverage\",\"assertions\":[\"export still public\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row b\",\"model_id\":\"composer-2.5\",\"source_hash\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}}}]"
           }
         ]
       },
@@ -113,7 +113,7 @@
           },
           {
             "path": "workspace/plugins/legacy/hooks/pkg/evals/evals.json",
-            "content": "[{\"id\":\"orphan-row\",\"prompt\":\"legacy hook\",\"assertions\":[\"signal stays wired\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Legacy hook\",\"model_id\":\"composer-2\",\"source_hash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}}}]"
+            "content": "[{\"id\":\"orphan-row\",\"prompt\":\"legacy hook\",\"assertions\":[\"signal stays wired\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Legacy hook\",\"model_id\":\"composer-2.5\",\"source_hash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}}}]"
           }
         ]
       },
@@ -141,7 +141,7 @@
           },
           {
             "path": "workspace/plugins/acme/skills/reporting/evals/evals.json",
-            "content": "[{\"id\":\"gen-row-c\",\"prompt\":\"dual harness\",\"assertions\":[\"bundle lists exports\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row c\",\"model_id\":\"composer-2\",\"source_hash\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}}}]"
+            "content": "[{\"id\":\"gen-row-c\",\"prompt\":\"dual harness\",\"assertions\":[\"bundle lists exports\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row c\",\"model_id\":\"composer-2.5\",\"source_hash\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}}}]"
           }
         ]
       },
@@ -158,5 +158,10 @@
         "The skill neither called askQuestion nor executed pnpm run eval:cleanup-stale."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

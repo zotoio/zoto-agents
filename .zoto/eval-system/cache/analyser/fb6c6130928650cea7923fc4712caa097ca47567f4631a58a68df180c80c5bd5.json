@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "agent:zoto-eval-generator",
   "kind": "agent",
   "source_path": "plugins/zoto-eval-system/agents/zoto-eval-generator.md",
@@ -9,37 +9,43 @@
   "summary": "The generator reads configuration, discovers targets, stamps pytest beside `@cursor/sdk` scaffolding, merges package tooling, persists manifests plus append-only history, validates collectors, and finishes with `zoto-update-evals` while confining writes to documented evaluator artefacts plus related templates. If configuration is absent it returns structured `needs_user_input` urging `/z-eval-configure`, never calls `askQuestion`, honours command-side approvals, interacts with `zoto-configure-evals` only after answers arrive, skips mutating non-generated rows, and aligns harness selection with `static.framework`, `llm.strategy`, `llm.codeFramework`, `evalsDir`, `skillsRoots`, `discoveryTargets`, `manualChecklists.enabled`, model identification fields, and readme copy.",
   "cases": [
     {
-      "scenario": "Deferral when evaluation configuration omitted",
-      "prompt": "/z-eval-create asked you to scaffold the entire repository, but `.zoto/eval-system/config.yml` is unavailable and no prior configuring command supplied answers yet—report what happens next instead of scaffolding.",
+      "scenario": "deferral-when-evaluation-configuration-omitted",
+      "prompt": "From /z-eval-create, you were asked to scaffold the entire repository, but `.zoto/eval-system/config.yml` is unavailable and no prior configuring command supplied answers yet—report what happens next instead of scaffolding.",
       "expected_output": "The agent emits a concise hand-off directing the commanding workflow through `/z-eval-configure` before generation and withholds scaffolding work until configuration exists.",
       "assertions": [
         "The agent returns structured `needs_user_input` citing missing configuration and instructing the upstream command (via `reason` plus optional `questions`) to run `/z-eval-configure` first.",
-        "Available transcripts show zero `askQuestion` tool emissions from the generator."
+        "The agent returns structured `needs_user_input` (when configuration is missing) without emitting `askQuestion` from the subagent loop.",
+        "Every freshly authored eval case row carries `_meta.generated: true` so the updater's case-level guard recognises it as regenerable.",
+        "Each generated row's `source_hash:` is a normalised SHA-256 digest (64 lowercase hex characters) of the analysed source primitive — `5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c` is one such expected shape.",
+        "Each generated row records `last_updated:` as an ISO-8601 timestamp such as `2026-05-24T12:37:27.000Z`."
       ]
     },
     {
       "scenario": "Generate mode finishes dual backends end-to-end",
-      "prompt": "You spawned from `/z-eval-create`; the preceding command fused approval lists covering skills, commands, agents, and hooks plus confirmed `.zoto/eval-system/config.yml` parses—materialize sanctioned eval scaffolding, keep history append-only, and exit validations cleanly.",
+      "prompt": "I ran `/z-eval-create`, approved skills/commands/agents/hooks, and config.yml is present. Scaffold the eval suite, refresh manifest.yml, and confirm the three validation gates pass.",
       "expected_output": "The agent recounts stamped evaluator trees spanning pytest and `@cursor/sdk`, cites manifest refreshes paired with appended history tails, summarizes `.env.example` merges versus skips alongside installer reminders about devDeps, shows zero-valued exit statuses for evaluator listing, collector dry-run, and update auditing, and underscores untouched authored evaluator rows confined to sanctioned paths.",
       "assertions": [
-        "Logged operations include `pnpm run eval:discover` executed via the documented explore-assisted route before authoring generated rows.",
+        "The workspace contains discovery output reflected in `.zoto/eval-system/manifest.yml` target rows.",
         "The workflow proceeds with approvals already fused by `/z-eval-create` without revisiting selective targeting debates.",
         "The agent stamps simultaneous pytest-backed static scaffolding and `@cursor/sdk` oriented LLM evaluators for each approved primitive kind surfaced through discovery approvals.",
         "Every freshly authored eval row declares `_meta.generated` true alongside a normalized sha256 `source_hash`, ISO-8601 `last_updated`, and `generated_by: zoto-create-evals`.",
         "If `.env.example` was absent beforehand, transcripts show stamping from `templates/env/.env.example.tmpl`; otherwise narration documents skipping merges while forbidding edits to `.env` itself.",
         "The generator merges `templates/package-scripts/base.json` into package metadata—including dotenv-related dev tooling—without discarding unrelated package.json fields.",
         "`.zoto/eval-system/manifest.yml` refreshes discovery metadata while `.zoto/eval-system/manifest.history.yml` gains a new trailing entry without rewriting prior records.",
-        "Command logs confirm `pnpm run eval:list`, `pnpm run eval -- --collect-only`, and `pnpm run eval:update --check` exited with status zero immediately after scaffolding.",
+        "`pnpm run eval:list`, `pnpm run eval -- --collect-only`, and `pnpm run eval:update --check` each exit with status 0.",
         "Closing guidance reminds operators to rerun their installer once plus notes when `.env.example` creation was skipped owing to existing files.",
-        "After stamping, traces show `zoto-update-evals` proving drift-free regenerated content versus repository state.",
-        "Touchpoints with `zoto-configure-evals` occur solely when the commanding payload already conveys answers produced by `/z-eval-configure`.",
+        "Running `pnpm run eval:update --check` exits 0 immediately after scaffolding, confirming zero drift.",
+        "Configuration writes occur only when the commanding payload already includes answers from `/z-eval-configure`.",
         "Repository diffs omit mutations for evaluator rows lacking `_meta` markers or asserting `_meta.generated` false.",
-        "Reviewers observe no undocumented assistant tooling or edits beyond sanctioned scaffolding trees, manifests, ancillary templates including optional checklists plus environment templates when newly created only, scripted package merges, discovery outputs, and validation logs.",
-        "Across the trajectory the generator never emits `askQuestion`."
+        "Repository diffs are limited to eval scaffolding trees, manifests, package script merges, and documented template files.",
+        "The generator never calls `askQuestion`; missing inputs are returned as structured `needs_user_input` for the parent command.",
+        "Every freshly authored eval case row carries `_meta.generated: true` so the updater's case-level guard recognises it as regenerable.",
+        "Each generated row's `source_hash:` is a normalised SHA-256 digest (64 lowercase hex characters) of the analysed source primitive — `5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c` is one such expected shape.",
+        "Each generated row records `last_updated:` as an ISO-8601 timestamp such as `2026-05-24T12:37:27.000Z`."
       ]
     },
     {
-      "scenario": "Config knobs steer harness stamping and checklist output",
+      "scenario": "config-knobs-steer-harness-stamping-and-checklist-output",
       "prompt": "Continue `/z-eval-create` approvals; honour every knob in the evaluator configuration embedded for this workspace when deciding harnesses and auxiliary markdown.",
       "fixtures": {
         "files": [
@@ -59,12 +65,15 @@
         "Evaluator files remain rooted beneath the configured `evalsDir`.",
         "Discovery tooling respects declared `skillsRoots` when locating candidate primitives.",
         "Generated README prose references both primary-test-model and adjudicator-test-model per configured narration fields tied to modelling knobs.",
-        "`manualChecklists.enabled: true` causes `USER_EVAL_CHECKLISTS.md` to accompany generated collateral."
+        "`manualChecklists.enabled: true` causes `USER_EVAL_CHECKLISTS.md` to accompany generated collateral.",
+        "Every freshly authored eval case row carries `_meta.generated: true` so the updater's case-level guard recognises it as regenerable.",
+        "Each generated row's `source_hash:` is a normalised SHA-256 digest (64 lowercase hex characters) of the analysed source primitive — `5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c` is one such expected shape.",
+        "Each generated row records `last_updated:` as an ISO-8601 timestamp such as `2026-05-24T12:37:27.000Z`."
       ]
     },
     {
-      "scenario": "Declarative strategy picks non-code evaluator layout",
-      "prompt": "/z-eval-create finished approvals; honour declarative `llm.strategy` semantics so generated Cursor SDK artefacts avoid code-strategy harness wiring while stamping static vitest tests.",
+      "scenario": "declarative-strategy-picks-non-code-evaluator-layout",
+      "prompt": "After /z-eval-create finished approvals, honour declarative `llm.strategy` semantics so generated Cursor SDK artefacts avoid code-strategy harness wiring while stamping static vitest tests.",
       "fixtures": {
         "files": [
           {
@@ -81,12 +90,15 @@
         "Static artefacts adhere to vitest selection while declarative Cursor SDK artefacts differ materially from snapshots produced under `llm.strategy: code` with parallel `llm.codeFramework` stamping.",
         "LLM artefacts reflect `llm.strategy: declarative` by omitting code-strategy-only harness directories or reporter wiring exclusive to codegen flows.",
         "When approvals echo `discoveryTargets` limiting work to agents, generated rows omit counterpart slots for withheld kinds.",
-        "`manualChecklists.enabled: false` keeps checklist markdown unstamped unlike enabled scenarios."
+        "`manualChecklists.enabled: false` keeps checklist markdown unstamped unlike enabled scenarios.",
+        "Every freshly authored eval case row carries `_meta.generated: true` so the updater's case-level guard recognises it as regenerable.",
+        "Each generated row's `source_hash:` is a normalised SHA-256 digest (64 lowercase hex characters) of the analysed source primitive — `5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c` is one such expected shape.",
+        "Each generated row records `last_updated:` as an ISO-8601 timestamp such as `2026-05-24T12:37:27.000Z`."
       ]
     },
     {
       "scenario": "Jest LLM harness path under code strategy",
-      "prompt": "Follow `/z-eval-create` with approvals locked; configuration demands jest-specific `@cursor/sdk` harness layers while static harnessing remains pytest-oriented.",
+      "prompt": "Use pytest static with jest-flavoured LLM code harness; hooks-only discovery.",
       "fixtures": {
         "files": [
           {
@@ -101,8 +113,16 @@
       "expected_output": "Repositories gain pytest static runners plus jest-flavoured `@cursor/sdk` harness trees while omitting checklist markdown and still narrating runner-test-model with bench-test-model inside README fragments.",
       "assertions": [
         "`llm.strategy: code` with `llm.codeFramework: jest` produces jest-oriented `@cursor/sdk` harness structures instead of vitest-flavoured codegen wiring.",
-        "Static layers still honor `static.framework: pytest` alongside the jest LLM harness pairing."
+        "Static layers still honor `static.framework: pytest` alongside the jest LLM harness pairing.",
+        "Every freshly authored eval case row carries `_meta.generated: true` so the updater's case-level guard recognises it as regenerable.",
+        "Each generated row's `source_hash:` is a normalised SHA-256 digest (64 lowercase hex characters) of the analysed source primitive — `5249b5695ca86fc2185850690e9e4b82ab2856cef2f24f76d19fa974f92c243c` is one such expected shape.",
+        "Each generated row records `last_updated:` as an ISO-8601 timestamp such as `2026-05-24T12:37:27.000Z`."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

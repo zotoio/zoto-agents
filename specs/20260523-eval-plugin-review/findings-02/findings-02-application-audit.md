@@ -24,7 +24,7 @@ Effective defaults in force (because all keys are absent):
 | `llm.runtime` | `tsx` | `39:39:.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json` |
 | `llm.strategy` | `declarative` | `47:51:.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json` |
 | `llm.codeFramework` | `vitest` | `53:57:.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json` |
-| `llm.model.id` | `composer-2` | `40:44:.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json` |
+| `llm.model.id` | `composer-2.5` | `40:44:.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json` |
 | `judgeModel` | `opus-4.6` | `61:61:.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json` |
 | `manualChecklists.enabled` | `false` | `62:66:.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json` |
 | `additionalAutomation` | `[]` | `68:72:.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json` |

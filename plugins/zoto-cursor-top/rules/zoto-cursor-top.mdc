@@ -43,7 +43,8 @@ session metadata is missing `parentId`. The
 | `→` / `Enter` | expand selected |
 | `←` | collapse selected |
 | `e` / `c` | expand / collapse all |
-| `r` | force refresh |
+| `r` | force refresh (works even while paused) |
+| `p` / space | pause / resume auto-refresh |
 | `q` | quit |
 
 ## Output modes

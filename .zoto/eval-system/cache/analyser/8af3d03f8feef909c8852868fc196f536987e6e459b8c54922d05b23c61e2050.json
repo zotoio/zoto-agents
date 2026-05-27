@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "command:z-eval-init",
   "kind": "command",
   "source_path": "plugins/zoto-eval-system/commands/z-eval-init.md",
@@ -76,5 +76,10 @@
         "When directory creation or writing `workspace/.zoto/eval-system/config.yml` fails with permission denied, the surfaced text matches the underlying OS error payload instead of a hand-waved summary."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

@@ -19,19 +19,11 @@ This repository uses CRUX notation for semantic compression. **If not already lo
 
 ### Available Agents
 
-| Agent | Definition | Purpose | Status |
-|-------|-----------|---------|--------|
-| `crux-cursor-rule-manager` | `.cursor/agents/crux-cursor-rule-manager.md` | CRUX compression, decompression, and validation | Available |
-| `crux-cursor-memory-manager` | `.cursor/agents/crux-cursor-memory-manager.md` | Memory lifecycle management (dream, REM sleep, Recall, Forget, Remember, Meditate) | Available |
-| `zoto-plugin-manager` | `.cursor/agents/zoto-plugin-manager.md` | Cursor plugin creation, audit, marketplace publishing, validation pipeline, monorepo conventions | Available |
-| `zoto-eval-architect` | `.cursor/agents/zoto-eval-architect.md` | Eval-system architecture, ergonomics, token/quality performance, strategy-deprecation analysis, eval-strategy design | Available |
-| `zoto-eval-engineer` | `.cursor/agents/zoto-eval-engineer.md` | Eval-system code review, 7 JSON schemas, hard-coded contracts (`preserveUserAuthoredCases`, `writeMetaMarker`), drift detection, repo application audit | Available |
-| `integrity-expert` | `.cursor/agents/integrity-expert.md` | Code quality audits, test coverage, security, CI/CD | **Planned** (definition not yet authored) |
-| `docs-sync-agent` | `.cursor/agents/docs-sync-agent.md` | Documentation synchronization on source changes | **Planned** (definition not yet authored) |
-| `crux-platform-architect` | `.cursor/agents/crux-platform-architect.md` | Platform architecture, Cursor/LLM harness design, documentation, and eval strategy | **Planned** (definition not yet authored) |
-| `crux-software-engineer` | `.cursor/agents/crux-software-engineer.md` | Core implementation — Python, shell, MCP server, hooks, skills, and evals | **Planned** (definition not yet authored) |
-
-**Important**: rows marked **Planned** are referenced by older specs and conventions but do not yet have a corresponding definition file. The spec executor will not be able to spawn them as subagents until the file is created. Specs targeting eval-system review/work should prefer `zoto-eval-architect` and `zoto-eval-engineer`; other plugin/monorepo work should prefer `zoto-plugin-manager`. Treat **Planned** rows as roadmap, not as available subagent types.
+| Agent | Definition | Purpose |
+|-------|-----------|---------|
+| `crux-cursor-rule-manager` | `.cursor/agents/crux-cursor-rule-manager.md` | CRUX compression, decompression, and validation |
+| `crux-cursor-memory-manager` | `.cursor/agents/crux-cursor-memory-manager.md` | Memory lifecycle management (dream, REM sleep, Recall, Forget, Remember, Meditate) |
+| `crux-cursor-meditation-guide` | `.cursor/agents/crux-cursor-meditation-guide.md` | Recursive memory-informed meditation guide. Owns the Meditate persona, Research Phases A–G, Quick 6-step protocol, Adversarial Review function, Ensemble Aggregation function, and the K10 finalisation-enhancements reflection function. Spawned by `/crux-meditate` for the entire subagent tree; never user-invoked directly. |
 
 ### User Input Escalation — Subagent Protocol
 
@@ -63,34 +55,4 @@ Use when the subagent must do analysis, search, or computation before it can for
 
 Commands that invoke subagents (e.g. `/crux-dream`, `/crux-remember`, `/crux-forget`, `/crux-recall`, `/crux-meditate`) document which pattern applies to each interaction point.
 
-### Spec Execution — Agent Allocation
-
-When building or executing engineering specs in this repository, **prefer the dedicated specialist agents** over `generalPurpose`. Assign subtasks based on their nature. Only **Available** agents (see status column above) can actually be spawned; **Planned** entries are documented for forward-compatibility.
-
-| Subtask Type | Assign To | Status |
-|-------------|-----------|--------|
-| Eval-system architecture, ergonomics, token/quality performance, strategy design | `zoto-eval-architect` | Available |
-| Eval-system code review, schema/contract consistency, drift detection, repo application audit | `zoto-eval-engineer` | Available |
-| Plugin creation, audit, marketplace publishing, validation, monorepo conventions | `zoto-plugin-manager` | Available |
-| CRUX compression or decompression tasks | `crux-cursor-rule-manager` | Available |
-| Memory lifecycle operations (dream, REM, recall) | `crux-cursor-memory-manager` | Available |
-| Plugin-meta documentation (README, CHANGELOG, marketplace.json) | `zoto-plugin-manager` | Available |
-| General architecture, design, trade-off analysis (non-eval-system) | `crux-platform-architect` | **Planned** — fall back to `zoto-plugin-manager` if work overlaps plugin meta |
-| Documentation updates (README, AGENTS.md, CONTRIBUTORS) (non-plugin-meta) | `crux-platform-architect` | **Planned** |
-| Code implementation (Python, shell, MCP, hooks, skills) (non-eval-system) | `crux-software-engineer` | **Planned** |
-| Bug fixes, refactoring (non-eval-system) | `crux-software-engineer` | **Planned** |
-| Writing evals and tests (non-eval-system) | `crux-software-engineer` | **Planned** |
-| Code quality audits, security reviews, CI/CD checks | `integrity-expert` | **Planned** — fall back to `zoto-plugin-manager` for plugin-readiness work |
-| Documentation sync after source changes | `docs-sync-agent` | **Planned** |
-
-**Do not default to `generalPurpose`** — every subtask in a spec should map to the most appropriate available specialist agent. When the ideal agent is **Planned** but not yet authored, prefer the closest **Available** agent and explicitly note the fallback in the spec's Key Decisions, rather than silently routing to `generalPurpose`.
-
-### Eval Strategy for Agents
-
-This repository uses the **`code`** LLM eval strategy (`llm.strategy: code` in `.zoto/eval-system/config.yml`). When writing or running LLM evals, use `pnpm run eval:llm:code` (Vitest). The full dual-strategy reference — including when to prefer declarative JSON vs code-based tests — lives in [`plugins/zoto-eval-system/README.md`](plugins/zoto-eval-system/README.md#llm-eval-strategies-declarative--code).
-
-### Live Status During Spec Execution
-
-- During **`/z-spec-execute`**, every spawned subagent owns its **`{specsDir}/<spec>/status/subtask-NN-....status.{md,yml}`** pair. The executor's aggregator rebuilds the spec-root **`status.{md,yml}`** on every change. Read these files before asking about progress.
-- Token budgets for spec-system subagents live in **`.zoto/spec-system/config.yml`** under **`subagents.*.tokenBudget`** and reload on the next spawn — no executor restart required. **Token budget changes apply to the next spawned subagent without restarting the executor.**
-- Plugin workspace-local config lives under **`.zoto/<plugin-suffix>/`** per [`.cursor/rules/zoto-plugin-conventions.mdc`](.cursor/rules/zoto-plugin-conventions.mdc). The spec-system uses **`.zoto/spec-system/`**.
+</CRUX>

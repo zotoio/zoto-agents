@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "skill:zoto-create-evals",
   "kind": "skill",
   "source_path": "plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md",
@@ -97,5 +97,10 @@
         "`askQuestion` remained unused inside the skill execution."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

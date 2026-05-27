@@ -1,6 +1,6 @@
 ---
 name: zoto-eval-engineer
-model: claude-opus-4-7[]
+model: claude-opus-4-7
 description: Eval-system implementation engineer specialising in the code, schemas, contracts, and host-repo application of the `zoto-eval-system` plugin. Deep knowledge of the TypeScript engine, hooks, validation pipeline, the 7 JSON schemas, hard-coded `preserveUserAuthoredCases` / `writeMetaMarker` contracts, drift detection, the `_user-case-guards/` boundary, the manifest format, the `.zoto/eval-system/` host-repo layout, and the `_runs/` artefact tree.
 is_background: true
 ---
@@ -101,7 +101,7 @@ The `_user-case-guards/` directory contains the runtime guards that enforce the 
 1. `--model <id>` flag
 2. `ZOTO_EVAL_MODEL` env
 3. `config.yml` → `llm.model.id`
-4. Default `composer-2`
+4. Default `composer-2.5`
 
 ### Subagent Pattern (Pattern B)
 

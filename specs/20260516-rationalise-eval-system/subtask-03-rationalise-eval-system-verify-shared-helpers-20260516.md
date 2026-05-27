@@ -58,7 +58,7 @@ Targeted verification:
 ## Execution Notes
 
 ### Agent Session Info
-- Agent: crux-software-engineer (composer-2-fast)
+- Agent: crux-software-engineer (composer-2.5-fast)
 - Started: 2026-05-16T12:38:00Z
 - Completed: 2026-05-16T12:42:00Z
 

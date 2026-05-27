@@ -60,7 +60,7 @@ function subtaskYaml(
       subtask_id: id,
       feature: "spec-system-live-status",
       assigned_agent: "explore",
-      model: "composer-2-fast",
+      model: "composer-2.5-fast",
       token_budget: 100000,
       state,
       checklist: [],

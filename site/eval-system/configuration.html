@@ -124,10 +124,10 @@
 #   framework: pytest          # pytest | vitest | jest
 # llm:
 #   runtime: tsx               # tsx | node
-#   strategy: declarative      # declarative | code
-#   codeFramework: vitest      # vitest | jest  (only when strategy=code)
+#   strategy: declarative      # fallback default when analyser classification unavailable (declarative | code)
+#   codeFramework: vitest      # vitest | jest — applies to all code-strategy targets
 #   model:
-#     id: composer-2           # composer-2 | opus-4.6 | sonnet
+#     id: composer-2.5           # composer-2.5 | opus-4.6 | sonnet
 
 # ────────────────────────────────  judge  ────────────────────────────────────
 # judgeModel: opus-4.6
@@ -166,7 +166,7 @@
         <table>
           <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
           <tbody>
-            <tr><td><code>evalsDir</code></td><td><code>evals</code></td><td>Where static tests and the <code>_llm/</code> backend are stamped.</td></tr>
+            <tr><td><code>evalsDir</code></td><td><code>evals</code></td><td>Where static tests, the <code>_llm/</code> declarative runner, and <code>evals/llm/</code> code-strategy tests are stamped.</td></tr>
             <tr><td><code>skillsRoots[]</code></td><td><code>[".cursor/skills", "skills", "plugins/*/skills"]</code></td><td>Glob roots the discoverer walks to find <code>SKILL.md</code> files.</td></tr>
             <tr><td><code>discoveryTargets[]</code></td><td><code>[skill, command, agent, hook]</code></td><td>Which kinds of artefacts to scaffold evals for. Also valid: <code>cli</code>, <code>lib</code>.</td></tr>
             <tr><td><code>ignore[]</code></td><td><code>[]</code></td><td>Glob patterns to skip during discovery.</td></tr>
@@ -186,9 +186,9 @@
           <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
           <tbody>
             <tr><td><code>llm.runtime</code></td><td><code>tsx</code></td><td><code>tsx</code> or <code>node</code> — runner runtime for the LLM backend.</td></tr>
-            <tr><td><code>llm.strategy</code></td><td><code>declarative</code></td><td><code>declarative</code> (central <code>evals.json</code> + <code>runner.ts</code>) or <code>code</code> (per-primitive <code>*.test.ts</code> files).</td></tr>
-            <tr><td><code>llm.codeFramework</code></td><td><code>vitest</code></td><td>Only meaningful when <code>strategy=code</code>. <code>vitest</code> or <code>jest</code>. <strong>Must equal</strong> <code>static.framework</code> when both are TS-based.</td></tr>
-            <tr><td><code>llm.model.id</code></td><td><code>composer-2</code></td><td>Default LLM model — <code>composer-2</code> | <code>opus-4.6</code> | <code>sonnet</code>. CLI <code>--model</code> and <code>ZOTO_EVAL_MODEL</code> env var win in that order.</td></tr>
+            <tr><td><code>llm.strategy</code></td><td><code>declarative</code></td><td><strong>Fallback default</strong> when analyser classification is unavailable — not the per-target choice. Hybrid scaffolds coexist: non-interactive targets get declarative JSON (<code>evals.json</code> + <code>_llm/runner.ts</code>); interactive targets get code-strategy <code>evals/llm/test_*.test.ts</code>. Per-target backend is chosen at stamp time from analyser <code>requiresInteraction</code>.</td></tr>
+            <tr><td><code>llm.codeFramework</code></td><td><code>vitest</code></td><td>Test runner for <strong>all</strong> code-strategy targets: <code>vitest</code> or <code>jest</code>. <strong>Must equal</strong> <code>static.framework</code> when both are TS-based. Changing strategy defaults or reclassification triggers <code>eval:cleanup-stale</code> to remove wrong-backend artefacts per target.</td></tr>
+            <tr><td><code>llm.model.id</code></td><td><code>composer-2.5</code></td><td>Default LLM model — <code>composer-2.5</code> | <code>opus-4.6</code> | <code>sonnet</code>. CLI <code>--model</code> and <code>ZOTO_EVAL_MODEL</code> env var win in that order.</td></tr>
           </tbody>
         </table>
 

@@ -7,7 +7,7 @@
 | subtask_id | 02 |
 | feature | spec-system-live-status |
 | assigned_agent | crux-platform-architect |
-| model | composer-2-fast |
+| model | composer-2.5-fast |
 | token_budget | 200000 |
 | state | completed |
 | started_at | 2026-05-06T08:02:51.030Z |

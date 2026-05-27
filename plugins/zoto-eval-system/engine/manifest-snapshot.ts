@@ -1,28 +1,30 @@
 /**
- * Manifest snapshot reader (subtask 02 — configurer rewrite).
+ * Manifest snapshot reader.
  *
- * Single source of truth for "what framework / LLM strategy is currently
- * stamped in this repo". Read by:
+ * Single source of truth for "what static framework is currently stamped in
+ * this repo" plus the flat list of every `eval_files[]` path the manifest
+ * knows about. Read by:
  *
- *   - `/z-eval-configure` + `zoto-configure-evals` (subtask 02): build the
- *     `cleanup_plan` payload (see `templates/schema/cleanup-plan.schema.json`).
- *   - `scripts/eval-cleanup-stale.ts` (subtask 03): re-read the same snapshot
- *     so the dry-run plan and the executed plan agree byte-for-byte.
+ *   - `/z-eval-configure` + `zoto-configure-evals`: build the `cleanup_plan`
+ *     payload (see `templates/schema/cleanup-plan.schema.json`).
+ *   - `scripts/eval-cleanup-stale.ts`: re-read the same snapshot so the
+ *     dry-run plan and the executed plan agree byte-for-byte.
  *
  * The canonical source is `.zoto/eval-system/manifest.yml ->
- * discovery_config.{static, llm, discoveryTargets}` (added in subtask 01). When the manifest is
- * missing or pre-dates subtask 01, this module falls back to filesystem
- * fingerprints:
+ * discovery_config.{static, discoveryTargets}`. When the manifest is missing
+ * or pre-dates the manifest-snapshot block, this module falls back to
+ * filesystem fingerprints:
  *
  *   - `evals/conftest.py`            => `static.framework = "pytest"`
  *   - `vitest.config.ts` / `.js`     => `static.framework = "vitest"`
  *   - `jest.config.ts` / `.js`       => `static.framework = "jest"`
  *
- * The LLM strategy / codeFramework cannot be reliably inferred from the
- * filesystem alone, so the fallback only fills in `static.framework` and
- * leaves `llm.*` undefined. The caller (configurer) must treat the missing
- * fields as "no prior snapshot" and emit an empty `cleanup_plan` group for
- * them.
+ * NOTE: prior versions of this module also surfaced `llm.strategy` /
+ * `llm.codeFramework` from the manifest. The single-backend co-located
+ * restructure dropped those knobs — there is no LLM strategy split any
+ * more; the unified harness emits `<kind>/evals/<name>.test.ts` for every
+ * non-skill primitive and decides the runtime branch per case from the
+ * analyser's `requiresInteraction` flag.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -32,14 +34,11 @@ import YAML from "yaml";
 import { toolingPhantomEvalCataloguePath } from "./discovery-filters.js";
 
 export type StaticFramework = "pytest" | "vitest" | "jest";
-export type LlmStrategy = "code" | "declarative";
-export type CodeFramework = "vitest" | "jest";
 
 export type SnapshotSource = "manifest" | "filesystem" | "missing";
 
 export interface ManifestSnapshot {
   static: { framework?: StaticFramework };
-  llm: { strategy?: LlmStrategy; codeFramework?: CodeFramework };
   /**
    * kinds from manifest `discovery_config.discoveryTargets` when recorded —
    * the catalogue snapshot (may be broader than the operator's active YAML).
@@ -68,7 +67,6 @@ export interface ManifestSnapshot {
 interface ManifestShape {
   discovery_config?: {
     static?: { framework?: StaticFramework };
-    llm?: { strategy?: LlmStrategy; codeFramework?: CodeFramework };
     discoveryTargets?: unknown;
   };
   targets?: Array<{ eval_files?: string[] }>;
@@ -172,18 +170,13 @@ export function readManifestSnapshot(
       }
       const evalFiles = filterToolingPhantomEvalPaths(evalFilesRaw);
       const hasStatic = Boolean(dc.static?.framework);
-      const hasLlm = Boolean(dc.llm?.strategy) || Boolean(dc.llm?.codeFramework);
 
       const discoveryTargets = normalizedDiscoveryTargets(dc);
       const effectiveDiscoveryTargets = rawDiscoveryOverride ?? discoveryTargets;
 
-      if (hasStatic || hasLlm) {
+      if (hasStatic) {
         return {
           static: { framework: dc.static?.framework },
-          llm: {
-            strategy: dc.llm?.strategy,
-            codeFramework: dc.llm?.codeFramework,
-          },
           discoveryTargets,
           effectiveDiscoveryTargets,
           evalFiles,
@@ -191,12 +184,11 @@ export function readManifestSnapshot(
         };
       }
 
-      // Manifest exists but has no v2 snapshot block — fall through to
+      // Manifest exists but has no snapshot block — fall through to
       // filesystem fingerprinting and keep the eval-file list intact.
       const fsHit = detectStaticFromFilesystem(repoRoot);
       return {
         static: { framework: fsHit?.framework },
-        llm: {},
         discoveryTargets,
         effectiveDiscoveryTargets,
         evalFiles,
@@ -209,7 +201,6 @@ export function readManifestSnapshot(
   const fsHit = detectStaticFromFilesystem(repoRoot);
   return {
     static: { framework: fsHit?.framework },
-    llm: {},
     effectiveDiscoveryTargets: rawDiscoveryOverride,
     evalFiles: [],
     source: fsHit ? "filesystem" : "missing",

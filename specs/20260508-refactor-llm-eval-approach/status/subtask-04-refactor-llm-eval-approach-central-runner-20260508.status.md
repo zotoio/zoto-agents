@@ -7,7 +7,7 @@
 | subtask_id | 04 |
 | feature | Refactor LLM eval approach |
 | assigned_agent | crux-software-engineer |
-| model | composer-2-fast |
+| model | composer-2.5-fast |
 | token_budget | 200000 |
 | state | completed |
 | started_at | 2026-05-08T10:34:00Z |

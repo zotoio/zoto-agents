@@ -7,7 +7,7 @@
 | subtask_id | 03 |
 | feature | command-prefix-shortening |
 | assigned_agent | crux-software-engineer |
-| model | composer-2-fast |
+| model | composer-2.5-fast |
 | token_budget | 200000 |
 | state | pending |
 | started_at |  |

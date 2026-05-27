@@ -30,6 +30,16 @@
  */
 export type PrimitiveKind = "skill" | "command" | "agent" | "hook" | "rule";
 
+/**
+ * How a primitive owns user-facing interaction during eval runs. Emitted by the
+ * LLM analyser and copied into `_meta.primitive_analysis.interactionStyle`.
+ * Paired with `requiresInteraction` to drive the unified-harness runtime branch
+ * (scripted AskQuestion answers vs single `sendPrompt`). Same file shape on
+ * disk either way — every non-skill primitive emits a co-located
+ * `<kind>/evals/<name>.test.ts`.
+ */
+export type InteractionStyle = "command-owned" | "subagent-escalated" | "none";
+
 export interface AnalyserFixtureFile {
   path: string;
   content?: string;
@@ -71,5 +81,20 @@ export interface AnalyserPayload {
   source_path: string;
   source_hash: string;
   summary: string;
+  /**
+   * Whether eval cases for this primitive require scripted multi-turn
+   * interaction. When `true`, the unified-harness runtime loads
+   * `interactions.answers` and uses the scripted-answer branch; when `false`,
+   * the harness uses a single `agent.send(prompt)` and grades the response.
+   * Same emitted file shape (`<kind>/evals/<name>.test.ts`) either way.
+   * Optional for backwards-compat with cached payloads predating the
+   * askQuestion interaction bridge.
+   */
+  requiresInteraction?: boolean;
+  /**
+   * Who owns AskQuestion / needs_user_input hand-offs. Paired with
+   * `requiresInteraction` whenever the analyser can classify the primitive.
+   */
+  interactionStyle?: InteractionStyle;
   cases: AnalyserCase[];
 }

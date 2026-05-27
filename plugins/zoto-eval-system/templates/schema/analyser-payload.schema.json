@@ -30,7 +30,7 @@
     "model_id": {
       "type": "string",
       "minLength": 1,
-      "description": "Concrete Cursor model id used to generate this payload (e.g. `composer-2`, `opus-4.6`, `sonnet`). Mirrors the `_meta.primitive_analysis.model_id` callers use to detect model swaps."
+      "description": "Concrete Cursor model id used to generate this payload (e.g. `composer-2.5`, `opus-4.6`, `sonnet`). Mirrors the `_meta.primitive_analysis.model_id` callers use to detect model swaps."
     },
     "target_id": {
       "type": "string",
@@ -56,6 +56,15 @@
       "type": "string",
       "minLength": 1,
       "description": "Short natural-language summary of the analyser's findings — one or two sentences. Stored verbatim in `_meta.primitive_analysis.summary` and used by the updater to compose differential prompts on drift."
+    },
+    "requiresInteraction": {
+      "type": "boolean",
+      "description": "Whether the primitive's eval cases require scripted multi-turn interaction (AskQuestion answers, needs_user_input hand-offs). The stamper uses this as the SINGLE routing input to choose declarative JSON vs code-strategy TypeScript. Omit only when the analyser cannot classify; downstream stampers treat omission as non-interactive."
+    },
+    "interactionStyle": {
+      "type": "string",
+      "enum": ["command-owned", "subagent-escalated", "none"],
+      "description": "How user-facing interaction is owned: `command-owned` when the command markdown instructs the parent to call AskQuestion before spawning subagents; `subagent-escalated` when agents/skills return structured needs_user_input and never call AskQuestion themselves; `none` for hooks and other non-interactive primitives. MUST accompany `requiresInteraction` when either field is present."
     },
     "cases": {
       "type": "array",

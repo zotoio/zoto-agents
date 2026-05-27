@@ -2,7 +2,7 @@ schema_version: 1
 subtask_id: "01"
 feature: Eval Adviser
 assigned_agent: crux-platform-architect
-model: composer-2-fast
+model: composer-2.5-fast
 token_budget: 200000
 state: pending
 checklist:

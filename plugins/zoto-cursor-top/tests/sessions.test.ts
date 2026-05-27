@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { recordFromJson, readSessionRecords } from "../src/discovery/sessions.js";
+import {
+  readSessionRecords,
+  readTranscriptRecords,
+  recordFromJson,
+} from "../src/discovery/sessions.js";
 import type { FsLike } from "../src/types.js";
 
 describe("recordFromJson", () => {
@@ -43,12 +47,19 @@ describe("recordFromJson", () => {
   });
 
   it("normalises non-standard statuses", () => {
+    // Inputs include a strong key (`sessionId`) so the positive-id
+    // guard in recordFromJson lets them through. The test asserts the
+    // status-normalisation behaviour, not the guard itself.
     const a = recordFromJson(
-      { id: "a", state: "in_progress" },
+      { sessionId: "a", state: "in_progress" },
       "/x.json",
       "cli",
     );
-    const b = recordFromJson({ id: "b", status: "Failed" }, "/x.json", "cli");
+    const b = recordFromJson(
+      { sessionId: "b", status: "Failed" },
+      "/x.json",
+      "cli",
+    );
     expect(a!.status).toBe("running");
     expect(b!.status).toBe("error");
   });
@@ -56,6 +67,29 @@ describe("recordFromJson", () => {
   it("returns null for malformed input", () => {
     expect(recordFromJson(null, "/x.json", "ide")).toBeNull();
     expect(recordFromJson("string", "/x.json", "ide")).toBeNull();
+  });
+
+  it("rejects JSON blobs that look nothing like a session (no strong keys)", () => {
+    // VS Code local-history snapshot — has `name`/`version` but no
+    // session identifiers. Must be rejected to avoid the ghost rows.
+    const localHistory = recordFromJson(
+      {
+        name: "x-fidelity-vscode",
+        version: "1.2.3",
+        files: ["src/index.ts"],
+      },
+      "/home/u/.config/Cursor/User/History/abc/Rjqu.json",
+      "ide",
+    );
+    expect(localHistory).toBeNull();
+
+    // MCP tool descriptor — has `description` but no session keys.
+    const mcpTool = recordFromJson(
+      { description: "create a new automation", parameters: [] },
+      "/home/u/.cursor/projects/ws/mcps/srv/tools/create_automation.json",
+      "cloud",
+    );
+    expect(mcpTool).toBeNull();
   });
 });
 
@@ -107,5 +141,107 @@ describe("readSessionRecords", () => {
     const sub = records.find((r) => r.id === "sub-1")!;
     expect(sub.parentId).toBe("root-1");
     expect(sub.label).toBe("Task(explore)");
+  });
+
+  it("emits a 'missing' diagnostic when a configured root does not exist", async () => {
+    const fs: FsLike = {
+      readdir: async () => [],
+      readFile: async () => "",
+      stat: async () => ({
+        isDirectory: () => false,
+        isFile: () => false,
+        mtimeMs: 0,
+        size: 0,
+      }),
+      exists: async () => false,
+    };
+    const diagnostics: string[] = [];
+    const records = await readSessionRecords(
+      fs,
+      ["/no/such/root"],
+      "cli",
+      diagnostics,
+    );
+    expect(records).toEqual([]);
+    expect(
+      diagnostics.some((d) => d.includes("missing: /no/such/root (kind=cli)")),
+    ).toBe(true);
+  });
+});
+
+describe("readTranscriptRecords", () => {
+  it("emits one record per transcript file with parent/subagent wiring", async () => {
+    const root = "/home/u/.cursor/projects/ws/agent-transcripts";
+    const parentUuid = "00000000-1111-2222-3333-444444444444";
+    const subUuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+    const parentDir = `${root}/${parentUuid}`;
+    const parentFile = `${parentDir}/${parentUuid}.jsonl`;
+    const subDir = `${parentDir}/subagents`;
+    const subFile = `${subDir}/${subUuid}.jsonl`;
+
+    const tree: Record<string, { kind: "dir"; entries: string[] } | { kind: "file" }> = {
+      [root]: { kind: "dir", entries: [parentUuid] },
+      [parentDir]: { kind: "dir", entries: [`${parentUuid}.jsonl`, "subagents"] },
+      [parentFile]: { kind: "file" },
+      [subDir]: { kind: "dir", entries: [`${subUuid}.jsonl`] },
+      [subFile]: { kind: "file" },
+    };
+    const fs: FsLike = {
+      readdir: async (path) => {
+        const node = tree[path];
+        return node?.kind === "dir" ? node.entries : [];
+      },
+      readFile: async () => "",
+      stat: async (path) => {
+        const node = tree[path];
+        const isDir = node?.kind === "dir";
+        const isFile = node?.kind === "file";
+        return {
+          isDirectory: () => isDir,
+          isFile: () => isFile,
+          mtimeMs: 1_700_000_000_000,
+          size: 100,
+        };
+      },
+      exists: async (path) => path in tree,
+    };
+
+    const diagnostics: string[] = [];
+    const records = await readTranscriptRecords(fs, [root], diagnostics);
+    const byId = new Map(records.map((r) => [r.id, r]));
+    expect(byId.size).toBe(2);
+    expect(byId.get(parentUuid)).toMatchObject({
+      kind: "agent",
+      parentId: null,
+      logPath: parentFile,
+      repo: "ws",
+    });
+    expect(byId.get(subUuid)).toMatchObject({
+      kind: "subagent",
+      parentId: parentUuid,
+      logPath: subFile,
+      label: "Task",
+    });
+    expect(diagnostics).toEqual([]);
+  });
+
+  it("diagnoses a missing transcript root", async () => {
+    const fs: FsLike = {
+      readdir: async () => [],
+      readFile: async () => "",
+      stat: async () => ({
+        isDirectory: () => false,
+        isFile: () => false,
+        mtimeMs: 0,
+        size: 0,
+      }),
+      exists: async () => false,
+    };
+    const diagnostics: string[] = [];
+    const records = await readTranscriptRecords(fs, ["/no/such/root"], diagnostics);
+    expect(records).toEqual([]);
+    expect(
+      diagnostics.some((d) => d.includes("missing: /no/such/root (kind=transcript)")),
+    ).toBe(true);
   });
 });

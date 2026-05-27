@@ -1,10 +1,15 @@
 /**
  * Parse the on-disk session metadata Cursor writes for the IDE, the
- * `cursor-agent` CLI, and Cloud Agent VMs.
+ * `cursor-agent` CLI, Cloud Agent VMs, and the per-agent transcript
+ * message-streams under `~/.cursor/projects/<ws>/agent-transcripts/`.
  *
  * The on-disk layout is not a stable public contract, so we tolerate every
  * file shape we have observed and fall back to "unknown" fields rather than
- * crashing.
+ * crashing — but we DO refuse to mint a session record from a random JSON
+ * blob (see {@link recordFromJson} → `STRONG_KEYS`). Without that guard
+ * the recursive walker happily parses VS Code local-history snapshots,
+ * MCP tool descriptors, and `package.json` files as "sessions" — which
+ * produced thousands of ghost rows on Linux Cursor 2026.05.
  */
 
 import { basename, join } from "node:path";
@@ -79,8 +84,36 @@ function parseTimestamp(raw: unknown): number | null {
 }
 
 /**
+ * Keys that positively identify a JSON blob as an agent-session record.
+ *
+ * The walker reaches a lot of non-session JSON on Linux Cursor (local
+ * history snapshots, MCP tool descriptors, npm `package.json` files,
+ * editor settings, etc.). Without this allow-list `recordFromJson`
+ * happily turned each of those into a phantom row with `model=null` and
+ * `logPath=null`, producing the empty `MODEL` / `REPO` / log-tail columns
+ * that motivated this fix. A record must declare at least one of these
+ * keys to be considered a session.
+ */
+const STRONG_SESSION_KEYS = [
+  "sessionId",
+  "agentId",
+  "uuid",
+  "model",
+  "modelId",
+  "modelSlug",
+  "prompt",
+  "logPath",
+  "logFile",
+  "parentAgentId",
+  "parentId",
+  "subagentType",
+  "subagent_type",
+] as const;
+
+/**
  * Map a parsed JSON record (from any of the known session layouts) to a
- * {@link SessionRecord}. Returns null when the JSON is too malformed to use.
+ * {@link SessionRecord}. Returns null when the JSON is too malformed to use
+ * or fails the {@link STRONG_SESSION_KEYS} positive-identification check.
  */
 export function recordFromJson(
   raw: unknown,
@@ -89,6 +122,8 @@ export function recordFromJson(
 ): SessionRecord | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, unknown>;
+
+  if (!STRONG_SESSION_KEYS.some((k) => k in obj)) return null;
 
   const id = pickString(obj, ["id", "sessionId", "uuid", "agentId"]) ??
     basename(sourcePath).replace(/\.[^.]+$/, "");
@@ -127,6 +162,20 @@ export function recordFromJson(
   };
 }
 
+/**
+ * Directories the recursive walker must not descend into.
+ *
+ * Two groups:
+ *
+ *   1. The generic "this is binary / cache" set we always skipped.
+ *   2. The new "this is editor state, not agent state" set added after
+ *      the Linux 2026.05 audit revealed `User/History/<hash>/*.json`,
+ *      `globalStorage/storage.json`, MCP tool descriptors, and per-agent
+ *      tool-output mirrors were each minting thousands of ghost rows.
+ *      `agent-transcripts/` is handled by a dedicated transcript reader
+ *      so we skip it during the JSON walk too — see
+ *      {@link readTranscriptRecords}.
+ */
 const SKIP_DIR_NAMES = new Set([
   "node_modules",
   "cache",
@@ -146,6 +195,24 @@ const SKIP_DIR_NAMES = new Set([
   "IndexedDB",
   "Service Worker",
   "blob_storage",
+  // Editor / VS Code state that is not agent state.
+  "User",
+  "History",
+  "workspaceStorage",
+  "globalStorage",
+  "snapshots",
+  "CachedData",
+  "CachedExtensionVSIXs",
+  "CachedConfigurations",
+  "process-monitor",
+  // Per-agent tool-output / terminal mirrors and MCP descriptors. None
+  // of these contain session records; the JSON walker used to scoop
+  // them all up before the strong-key guard landed.
+  "mcps",
+  "agent-tools",
+  "terminals",
+  "sdk-agent-store",
+  "agent-transcripts",
 ]);
 
 const SKIP_FILE_NAMES = new Set([
@@ -215,7 +282,10 @@ export async function readSessionRecords(
 ): Promise<SessionRecord[]> {
   const files: string[] = [];
   for (const root of roots) {
-    if (!(await fs.exists(root))) continue;
+    if (!(await fs.exists(root))) {
+      diagnostics.push(`missing: ${root} (kind=${kind})`);
+      continue;
+    }
     await walkJson(fs, root, maxDepth, files);
   }
 
@@ -260,3 +330,187 @@ export async function readSessionRecords(
 
   return Array.from(byId.values());
 }
+
+export interface ReadTranscriptOptions {
+  /**
+   * Drop transcript files whose last-modified timestamp is older than
+   * `now() - maxAgeMs`. The default is `Infinity` (keep everything),
+   * but cli.ts passes a 24-hour cap so the live view does not drown
+   * the user in historical chats.
+   */
+  maxAgeMs?: number;
+  /**
+   * Override `Date.now()` for tests so status derivation is
+   * deterministic.
+   */
+  now?: () => number;
+}
+
+/**
+ * Walk every `~/.cursor/projects/<workspace>/agent-transcripts/` root
+ * and emit one {@link SessionRecord} per transcript file:
+ *
+ *   * `<uuid>/<uuid>.jsonl` → parent agent record (kind="ide")
+ *   * `<uuid>/subagents/<sub-uuid>.jsonl` → subagent (kind="subagent",
+ *     parentId set to the enclosing parent UUID)
+ *
+ * Unlike {@link readSessionRecords}, this function treats the FILE as
+ * the unit of identity — each transcript represents exactly one agent
+ * session even though it holds many message events. The transcript
+ * filename (a UUID) is the agent id; the directory name is the
+ * workspace slug.
+ *
+ * Status is derived from the file's mtime:
+ *   * mtime within 60 s   → "running" (transcript is actively appended)
+ *   * mtime within 5 min  → "idle"
+ *   * older               → "done"
+ *
+ * Files older than `opts.maxAgeMs` are dropped entirely so the live
+ * view only surfaces recently-active chats.
+ *
+ * We do not parse the message bodies here — see `tailJsonlMessages` in
+ * `logs.ts` for that. The transcript is wired in as the agent's
+ * `logPath`, so the renderer tails the last N messages on demand.
+ */
+export async function readTranscriptRecords(
+  fs: FsLike,
+  roots: string[],
+  diagnostics: string[],
+  opts: ReadTranscriptOptions = {},
+): Promise<SessionRecord[]> {
+  const now = opts.now ? opts.now() : Date.now();
+  const maxAgeMs = opts.maxAgeMs ?? Number.POSITIVE_INFINITY;
+  const records: SessionRecord[] = [];
+  for (const root of roots) {
+    if (!(await fs.exists(root))) {
+      diagnostics.push(`missing: ${root} (kind=transcript)`);
+      continue;
+    }
+    let entries: string[];
+    try {
+      entries = await fs.readdir(root);
+    } catch {
+      continue;
+    }
+    for (const dirName of entries) {
+      const agentDir = join(root, dirName);
+      let dirStat;
+      try {
+        dirStat = await fs.stat(agentDir);
+      } catch {
+        continue;
+      }
+      if (!dirStat.isDirectory()) continue;
+      const parentFile = join(agentDir, `${dirName}.jsonl`);
+      let parentStat;
+      try {
+        parentStat = await fs.stat(parentFile);
+      } catch {
+        parentStat = null;
+      }
+      if (parentStat && parentStat.isFile()) {
+        const ageMs = now - parentStat.mtimeMs;
+        if (ageMs <= maxAgeMs) {
+          // Transcripts are minted as kind="agent" (the chat session
+          // running inside an IDE window). The collector's
+          // reparentTranscriptChats step then hangs each `agent` row
+          // under its owning Cursor IDE PID so the UI shows the
+          // process → agent → subagent ladder.
+          records.push(buildTranscriptRecord({
+            id: dirName,
+            parentId: null,
+            kind: "agent",
+            file: parentFile,
+            mtimeMs: parentStat.mtimeMs,
+            now,
+          }));
+        }
+      }
+      const subagentsDir = join(agentDir, "subagents");
+      let subEntries: string[] = [];
+      try {
+        subEntries = await fs.readdir(subagentsDir);
+      } catch {
+        subEntries = [];
+      }
+      for (const subFile of subEntries) {
+        if (!subFile.endsWith(".jsonl")) continue;
+        const subFull = join(subagentsDir, subFile);
+        let subStat;
+        try {
+          subStat = await fs.stat(subFull);
+        } catch {
+          continue;
+        }
+        if (!subStat.isFile()) continue;
+        const ageMs = now - subStat.mtimeMs;
+        if (ageMs > maxAgeMs) continue;
+        const subId = subFile.replace(/\.jsonl$/, "");
+        records.push(buildTranscriptRecord({
+          id: subId,
+          parentId: dirName,
+          kind: "subagent",
+          file: subFull,
+          mtimeMs: subStat.mtimeMs,
+          now,
+        }));
+      }
+    }
+  }
+  return records;
+}
+
+interface TranscriptRecordInput {
+  id: string;
+  parentId: string | null;
+  kind: AgentKind;
+  file: string;
+  mtimeMs: number;
+  now: number;
+}
+
+// Cursor flushes per-agent transcripts periodically (~5–30 min for an
+// actively-running chat, much less often once the user moves on). The
+// thresholds below are tuned to that cadence so the "running" badge
+// only shows up for genuinely-live agents.
+const STATUS_RUNNING_MS = 5 * 60_000;
+const STATUS_IDLE_MS = 30 * 60_000;
+
+function buildTranscriptRecord(input: TranscriptRecordInput): SessionRecord {
+  // The transcript directory chain encodes the workspace: the file path
+  // looks like `<…>/projects/<workspace-slug>/agent-transcripts/<uuid>/<…>`.
+  // Surface the workspace slug as `repo` so the user can tell which
+  // workspace an agent belongs to without opening the file.
+  const workspaceSlug = extractWorkspaceSlug(input.file);
+  const ageMs = Math.max(0, input.now - input.mtimeMs);
+  let status: AgentStatus = "done";
+  if (ageMs <= STATUS_RUNNING_MS) status = "running";
+  else if (ageMs <= STATUS_IDLE_MS) status = "idle";
+  // Subs are always called "Task"; parent transcripts are "chat" to
+  // hint that the row represents a user-driven IDE chat session
+  // (rendered with the `[AGENT]` badge).
+  const defaultLabel = input.kind === "subagent" ? "Task" : "chat";
+  return {
+    id: input.id,
+    parentId: input.parentId,
+    kind: input.kind,
+    pid: null,
+    label: defaultLabel,
+    title: "",
+    model: null,
+    repo: workspaceSlug,
+    startedAt: input.mtimeMs,
+    status,
+    logPath: input.file,
+    sourcePath: input.file,
+  };
+}
+
+function extractWorkspaceSlug(file: string): string | null {
+  // .../<workspace-slug>/agent-transcripts/<uuid>/<…>
+  const parts = file.split("/");
+  const idx = parts.lastIndexOf("agent-transcripts");
+  if (idx <= 0) return null;
+  return parts[idx - 1] ?? null;
+}
+

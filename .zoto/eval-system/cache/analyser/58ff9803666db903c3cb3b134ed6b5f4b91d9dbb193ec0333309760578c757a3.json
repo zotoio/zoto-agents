@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "skill:zoto-execute-evals",
   "kind": "skill",
   "source_path": "plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md",
@@ -107,5 +107,10 @@
         "Post-run drift handling via pnpm run eval:update --check still ran and updated llm.yml warn-only"
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

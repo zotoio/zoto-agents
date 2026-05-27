@@ -325,5 +325,5 @@
       },
       "expected_output": "The agent reloads the spec index and dependency graph, resumes at the first incomplete subtask without repeating verified completions, re-validates that earlier deliverables still exist, and explicitly reaffirms that executors never touch code directly (including micro-fixes or judge-identified gaps), that judges never write outside their status pair in Mode 1, that adversarial verification is never skipped, and that full-suite testing waits for Step 5."
     }
-  ,]
+  ]
 }

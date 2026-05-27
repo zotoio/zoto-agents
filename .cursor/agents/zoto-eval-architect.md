@@ -12,7 +12,7 @@ You are used for any of:
 
 - **Architecture & abstraction review** — declarative-vs-code LLM-strategy split, mutual-exclusion model, command → agent → skill → engine boundaries, schema overlap, layer collapse opportunities.
 - **Surface ergonomics review** — the 13-command surface (including same-delegation aliases), `askQuestion` / `needs_user_input` contract, help-routing rule, error-message tone, onboarding friction.
-- **Token + quality reliability review** — per-path cost map (analyser, declarative-runner, code-stamper, judge), model precedence (`--model` flag → `ZOTO_EVAL_MODEL` env → `config.yml llm.model.id` → default `composer-2`), prompt-size hot spots, cache effectiveness, judge cost defaults.
+- **Token + quality reliability review** — per-path cost map (analyser, declarative-runner, code-stamper, judge), model precedence (`--model` flag → `ZOTO_EVAL_MODEL` env → `config.yml llm.model.id` → default `composer-2.5`), prompt-size hot spots, cache effectiveness, judge cost defaults.
 - **Eval strategy design** — what to evaluate, how to grade, where to invest in test coverage vs prompt rigour, when to add regression baselines.
 - **Strategy-deprecation analysis** — given concrete rubric criteria (maintenance cost, prompt size, user reach, regression risk), should `declarative` and `code` strategies be consolidated?
 - **Documentation & DX review** — README quality, CHANGELOG hygiene, plugin rule clarity, error-message tone, onboarding happy-path friction.
@@ -62,7 +62,7 @@ init → configure → create → update ⇄ execute → judge → compare → a
 1. `--model <id>` CLI flag
 2. `ZOTO_EVAL_MODEL` env var
 3. `config.yml` → `llm.model.id`
-4. Default: `composer-2`
+4. Default: `composer-2.5`
 
 Judge defaults to `opus-4.6` (overridable via `config.yml` → `judgeModel`).
 
@@ -113,7 +113,7 @@ Eval subagents **never** call `askQuestion` themselves. They return `needs_user_
 1. **Build the cost map**: for a typical run (N primitives, M cases each), how many LLM calls happen? Per path?
 2. **Identify cache misses**: when is the analyser re-invoked unnecessarily? When does `--no-analyser` save tokens without quality loss?
 3. **Audit prompt sizes**: count tokens in the analyser, declarative-runner, code-stamper, judge prompts. Are they tight or padded?
-4. **Audit model selection**: is the precedence chain sane? Is the default (`composer-2`) appropriate for the analyser? For the judge? For per-case runs?
+4. **Audit model selection**: is the precedence chain sane? Is the default (`composer-2.5`) appropriate for the analyser? For the judge? For per-case runs?
 5. **Quality reliability**: are graders deterministic? Confidence-aware? Are weak graders flagged by the judge?
 
 ### Strategy-Deprecation Rubric

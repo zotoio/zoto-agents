@@ -41,7 +41,7 @@ function buildScratchRepo(): ScratchRepo {
   writeFileSync(
     join(root, ".zoto", "eval-system", "config.yml"),
     YAML.stringify({
-      llm: { model: { id: "composer-2" } },
+      llm: { model: { id: "composer-2.5" } },
       analyser: { concurrency: 4, maxCallsPerInvocation: 50 },
     }),
     "utf-8",
@@ -147,7 +147,7 @@ function makeStubSdk(name: string, responseFn: () => string): {
 
 async function testCacheHit(): Promise<void> {
   const scratch = buildScratchRepo();
-  const payload = buildPayloadForCache(scratch, "composer-2");
+  const payload = buildPayloadForCache(scratch, "composer-2.5");
   mkdirSync(scratch.cacheDir, { recursive: true });
   writeFileSync(
     join(scratch.cacheDir, `${payload.source_hash}.json`),
@@ -175,7 +175,7 @@ async function testCacheHit(): Promise<void> {
 
 async function testReplayHit(): Promise<void> {
   const scratch = buildScratchRepo();
-  const payload = buildPayloadForCache(scratch, "composer-2");
+  const payload = buildPayloadForCache(scratch, "composer-2.5");
   const fixtureDir = join(scratch.root, "fixtures-analyser");
   mkdirSync(fixtureDir, { recursive: true });
   writeFileSync(
@@ -202,7 +202,7 @@ async function testReplayHit(): Promise<void> {
 
 async function testFreshGenerationAndCacheWrite(): Promise<void> {
   const scratch = buildScratchRepo();
-  const payload = buildPayloadForCache(scratch, "composer-2");
+  const payload = buildPayloadForCache(scratch, "composer-2.5");
   /* Stub returns a JSON string the analyser will pin canonical fields onto. */
   const stub = makeStubSdk("fresh", () => JSON.stringify(payload));
   const budget = newAnalyserBudget();
@@ -229,7 +229,7 @@ async function testFreshGenerationAndCacheWrite(): Promise<void> {
 
 async function testBudgetExhaustion(): Promise<void> {
   const scratch = buildScratchRepo();
-  const payload = buildPayloadForCache(scratch, "composer-2");
+  const payload = buildPayloadForCache(scratch, "composer-2.5");
   const stub = makeStubSdk("budget", () => JSON.stringify(payload));
   const budget = newAnalyserBudget();
   budget.callsMade = 99;
@@ -254,7 +254,7 @@ async function testBudgetExhaustion(): Promise<void> {
 
 async function testInvalidationReGenerates(): Promise<void> {
   const scratch = buildScratchRepo();
-  const payload = buildPayloadForCache(scratch, "composer-2");
+  const payload = buildPayloadForCache(scratch, "composer-2.5");
   mkdirSync(scratch.cacheDir, { recursive: true });
   writeFileSync(
     join(scratch.cacheDir, `${payload.source_hash}.json`),

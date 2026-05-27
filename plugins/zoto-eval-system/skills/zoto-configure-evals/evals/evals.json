@@ -3,14 +3,14 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Set up the eval system config for a monorepo with skills under plugins/*/skills. Use composer-2 for the runner and opus-4.6 for the judge.",
-      "expected_output": ".zoto/eval-system/config.yml written with skillsRoots containing plugins/*/skills, llm.model.id = composer-2, judgeModel = opus-4.6, and all contract fields stamped true.",
+      "prompt": "Set up the eval system config for a monorepo with skills under plugins/*/skills. Use composer-2.5 for the runner and opus-4.6 for the judge.",
+      "expected_output": ".zoto/eval-system/config.yml written with skillsRoots containing plugins/*/skills, llm.model.id = composer-2.5, judgeModel = opus-4.6, and all contract fields stamped true.",
       "files": [],
       "assertions": [
         ".zoto/eval-system/config.yml is created at the repository root",
         "Every interactive prompt is asked via the askQuestion tool by the command (the skill itself never calls askQuestion)",
         "skillsRoots includes plugins/*/skills",
-        "llm.model.id equals composer-2",
+        "llm.model.id equals composer-2.5",
         "judgeModel equals opus-4.6",
         "update.preserveUserAuthoredCases is true",
         "update.writeMetaMarker is true",
@@ -32,7 +32,7 @@
   ,
     {
       "id": 1,
-      "prompt": "/z-eval-configure finished: overwrite if needed; evalsDir evals; skillsRoots [\".cursor/skills\",\"skills\",\"plugins/*/skills\"]; discoveryTargets [\"skill\",\"command\",\"agent\",\"hook\"]; static.framework pytest; llm.runtime tsx; llm.model.id composer-2; llm.strategy declarative; llm.codeFramework vitest; judgeModel opus-4.6; manualChecklists.enabled true; additionalAutomation []; ignore []; update.criticalChangeRules all true. Apply zoto-configure-evals now.",
+      "prompt": "/z-eval-configure finished: overwrite if needed; evalsDir evals; skillsRoots [\".cursor/skills\",\"skills\",\"plugins/*/skills\"]; discoveryTargets [\"skill\",\"command\",\"agent\",\"hook\"]; static.framework pytest; llm.runtime tsx; llm.model.id composer-2.5; llm.strategy declarative; llm.codeFramework vitest; judgeModel opus-4.6; manualChecklists.enabled true; additionalAutomation []; ignore []; update.criticalChangeRules all true. Apply zoto-configure-evals now.",
       "assertions": [
         "Before writing, the agent used readManifestSnapshot from evals/_llm/manifest-snapshot.ts rather than hand-rolled YAML parsing.",
         "The agent wrote .zoto/eval-system/config.yml only via a temp file then rename and AJV-validated it against templates/schema/config.schema.json.",
@@ -112,7 +112,7 @@
           },
           {
             "path": "workspace/plugins/acme/skills/reporting/evals/evals.json",
-            "content": "[{\"id\":\"gen-row-a\",\"prompt\":\"import path survives\",\"assertions\":[\"bundle still resolves\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row a\",\"model_id\":\"composer-2\",\"source_hash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}]"
+            "content": "[{\"id\":\"gen-row-a\",\"prompt\":\"import path survives\",\"assertions\":[\"bundle still resolves\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row a\",\"model_id\":\"composer-2.5\",\"source_hash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}]"
           }
         ]
       },
@@ -152,7 +152,7 @@
           },
           {
             "path": "workspace/plugins/acme/skills/reporting/evals/evals.json",
-            "content": "[{\"id\":\"gen-row-b\",\"prompt\":\"route coverage\",\"assertions\":[\"export still public\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row b\",\"model_id\":\"composer-2\",\"source_hash\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}}}]"
+            "content": "[{\"id\":\"gen-row-b\",\"prompt\":\"route coverage\",\"assertions\":[\"export still public\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row b\",\"model_id\":\"composer-2.5\",\"source_hash\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}}}]"
           }
         ]
       },
@@ -218,7 +218,7 @@
           },
           {
             "path": "workspace/plugins/legacy/hooks/pkg/evals/evals.json",
-            "content": "[{\"id\":\"orphan-row\",\"prompt\":\"legacy hook\",\"assertions\":[\"signal stays wired\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Legacy hook\",\"model_id\":\"composer-2\",\"source_hash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}}}]"
+            "content": "[{\"id\":\"orphan-row\",\"prompt\":\"legacy hook\",\"assertions\":[\"signal stays wired\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Legacy hook\",\"model_id\":\"composer-2.5\",\"source_hash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}}}]"
           }
         ]
       },
@@ -258,7 +258,7 @@
           },
           {
             "path": "workspace/plugins/acme/skills/reporting/evals/evals.json",
-            "content": "[{\"id\":\"gen-row-c\",\"prompt\":\"dual harness\",\"assertions\":[\"bundle lists exports\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row c\",\"model_id\":\"composer-2\",\"source_hash\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}}}]"
+            "content": "[{\"id\":\"gen-row-c\",\"prompt\":\"dual harness\",\"assertions\":[\"bundle lists exports\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Row c\",\"model_id\":\"composer-2.5\",\"source_hash\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}}}]"
           }
         ]
       },

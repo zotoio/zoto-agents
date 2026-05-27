@@ -16,7 +16,7 @@ import { Agent } from "@cursor/sdk";
 
 const agent = await Agent.create({
   apiKey: process.env.CURSOR_API_KEY,
-  model: "composer-2",
+  model: "composer-2.5",
   local: { cwd: sandboxDir },
 });
 

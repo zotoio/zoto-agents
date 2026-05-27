@@ -52,7 +52,7 @@ Stamped **`package-scripts`** exposes **`eval:gc`** (dry-run) and **`eval:gc:app
 
 ### 1.5 Cross-check vs schema / manifest
 
-README model list **`composer-2`**, **`opus-4.6`**, **`sonnet`** ```69:70:/home/andrewv/.cursor/plugins/local/zoto-eval-system/README.md``` matches schema enums ```43:43:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json``` ```61:61:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json```.
+README model list **`composer-2.5`**, **`opus-4.6`**, **`sonnet`** ```69:70:/home/andrewv/.cursor/plugins/local/zoto-eval-system/README.md``` matches schema enums ```43:43:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json``` ```61:61:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json```.
 
 Declared plugin version **`0.3.1`** ```15:15:/home/andrewv/.cursor/plugins/local/zoto-eval-system/.cursor-plugin/plugin.json``` is **not** documented in **`CHANGELOG.md`** after **`[0.2.0]`** ```42:62:/home/andrewv/.cursor/plugins/local/zoto-eval-system/CHANGELOG.md``` — **D1**.
 

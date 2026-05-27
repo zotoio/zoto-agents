@@ -217,7 +217,7 @@ Recommend reconciling: either (a) trim `rule` from analyser-payload until rules 
 ### `model_id` enum drift (informational)
 
 - Schema: `model_id` is free-form `type: string, minLength: 1` ```30:34:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/schema/analyser-payload.schema.json``` (allows any value).
-- Config schema's `llm.model.id`: enum `["composer-2", "opus-4.6", "sonnet"]` ```43:43:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json```.
+- Config schema's `llm.model.id`: enum `["composer-2.5", "opus-4.6", "sonnet"]` ```43:43:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/schema/config.schema.json```.
 - README §Quick start lists the same three plus a default.
 
 Free-form analyser `model_id` is the right design for forward-compat (judge can swap models without bumping the analyser schema), so this is **informational, not drift**.

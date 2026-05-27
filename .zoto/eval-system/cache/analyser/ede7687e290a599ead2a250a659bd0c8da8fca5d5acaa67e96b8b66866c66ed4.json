@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "agent:zoto-spec-executor",
   "kind": "agent",
   "source_path": "plugins/zoto-spec-system/agents/zoto-spec-executor.md",
@@ -100,5 +100,10 @@
         "Because `extensions.memory.enabled` is true and a plugin id is present, the agent proposes running that plugin’s deferred memory workflow after execution, without attempting to mutate memory data directly."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

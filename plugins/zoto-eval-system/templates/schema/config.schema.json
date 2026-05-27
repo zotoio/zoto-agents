@@ -22,43 +22,32 @@
     "static": {
       "type": "object",
       "additionalProperties": true,
-      "description": "Static-analysis backend configuration. `framework` is the active framework for this repo. Python primitives always use pytest regardless of this value, but the field is recorded uniformly so the manifest snapshot is consistent. For TS primitives, the value selects between vitest and jest. Switching the framework is a config-changing operation handled by the cleanup engine (subtask 03).",
+      "description": "Static-analysis backend configuration. `framework` is the active framework for this repo. Python primitives always use pytest regardless of this value, but the field is recorded uniformly so the manifest snapshot is consistent. For TS primitives, the value selects between vitest and jest. Switching the framework is a config-changing operation handled by the cleanup engine (subtask 02 of the single-backend co-located restructure).",
       "properties": {
         "framework": {
           "type": "string",
           "enum": ["pytest", "vitest", "jest"],
           "default": "pytest",
-          "description": "Active static framework for the repo. Cross-field rule (enforced at runtime by the configurer): when `llm.strategy === \"code\"`, `static.framework` must equal `llm.codeFramework`."
+          "description": "Active static framework for the repo. Python primitives ignore this value; TS primitives stamp vitest or jest config accordingly."
         }
       }
     },
     "llm": {
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
+      "description": "LLM-backend configuration. The eval system emits a single unified LLM harness — every non-skill primitive's eval lands at `<kind>/evals/<name>.test.ts` co-located adjacent to source. There is no `strategy` or `codeFramework` knob: the runtime branch (scripted askQuestion answers vs single sendPrompt) is decided per case by the analyser's `requiresInteraction` flag.",
       "properties": {
         "runtime": { "type": "string", "enum": ["tsx", "node"], "default": "tsx" },
         "model": {
           "type": "object",
           "properties": {
-            "id": { "type": "string", "enum": ["composer-2", "opus-4.6", "sonnet"], "default": "composer-2" }
+            "id": { "type": "string", "enum": ["composer-2.5", "opus-4.6", "sonnet"], "default": "composer-2.5" }
           },
           "required": ["id"]
-        },
-        "strategy": {
-          "type": "string",
-          "enum": ["code", "declarative"],
-          "default": "declarative",
-          "description": "Exclusive LLM strategy for this repo. `code` emits per-primitive `*.test.ts` files importing `@cursor/sdk`; `declarative` keeps the central `evals.json` + `runner.ts` pipeline. Switching strategy triggers cleanup of the other strategy's stamped assets via the cleanup engine (subtask 03)."
-        },
-        "codeFramework": {
-          "type": "string",
-          "enum": ["vitest", "jest"],
-          "default": "vitest",
-          "description": "TS test framework used by `llm.strategy=\"code\"`. Only meaningful when `llm.strategy === \"code\"`. Cross-field rule (enforced at runtime by the configurer): when `llm.strategy === \"code\"`, this value must equal `static.framework`."
         }
       }
     },
-    "judgeModel": { "type": "string", "enum": ["composer-2", "opus-4.6", "sonnet"], "default": "opus-4.6" },
+    "judgeModel": { "type": "string", "enum": ["composer-2.5", "opus-4.6", "sonnet"], "default": "opus-4.6" },
     "manualChecklists": {
       "type": "object",
       "properties": {

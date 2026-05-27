@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-05-17T13:36:46.979Z
-git_ref: 623a7219946a87b3fa075383da2f973af7b63f44
+updated_at: 2026-05-27T13:22:26.483Z
+git_ref: e49961ff5330e60d9adf4aa48727cf8247371d5e
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -26,7 +26,7 @@ targets:
   - id: skill:zoto-create-plugin
     kind: skill
     path: .cursor/skills/zoto-create-plugin/SKILL.md
-    content_hash: 3db19c4b2ddeb0b16dc1c13c35ebb8d789ec8158ebddf86cfb683930ccbfc2ab
+    content_hash: c07e9af86b978a5372af27bfa8bdcab77dbc45bc2cf0f20047e5467d109eda04
     public_surface:
       frontmatter:
         name: zoto-create-plugin
@@ -38,6 +38,20 @@ targets:
           scratch.
     eval_files:
       - .cursor/skills/zoto-create-plugin/evals/evals.json
+  - id: skill:zoto-cursor-top-monitor
+    kind: skill
+    path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
+    content_hash: 508b9760a799cb727285b40484c9ed5c7885422bacdd097c84419d62201f9a38
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-monitor
+        description: Guided workflow for launching and interpreting the cursor-top TUI.
+          Covers process discovery, hierarchy expansion, log tail
+          interpretation, and recommended flags for different scenarios. Use
+          when the user wants to monitor every Cursor agent on their machine in
+          real time, or to capture a snapshot for a report.
+    eval_files:
+      - plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json
   - id: skill:zoto-advise-evals
     kind: skill
     path: plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md
@@ -102,7 +116,7 @@ targets:
   - id: skill:zoto-create-evals
     kind: skill
     path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
-    content_hash: b5ee4fbb699cfda427a15315fd71b144ea50c7d5d85c287f158bd895d8416955
+    content_hash: 1ef9cc2c1cb022a4b1519e29da47df6f187e933e0d58bbb9a6f032207250c6ce
     public_surface:
       frontmatter:
         name: zoto-create-evals
@@ -144,7 +158,7 @@ targets:
   - id: skill:zoto-help-evals
     kind: skill
     path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
-    content_hash: 2ca6131aebb9c747be2daf9f655569bf8f395339213ca9753ec0b78ecae60d1e
+    content_hash: 29084678f1e7a6e55832fdc5b7167004fd54faf65570a7f1604553f5c4cac6d2
     public_surface:
       frontmatter:
         name: zoto-help-evals
@@ -237,6 +251,18 @@ targets:
           or to assess and improve a spec before running zoto-execute-spec.
     eval_files:
       - plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
+  - id: command:zoto-cursor-top
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top.md
+    content_hash: 0041371cd74a3e4c241baab987671ade01bd9845a6e98100be2ae5617e4f808e
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top
+        description: Open the live updating htop-style CLI that lists every Cursor agent
+          on this machine, with expandable parent-to-subagent hierarchy and
+          scrolling log tails.
+    eval_files:
+      - plugins/zoto-cursor-top/commands/evals/zoto-cursor-top.test.ts
   - id: command:z-eval-advise
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-advise.md
@@ -251,8 +277,7 @@ targets:
           recommendations); zoto-eval-adviser subagent surfaces
           needs_user_input. Hands off accepted recommendations to /z-eval-create
           or /z-eval-update.
-    eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-advise.json
+    eval_files: []
   - id: command:z-eval-compare
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-compare.md
@@ -267,7 +292,7 @@ targets:
           `askQuestion`. Emits flat dataset and /canvas hand-off once paths
           resolve.
     eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-compare.json
+      - plugins/zoto-eval-system/commands/evals/z-eval-compare.test.ts
   - id: command:z-eval-configure
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-configure.md
@@ -283,12 +308,11 @@ targets:
           confirmation — shells out to `pnpm run eval:cleanup-stale` (subtask
           03) to delete stale framework/strategy assets. Supports resume when
           the subagent returns needs_user_input.
-    eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-configure.json
+    eval_files: []
   - id: command:z-eval-create
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-create.md
-    content_hash: ed8dbbe906107476a4181ff24ff19d361c8baa385ac76a4c07a9e9be2f65f2bf
+    content_hash: 2589376397ac6b0916ade8e0bd5cdab101b357141b31ec3f6c56af6c6508dbaf
     public_surface:
       frontmatter:
         name: z-eval-create
@@ -297,8 +321,7 @@ targets:
           skills/commands/agents/hooks, and write the persistent manifest.
           Command pre-collects target checklists via askQuestion before spawning
           zoto-eval-generator.
-    eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-create.json
+    eval_files: []
   - id: command:z-eval-execute
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-execute.md
@@ -310,8 +333,7 @@ targets:
           Command-owned askQuestion when --full lacks CURSOR_API_KEY;
           zoto-eval-executor returns needs_user_input if unresolved. --model
           forwards to LLM runner.
-    eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-execute.json
+    eval_files: []
   - id: command:z-eval-help
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-help.md
@@ -325,8 +347,7 @@ targets:
           section, with mandatory `start:end:path` citations back to the README
           and any project files it inspected. The skill never calls askQuestion
           (no subagent askQuestion).
-    eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-help.json
+    eval_files: []
   - id: command:z-eval-init
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-init.md
@@ -337,7 +358,7 @@ targets:
         description: Initialise the Eval System config at .zoto/eval-system/config.yml
           with a commented template of all defaults.
     eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-init.json
+      - plugins/zoto-eval-system/commands/evals/z-eval-init.test.ts
   - id: command:z-eval-judge
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-judge.md
@@ -349,8 +370,7 @@ targets:
           Command-owned askQuestion for handoff to /z-eval-update; judge
           subagent surfaces needs_user_input. Enriches llm.yml with a judge
           block.
-    eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-judge.json
+    eval_files: []
   - id: command:z-eval-jump
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-jump.md
@@ -363,7 +383,7 @@ targets:
           then applies its Probe, Lifecycle router, and Resolution sections
           verbatim (read-only; no subagents).
     eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-jump.json
+      - plugins/zoto-eval-system/commands/evals/z-eval-jump.test.ts
   - id: command:z-eval-operator
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-operator.md
@@ -376,7 +396,7 @@ targets:
           then applies its Probe, Lifecycle router, and Resolution sections
           verbatim (read-only; no subagents).
     eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-operator.json
+      - plugins/zoto-eval-system/commands/evals/z-eval-operator.test.ts
   - id: command:z-eval-start
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-start.md
@@ -389,7 +409,7 @@ targets:
           then applies its Probe, Lifecycle router, and Resolution sections
           verbatim (read-only; no subagents).
     eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-start.json
+      - plugins/zoto-eval-system/commands/evals/z-eval-start.test.ts
   - id: command:z-eval-update
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-update.md
@@ -405,8 +425,7 @@ targets:
           _meta.generated\\: true` (file) contracts are enforced at runtime AND
           compile time. Targeted, rediscovery, `--no-analyser`, and CI `--check`
           modes."'
-    eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-update.json
+    eval_files: []
   - id: command:z-eval-workflow
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-workflow.md
@@ -418,8 +437,7 @@ targets:
           the operator’s current lifecycle stage to the correct Eval System
           slash command (configure, scaffold, drift, execute, judge, compare,
           advise, help) without spawning subagents.
-    eval_files:
-      - plugins/zoto-eval-system/evals/commands/z-eval-workflow.json
+    eval_files: []
   - id: command:z-spec-create
     kind: command
     path: plugins/zoto-spec-system/commands/z-spec-create.md
@@ -429,8 +447,7 @@ targets:
         name: z-spec-create
         description: Generate structured engineering specs for complex features and
           multi-step initiatives.
-    eval_files:
-      - plugins/zoto-spec-system/evals/commands/z-spec-create.json
+    eval_files: []
   - id: command:z-spec-execute
     kind: command
     path: plugins/zoto-spec-system/commands/z-spec-execute.md
@@ -440,8 +457,7 @@ targets:
         name: z-spec-execute
         description: Execute an engineering spec with guided subagent coordination,
           progress tracking, and completion verification.
-    eval_files:
-      - plugins/zoto-spec-system/evals/commands/z-spec-execute.json
+    eval_files: []
   - id: command:z-spec-init
     kind: command
     path: plugins/zoto-spec-system/commands/z-spec-init.md
@@ -452,7 +468,7 @@ targets:
         description: Initialise the Spec System config at .zoto/spec-system/config.yml
           with a commented template of all defaults.
     eval_files:
-      - plugins/zoto-spec-system/evals/commands/z-spec-init.json
+      - plugins/zoto-spec-system/commands/evals/z-spec-init.test.ts
   - id: command:z-spec-judge
     kind: command
     path: plugins/zoto-spec-system/commands/z-spec-judge.md
@@ -463,8 +479,7 @@ targets:
         description: Independently assess the repository or a specific engineering spec
           for quality, feasibility, and completeness. For spec assessments,
           offers to apply recommended fixes directly to spec files.
-    eval_files:
-      - plugins/zoto-spec-system/evals/commands/z-spec-judge.json
+    eval_files: []
   - id: command:sync-plugins
     kind: command
     path: .cursor/commands/sync-plugins.md
@@ -473,8 +488,7 @@ targets:
       frontmatter:
         name: sync-plugins
         description: Force-sync plugin source files to ~/.cursor/plugins/local/
-    eval_files:
-      - .cursor/evals/commands/sync-plugins.json
+    eval_files: []
   - id: command:zoto-create-plugin
     kind: command
     path: .cursor/commands/zoto-create-plugin.md
@@ -485,7 +499,18 @@ targets:
         description: Scaffold a new Cursor plugin in this monorepo with guided component
           selection, validation, and marketplace registration.
     eval_files:
-      - .cursor/evals/commands/zoto-create-plugin.json
+      - .cursor/commands/evals/zoto-create-plugin.test.ts
+  - id: agent:zoto-cursor-top-troubleshooter
+    kind: agent
+    path: plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md
+    content_hash: c3997ab769bf1f9e01ed0092daa5f072b8393e7fca88a8ac2ee59e4658658755
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-troubleshooter
+        description: Diagnose missing rows, empty log tails, or platform-specific gaps
+          in cursor-top discovery and recommend remediations.
+    eval_files:
+      - plugins/zoto-cursor-top/agents/evals/zoto-cursor-top-troubleshooter.test.ts
   - id: agent:zoto-eval-adviser
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-adviser.md
@@ -502,12 +527,11 @@ targets:
           returns needs_user_input at two breakpoints (drill-down selection,
           action recommendations) for the command to drive via askQuestion and
           resume.
-    eval_files:
-      - plugins/zoto-eval-system/evals/agents/zoto-eval-adviser.json
+    eval_files: []
   - id: agent:zoto-eval-analyser-subagent
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
-    content_hash: 484b69a7b561c92dc3be2a2c02056510d0b30cae606734dccc455b18ddd3a452
+    content_hash: c8bf1592fc4659ddeac9a1e634e6370aea2c26c750ebcc1a1f328e4fad6417b9
     public_surface:
       frontmatter:
         name: zoto-eval-analyser-subagent
@@ -518,7 +542,7 @@ targets:
           AnalyserPayload (templates/schema/analyser-payload.schema.json) per
           primitive (skill / command / agent / hook / rule).
     eval_files:
-      - plugins/zoto-eval-system/evals/agents/zoto-eval-analyser-subagent.json
+      - plugins/zoto-eval-system/agents/evals/zoto-eval-analyser-subagent.test.ts
   - id: agent:zoto-eval-comparer
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-comparer.md
@@ -537,8 +561,7 @@ targets:
           candidate's full **`{evalsDir}/_runs/<ts>/`** path in
           **`options[].label`**; **`/z-eval-compare`** surfaces that without
           **`askQuestion`**.
-    eval_files:
-      - plugins/zoto-eval-system/evals/agents/zoto-eval-comparer.json
+    eval_files: []
   - id: agent:zoto-eval-configurer
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-configurer.md
@@ -558,8 +581,7 @@ targets:
           analysis after a switch. Rejects bundled false for
           update.preserveUserAuthoredCases or update.writeMetaMarker before any
           config write; rejects configs that violate those contracts.
-    eval_files:
-      - plugins/zoto-eval-system/evals/agents/zoto-eval-configurer.json
+    eval_files: []
   - id: agent:zoto-eval-executor
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-executor.md
@@ -575,12 +597,11 @@ targets:
           and appends the drift status to llm.yml as warn-only. Does not call
           askQuestion — missing credentials or choices are returned as
           needs_user_input for the command.
-    eval_files:
-      - plugins/zoto-eval-system/evals/agents/zoto-eval-executor.json
+    eval_files: []
   - id: agent:zoto-eval-generator
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-generator.md
-    content_hash: dcee6a3f10dcc7b7834d5d34d61f352dfc43ee4dbf63010be60a08f341ccbcb0
+    content_hash: b4767cf1832e2a2830b35cd74a7ecf1abaf478379d3d6a799be0a13d08017bbf
     public_surface:
       frontmatter:
         name: zoto-eval-generator
@@ -592,8 +613,7 @@ targets:
           append-only history. Does not call askQuestion — receives
           pre-collected answers from the invoking command or returns
           needs_user_input.
-    eval_files:
-      - plugins/zoto-eval-system/evals/agents/zoto-eval-generator.json
+    eval_files: []
   - id: agent:zoto-eval-judge
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-judge.md
@@ -608,8 +628,7 @@ targets:
           call askQuestion — returns needs_user_input when handoff to
           /z-eval-update requires user approval (the command runs askQuestion
           and resumes).
-    eval_files:
-      - plugins/zoto-eval-system/evals/agents/zoto-eval-judge.json
+    eval_files: []
   - id: agent:zoto-eval-updater
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-updater.md
@@ -628,8 +647,7 @@ targets:
           palette-driven flows or any unexpected apply branch, returns
           structured `needs_user_input` for the owning command — never
           `askQuestion` from the subagent."'
-    eval_files:
-      - plugins/zoto-eval-system/evals/agents/zoto-eval-updater.json
+    eval_files: []
   - id: agent:zoto-spec-executor
     kind: agent
     path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
@@ -644,7 +662,7 @@ targets:
           producing execution reports. Specs are ephemeral coordination
           artifacts — not ongoing knowledge.
     eval_files:
-      - plugins/zoto-spec-system/evals/agents/zoto-spec-executor.json
+      - plugins/zoto-spec-system/agents/evals/zoto-spec-executor.test.ts
   - id: agent:zoto-spec-generator
     kind: agent
     path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
@@ -657,8 +675,7 @@ targets:
           features into well-defined subtasks with clear deliverables,
           dependency graphs, and execution phases. Specs are ephemeral
           coordination artifacts — not ongoing knowledge.
-    eval_files:
-      - plugins/zoto-spec-system/evals/agents/zoto-spec-generator.json
+    eval_files: []
   - id: agent:zoto-spec-judge
     kind: agent
     path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
@@ -675,12 +692,46 @@ targets:
           explicit user approval) offers to apply recommended fixes to spec
           files. Always runs in a fresh context to avoid bias.
         is_background: "true"
-    eval_files:
-      - plugins/zoto-spec-system/evals/agents/zoto-spec-judge.json
+    eval_files: []
+  - id: agent:zoto-eval-architect
+    kind: agent
+    path: .cursor/agents/zoto-eval-architect.md
+    content_hash: 017273221c006e6bfa3a1b645fe12f5cc95f57b13cb756002ceea1a8c1217ecb
+    public_surface:
+      frontmatter:
+        name: zoto-eval-architect
+        model: claude-opus-4-7-thinking-xhigh
+        description: Eval-system architect specialising in the design, ergonomics,
+          performance, and quality strategy of the `zoto-eval-system` plugin.
+          Deep knowledge of the declarative-vs-code LLM-strategy split, the
+          command/skill/agent layer boundaries, the analyser →
+          declarative-runner / code-stamper → judge pipeline, model precedence,
+          prompt-cost accounting, and developer-ergonomics across the init →
+          configure → create → update → execute → judge → compare → advise
+          lifecycle.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-engineer
+    kind: agent
+    path: .cursor/agents/zoto-eval-engineer.md
+    content_hash: bda6283589c54de342ef652a71537496fc7f2fee7c59278c88850addfcb80943
+    public_surface:
+      frontmatter:
+        name: zoto-eval-engineer
+        model: composer-2.5[]
+        description: Eval-system implementation engineer specialising in the code,
+          schemas, contracts, and host-repo application of the
+          `zoto-eval-system` plugin. Deep knowledge of the TypeScript engine,
+          hooks, validation pipeline, the 7 JSON schemas, hard-coded
+          `preserveUserAuthoredCases` / `writeMetaMarker` contracts, drift
+          detection, the `_user-case-guards/` boundary, the manifest format, the
+          `.zoto/eval-system/` host-repo layout, and the `_runs/` artefact tree.
+        is_background: "true"
+    eval_files: []
   - id: agent:zoto-plugin-manager
     kind: agent
     path: .cursor/agents/zoto-plugin-manager.md
-    content_hash: c9990169fd4a797931ca95be5e4a1424873ff8df370acc3320b8048e57f070b8
+    content_hash: f168254e1a52915284c5a3d37e38e615516d51de620286cb4073231df8b4bf88
     public_surface:
       frontmatter:
         name: zoto-plugin-manager
@@ -691,7 +742,7 @@ targets:
           publishing, skill evaluations, CRUX compression, and monorepo tooling.
         is_background: "true"
     eval_files:
-      - .cursor/evals/agents/zoto-plugin-manager.json
+      - .cursor/agents/evals/zoto-plugin-manager.test.ts
   - id: hook:zoto-eval-system
     kind: hook
     path: plugins/zoto-eval-system/hooks/hooks.json
@@ -699,7 +750,7 @@ targets:
     public_surface:
       plugin: zoto-eval-system
     eval_files:
-      - plugins/zoto-eval-system/evals/hooks/zoto-eval-system.json
+      - plugins/zoto-eval-system/hooks/evals/hooks.test.ts
   - id: hook:zoto-spec-system
     kind: hook
     path: plugins/zoto-spec-system/hooks/hooks.json
@@ -707,7 +758,7 @@ targets:
     public_surface:
       plugin: zoto-spec-system
     eval_files:
-      - plugins/zoto-spec-system/evals/hooks/zoto-spec-system.json
+      - plugins/zoto-spec-system/hooks/evals/hooks.test.ts
   - id: hook:cursor-workspace
     kind: hook
     path: .cursor/hooks.json
@@ -715,4 +766,4 @@ targets:
     public_surface:
       workspace: .cursor
     eval_files:
-      - .cursor/evals/hooks/hooks.json
+      - .cursor/hooks/evals/hooks.test.ts

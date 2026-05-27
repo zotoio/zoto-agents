@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "agent:zoto-eval-configurer",
   "kind": "agent",
   "source_path": "plugins/zoto-eval-system/agents/zoto-eval-configurer.md",
@@ -15,7 +15,10 @@
       "assertions": [
         "The terminal agent output contains a cleanup_plan JSON object accepted by cleanup-plan.schema.json with totals.files matching the summed lengths of framework-switch, strategy-switch, or removed-target groups present in this run (zero when switching nothing).",
         "The response states that .zoto/eval-system/config.yml was rewritten atomically and matches templates/schema/config.schema.json without requesting additional clarification.",
-        "No inline askQuestion or interactive questionnaire appears anywhere in assistant steps; only the enclosing command owns confirmation UI."
+        "No inline askQuestion or interactive questionnaire appears anywhere in assistant steps; only the enclosing command owns confirmation UI.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
       ]
     },
     {
@@ -25,7 +28,10 @@
       "assertions": [
         "cleanup_plan excludes a strategy-switch group while old_snapshot lacked llm.strategy or llm.codeFramework, aligning with filesystem-mode rules.",
         "static.framework-derived fingerprints reference pytest assets rather than hallucinated manifests.",
-        "preserveUserAuthoredCases and writeMetaMarker remain forced true throughout the narration with no solicitation to weaken them."
+        "preserveUserAuthoredCases and writeMetaMarker remain forced true throughout the narration with no solicitation to weaken them.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
       ]
     },
     {
@@ -34,7 +40,10 @@
       "expected_output": "Final response writes the first config.yml cleanly and returns a cleanup_plan with groups.length zero while still summarising totals as zero-file operations.",
       "assertions": [
         "cleanup_plan lists no framework-switch, strategy-switch, or removed-target groups yet still sets totals.files to 0.",
-        "The narration explicitly references greenfield initialise behaviour instead of pretending prior manifest rows exist."
+        "The narration explicitly references greenfield initialise behaviour instead of pretending prior manifest rows exist.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
       ]
     },
     {
@@ -43,7 +52,10 @@
       "expected_output": "Returned cleanup_plan includes a framework-switch group covering the departing framework fingerprint and every stamped static test artefact slated for teardown, totals.files summed, warns about cross mismatches only if warranted.",
       "assertions": [
         "cleanup_plan.groups contains framework-switch referencing the departed pytest fingerprints and associated stamped files enumerated in totals.files arithmetic.",
-        "The completion message documents _meta.primitive_analysis.invalidate stamped true across generated eval_files[] manifest rows touched by automation while leaving cache blobs intact."
+        "The completion message documents _meta.primitive_analysis.invalidate stamped true across generated eval_files[] manifest rows touched by automation while leaving cache blobs intact.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
       ]
     },
     {
@@ -51,7 +63,10 @@
       "prompt": "Switch llm.strategy from declarative to code with llm.codeFramework vitest against a manifest-backed old_snapshot highlighting prior declarative suites; keep static.framework vitest; overwrite predetermined.",
       "expected_output": "Planner details strategy-switch removals or rewrites keyed to declarative artefacts while satisfying config schema pairing code strategy with Vitest scaffolding.",
       "assertions": [
-        "cleanup_plan presents a strategy-switch group listing erstwhile declarative case rows or declarative-derived *.test.ts assets slated for rework."
+        "cleanup_plan presents a strategy-switch group listing erstwhile declarative case rows or declarative-derived *.test.ts assets slated for rework.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
       ]
     },
     {
@@ -59,7 +74,10 @@
       "prompt": "Adjust discoveryTargets ignoring a plugin path manifest already catalogued stale eval_json rows produced by tooling; propagate overwrite flag and diff against canonical manifest snapshot.",
       "expected_output": "Planner flags removed-target grouping for orphaned generated eval manifests while leaving user-authored safeguards intact.",
       "assertions": [
-        "cleanup_plan includes removed-target documenting each orphan eval JSON keyed to ignored discovery scopes."
+        "cleanup_plan includes removed-target documenting each orphan eval JSON keyed to ignored discovery scopes.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
       ]
     },
     {
@@ -68,7 +86,10 @@
       "expected_output": "needs_user_input payload enumerating precisely which frameworks are permissible and why code strategy cannot proceed unanswered.",
       "assertions": [
         "The agent returns needs_user_input with explicit questions referencing missing llm.codeFramework instead of fabricating configs.",
-        "Neither askQuestion widgets nor unauthorised config.yml commits appear anywhere in streamed steps."
+        "Neither askQuestion widgets nor unauthorised config.yml commits appear anywhere in streamed steps.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
       ]
     },
     {
@@ -76,7 +97,10 @@
       "prompt": "Maintain llm.strategy code while setting static.framework vitest alongside llm.codeFramework jest deliberately; insist cleanup_plan captures soft violations while still producing schema-valid artefacts.",
       "expected_output": "warnings[] entry describing static versus code-framework mismatch plus paired framework-switch coverage for orphaned Vitest artefacts.",
       "assertions": [
-        "cleanup_plan.warnings cites the vitest-vs-jest skew as non-blocking telemetry."
+        "cleanup_plan.warnings cites the vitest-vs-jest skew as non-blocking telemetry.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
       ]
     },
     {
@@ -84,7 +108,10 @@
       "prompt": "Upstream command mistakenly supplies preserveUserAuthoredCases false in the bundled answers; insist the configured agent rejects that contract breakage before writing configs.",
       "expected_output": "Structured refusal explaining both meta flags remain hard-true governance without mutating manifests or emitting cleanup confirmations.",
       "assertions": [
-        "Assistant output refuses to honour false preserveUserAuthoredCases requests and reaffirms mandated true stamping."
+        "Assistant output refuses to honour false preserveUserAuthoredCases requests and reaffirms mandated true stamping.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
       ]
     },
     {
@@ -92,8 +119,16 @@
       "prompt": "Routine configure run after successful manifest diff; insist final narrative reaffirms authorised write paths excluding arbitrary repo edits beyond config.yml manifest.history audit stamping and mandated manifest row invalidations.",
       "expected_output": "Explicit confirmation that deletes await pnpm-run cleanup while only permitted writes touch .zoto/eval-system boundaries with manifest-history logging.",
       "assertions": [
-        "Assistant transcript contains no prose promising direct rm or workspace-wide rewriting outside .zoto/eval-system config or manifest-history updates plus targeted manifest eval_files[] invalidation markers."
+        "Assistant transcript contains no prose promising direct rm or workspace-wide rewriting outside .zoto/eval-system config or manifest-history updates plus targeted manifest eval_files[] invalidation markers.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

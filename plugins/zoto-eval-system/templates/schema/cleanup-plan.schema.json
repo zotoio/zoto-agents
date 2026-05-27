@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/cleanup-plan.schema.json",
   "title": "Zoto Eval System Cleanup Plan",
-  "description": "Single-source-of-truth contract for the destructive `cleanup_plan` payload that flows from `/z-eval-configure` (subtask 02 — schema owner) to `scripts/eval-cleanup-stale.ts` (subtask 03 — producer/executor). The configurer diffs the chosen config against the manifest snapshot (`discovery_config.static.framework`, `discovery_config.llm.strategy`, `discovery_config.llm.codeFramework`) and emits this shape. Subtask 03's `--dry-run` stdout MUST match this schema byte-for-byte (same field names, same enums) so the configurer's command-layer `askQuestion` confirmation can render the same plan that the cleanup engine will execute. Compatible with config.schema.json and manifest.schema.json (subtask 01).",
+  "description": "Single-source-of-truth contract for the destructive `cleanup_plan` payload that flows from `/z-eval-configure` (subtask 02 — schema owner) to `scripts/eval-cleanup-stale.ts` (subtask 03 — producer/executor). The configurer diffs the chosen config against the manifest snapshot (`discovery_config.static.framework`) and emits this shape. Subtask 03's `--dry-run` stdout MUST match this schema byte-for-byte (same field names, same enums) so the configurer's command-layer `askQuestion` confirmation can render the same plan that the cleanup engine will execute. Compatible with config.schema.json and manifest.schema.json (subtask 01).",
   "type": "object",
   "required": [
     "schema_version",
@@ -31,11 +31,11 @@
     },
     "old_snapshot": {
       "$ref": "#/definitions/snapshot",
-      "description": "The framework/strategy snapshot read from `.zoto/eval-system/manifest.yml -> discovery_config` (or filesystem fallback when the snapshot is missing)."
+      "description": "The framework snapshot read from `.zoto/eval-system/manifest.yml -> discovery_config` (or filesystem fallback when the snapshot is missing)."
     },
     "new_snapshot": {
       "$ref": "#/definitions/snapshot",
-      "description": "The framework/strategy snapshot from the chosen new config (the one the configurer is about to write)."
+      "description": "The framework snapshot from the chosen new config (the one the configurer is about to write)."
     },
     "groups": {
       "type": "array",
@@ -62,14 +62,14 @@
     "warnings": {
       "type": "array",
       "items": { "type": "string", "minLength": 1 },
-      "description": "Soft warnings the user should see (e.g. mismatched `static.framework` / `llm.codeFramework` after a strategy switch). Never blocks execution; renders alongside the file list."
+      "description": "Soft warnings the user should see (e.g. mixed user-authored / generated cases in a single `evals.json`). Never blocks execution; renders alongside the file list."
     }
   },
   "definitions": {
     "snapshot": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Framework + LLM-strategy snapshot. Fields are optional so legacy manifests (no static/llm block) can still produce a plan via filesystem fallback.",
+      "description": "Static-framework snapshot. Fields are optional so legacy manifests (no static block) can still produce a plan via filesystem fallback.",
       "properties": {
         "static": {
           "type": "object",
@@ -78,20 +78,6 @@
             "framework": {
               "type": "string",
               "enum": ["pytest", "vitest", "jest"]
-            }
-          }
-        },
-        "llm": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "strategy": {
-              "type": "string",
-              "enum": ["code", "declarative"]
-            },
-            "codeFramework": {
-              "type": "string",
-              "enum": ["vitest", "jest"]
             }
           }
         },
@@ -109,18 +95,18 @@
       "properties": {
         "reason": {
           "type": "string",
-          "enum": ["framework-switch", "strategy-switch", "removed-target"],
-          "description": "Why every file in this group is stale. `framework-switch`: previous static framework's stamped tests/fingerprints. `strategy-switch`: previous LLM strategy's case files / `*.test.ts` files. `removed-target`: target was added to `config.ignore` or removed from `discoveryTargets`, so its generated eval JSON is now orphaned."
+          "enum": ["framework-switch", "removed-target"],
+          "description": "Why every file in this group is stale. `framework-switch`: previous static framework's stamped tests/fingerprints. `removed-target`: target was added to `config.ignore` or removed from `discoveryTargets`, so its generated eval JSON is now orphaned."
         },
         "from": {
           "type": "string",
           "minLength": 1,
-          "description": "Previous value (e.g. `pytest`, `declarative`, or the removed target id)."
+          "description": "Previous value (e.g. `pytest` for a `framework-switch`, or the removed target id / orphan marker for a `removed-target`)."
         },
         "to": {
           "type": "string",
           "minLength": 1,
-          "description": "New value (e.g. `vitest`, `code`). Omitted for `removed-target`."
+          "description": "New value (e.g. `vitest` for a `framework-switch`). Omitted for `removed-target`."
         },
         "summary": {
           "type": "string",
@@ -149,13 +135,12 @@
           "enum": [
             "framework-fingerprint",
             "static-test",
-            "llm-test",
             "llm-case",
             "eval-json",
             "directory",
             "config-snippet"
           ],
-          "description": "What sort of file this is. `framework-fingerprint`: top-level marker (`evals/conftest.py`, `vitest.config.ts`, `jest.config.{js,ts}`). `static-test`: pytest/vitest/jest test file generated by a static backend. `llm-test`: `*.test.ts` emitted by the LLM `code` strategy. `llm-case`: a single case row in `evals.json` emitted by the LLM `declarative` strategy. `eval-json`: an entire generated `evals.json` file. `directory`: an empty stamped directory to remove after files are deleted. `config-snippet`: a config field/section the cleanup engine should rewrite (rare; always paired with a `summary`)."
+          "description": "What sort of file this is. `framework-fingerprint`: top-level marker (`evals/conftest.py`, `vitest.config.ts`, `jest.config.{js,ts}`). `static-test`: pytest/vitest/jest test file generated by a static backend. `llm-case`: a single case row in `evals.json` (used when surgically rewriting a file that mixes user-authored and generated cases). `eval-json`: an entire generated `evals.json` file. `directory`: an empty stamped directory to remove after files are deleted. `config-snippet`: a config field/section the cleanup engine should rewrite (rare; always paired with a `summary`)."
         },
         "reason": {
           "type": "string",

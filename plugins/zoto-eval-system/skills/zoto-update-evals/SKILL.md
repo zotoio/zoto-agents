@@ -1,6 +1,6 @@
 ---
 name: zoto-update-evals
-description: "Diff-aware eval updater. Detects drift between covered targets and generated eval cases for skills and central plugin eval files (commands/agents/hooks), classifies changes as critical or non-critical, and preserves user-authored cases verbatim. Apply-mode regeneration re-invokes the LLM analyser per drifted primitive and dispatches per-framework / per-strategy stamping (CI defaults to cached analyser payloads unless `--with-analyser`). The `_meta.generated === true` (case) and `// _meta.generated\\: true` (file) contracts are enforced at runtime AND compile time. Supports targeted mode, rediscovery mode, `--no-analyser` / CI cache reuse, and CI `--check` (exit 2 on critical drift)."
+description: "Diff-aware eval updater. Detects drift between covered targets and generated eval cases for skills and central plugin eval files (commands/agents/hooks), classifies changes as critical or non-critical, and preserves user-authored cases verbatim. Apply-mode regeneration re-invokes the LLM analyser per drifted primitive and dispatches per-framework static stamping plus the single unified LLM regeneration (`regenerateLlm`) (CI defaults to cached analyser payloads unless `--with-analyser`). The `_meta.generated === true` (case) and `// _meta.generated\\: true` (file) contracts are enforced at runtime AND compile time. Supports targeted mode, rediscovery mode, `--no-analyser` / CI cache reuse, and CI `--check` (exit 2 on critical drift)."
 ---
 
 # Update Evals
@@ -13,7 +13,7 @@ Reads `.zoto/eval-system/config.yml` and `.zoto/eval-system/manifest.yml`. Both 
 
 The rediscovery path uses `manifest.discovery_config` for **skillsRoots**, **discoveryTargets**, optional **ignore** globs, and the rest of the stored discovery snapshot — not live `config.yml` discovery fields during **full-catalog** rediscovery (`--check` or rediscovery without `--target`). **`--target`** runs use the live `config.yml` for discovery enumeration. (`eval-analyse.ts` / `eval-stamp.ts` do not re-apply ignore filters when analysing or stamping a target.)
 
-The active framework / strategy is read via `plugins/zoto-eval-system/engine/manifest-snapshot.ts#readManifestSnapshot()` (subtask 02). The `static.framework` field selects the static stamper (pytest / vitest / jest); the `llm.strategy` field selects the LLM stamper (`code` or `declarative`).
+The active static framework is read via `plugins/zoto-eval-system/engine/manifest-snapshot.ts#readManifestSnapshot()` (subtask 02). The `static.framework` field selects the static stamper (pytest / vitest / jest). The LLM side has no strategy axis: regeneration always re-stamps the co-located `<kind>/evals/<name>.test.ts` for the target, importing `defineLlmEval` from the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts`.
 
 ## Coverage paths
 
@@ -49,7 +49,7 @@ The **preserve user-authored cases** contract applies uniformly: no `_meta`, or 
 
 ### Step 1: Load manifest, config, and snapshot
 
-Read `.zoto/eval-system/config.yml` and `.zoto/eval-system/manifest.yml`. Record `previous_ref = manifest.git_ref`. Compute `current_ref = git rev-parse HEAD`. Call `readManifestSnapshot()` for the active `static.framework` / `llm.strategy` / `llm.codeFramework`.
+Read `.zoto/eval-system/config.yml` and `.zoto/eval-system/manifest.yml`. Record `previous_ref = manifest.git_ref`. Compute `current_ref = git rev-parse HEAD`. Call `readManifestSnapshot()` for the active `static.framework`.
 
 ### Step 2: Rediscover
 
@@ -89,26 +89,27 @@ The dispatcher reads the manifest snapshot and routes per-primitive payloads to 
 | `vitest` | `regenerateVitest()` → `stampVitestPerPrimitive()` |
 | `jest` | `regenerateJest()` → `stampJestPerPrimitive()` |
 
-| `llm.strategy` | helper |
+The LLM side has no per-strategy dispatch — every drifted target invokes the single unified helper:
+
+| Backend | helper |
 |---|---|
-| `code` | `regenerateLlmCode()` → `stampLlmCodeStrategy()` |
-| `declarative` | `regenerateLlmDeclarative()` → surgical `evals.json` edits via `json-source-map` + `buildDeclarativeStampedCase()` |
+| LLM (every target) | `regenerateLlm()` → re-stamps the co-located `<kind>/evals/<name>.test.ts`, importing `defineLlmEval` from `evals/llm/_shared/run-llm-suite.ts`. The harness reads each case's `requiresInteraction` flag and branches at runtime between the scripted-answer path and the single-prompt path. |
 
 **Hard-coded file-level guard** (every `*.test.ts` / `*.test.js` / `*.test.py` overwrite): each helper calls `isGeneratedFile(path)` from `plugins/zoto-eval-system/engine/_user-case-guards.ts`. A file lacking the literal `// _meta.generated: true` (TS) or `# _meta.generated: True` (Python) marker on its first line is **user-authored** — the helper skips the write, records the path under `files_preserved`, and emits a `manual_merge_required` note.
 
-**Hard-coded case-level guard** (every `evals.json` row mutation): `regenerateLlmDeclarative()` parses the file with `json-source-map`, walks the cases array, and per row calls `isGeneratedCase(c)`. User-authored cases (no `_meta`, or `_meta.generated === false`) are preserved byte-identically — only their containing file's generated rows are surgically replaced via per-pointer byte splicing.
+**Hard-coded case-level guard** (every `evals.json` row mutation for the central catalogue JSON consumed by static stampers): the helper parses the file with `json-source-map`, walks the cases array, and per row calls `isGeneratedCase(c)`. User-authored cases (no `_meta`, or `_meta.generated === false`) are preserved byte-identically — only their containing file's generated rows are surgically replaced via per-pointer byte splicing.
 
 ### Step 6: Write
 
 For accepted changes:
-- Per-framework helpers write per-primitive test files (only when guard passes).
-- `regenerateLlmDeclarative()` writes the merged `evals.json` (only when bytes differ).
+- Per-framework static helpers write per-primitive test files (only when guard passes).
+- `regenerateLlm()` writes the co-located `<kind>/evals/<name>.test.ts` (only when bytes differ).
 - Refresh `.zoto/eval-system/manifest.yml` with new `git_ref`, `updated_at`, `generated_by: zoto-update-evals`, and the rediscovered `targets[]` (each carries a fresh `content_hash`).
 - APPEND the new manifest snapshot to `.zoto/eval-system/manifest.history.yml` (append-only — never compacted).
 
 ### Step 7: Summary
 
-Print a structured JSON summary: `{ mode, regenerated_targets, files_written, files_preserved_user_authored, user_cases_preserved, reports[] }`. Each `report` lists framework + strategy, `files_written`, `files_preserved` (user-authored skips), `cases_replaced`, `cases_added`, `cases_removed`, `user_cases_preserved`, and any `notes[]`.
+Print a structured JSON summary: `{ mode, regenerated_targets, files_written, files_preserved_user_authored, user_cases_preserved, reports[] }`. Each `report` lists framework, `files_written`, `files_preserved` (user-authored skips), `cases_replaced`, `cases_added`, `cases_removed`, `user_cases_preserved`, and any `notes[]`.
 
 ## Workflow (`--target <glob>`)
 

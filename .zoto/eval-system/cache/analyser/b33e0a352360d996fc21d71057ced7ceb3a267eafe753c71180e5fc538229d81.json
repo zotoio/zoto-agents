@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "agent:zoto-eval-adviser",
   "kind": "agent",
   "source_path": "plugins/zoto-eval-system/agents/zoto-eval-adviser.md",
@@ -16,7 +16,10 @@
         "The response returns needs_user_input whose explanation names `/z-eval-create` as the prerequisite before analysis continues.",
         "No assistant-authored askQuestion call appears; the command layer is expected to surface questions later.",
         "The agent does not claim to have opened or parsed historical run folders, `llm.yml`, `static.yml`, or `report.yml` under any eval run tree.",
-        "The agent does not instruct direct edits to `.zoto/eval-system/config.yml`, `manifest.yml`, or any `evals.json` file."
+        "The agent does not instruct direct edits to `.zoto/eval-system/config.yml`, `manifest.yml`, or any `evals.json` file.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
       ]
     },
     {
@@ -37,7 +40,10 @@
       "assertions": [
         "needs_user_input text tells the operator to fix configuration via `/z-eval-configure` before scoring targets.",
         "The agent does not emit askQuestion tool calls from its own turn.",
-        "No `adviser_report` per-target scoring block is asserted as authoritative while configuration is still broken."
+        "No `adviser_report` per-target scoring block is asserted as authoritative while configuration is still broken.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
       ]
     },
     {
@@ -100,7 +106,10 @@
         "The turn ends with needs_user_input suitable for breakpoint one rather than askQuestion tool usage by this agent.",
         "Narration never points the reader to open `evals/_runs` trees, `llm.yml`, `static.yml`, or `report.yml`.",
         "No instructions appear that rewrite `manifest.yml`, `config.yml`, or any `evals.json` artefact.",
-        "Each emitted recommendation cleanly maps either to `/z-eval-create` for greenfield gaps or `/z-eval-update --target … --apply` for strengthened coverage, without contradictory dual commands."
+        "Each emitted recommendation cleanly maps either to `/z-eval-create` for greenfield gaps or `/z-eval-update --target … --apply` for strengthened coverage, without contradictory dual commands.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
       ]
     },
     {
@@ -161,7 +170,10 @@
         "Schema discussion enumerates missing JSON-key assertions against `demo-publish-cmd` output contract headings.",
         "Every recommendation bullet names exactly one of `/z-eval-create` or `/z-eval-update --target … --apply`, never both for the same gap.",
         "The agent returns needs_user_input consistent with breakpoint two while still avoiding askQuestion calls.",
-        "The response states that `/z-eval-create`, `/z-eval-update`, and downstream handoffs are owned by the command shell, matching the advisers read-only stance."
+        "The response states that `/z-eval-create`, `/z-eval-update`, and downstream handoffs are owned by the command shell, matching the advisers read-only stance.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
       ]
     },
     {
@@ -223,7 +235,10 @@
         "Accepted tightening work references `/z-eval-update --target plugins/demo-pack/commands/** --apply` (or an equivalent single glob per gap) rather than handing commands directly to hooks inside the adviser.",
         "The summary names zoto-create-evals as the scaffolding destination and zoto-update-evals as the augmentation destination without reversing their roles.",
         "No filesystem write instructions originate from this agent aside from handing control back upward.",
-        "There is still zero askQuestion usage inside the advisers own tool stream."
+        "There is still zero askQuestion usage inside the advisers own tool stream.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
       ]
     },
     {
@@ -280,8 +295,16 @@
         "Narrative findings reference only `skill:demo-widget-skill` and omit scoring sentences for command, agent, or hook identifiers.",
         "The response still cites all five dimension headings but marks off-scope primitives as intentionally skipped owing to `/z-eval-advise --target …`.",
         "needs_user_input for breakpoint one remains present despite the narrowed scope.",
-        "No attempt is made to read run artefacts located under `_runs/` or YAML summaries named `llm.yml`, `static.yml`, or `report.yml`."
+        "No attempt is made to read run artefacts located under `_runs/` or YAML summaries named `llm.yml`, `static.yml`, or `report.yml`.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

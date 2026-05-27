@@ -24,6 +24,7 @@ from typing import List, Literal, Optional
 
 
 PrimitiveKind = Literal["skill", "command", "agent", "hook", "rule"]
+InteractionStyle = Literal["command-owned", "subagent-escalated", "none"]
 
 
 @dataclass(frozen=True)
@@ -89,3 +90,5 @@ class AnalyserPayload:
     source_hash: str
     summary: str
     cases: List[AnalyserCase]
+    requiresInteraction: Optional[bool] = None
+    interactionStyle: Optional[InteractionStyle] = None

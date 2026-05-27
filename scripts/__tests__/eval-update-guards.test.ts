@@ -1,21 +1,30 @@
 #!/usr/bin/env tsx
 /**
- * Unit tests for the subtask 11 updater rewrite.
+ * Unit tests for the eval-system updater (post single-backend collapse —
+ * subtask 07 of `spec-eval-single-backend-colocated-restructure-20260526`).
  *
  * Coverage:
  *   1. Mixed `evals.json` declarative case-level guard — user case
- *      preserved byte-identical, generated case refreshed.
- *   2. Code-strategy `*.test.ts` file-level guard — file lacking the
- *      `// _meta.generated: true` first line is byte-identical before
- *      and after `--apply`; file with the marker is regenerated.
- *   3. CI WARNING on stderr whenever CI skips fresh analysis (explicit
- *      `--no-analyser` or CI-default cached analyser behaviour).
- *   4. `--no-analyser` declarative apply preserves
+ *      preserved byte-identical, generated case refreshed
+ *      (`surgicallyReplaceGeneratedCases`).
+ *   2. Skill-only declarative regen (`regenerateLlm` on `kind === "skill"`)
+ *      — surgical merge into `evals.json`, preserving user-authored rows.
+ *   3. `--no-analyser` skill regen preserves
  *      `_meta.primitive_analysis.invalidate` from existing generated rows.
- *   5. Declarative surgical merge skips `JSON.stringify` when a generated
- *      row is already deep-equal to the stamped payload (buffer unchanged).
- *   6. Pytest regeneration skips `test_*.py` / `*.test.py` files that lack
- *      the `# _meta.generated: True` banner (same guard as other frameworks).
+ *   4. File-level guard (`regenerateLlm` on a non-skill primitive) —
+ *      a co-located `<kind-dir>/evals/<name>.test.ts` lacking the
+ *      `// _meta.generated: true` first line is byte-identical before
+ *      and after `--apply`.
+ *   5. New co-located path resolution (`llmTestPathForTarget`) returns
+ *      `<kind-dir>/evals/<name>.test.ts` and `null` for skills.
+ *   6. Layout drift detection (`detectLayoutDrift`) flags legacy
+ *      `evals/llm/test_*.test.ts` files AND legacy
+ *      `plugins/<plugin>/evals/{commands,agents,hooks}/<name>.json` files
+ *      with the expected new co-located path in the message.
+ *   7. CI WARNING on stderr whenever CI skips fresh analysis (explicit
+ *      `--no-analyser` or CI-default cached analyser behaviour).
+ *   8. Pytest regeneration skips `test_*.py` / `*.test.py` files that lack
+ *      the `# _meta.generated: True` banner (file-level guard parity).
  *
  * Hand-rolled tsx-runnable harness — no global vitest/jest import — so
  * this can be executed standalone via:
@@ -36,8 +45,9 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
 import {
-  regenerateLlmCode,
-  regenerateLlmDeclarative,
+  detectLayoutDrift,
+  llmTestPathForTarget,
+  regenerateLlm,
   regeneratePytest,
   surgicallyReplaceGeneratedCases,
   type RegenerationCommonOpts,
@@ -84,7 +94,7 @@ function makePayload(targetId: string, sourceHash: string): AnalyserPayload {
   return {
     schema_version: 1,
     analyser_version: "test-1",
-    model_id: "composer-2",
+    model_id: "composer-2.5",
     target_id: targetId,
     kind: targetId.split(":")[0] as AnalyserPayload["kind"],
     source_path: `dummy/${targetId.replace(":", "_")}.md`,
@@ -104,21 +114,19 @@ function makePayload(targetId: string, sourceHash: string): AnalyserPayload {
 
 function makeMockSnapshot(
   staticFw?: ManifestSnapshot["static"]["framework"],
-  llmStrategy?: ManifestSnapshot["llm"]["strategy"],
 ): ManifestSnapshot {
   return {
     static: { framework: staticFw },
-    llm: { strategy: llmStrategy, codeFramework: "vitest" },
     evalFiles: [],
     source: "manifest",
   };
 }
 
-function makeTarget(targetId: string, evalFile: string) {
+function makeTarget(targetId: string, evalFile: string, sourcePath?: string) {
   return {
     id: targetId,
     kind: targetId.split(":")[0],
-    path: `dummy/${targetId.split(":")[1]}.md`,
+    path: sourcePath ?? `dummy/${targetId.split(":")[1]}.md`,
     content_hash: "deadbeef",
     public_surface: {},
     eval_files: [evalFile],
@@ -261,7 +269,7 @@ async function runPytestFileLevelGuardTest(): Promise<void> {
       payload,
       target,
       config: {},
-      snapshot: makeMockSnapshot("pytest", undefined),
+      snapshot: makeMockSnapshot("pytest"),
     };
 
     const report = regeneratePytest(opts);
@@ -295,20 +303,29 @@ async function runDotTestPyFileLevelGuardTest(): Promise<void> {
   }
 }
 
-async function runFileLevelGuardTest(): Promise<void> {
-  // Build a host repo skeleton. The helper writes to
-  //   evals/llm/test_${kind}_${name-lowercased}.test.ts
-  // so we pre-seed exactly that path with a user-authored file that
-  // lacks the `// _meta.generated: true` marker.
-  const host = mkdtempSync(join(tmpdir(), "eval-update-file-guard-"));
+async function runColocatedFileGuardTest(): Promise<void> {
+  // Pre-seed the new co-located path with a user-authored test file that
+  // lacks the `// _meta.generated: true` marker. `regenerateLlm` MUST
+  // recognise the guard and preserve the bytes verbatim.
+  const host = mkdtempSync(join(tmpdir(), "eval-update-colocated-guard-"));
   try {
-    const llmDir = join(host, "evals", "llm");
-    mkdirSync(llmDir, { recursive: true });
+    // Source-of-truth path for the agent primitive. `resolveTarget` reads
+    // this so we need a real plugin layout with the source markdown beside
+    // the `evals/` co-located directory.
+    const pluginDir = join(host, "plugins", "demo-plugin");
+    const agentsDir = join(pluginDir, "agents");
+    const evalsDir = join(agentsDir, "evals");
+    mkdirSync(evalsDir, { recursive: true });
+    writeFileSync(
+      join(agentsDir, "user-authored.md"),
+      ["---", "name: user-authored", "description: demo agent", "---", "Body"].join(
+        "\n",
+      ) + "\n",
+      "utf-8",
+    );
 
-    // Helper slug: `${kind}_${name.replace(/[^A-Za-z0-9_-]+/g,'-').toLowerCase()}`
-    // Target id "agent:user-authored" → slug "agent_user-authored" → file
-    // "test_agent_user-authored.test.ts"
-    const userFile = join(llmDir, "test_agent_user-authored.test.ts");
+    // The new co-located emit path: `<kind-dir>/evals/<name>.test.ts`.
+    const userFile = join(evalsDir, "user-authored.test.ts");
     const userBody = [
       'import { describe, it, expect } from "vitest";',
       "describe('user-authored', () => {",
@@ -319,24 +336,24 @@ async function runFileLevelGuardTest(): Promise<void> {
     writeFileSync(userFile, userBody, "utf-8");
     const userBefore = readFileSync(userFile, "utf-8");
 
-    // Verify guard agrees this is user-authored
+    // Sanity: guard agrees this is user-authored.
     assert(!isGeneratedFile(userFile), "user file lacks marker — guard returns false");
 
     const target = makeTarget(
       "agent:user-authored",
-      "evals/llm/test_agent_user-authored.test.ts",
+      "plugins/demo-plugin/agents/evals/user-authored.test.ts",
+      "plugins/demo-plugin/agents/user-authored.md",
     );
     const payload = makePayload("agent:user-authored", "f".repeat(64));
     const opts: RegenerationCommonOpts = {
       hostRepoRoot: host,
       payload,
       target,
-      config: { judgeModel: "opus-4.6", llm: { model: { id: "composer-2" } } },
-      snapshot: makeMockSnapshot(undefined, "code"),
+      config: { judgeModel: "opus-4.6", llm: { model: { id: "composer-2.5" } } },
+      snapshot: makeMockSnapshot(undefined),
     };
 
-    const report = regenerateLlmCode(opts);
-    // Bytes must be identical — helper short-circuited on the guard.
+    const report = await regenerateLlm(opts);
     const userAfter = readFileSync(userFile, "utf-8");
     assertEqual(userAfter, userBefore, "user-authored file bytes preserved");
     assert(
@@ -352,25 +369,27 @@ async function runFileLevelGuardTest(): Promise<void> {
   }
 }
 
-async function runDeclarativeMixedHelperTest(): Promise<void> {
-  // Wire the dispatcher helper end-to-end against a tmp repo with a real
-  // mixed evals.json on disk. Confirm the user case is byte-identical
-  // post-write and the generated case is replaced with the stamped row.
-  const host = mkdtempSync(join(tmpdir(), "eval-update-decl-"));
+async function runSkillSurgicalRegenTest(): Promise<void> {
+  // Skills retain their `evals.json` (KD-1). `regenerateLlm` on a
+  // skill target must surgically merge generated rows while preserving
+  // user-authored rows byte-identical.
+  const host = mkdtempSync(join(tmpdir(), "eval-update-skill-regen-"));
   try {
-    const evalDir = join(
-      host,
-      "plugins",
-      "demo-plugin",
-      "evals",
-      "agents",
+    const skillDir = join(host, "plugins", "demo-plugin", "skills", "demo-skill");
+    const evalsDir = join(skillDir, "evals");
+    mkdirSync(evalsDir, { recursive: true });
+    writeFileSync(
+      join(skillDir, "SKILL.md"),
+      ["---", "name: demo-skill", "description: demo skill", "---", "Body"].join(
+        "\n",
+      ) + "\n",
+      "utf-8",
     );
-    mkdirSync(evalDir, { recursive: true });
-    const evalFile = join(evalDir, "demo-agent.json");
+    const evalFile = join(evalsDir, "evals.json");
 
     const original = JSON.stringify(
       {
-        agent_name: "demo-agent",
+        skill_name: "demo-skill",
         evals: [
           {
             id: 1,
@@ -401,22 +420,19 @@ async function runDeclarativeMixedHelperTest(): Promise<void> {
     ) + "\n";
     writeFileSync(evalFile, original, "utf-8");
 
-    const target = {
-      id: "agent:demo-agent",
-      kind: "agent",
-      path: "plugins/demo-plugin/agents/demo-agent.md",
-      content_hash: "deadbeef",
-      public_surface: {},
-      eval_files: ["plugins/demo-plugin/evals/agents/demo-agent.json"],
-    };
-    const payload = makePayload("agent:demo-agent", "f".repeat(64));
+    const target = makeTarget(
+      "skill:demo-skill",
+      "plugins/demo-plugin/skills/demo-skill/evals/evals.json",
+      "plugins/demo-plugin/skills/demo-skill/SKILL.md",
+    );
+    const payload = makePayload("skill:demo-skill", "f".repeat(64));
 
-    const report = regenerateLlmDeclarative({
+    const report = await regenerateLlm({
       hostRepoRoot: host,
       payload,
       target,
       config: {},
-      snapshot: makeMockSnapshot(undefined, "declarative"),
+      snapshot: makeMockSnapshot(undefined),
     });
 
     assertEqual(report.cases_replaced, 1, "one generated case replaced");
@@ -444,22 +460,24 @@ async function runDeclarativeMixedHelperTest(): Promise<void> {
   }
 }
 
-async function runNoAnalyserPreservesInvalidateTest(): Promise<void> {
-  const host = mkdtempSync(join(tmpdir(), "eval-update-no-analyser-inv-"));
+async function runSkillNoAnalyserPreservesInvalidateTest(): Promise<void> {
+  const host = mkdtempSync(join(tmpdir(), "eval-update-skill-no-analyser-inv-"));
   try {
-    const evalDir = join(
-      host,
-      "plugins",
-      "demo-plugin",
-      "evals",
-      "agents",
+    const skillDir = join(host, "plugins", "demo-plugin", "skills", "demo-skill");
+    const evalsDir = join(skillDir, "evals");
+    mkdirSync(evalsDir, { recursive: true });
+    writeFileSync(
+      join(skillDir, "SKILL.md"),
+      ["---", "name: demo-skill", "description: demo skill", "---", "Body"].join(
+        "\n",
+      ) + "\n",
+      "utf-8",
     );
-    mkdirSync(evalDir, { recursive: true });
-    const evalFile = join(evalDir, "demo-agent.json");
+    const evalFile = join(evalsDir, "evals.json");
 
     const original = JSON.stringify(
       {
-        agent_name: "demo-agent",
+        skill_name: "demo-skill",
         evals: [
           {
             id: 1,
@@ -491,22 +509,19 @@ async function runNoAnalyserPreservesInvalidateTest(): Promise<void> {
     ) + "\n";
     writeFileSync(evalFile, original, "utf-8");
 
-    const target = {
-      id: "agent:demo-agent",
-      kind: "agent",
-      path: "plugins/demo-plugin/agents/demo-agent.md",
-      content_hash: "deadbeef",
-      public_surface: {},
-      eval_files: ["plugins/demo-plugin/evals/agents/demo-agent.json"],
-    };
-    const payload = makePayload("agent:demo-agent", "f".repeat(64));
+    const target = makeTarget(
+      "skill:demo-skill",
+      "plugins/demo-plugin/skills/demo-skill/evals/evals.json",
+      "plugins/demo-plugin/skills/demo-skill/SKILL.md",
+    );
+    const payload = makePayload("skill:demo-skill", "f".repeat(64));
 
-    const report = regenerateLlmDeclarative({
+    const report = await regenerateLlm({
       hostRepoRoot: host,
       payload,
       target,
       config: {},
-      snapshot: makeMockSnapshot(undefined, "declarative"),
+      snapshot: makeMockSnapshot(undefined),
       noAnalyser: true,
     });
 
@@ -516,7 +531,178 @@ async function runNoAnalyserPreservesInvalidateTest(): Promise<void> {
     const finalParsed = JSON.parse(readFileSync(evalFile, "utf-8"));
     assert(
       finalParsed.evals[1]._meta.primitive_analysis.invalidate === true,
-      "cached-analyser regen preserves primitive_analysis.invalidate",
+      "cached-analyser skill regen preserves primitive_analysis.invalidate",
+    );
+  } finally {
+    rmSync(host, { recursive: true, force: true });
+  }
+}
+
+async function runLlmTestPathForTargetTest(): Promise<void> {
+  // `llmTestPathForTarget` MUST return the new co-located path
+  // `<kind-dir>/evals/<name>.test.ts` and `null` for skills (KD-1).
+  const host = mkdtempSync(join(tmpdir(), "eval-update-llm-path-"));
+  try {
+    const pluginDir = join(host, "plugins", "demo-plugin");
+    mkdirSync(join(pluginDir, "agents"), { recursive: true });
+    writeFileSync(
+      join(pluginDir, "agents", "demo-agent.md"),
+      ["---", "name: demo-agent", "description: demo agent", "---", "Body"].join(
+        "\n",
+      ) + "\n",
+      "utf-8",
+    );
+    mkdirSync(join(pluginDir, "commands"), { recursive: true });
+    writeFileSync(
+      join(pluginDir, "commands", "z-demo.md"),
+      ["---", "name: z-demo", "description: demo command", "---", "Body"].join(
+        "\n",
+      ) + "\n",
+      "utf-8",
+    );
+    mkdirSync(join(pluginDir, "skills", "demo-skill"), { recursive: true });
+    writeFileSync(
+      join(pluginDir, "skills", "demo-skill", "SKILL.md"),
+      ["---", "name: demo-skill", "description: demo skill", "---", "Body"].join(
+        "\n",
+      ) + "\n",
+      "utf-8",
+    );
+
+    const agentPath = llmTestPathForTarget(host, "agent:demo-agent");
+    assert(agentPath !== null, "agent path resolved");
+    const expectedAgentPath = join(
+      host,
+      "plugins",
+      "demo-plugin",
+      "agents",
+      "evals",
+      "demo-agent.test.ts",
+    );
+    assertEqual(agentPath, expectedAgentPath, "agent co-located path");
+
+    const cmdPath = llmTestPathForTarget(host, "command:z-demo");
+    assert(cmdPath !== null, "command path resolved");
+    const expectedCmdPath = join(
+      host,
+      "plugins",
+      "demo-plugin",
+      "commands",
+      "evals",
+      "z-demo.test.ts",
+    );
+    assertEqual(cmdPath, expectedCmdPath, "command co-located path");
+
+    const skillPath = llmTestPathForTarget(host, "skill:demo-skill");
+    assertEqual(
+      skillPath,
+      null,
+      "skills retain evals.json — llmTestPathForTarget returns null",
+    );
+  } finally {
+    rmSync(host, { recursive: true, force: true });
+  }
+}
+
+async function runLayoutDriftDetectionTest(): Promise<void> {
+  // Build a fixture host repo containing BOTH legacy locations:
+  //   - `evals/llm/test_command_z-demo.test.ts`
+  //   - `plugins/demo-plugin/evals/agents/demo-agent.json`
+  // and confirm `detectLayoutDrift` flags each with the expected new
+  // co-located path in the message.
+  const host = mkdtempSync(join(tmpdir(), "eval-update-layout-drift-"));
+  try {
+    // Source primitives so `resolveTarget` can locate them.
+    const cmdSourceDir = join(host, "plugins", "demo-plugin", "commands");
+    const agentSourceDir = join(host, "plugins", "demo-plugin", "agents");
+    mkdirSync(cmdSourceDir, { recursive: true });
+    mkdirSync(agentSourceDir, { recursive: true });
+    writeFileSync(
+      join(cmdSourceDir, "z-demo.md"),
+      ["---", "name: z-demo", "description: demo command", "---", "Body"].join(
+        "\n",
+      ) + "\n",
+      "utf-8",
+    );
+    writeFileSync(
+      join(agentSourceDir, "demo-agent.md"),
+      ["---", "name: demo-agent", "description: demo agent", "---", "Body"].join(
+        "\n",
+      ) + "\n",
+      "utf-8",
+    );
+
+    // Legacy LLM test path.
+    const legacyLlmDir = join(host, "evals", "llm");
+    mkdirSync(legacyLlmDir, { recursive: true });
+    const legacyLlmTest = join(legacyLlmDir, "test_command_z-demo.test.ts");
+    writeFileSync(legacyLlmTest, "// legacy LLM test\n", "utf-8");
+
+    // Legacy declarative JSON path.
+    const legacyJsonDir = join(host, "plugins", "demo-plugin", "evals", "agents");
+    mkdirSync(legacyJsonDir, { recursive: true });
+    const legacyJson = join(legacyJsonDir, "demo-agent.json");
+    writeFileSync(
+      legacyJson,
+      JSON.stringify({ agent_name: "demo-agent", evals: [] }, null, 2) + "\n",
+      "utf-8",
+    );
+
+    const targets = [
+      makeTarget(
+        "command:z-demo",
+        "plugins/demo-plugin/commands/evals/z-demo.test.ts",
+        "plugins/demo-plugin/commands/z-demo.md",
+      ),
+      makeTarget(
+        "agent:demo-agent",
+        "plugins/demo-plugin/agents/evals/demo-agent.test.ts",
+        "plugins/demo-plugin/agents/demo-agent.md",
+      ),
+    ];
+
+    const drifts = detectLayoutDrift(host, targets);
+
+    const cmdDrift = drifts.find((d) => d.target_id === "command:z-demo");
+    assert(cmdDrift !== undefined, "command:z-demo drift recorded");
+    assertEqual(
+      cmdDrift!.legacy_path,
+      "evals/llm/test_command_z-demo.test.ts",
+      "command legacy path matches central LLM tree",
+    );
+    assertEqual(
+      cmdDrift!.new_path,
+      "plugins/demo-plugin/commands/evals/z-demo.test.ts",
+      "command new path is the co-located eval",
+    );
+    assert(
+      /drift: file at LEGACY path/.test(cmdDrift!.message),
+      `command drift message contains 'drift: file at LEGACY path' (got: ${cmdDrift!.message})`,
+    );
+    assert(
+      cmdDrift!.message.includes(cmdDrift!.legacy_path),
+      "command drift message names the legacy path",
+    );
+    assert(
+      cmdDrift!.message.includes(cmdDrift!.new_path),
+      "command drift message names the new co-located path",
+    );
+
+    const agentDrift = drifts.find((d) => d.target_id === "agent:demo-agent");
+    assert(agentDrift !== undefined, "agent:demo-agent drift recorded");
+    assertEqual(
+      agentDrift!.legacy_path,
+      "plugins/demo-plugin/evals/agents/demo-agent.json",
+      "agent legacy path matches central declarative JSON tree",
+    );
+    assertEqual(
+      agentDrift!.new_path,
+      "plugins/demo-plugin/agents/evals/demo-agent.test.ts",
+      "agent new path is the co-located eval",
+    );
+    assert(
+      /drift: file at LEGACY path/.test(agentDrift!.message),
+      `agent drift message contains 'drift: file at LEGACY path' (got: ${agentDrift!.message})`,
     );
   } finally {
     rmSync(host, { recursive: true, force: true });
@@ -589,15 +775,50 @@ async function runCiWithAnalyserSkipsBannerTest(): Promise<void> {
 async function main(): Promise<void> {
   process.stdout.write("eval-update-guards.test\n");
   await test("surgical mixed-file case guard", runSurgicalCaseGuardTest);
-  await test("surgical merge skips identical generated rows (no reserialise)", runSurgicalSkipIdenticalGeneratedRowTest);
-  await test("declarative mixed-file end-to-end (regenerateLlmDeclarative)", runDeclarativeMixedHelperTest);
-  await test("--no-analyser declarative regen preserves primitive_analysis.invalidate", runNoAnalyserPreservesInvalidateTest);
-  await test("file-level guard preserves user-authored *.test.ts", runFileLevelGuardTest);
-  await test("file-level guard preserves user-authored test_*.py (pytest regen)", runPytestFileLevelGuardTest);
-  await test("isGeneratedFile rejects user-authored *.test.py without marker", runDotTestPyFileLevelGuardTest);
-  await test("CI=true implies cached analyser + stderr skips-fresh banner", runCiWarningImplicitCiDefaultTest);
-  await test("CI=true + explicit --no-analyser emits the same skips-fresh banner", runCiExplicitNoAnalyserWarningTest);
-  await test("CI=true + --with-analyser omits skips-fresh cached banner", runCiWithAnalyserSkipsBannerTest);
+  await test(
+    "surgical merge skips identical generated rows (no reserialise)",
+    runSurgicalSkipIdenticalGeneratedRowTest,
+  );
+  await test(
+    "skill regenerateLlm: surgical merge preserves user-authored evals.json rows",
+    runSkillSurgicalRegenTest,
+  );
+  await test(
+    "--no-analyser skill regen preserves primitive_analysis.invalidate",
+    runSkillNoAnalyserPreservesInvalidateTest,
+  );
+  await test(
+    "regenerateLlm file-level guard preserves user-authored co-located *.test.ts",
+    runColocatedFileGuardTest,
+  );
+  await test(
+    "llmTestPathForTarget returns the new co-located <kind-dir>/evals/<name>.test.ts",
+    runLlmTestPathForTargetTest,
+  );
+  await test(
+    "detectLayoutDrift flags legacy LLM tests + legacy declarative JSON",
+    runLayoutDriftDetectionTest,
+  );
+  await test(
+    "file-level guard preserves user-authored test_*.py (pytest regen)",
+    runPytestFileLevelGuardTest,
+  );
+  await test(
+    "isGeneratedFile rejects user-authored *.test.py without marker",
+    runDotTestPyFileLevelGuardTest,
+  );
+  await test(
+    "CI=true implies cached analyser + stderr skips-fresh banner",
+    runCiWarningImplicitCiDefaultTest,
+  );
+  await test(
+    "CI=true + explicit --no-analyser emits the same skips-fresh banner",
+    runCiExplicitNoAnalyserWarningTest,
+  );
+  await test(
+    "CI=true + --with-analyser omits skips-fresh cached banner",
+    runCiWithAnalyserSkipsBannerTest,
+  );
 
   const failed = results.filter((r) => !r.passed);
   process.stdout.write(`\n${results.length - failed.length}/${results.length} passed\n`);

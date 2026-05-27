@@ -7,7 +7,7 @@
 | subtask_id | 06 |
 | feature | spec-system-live-status |
 | assigned_agent | crux-software-engineer |
-| model | composer-2-fast |
+| model | composer-2.5-fast |
 | token_budget | 200000 |
 | state | completed |
 | started_at | 2026-05-06T08:15:45.535Z |

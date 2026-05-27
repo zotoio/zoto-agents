@@ -14,11 +14,10 @@
  *   (a) fresh repo --dry-run → empty deletion list, exit 0
  *   (b) pytest→vitest --dry-run with stamped pytest assets → enumerates conftest + test files
  *   (c) refusing-path guard fires
- *   (d) mixed evals.json surfaces as `manual_merge_required`
- *   (e) *.test.ts user file (no header) preserved
- *   (f) bats template enumeration
- *   (g) session-token round-trip (write + verify on apply)
- *   (h) --check exits 2 on drift, 0 on parity
+ *   (d) bats template enumeration
+ *   (e) session-token round-trip (write + verify on apply)
+ *   (f) --check exits 2 on drift, 0 on parity
+ *   (g) regression: snapshot with no `llm.strategy` does not throw and emits empty/static-only groups
  */
 import {
   existsSync,
@@ -145,7 +144,6 @@ async function main(): Promise<number> {
         skillsRoots: [".cursor/skills"],
         discoveryTargets: ["skill"],
         static: { framework: "pytest" },
-        llm: { strategy: "declarative" },
       });
       writeManifest(
         root,
@@ -177,7 +175,6 @@ async function main(): Promise<number> {
         skillsRoots: [".cursor/skills"],
         discoveryTargets: ["skill"],
         static: { framework: "pytest" },
-        llm: { strategy: "declarative" },
       });
       writeManifest(
         root,
@@ -199,7 +196,6 @@ async function main(): Promise<number> {
     try {
       writeConfig(root, {
         static: { framework: "vitest" },
-        llm: { strategy: "declarative" },
       });
       // Old snapshot is pytest
       writeManifest(
@@ -260,115 +256,12 @@ async function main(): Promise<number> {
     assert(!isPathAllowed(".cursor/rules/foo.mdc"), "rules dir refused");
   });
 
-  // (d) mixed evals.json → manual_merge_required
-  await test("mixed evals.json surfaces as manual_merge_required (warning + llm-case file)", () => {
-    const root = makeScratchRepo("mixed-evals");
-    try {
-      writeConfig(root, {
-        static: { framework: "pytest" },
-        llm: { strategy: "code" },
-      });
-      writeManifest(
-        root,
-        `schema_version: 1\ndiscovery_config:\n  static:\n    framework: pytest\n  llm:\n    strategy: declarative\n  discoveryTargets: [skill]\n  skillsRoots: [.cursor/skills]\n  evalsDir: evals\n`,
-      );
-      // Mixed evals.json — one generated case, one user case
-      writeFile(
-        root,
-        ".cursor/skills/foo/evals/evals.json",
-        JSON.stringify(
-          {
-            cases: [
-              { id: 1, prompt: "auto", _meta: { generated: true } },
-              { id: 2, prompt: "manual" },
-            ],
-          },
-          null,
-          2,
-        ),
-      );
-      const plan = computePlan(root);
-      const stratGroup = plan.groups.find(
-        (g) => g.reason === "strategy-switch",
-      );
-      assert(stratGroup, "strategy-switch group must exist");
-      const f = stratGroup!.files.find(
-        (x) => x.path === ".cursor/skills/foo/evals/evals.json",
-      );
-      assert(f, "mixed evals.json must be enumerated");
-      assertEqual(f!.kind, "llm-case", "mixed kind must be llm-case");
-      assertEqual(
-        f!.preserve_user_authored,
-        true,
-        "preserve_user_authored must be true",
-      );
-      const warnings = plan.warnings ?? [];
-      assert(
-        warnings.some((w) => w.startsWith("manual_merge_required:")),
-        "manual_merge_required warning must be present",
-      );
-      const v = validatePlanAgainstSchema(plan, root);
-      assert(
-        v.ok,
-        `schema validation: ${(v as { errors?: string[] }).errors?.join("; ") ?? ""}`,
-      );
-    } finally {
-      cleanup(root);
-    }
-  });
-
-  // (e) *.test.ts user file (no header) preserved
-  await test("*.test.ts user file (no header) preserved on strategy-switch", () => {
-    const root = makeScratchRepo("user-test-ts");
-    try {
-      writeConfig(root, {
-        static: { framework: "vitest" },
-        llm: { strategy: "declarative" },
-      });
-      writeManifest(
-        root,
-        `schema_version: 1\ndiscovery_config:\n  static:\n    framework: vitest\n  llm:\n    strategy: code\n    codeFramework: vitest\n  discoveryTargets: [skill]\n  skillsRoots: [.cursor/skills]\n  evalsDir: evals\n`,
-      );
-      writeFile(
-        root,
-        "evals/skills/foo.test.ts",
-        '// hand-written by user\nimport { describe } from "vitest";\n',
-      );
-      writeFile(
-        root,
-        "evals/skills/bar.test.ts",
-        '// _meta.generated: true\nimport { describe } from "vitest";\n',
-      );
-      const plan = computePlan(root);
-      const g = plan.groups.find((x) => x.reason === "strategy-switch");
-      assert(g, "strategy-switch group must exist");
-      const paths = g!.files.map((f) => f.path);
-      assert(paths.includes("evals/skills/bar.test.ts"), "stamped test enumerated");
-      assert(
-        !paths.includes("evals/skills/foo.test.ts"),
-        "user-authored *.test.ts MUST NOT be enumerated",
-      );
-      const warnings = plan.warnings ?? [];
-      assert(
-        warnings.some(
-          (w) =>
-            w.includes("preserved user-authored") &&
-            w.includes("evals/skills/foo.test.ts"),
-        ),
-        "preserved user-authored warning must mention foo.test.ts",
-      );
-    } finally {
-      cleanup(root);
-    }
-  });
-
-  // (f) bats template enumeration
+  // (d) bats template enumeration
   await test("bats template enumeration includes example.bats.tmpl + directory", () => {
     const root = makeScratchRepo("bats");
     try {
       writeConfig(root, {
         static: { framework: "pytest" },
-        llm: { strategy: "declarative" },
       });
       writeManifest(
         root,
@@ -413,7 +306,6 @@ async function main(): Promise<number> {
     try {
       writeConfig(root, {
         static: { framework: "pytest" },
-        llm: { strategy: "declarative" },
       });
       writeManifest(
         root,
@@ -488,7 +380,6 @@ async function main(): Promise<number> {
     try {
       writeConfig(root, {
         static: { framework: "pytest" },
-        llm: { strategy: "declarative" },
       });
       writeManifest(
         root,
@@ -521,13 +412,57 @@ async function main(): Promise<number> {
     }
   });
 
+  // (g) regression: snapshot with no `llm` block does not throw and emits
+  //     only framework-switch / removed-target groups (no strategy-switch).
+  await test("snapshot without llm.strategy does not throw and emits empty/static-only groups", () => {
+    const root = makeScratchRepo("no-llm-strategy");
+    try {
+      writeConfig(root, {
+        evalsDir: "evals",
+        skillsRoots: [".cursor/skills"],
+        discoveryTargets: ["skill"],
+        static: { framework: "pytest" },
+      });
+      // Manifest has NO `llm` block (mimics post-strategy-removal repo state)
+      writeManifest(
+        root,
+        `schema_version: 1\ndiscovery_config:\n  static:\n    framework: pytest\n  discoveryTargets: [skill]\n  skillsRoots: [.cursor/skills]\n  evalsDir: evals\n`,
+      );
+      let plan;
+      try {
+        plan = computePlan(root);
+      } catch (e) {
+        throw new Error(`computePlan threw: ${(e as Error).message}`);
+      }
+      // No strategy-switch group can exist post-removal; cleanup is silent.
+      assertEqual(plan.totals.files, 0, "totals.files (no stale state)");
+      assertEqual(plan.groups.length, 0, "groups.length (no stale state)");
+      // Plan still validates against the post-cleanup schema.
+      const v = validatePlanAgainstSchema(plan, root);
+      assert(
+        v.ok,
+        `schema validation: ${(v as { errors?: string[] }).errors?.join("; ") ?? ""}`,
+      );
+      // Snapshots must not carry an `llm` field after this subtask.
+      assert(
+        !("llm" in (plan.old_snapshot as unknown as Record<string, unknown>)),
+        "old_snapshot must not contain an `llm` field",
+      );
+      assert(
+        !("llm" in (plan.new_snapshot as unknown as Record<string, unknown>)),
+        "new_snapshot must not contain an `llm` field",
+      );
+    } finally {
+      cleanup(root);
+    }
+  });
+
   // Apply without session/token without --force must refuse
   await test("apply without --session/--token/--force refuses with non-zero", () => {
     const root = makeScratchRepo("apply-no-session");
     try {
       writeConfig(root, {
         static: { framework: "pytest" },
-        llm: { strategy: "declarative" },
       });
       writeManifest(
         root,

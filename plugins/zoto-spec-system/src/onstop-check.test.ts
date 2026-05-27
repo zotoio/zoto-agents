@@ -47,7 +47,7 @@ function baseDoc(overrides: Partial<SubtaskStatusDoc> = {}): SubtaskStatusDoc {
     subtask_id: "01",
     feature: "test-feature",
     assigned_agent: "generalPurpose",
-    model: "composer-2-fast",
+    model: "composer-2.5-fast",
     token_budget: 200_000,
     state: "in_progress",
     checklist: [

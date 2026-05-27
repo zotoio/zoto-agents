@@ -99,6 +99,8 @@ export function writeResults(opts: WriteOptions): string {
     cases: opts.cases.map((c) => ({
       id: c.id,
       status: c.status,
+      backend: "declarative",
+      requires_interaction: false,
       ...c.metrics,
       grader_reports: c.grader_reports,
       log_path: join("_runs", opts.runId, "logs", `case-${slugifyCaseId(c.id)}.log`),

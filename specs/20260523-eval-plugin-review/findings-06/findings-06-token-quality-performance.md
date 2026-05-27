@@ -10,7 +10,7 @@
 
 ## TL;DR — Verdicts
 
-1. **Cost concentration is in the analyser path, not the judge.** Every plugin subagent — including the analyser — pins `model: claude-opus-4-6` in its frontmatter (`3:3:/home/andrewv/.cursor/plugins/local/zoto-eval-system/agents/zoto-eval-analyser-subagent.md` and 7 sibling agents). The README's documented `--model > ZOTO_EVAL_MODEL > config.llm.model.id > composer-2` precedence (`174:178:/home/andrewv/.cursor/plugins/local/zoto-eval-system/README.md`) governs only the **per-case declarative runner's** `Agent.create()` model — it does not override subagent frontmatter. Operators believing `llm.model.id: composer-2` is cheap are still paying opus rates on every analyser/updater/judge/configurer/etc. call.
+1. **Cost concentration is in the analyser path, not the judge.** Every plugin subagent — including the analyser — pins `model: claude-opus-4-6` in its frontmatter (`3:3:/home/andrewv/.cursor/plugins/local/zoto-eval-system/agents/zoto-eval-analyser-subagent.md` and 7 sibling agents). The README's documented `--model > ZOTO_EVAL_MODEL > config.llm.model.id > composer-2.5` precedence (`174:178:/home/andrewv/.cursor/plugins/local/zoto-eval-system/README.md`) governs only the **per-case declarative runner's** `Agent.create()` model — it does not override subagent frontmatter. Operators believing `llm.model.id: composer-2.5` is cheap are still paying opus rates on every analyser/updater/judge/configurer/etc. call.
 2. **Judge default of `opus-4.6` is sane *for the judge*, but is duplicated across 7 non-judging subagents that don't need opus-level reasoning.** Keep `judgeModel: opus-4.6`; **remove or downgrade the `model:` line on every non-judge subagent**, or let it fall through to the configured `llm.model.id`. This is the single highest-leverage cost lever in the plugin.
 3. **Declarative runner ships with a stub judge and empty graders** (`192:198:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/llm/agent-sdk/runner.ts.tmpl` + `37:37:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/agent-evals/evals.json.tmpl`). Every declarative case currently emits `"graders": []`, the runner's `for (const g of c.graders ?? [])` loop is a no-op, `reports` stays empty, and `failed = reports.some(r => r.verdict === "fail") === false` — i.e. **every generated declarative case passes by construction**. This is a blocker-grade quality reliability finding orthogonal to cost.
 
@@ -67,7 +67,7 @@ The plugin makes LLM calls in four distinct paths. The cost map below sources ev
 |---|---|---|
 | Trigger | `pnpm run eval:llm` → `eval-orchestrate.ts --llm-only` → `eval:llm:declarative` (when `llm.strategy: declarative`) | `9:9:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/package-scripts/base.json`; `523:530:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/runner/eval-orchestrate.ts.tmpl` |
 | Parallelism | **Sequential** — `for (const c of allCases) { const out = await runCase(c, agent, model); }` | `360:363:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/llm/agent-sdk/runner.ts.tmpl` |
-| Model | `--model > ZOTO_EVAL_MODEL > config.llm.model.id > "composer-2"` (real precedence chain — applies here because `Agent.create({model: {id: model}})` reads runtime config) | `103:109:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/llm/agent-sdk/runner.ts.tmpl` |
+| Model | `--model > ZOTO_EVAL_MODEL > config.llm.model.id > "composer-2.5"` (real precedence chain — applies here because `Agent.create({model: {id: model}})` reads runtime config) | `103:109:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/llm/agent-sdk/runner.ts.tmpl` |
 | Per-case prompt size | Just `c.prompt` string (no few-shot, no system prompt prepended by the runner — system prompt comes from the model itself via Agent.create) → **~200-1000 tokens** | `159:159:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/llm/agent-sdk/runner.ts.tmpl` (`agent.send(c.prompt)`) |
 | Per-case response size | Free-form text; assume average 2k tokens for a "real" Cursor reply | Assumption |
 | Per-case grader cost | **0 additional LLM calls** in current implementation — `llmJudge` is invoked with a stub `judge` fn returning `{score: 0.5}` (line 195) | `192:198:/home/andrewv/.cursor/plugins/local/zoto-eval-system/templates/llm/agent-sdk/runner.ts.tmpl` |
@@ -117,7 +117,7 @@ Rationale:
 - The judge is called **once per run**, not per case (`9:14:/home/andrewv/.cursor/plugins/local/zoto-eval-system/agents/zoto-eval-judge.md`). Run rate ≈ 1-5 / day in steady-state dev, ~10-50 / day in CI.
 - Per-invocation cost ≈ 45k tokens (above) → at opus-4.6 rates (~$15 input / $75 output per 1M), that's roughly **~$0.70/run** for input + ~$0.04/run for output ≈ **~$0.75 per judge call**. A team running judges 10×/day spends ~$7.50/day — negligible vs the analyser path's per-create cost.
 - The judge's job is **adversarial soft-metric annotation**: spotting weak graders, low confidence, verbosity spikes. This is exactly the kind of reasoning where opus's calibration edge matters most.
-- Downgrading to `composer-2` would make the judge stand-in-line with the very models it's grading. That kills the "independent quality gate" framing.
+- Downgrading to `composer-2.5` would make the judge stand-in-line with the very models it's grading. That kills the "independent quality gate" framing.
 
 **However**: the judge default isn't where the cost lives. The real lever is F1 — see below.
 
@@ -138,14 +138,14 @@ All 8 plugin subagents pin `model: claude-opus-4-6`:
 
 Of these:
 - **`zoto-eval-judge`**: opus is correct (see above).
-- **`zoto-eval-analyser-subagent`**: opus may be defensible for structured-JSON quality, but the configured `llm.model.id` should win. README precedence (`174:178:/home/andrewv/.cursor/plugins/local/zoto-eval-system/README.md`) implies `composer-2` is the default — actual default is opus.
-- **`zoto-eval-updater`, `zoto-eval-adviser`, `zoto-eval-comparer`, `zoto-eval-executor`, `zoto-eval-generator`, `zoto-eval-configurer`**: these are **orchestration subagents**. They mostly read artefacts, decide branching, surface `needs_user_input`. None need opus-level reasoning. Sonnet or composer-2 would handle every documented branch.
+- **`zoto-eval-analyser-subagent`**: opus may be defensible for structured-JSON quality, but the configured `llm.model.id` should win. README precedence (`174:178:/home/andrewv/.cursor/plugins/local/zoto-eval-system/README.md`) implies `composer-2.5` is the default — actual default is opus.
+- **`zoto-eval-updater`, `zoto-eval-adviser`, `zoto-eval-comparer`, `zoto-eval-executor`, `zoto-eval-generator`, `zoto-eval-configurer`**: these are **orchestration subagents**. They mostly read artefacts, decide branching, surface `needs_user_input`. None need opus-level reasoning. Sonnet or composer-2.5 would handle every documented branch.
 
 **Recommendation**: remove the `model:` line from the 6 orchestration subagents and from the analyser, letting the host's runtime model selection win. Keep `model: claude-opus-4-6` only on `zoto-eval-judge` (and surface it as `judgeModel`'s sink, not a frontmatter pin).
 
-**Quality impact analysis**: orchestration subagents mostly do schema-aware branching and structured output — sonnet/composer-2 are competitive on both. The risk is that the analyser's strict-JSON output quality degrades on lighter models, leading to schema rejections (which the analyser caller already handles by failing the run — `9:9:/home/andrewv/.cursor/plugins/local/zoto-eval-system/agents/zoto-eval-analyser-subagent.md`). Mitigation: keep the per-call structured-output retry budget (currently 1, see F10 below) — bump to 2 if migrating to a smaller model.
+**Quality impact analysis**: orchestration subagents mostly do schema-aware branching and structured output — sonnet/composer-2.5 are competitive on both. The risk is that the analyser's strict-JSON output quality degrades on lighter models, leading to schema rejections (which the analyser caller already handles by failing the run — `9:9:/home/andrewv/.cursor/plugins/local/zoto-eval-system/agents/zoto-eval-analyser-subagent.md`). Mitigation: keep the per-call structured-output retry budget (currently 1, see F10 below) — bump to 2 if migrating to a smaller model.
 
-**Estimated cost reduction**: assuming opus-4.6 is ~5× composer-2's per-token cost, dropping 6/8 subagents from opus to composer-2 saves **~70-80% of the per-invocation orchestration cost** when those subagents run. For a `/z-eval-update --apply` cycle, that's 1 analyser call per drifted target + 1 updater orchestration call → migrating just the updater saves ~25% per `/z-eval-update`.
+**Estimated cost reduction**: assuming opus-4.6 is ~5× composer-2.5's per-token cost, dropping 6/8 subagents from opus to composer-2.5 saves **~70-80% of the per-invocation orchestration cost** when those subagents run. For a `/z-eval-update --apply` cycle, that's 1 analyser call per drifted target + 1 updater orchestration call → migrating just the updater saves ~25% per `/z-eval-update`.
 
 ---
 
@@ -285,7 +285,7 @@ Cold-start `/z-eval-create` cost in this repo:
 - Wall time: 8 calls × 30-60s per opus call ÷ concurrency 4 = ~1-2 min wall-clock.
 - Wall time for a true cold-start (cache wiped): 26 calls × 45s ÷ 4 = **~5 minutes wall-clock**, **~$5 in opus tokens**.
 
-**User surprise risk**: high. The plugin's README does not advertise a per-primitive opus cost. A user running `/z-eval-create` for the first time on a 50-primitive repo could see a ~$10 LLM bill and a 10-minute wait. F1's recommendation (drop opus from non-judge subagents) directly mitigates this: with composer-2 as the analyser model, the same cold-start drops to **~$0.30 / ~3-minute wall-clock**.
+**User surprise risk**: high. The plugin's README does not advertise a per-primitive opus cost. A user running `/z-eval-create` for the first time on a 50-primitive repo could see a ~$10 LLM bill and a 10-minute wait. F1's recommendation (drop opus from non-judge subagents) directly mitigates this: with composer-2.5 as the analyser model, the same cold-start drops to **~$0.30 / ~3-minute wall-clock**.
 
 **Secondary cost**: the 332 stale run dirs aren't an LLM cost — they're filesystem clutter, eligible for `eval:gc:apply` (subtask 02 flagged retention=30 vs 332 dirs). No bearing on token cost.
 
@@ -295,7 +295,7 @@ Cold-start `/z-eval-create` cost in this repo:
 
 | Rank | Win | Est. token cut | Effort | Quality impact |
 |---|---|---|---|---|
-| 1 | **Remove `model: claude-opus-4-6` from non-judge subagents** (F1) — fall through to `llm.model.id` → `composer-2` default | ~70-80% per non-judge subagent call → ~50-65% total across all eval-system LLM cost | S — single-line edit per file × 7 files | LOW — orchestration subagents don't need opus reasoning; analyser quality risk is real but mitigable with retry budget |
+| 1 | **Remove `model: claude-opus-4-6` from non-judge subagents** (F1) — fall through to `llm.model.id` → `composer-2.5` default | ~70-80% per non-judge subagent call → ~50-65% total across all eval-system LLM cost | S — single-line edit per file × 7 files | LOW — orchestration subagents don't need opus reasoning; analyser quality risk is real but mitigable with retry budget |
 | 2 | **Pre-summarise per-case logs before judge LLM call** (Section §4 row 4) — deterministic truncation/triage of logs before opus sees them | ~50-70% of judge input tokens / run | M — add a small "log-triage" deterministic step in `zoto-judge-evals` skill | LOW — judge already reads truncated logs; the risk is missing late-stage trace info, which can be mitigated by always including the last 500 lines verbatim |
 | 3 | **Categorise analyser-emitted assertions as `regex` vs `semantic` and emit typed graders** (Section §5 row 2) — reroute regex-checkable assertions away from the per-case `llmJudge` rubric | ~30-50% of code-strategy per-case cost on assertions that are regex-checkable | L — analyser prompt changes + grader emission + runtime dispatch | POSITIVE — regex graders are deterministic; reserves opus judging for genuinely semantic checks |
 | 4 | **Trim the analyser system prompt — move "Tailor by kind" tables into the per-call envelope** so only the relevant kind's row is included | ~30-40% of analyser system-prompt tokens (~700-1000 tokens / call × 26 cold-start calls = ~25k tokens) | S — split the markdown file + adjust caller envelope | LOW — current prompt sends all kinds' rows to every call regardless of `kind` |

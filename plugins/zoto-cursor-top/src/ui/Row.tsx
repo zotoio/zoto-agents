@@ -2,8 +2,8 @@ import React from "react";
 import { Box, Text } from "ink";
 import type { AgentNode } from "../types.js";
 import {
-  formatStart,
-  kindBadge,
+  agentBodyIndent,
+  formatAgentRowLine,
   statusColor,
   truncate,
 } from "./format.js";
@@ -21,6 +21,10 @@ export interface RowProps {
  * Render one agent in the tree, followed by its tailed log lines.
  *
  * Pure function of its props so we can render it deterministically in tests.
+ *
+ * The data row is a single fixed-width string so Ink does not misalign
+ * columns when applying per-field colours. Hierarchy is conveyed inside
+ * the AGENT column via indent + chevron.
  */
 export function Row({
   node,
@@ -30,41 +34,26 @@ export function Row({
   selected,
   now,
 }: RowProps): React.JSX.Element {
-  const indent = "  ".repeat(depth);
-  const chevron = hasChildren ? (expanded ? "▼" : "▶") : " ";
-  const label = `${indent}${chevron} ${truncate(node.label, 28)}`;
-  const pid = node.pid != null ? String(node.pid).padStart(6) : "  --  ";
+  const bodyIndent = agentBodyIndent(depth);
+  const reversedLogs = node.recentLogs.slice().reverse();
+  const rowLine = formatAgentRowLine(node, depth, now, { expanded, hasChildren });
 
   return (
     <Box flexDirection="column">
-      <Box>
-        <Text inverse={selected} bold={selected}>
-          <Text color={statusColor(node.status)}>{`[${kindBadge(node.kind)}]`}</Text>
-          {" "}
-          <Text>{pid}</Text>
-          {" "}
-          <Text>{label.padEnd(40)}</Text>
-          {" "}
-          <Text color="cyan">{truncate(node.model ?? "-", 18).padEnd(18)}</Text>
-          {" "}
-          <Text color="magenta">{truncate(node.repo ?? "-", 24).padEnd(24)}</Text>
-          {" "}
-          <Text dimColor>{formatStart(node.startedAt, now)}</Text>
-          {" "}
-          <Text color={statusColor(node.status)}>{node.status}</Text>
-        </Text>
-      </Box>
+      <Text inverse={selected} bold={selected} color={statusColor(node.status)}>
+        {rowLine}
+      </Text>
       {node.title ? (
         <Box>
-          <Text>{indent}    </Text>
+          <Text>{bodyIndent}</Text>
           <Text dimColor>{truncate(node.title, 96)}</Text>
         </Box>
       ) : null}
-      {node.recentLogs.length > 0 ? (
+      {reversedLogs.length > 0 ? (
         <Box flexDirection="column">
-          {node.recentLogs.map((line, i) => (
+          {reversedLogs.map((line, i) => (
             <Box key={`${node.id}-log-${i}`}>
-              <Text>{indent}    </Text>
+              <Text>{bodyIndent}</Text>
               <Text dimColor>log: </Text>
               <Text>{truncate(line, 100)}</Text>
             </Box>

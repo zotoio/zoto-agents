@@ -7,7 +7,7 @@
 | subtask_id | 06 |
 | feature | command-prefix-shortening |
 | assigned_agent | crux-cursor-rule-manager |
-| model | composer-2-fast |
+| model | composer-2.5-fast |
 | token_budget | 200000 |
 | state | pending |
 | started_at |  |

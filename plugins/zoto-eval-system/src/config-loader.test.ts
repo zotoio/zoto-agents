@@ -50,10 +50,10 @@ describe("loadEvalConfig", () => {
     expect(res.config.skillsRoots).toEqual([".cursor/skills", "skills", "plugins/*/skills"]);
     expect(res.config.discoveryTargets).toEqual(["skill", "command", "agent", "hook"]);
     expect(res.config.static.framework).toBe("pytest");
-    expect(res.config.llm.strategy).toBe("declarative");
-    expect(res.config.llm.codeFramework).toBe("vitest");
     expect(res.config.llm.runtime).toBe("tsx");
-    expect(res.config.llm.model.id).toBe("composer-2");
+    expect(res.config.llm.model.id).toBe("composer-2.5");
+    expect((res.config.llm as Record<string, unknown>).strategy).toBeUndefined();
+    expect((res.config.llm as Record<string, unknown>).codeFramework).toBeUndefined();
     expect(res.config.judgeModel).toBe("opus-4.6");
     expect(res.config.analyser.concurrency).toBe(4);
     expect(res.config.analyser.maxCallsPerInvocation).toBe(50);
@@ -76,15 +76,67 @@ describe("loadEvalConfig", () => {
     const repo = tempRepo();
     writeRepoConfig(repo, YAML.stringify({
       static: { framework: "vitest" },
-      llm: { strategy: "code" },
+      llm: { runtime: "node" },
       ignore: ["vendor/**"],
     }));
     const res = loadEvalConfig(repo);
     expect(res.config.static.framework).toBe("vitest");
-    expect(res.config.llm.strategy).toBe("code");
+    expect(res.config.llm.runtime).toBe("node");
     expect(res.config.ignore).toEqual(["vendor/**"]);
     expect(res.config.evalsDir).toBe("evals");
-    expect(res.config.llm.model.id).toBe("composer-2");
+    expect(res.config.llm.model.id).toBe("composer-2.5");
+  });
+
+  it("rejects legacy llm.strategy via additionalProperties: false", () => {
+    const repo = tempRepo();
+    writeRepoConfig(repo, YAML.stringify({
+      llm: { strategy: "code" },
+    }));
+    expect(() => loadEvalConfig(repo)).toThrow(ConfigValidationError);
+    try {
+      loadEvalConfig(repo);
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConfigValidationError);
+      const err = e as ConfigValidationError;
+      const hasAdditional = err.errors.some(
+        (it) => it.keyword === "additionalProperties" &&
+          (it.params as { additionalProperty?: string }).additionalProperty === "strategy",
+      );
+      expect(hasAdditional).toBe(true);
+    }
+  });
+
+  it("rejects legacy llm.codeFramework via additionalProperties: false", () => {
+    const repo = tempRepo();
+    writeRepoConfig(repo, YAML.stringify({
+      llm: { codeFramework: "vitest" },
+    }));
+    expect(() => loadEvalConfig(repo)).toThrow(ConfigValidationError);
+    try {
+      loadEvalConfig(repo);
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConfigValidationError);
+      const err = e as ConfigValidationError;
+      const hasAdditional = err.errors.some(
+        (it) => it.keyword === "additionalProperties" &&
+          (it.params as { additionalProperty?: string }).additionalProperty === "codeFramework",
+      );
+      expect(hasAdditional).toBe(true);
+    }
+  });
+
+  it("accepts a config without llm.strategy / llm.codeFramework (single-backend default)", () => {
+    const repo = tempRepo();
+    writeRepoConfig(repo, YAML.stringify({
+      static: { framework: "vitest" },
+      llm: { runtime: "tsx", model: { id: "composer-2.5" } },
+    }));
+    const res = loadEvalConfig(repo);
+    expect(res.config.static.framework).toBe("vitest");
+    expect(res.config.llm.runtime).toBe("tsx");
+    expect(res.config.llm.model.id).toBe("composer-2.5");
+    expect((res.config.llm as Record<string, unknown>).strategy).toBeUndefined();
+    expect((res.config.llm as Record<string, unknown>).codeFramework).toBeUndefined();
   });
 
   it("throws ConfigValidationError on invalid enum value", () => {
@@ -174,7 +226,7 @@ describe("migrateFromLegacy", () => {
     mkdirSync(legacyDir, { recursive: true });
     writeFileSync(
       join(legacyDir, "config.json"),
-      JSON.stringify({ static: { framework: "vitest" }, llm: { strategy: "code" } }),
+      JSON.stringify({ static: { framework: "vitest" }, llm: { runtime: "node" } }),
       "utf-8",
     );
 
@@ -182,7 +234,7 @@ describe("migrateFromLegacy", () => {
 
     expect(existsSync(legacyDir)).toBe(false);
     expect(res.config.static.framework).toBe("vitest");
-    expect(res.config.llm.strategy).toBe("code");
+    expect(res.config.llm.runtime).toBe("node");
     expect(res.mtimeMs).not.toBe(0);
   });
 });

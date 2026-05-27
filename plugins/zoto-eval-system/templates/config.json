@@ -8,10 +8,8 @@
   "llm": {
     "runtime": "tsx",
     "model": {
-      "id": "composer-2"
-    },
-    "strategy": "declarative",
-    "codeFramework": "vitest"
+      "id": "composer-2.5"
+    }
   },
   "judgeModel": "opus-4.6",
   "manualChecklists": {

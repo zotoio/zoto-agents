@@ -4,7 +4,20 @@
  *
  * All paths are advisory; callers must tolerate missing directories because
  * the layout varies by Cursor version and which surfaces (IDE / CLI / Cloud)
- * the user has actually run.
+ * the user has actually run. Missing roots are surfaced via the
+ * collector's `diagnostics` array (see `readSessionRecords`) rather than
+ * being silently ignored.
+ *
+ * Linux note: Cursor 2026.05 moved per-agent state into SQLite databases
+ * (`~/.cursor/chats/<hash>/<chat-uuid>/store.db`,
+ * `~/.cursor/projects/<ws>/sdk-agent-store/<hash>/index.db`,
+ * `~/.config/Cursor/User/workspaceStorage/<hash>/state.vscdb`). The JSON
+ * walker can't reach those today — see the upstream issue list in
+ * `README.md`. As a stop-gap, the per-agent JSONL message-streams under
+ * `~/.cursor/projects/<ws>/agent-transcripts/` are surfaced through
+ * {@link CursorPaths.agentTranscriptRoots} and parsed by
+ * `readTranscriptRecords()` — one row per agent, with the transcript
+ * itself wired in as the log source.
  */
 
 import { homedir, platform } from "node:os";
@@ -25,6 +38,13 @@ export interface CursorPaths {
    * VMs to surface in-flight agents.
    */
   cloudProjectRoots: string[];
+  /**
+   * Roots of `~/.cursor/projects/<ws>/agent-transcripts/` for every
+   * workspace this user has touched. Each entry is the `agent-transcripts`
+   * directory for one workspace — populated dynamically because workspaces
+   * come and go.
+   */
+  agentTranscriptRoots: string[];
 }
 
 export function resolveCursorPaths(
@@ -52,6 +72,10 @@ export function resolveCursorPaths(
   }
 
   const dotCursor = join(home, ".cursor");
+  // Legacy: pre-2026 Cursor builds wrote flat JSON session records here.
+  // Kept for cross-version compatibility even though Linux 2026.05
+  // creates none of them — the JSON walker now reports each missing
+  // entry as a `diagnostics[]` line so the user is not left guessing.
   dataRoots.push(join(dotCursor, "agents"));
   dataRoots.push(join(dotCursor, "sessions"));
   cliSessionRoots.push(join(dotCursor, "cli", "chats"));
@@ -59,5 +83,17 @@ export function resolveCursorPaths(
   cliSessionRoots.push(join(dotCursor, "sessions"));
   cloudProjectRoots.push(join(dotCursor, "projects"));
 
-  return { dataRoots, logRoots, cliSessionRoots, cloudProjectRoots };
+  // agentTranscriptRoots is left empty here; the collector populates it
+  // at scan time by listing `~/.cursor/projects/<ws>/agent-transcripts/`
+  // for every workspace it finds. We can't enumerate eagerly without an
+  // FS handle, and resolveCursorPaths is intentionally synchronous.
+  const agentTranscriptRoots: string[] = [];
+
+  return {
+    dataRoots,
+    logRoots,
+    cliSessionRoots,
+    cloudProjectRoots,
+    agentTranscriptRoots,
+  };
 }

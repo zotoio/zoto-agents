@@ -418,7 +418,7 @@ function buildScaffoldDoc(subtaskMd, subtaskIdFromFilename) {
     subtask_id,
     feature: meta.feature,
     assigned_agent: meta.assignedAgent,
-    model: "composer-2-fast",
+    model: "composer-2.5-fast",
     token_budget: 2e5,
     state: "pending",
     checklist,

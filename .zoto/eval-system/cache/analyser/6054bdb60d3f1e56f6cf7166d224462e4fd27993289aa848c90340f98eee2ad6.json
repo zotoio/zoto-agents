@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "command:z-spec-create",
   "kind": "command",
   "source_path": "plugins/zoto-spec-system/commands/z-spec-create.md",
@@ -9,12 +9,18 @@
   "summary": "These cases cover the Spec System precondition abort, all three argument shapes from the usage block, the dated spec tree and status scaffolding the command promises, and the post-approval judge hand-off with Ready for Review status.",
   "cases": [
     {
-      "scenario": "Abort when spec-system configuration is missing",
+      "scenario": "status-scaffolding-review-summary-judge-spawn-and-ready-for-review",
       "prompt": "/z-spec-create",
-      "expected_output": "The assistant refuses immediately, prints the mandated initialisation message, and does not spawn the generator or write specs.",
+      "expected_output": "The assistant finishes drafting, runs the status round-trip scaffolder, presents a review summary, honours approval, brings in the judge agent, and marks the bundle Ready for Review.",
       "assertions": [
-        "After `/z-spec-create`, the visible assistant output MUST present the exact abort text requiring `/z-spec-init` and `.zoto/spec-system/config.yml` without fabricating a default config.",
-        "After `/z-spec-create`, no new dated feature directory MUST appear under `specs/` on disk."
+        "Before calling the spec complete, the transcript MUST record `pnpm run spec-status-roundtrip -- scaffold` (or a direct invocation producing the same paired artifacts) creating matching `.status.md` and `.status.yml` files under the dated `status/` directory for each subtask.",
+        "After the approval follow-up, the manifest MUST note a `zoto-spec-judge` engagement and the spec status MUST read Ready for Review in the written status artifacts.",
+        "When `.zoto/spec-system/config.yml` is missing, the assistant prints the exact abort line ``Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.`` verbatim.",
+        "Generated spec files land at `<YYYYMMDD>-<slug>/spec-<slug>-<YYYYMMDD>.md` per the persisted naming scheme.",
+        "Each subtask file follows the `subtask-<NN>-<slug>-<YYYYMMDD>.md` naming pattern."
+      ],
+      "follow_ups": [
+        "Approve the printed spec summary and run the quality gate now."
       ]
     },
     {
@@ -35,11 +41,14 @@
       "assertions": [
         "After `/z-spec-create`, the manifest or transcript MUST show a `zoto-spec-generator` delegation carrying an empty argument list consistent with the no-argument mode.",
         "After `/z-spec-create`, clarifying user prompts MUST appear before any write creating `{specsDir}/[yyyymmdd]-[feature-name]/spec-[feature-name]-[yyyymmdd].md`.",
-        "After `/z-spec-create`, the new spec tree MUST include at least one `subtask-NN-` markdown file beside the coordination index inside the dated directory."
+        "After `/z-spec-create`, the new spec tree MUST include at least one `subtask-NN-` markdown file beside the coordination index inside the dated directory.",
+        "When `.zoto/spec-system/config.yml` is missing, the assistant prints the exact abort line ``Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.`` verbatim.",
+        "Generated spec files land at `<YYYYMMDD>-<slug>/spec-<slug>-<YYYYMMDD>.md` per the persisted naming scheme.",
+        "Each subtask file follows the `subtask-<NN>-<slug>-<YYYYMMDD>.md` naming pattern."
       ]
     },
     {
-      "scenario": "Creation seeded from an attached design document path",
+      "scenario": "creation-seeded-from-an-attached-design-document-path",
       "prompt": "/z-spec-create @workspace/docs/northstar-brief.md",
       "fixtures": {
         "files": [
@@ -60,11 +69,14 @@
       "expected_output": "The assistant ingests the brief, aligns phases to its constraints, and materialises a dated specs folder with a coordination file plus numbered subtasks that reference those requirements.",
       "assertions": [
         "After `/z-spec-create @workspace/docs/northstar-brief.md`, tool activity MUST show the generator read `workspace/docs/northstar-brief.md` before drafting subtasks.",
-        "After `/z-spec-create @workspace/docs/northstar-brief.md`, the filesystem MUST contain `{specsDir}/[yyyymmdd]-[feature-name]/spec-[feature-name]-[yyyymmdd].md` and at least one `subtask-NN-[feature]-[name]-[yyyymmdd].md` sibling following the documented naming pattern."
+        "After `/z-spec-create @workspace/docs/northstar-brief.md`, the filesystem MUST contain `{specsDir}/[yyyymmdd]-[feature-name]/spec-[feature-name]-[yyyymmdd].md` and at least one `subtask-NN-[feature]-[name]-[yyyymmdd].md` sibling following the documented naming pattern.",
+        "When `.zoto/spec-system/config.yml` is missing, the assistant prints the exact abort line ``Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.`` verbatim.",
+        "Generated spec files land at `<YYYYMMDD>-<slug>/spec-<slug>-<YYYYMMDD>.md` per the persisted naming scheme.",
+        "Each subtask file follows the `subtask-<NN>-<slug>-<YYYYMMDD>.md` naming pattern."
       ]
     },
     {
-      "scenario": "Creation driven by a quoted feature description",
+      "scenario": "creation-driven-by-a-quoted-feature-description",
       "prompt": "/z-spec-create \"Add resilient offline queueing to the ingestion worker\"",
       "fixtures": {
         "files": [
@@ -80,7 +92,10 @@
       "expected_output": "The assistant forwards the quoted initiative text into the generator, derives a slug and date-structured folder, and writes matching coordination and subtask files that stay anchored to that scope.",
       "assertions": [
         "After `/z-spec-create`, the spawned generator payload MUST preserve the provided quoted description as the scope input rather than substituting an unrelated initiative title before discovery completes.",
-        "After `/z-spec-create`, created markdown filenames under the dated directory MUST embed a slug derived from the ingestion worker scope together with the same calendar date stamp used in the parent folder name."
+        "After `/z-spec-create`, created markdown filenames under the dated directory MUST embed a slug derived from the ingestion worker scope together with the same calendar date stamp used in the parent folder name.",
+        "When `.zoto/spec-system/config.yml` is missing, the assistant prints the exact abort line ``Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.`` verbatim.",
+        "Generated spec files land at `<YYYYMMDD>-<slug>/spec-<slug>-<YYYYMMDD>.md` per the persisted naming scheme.",
+        "Each subtask file follows the `subtask-<NN>-<slug>-<YYYYMMDD>.md` naming pattern."
       ]
     },
     {
@@ -103,8 +118,16 @@
       "expected_output": "The assistant finishes drafting, runs the status round-trip scaffolder, presents a review summary, honours approval, brings in the judge agent, and marks the bundle Ready for Review.",
       "assertions": [
         "Before calling the spec complete, the transcript MUST record `pnpm run spec-status-roundtrip -- scaffold` (or a direct invocation producing the same paired artifacts) creating matching `.status.md` and `.status.yml` files under the dated `status/` directory for each subtask.",
-        "After the approval follow-up, the manifest MUST note a `zoto-spec-judge` engagement and the spec status MUST read Ready for Review in the written status artifacts."
+        "After the approval follow-up, the manifest MUST note a `zoto-spec-judge` engagement and the spec status MUST read Ready for Review in the written status artifacts.",
+        "When `.zoto/spec-system/config.yml` is missing, the assistant prints the exact abort line ``Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.`` verbatim.",
+        "Generated spec files land at `<YYYYMMDD>-<slug>/spec-<slug>-<YYYYMMDD>.md` per the persisted naming scheme.",
+        "Each subtask file follows the `subtask-<NN>-<slug>-<YYYYMMDD>.md` naming pattern."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

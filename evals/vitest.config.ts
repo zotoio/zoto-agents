@@ -40,7 +40,6 @@ export default defineConfig({
       "_runs/**",
       "fixtures/**",
       "_llm/**",
-      "llm/**",
     ],
     setupFiles: ["./setup.ts"],
     reporters: [
@@ -49,7 +48,6 @@ export default defineConfig({
     ],
     testTimeout: 30_000,
     hookTimeout: 30_000,
-    passWithNoTests: true,
     /* Static evals are I/O bound + read-only; threads pool keeps wall time low. */
     pool: "threads",
   },

@@ -27,7 +27,7 @@ to improve quality without exploding cost.
     - **Path 3: Code-strategy LLM run** (Vitest/Jest harness invoking the cursor SDK per `it()`). Per-case token magnitude vs declarative.
     - **Path 4: Judge** (`/z-eval-judge` with `judgeModel`, default `opus-4.6`). Whole-run consumption, per-case overhead.
 
-  - [x] **Model-selection sanity**: the README declares `composer-2 | opus-4.6 | sonnet` for `llm.model.id` and `judgeModel` defaults to `opus-4.6`. Assess: is `opus-4.6` the right default for the judge given its routine invocation? Should the judge default to a cheaper model with `opus-4.6` opt-in?
+  - [x] **Model-selection sanity**: the README declares `composer-2.5 | opus-4.6 | sonnet` for `llm.model.id` and `judgeModel` defaults to `opus-4.6`. Assess: is `opus-4.6` the right default for the judge given its routine invocation? Should the judge default to a cheaper model with `opus-4.6` opt-in?
 
   - [x] **Cache effectiveness**: the analyser cache lives at `.zoto/eval-system/cache/`. Assess:
     - Invalidation triggers (source hash change, framework switch, strategy switch, manifest snapshot mismatch).

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "skill:zoto-update-evals",
   "kind": "skill",
   "source_path": "plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md",
@@ -110,5 +110,10 @@
         "Hooks reconcile plugin-level hook manifests under each plugin eval hooks folder together with `.cursor/evals/hooks/hooks.json`, treating `hook:cursor-workspace` as the canonical bundled hook target identifier."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

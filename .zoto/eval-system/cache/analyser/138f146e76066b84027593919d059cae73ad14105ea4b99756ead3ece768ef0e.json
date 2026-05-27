@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "skill:zoto-execute-spec",
   "kind": "skill",
   "source_path": "plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md",
@@ -140,5 +140,10 @@
         "The agent does not skip adversarial `zoto-spec-judge` verification for any subtask and does not advance past failed dependencies without operator direction."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

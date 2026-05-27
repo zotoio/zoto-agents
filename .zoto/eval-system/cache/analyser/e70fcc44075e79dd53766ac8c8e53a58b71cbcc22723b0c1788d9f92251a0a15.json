@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "agent:zoto-eval-analyser-subagent",
   "kind": "agent",
   "source_path": "plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md",
@@ -107,5 +107,10 @@
         "scenario labels stay short and avoid vague correctness phrases without naming what changed."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

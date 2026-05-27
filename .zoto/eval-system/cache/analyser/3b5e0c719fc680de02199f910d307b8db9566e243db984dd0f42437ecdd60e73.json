@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "analyser_version": "2026.05.03-1",
-  "model_id": "composer-2",
+  "model_id": "composer-2.5",
   "target_id": "hook:zoto-spec-system",
   "kind": "hook",
   "source_path": "plugins/zoto-spec-system/hooks/hooks.json",
@@ -9,24 +9,35 @@
   "summary": "The bundle wires sessionStart to a Node runner that scans for unprocessed specs and nudges the operator, and stop to a Node runner that checks subtask status consistency and may reconcile markdown or YAML drift before surfacing hard failures.",
   "cases": [
     {
-      "scenario": "sessionStart runs spec backlog scan",
+      "scenario": "sessionstart-runs-spec-backlog-scan",
       "prompt": "sessionStart lifecycle in Cursor: the workspace loads with zoto-spec-system enabled and Cursor runs `node hooks/zoto-session-start.mjs` from the plugin directory before chat work begins.",
       "expected_output": "The hook finishes without blocking the session, reporting whether any specs still need attention and pointing the operator at the right follow-up.",
       "assertions": [
         "The sessionStart hook process exited with status 0.",
         "Combined stdout and stderr contain no Cursor `askQuestion` payloads or other interactive prompts, because hook scripts must stay non-interactive.",
-        "Log or printed output references checking for unprocessed specs, matching the sessionStart hook description declared next to `node hooks/zoto-session-start.mjs` in plugins/zoto-spec-system/hooks/hooks.json."
+        "Log or printed output references checking for unprocessed specs, matching the sessionStart hook description declared next to `node hooks/zoto-session-start.mjs` in plugins/zoto-spec-system/hooks/hooks.json.",
+        "Invokes `node hooks/zoto-session-start.mjs` and the process exits with status 0.",
+        "Invokes `node hooks/zoto-onstop-check.mjs` and the process exits with status 0 (clean) or non-zero (blocking inconsistencies remain).",
+        "Hook output mentions `subtask status` so the operator sees the reconciliation surface."
       ]
     },
     {
-      "scenario": "stop validates subtask pairs and drift",
+      "scenario": "stop-validates-subtask-pairs-and-drift",
       "prompt": "stop lifecycle in Cursor: the operator ends the agent turn and Cursor runs `node hooks/zoto-onstop-check.mjs` so subtask checkbox, schema, and regex-derived statuses are compared and light drift can be auto-corrected.",
       "expected_output": "When metadata lines up, the hook exits cleanly; when critical mismatches remain, the hook exits non-zero after printing explicit findings so the operator can fix them manually.",
       "assertions": [
         "The stop hook process exposes a boolean success versus failure through its exit code that reflects whether blocking inconsistencies persist after any automatic reconciliation.",
         "Stdout and stderr stay free of `askQuestion` chatter; any guidance is emitted as plain text or structured logging suitable for a hook runner.",
-        "Output mentions validation of subtask status triples and markdown or YAML drift handling, consistent with the stop hook description paired with `node hooks/zoto-onstop-check.mjs` in plugins/zoto-spec-system/hooks/hooks.json."
+        "Output mentions validation of subtask status triples and markdown or YAML drift handling, consistent with the stop hook description paired with `node hooks/zoto-onstop-check.mjs` in plugins/zoto-spec-system/hooks/hooks.json.",
+        "Invokes `node hooks/zoto-session-start.mjs` and the process exits with status 0.",
+        "Invokes `node hooks/zoto-onstop-check.mjs` and the process exits with status 0 (clean) or non-zero (blocking inconsistencies remain).",
+        "Hook output mentions `subtask status` so the operator sees the reconciliation surface."
       ]
     }
-  ]
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
 }

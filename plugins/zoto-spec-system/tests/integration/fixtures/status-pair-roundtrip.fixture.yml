@@ -2,7 +2,7 @@ schema_version: 1
 subtask_id: "08"
 feature: spec-system-live-status
 assigned_agent: zoto-plugin-manager
-model: composer-2-fast
+model: composer-2.5-fast
 token_budget: 200000
 state: in_progress
 started_at: "2026-05-06T08:00:00.000Z"

@@ -81,7 +81,7 @@ schema_version: 1
 subtask_id: "01"
 feature: demo-feature
 assigned_agent: zoto-software-engineer
-model: composer-2-fast
+model: composer-2.5-fast
 token_budget: 200000
 state: in_progress
 started_at: "2026-05-06T12:00:00.000Z"
@@ -117,7 +117,7 @@ extra: {}
 | subtask_id | 01 |
 | feature | demo-feature |
 | assigned_agent | zoto-software-engineer |
-| model | composer-2-fast |
+| model | composer-2.5-fast |
 | token_budget | 200000 |
 | state | in_progress |
 | started_at | 2026-05-06T12:00:00.000Z |

@@ -35,7 +35,7 @@ The **`/z-eval-help` command** runs `askQuestion` **before** invoking this skill
 
 The Task prompt (or skill input) MUST include `help_context`:
 
-- `selected_section`: exact `##` header title or slug to anchor the answer on.
+- `selected_section`: exact `##` header title or slug to anchor the answer on. Must match a README section verbatim — e.g. `Strategy bridge`, `Configuration`, `LLM backend (@cursor/sdk)`.
 - `follow_up`: optional enum (`related`, `quick_start`, `done`) if the command already collected the next navigation step.
 - `user_question`: optional free-form follow-up the user typed instead of picking an option.
 
@@ -51,6 +51,7 @@ Read whichever of these are relevant to the chosen section. Skip files that don'
 | Configuration | `.zoto/eval-system/config.yml` (full), `templates/schema/config.schema.json` for field reference |
 | Static backend | `config.json` → `static.framework`, host repo's `evalsDir` contents |
 | LLM backend (`@cursor/sdk`) | `config.json` → `llm.*`, `.env.example`, `.env` (presence only — never read secret values), `package.json` devDeps for `@cursor/sdk`, `dotenv` |
+| Interaction branch (unified LLM eval harness) | `manifest.yml` → per-target `eval_files[]` (one co-located `<kind>/evals/<name>.test.ts` per target); presence of `evals/llm/_shared/run-llm-suite.ts` (the unified LLM eval harness exporting `defineLlmEval`) and `evals/llm/_shared/askquestion-bridge.ts`; cached analyser payloads under `.zoto/eval-system/cache/analyser/` for `requiresInteraction` (drives scripted-answer vs single-prompt at runtime); latest `report.yml` per-case `backend:` |
 | Updating evals | `manifest.yml` → `discovery_config`, `targets[]`; `manifest.history.yml` (last entry) |
 | Result schema | latest `evals/_runs/<run-id>/report.yml` and per-backend `static.yml` / `llm.yml` if any |
 | Run logs | `evals/_runs/` directory listing; latest `<run-id>/logs/` |
@@ -105,7 +106,7 @@ If `follow_up` is absent but the user clearly needs another section, return `nee
 
 - **README quote**: code reference with line numbers. Paths are relative to repo root (`plugins/zoto-eval-system/README.md`). Do not add a language tag.
 
-  ```20:30:plugins/zoto-eval-system/README.md
+  ```34:52:plugins/zoto-eval-system/README.md
   ## Quick start
   ...
   ```

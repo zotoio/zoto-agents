@@ -667,7 +667,7 @@ function defaultTwoCases(
     baseFixtures.unshift({
       path: configHint,
       content:
-        '{"evalsDir":"evals","skillsRoots":["skills"],"discoveryTargets":["skill","command","agent","hook"],"llm":{"runtime":"tsx","model":{"id":"composer-2"}},"judgeModel":"opus-4.6"}',
+        '{"evalsDir":"evals","skillsRoots":["skills"],"discoveryTargets":["skill","command","agent","hook"],"llm":{"runtime":"tsx","model":{"id":"composer-2.5"}},"judgeModel":"opus-4.6"}',
     });
   }
 
@@ -1080,7 +1080,7 @@ export function primitiveAnalysisHash(payload: AnalysisPayload): string {
  * logic that affects payload content. A bump invalidates every previous cache
  * entry on the next run.
  */
-export const ANALYSER_VERSION = "2026.05.03-1";
+export const ANALYSER_VERSION = "2026.05.26-1";
 
 /**
  * Canonical analyser types — imported from `plugins/zoto-eval-system/engine/analyser-payload.ts`
@@ -1089,6 +1089,7 @@ export const ANALYSER_VERSION = "2026.05.03-1";
  */
 import type {
   PrimitiveKind,
+  InteractionStyle,
   AnalyserFixtureFile,
   AnalyserFixtures,
   AnalyserExpectedFilesystem,
@@ -1097,12 +1098,62 @@ import type {
 } from "../plugins/zoto-eval-system/engine/analyser-payload.js";
 export type {
   PrimitiveKind,
+  InteractionStyle,
   AnalyserFixtureFile,
   AnalyserFixtures,
   AnalyserExpectedFilesystem,
   AnalyserCase,
   AnalyserPayload,
 };
+
+/**
+ * Shape written into stamped `_meta.primitive_analysis` from an analyser payload.
+ * Subtask 06 stampers consume this via {@link buildPrimitiveAnalysisMeta}.
+ */
+export interface PrimitiveAnalysisMeta {
+  source_hash: string;
+  analysed_at: string;
+  analyser_version: string;
+  summary: string;
+  requiresInteraction?: boolean;
+  interactionStyle?: InteractionStyle;
+  invalidate?: boolean;
+  fixture_justifications?: string[];
+}
+
+/**
+ * Project an {@link AnalyserPayload} onto the `_meta.primitive_analysis` block
+ * embedded in stamped eval rows. Copies interaction classification when present
+ * so downstream stampers can route without re-running the analyser.
+ */
+export function buildPrimitiveAnalysisMeta(
+  payload: AnalyserPayload,
+  opts: {
+    analysedAt?: string;
+    invalidate?: boolean;
+    fixtureJustifications?: string[];
+  } = {},
+): PrimitiveAnalysisMeta {
+  const meta: PrimitiveAnalysisMeta = {
+    source_hash: payload.source_hash,
+    analysed_at: opts.analysedAt ?? new Date().toISOString(),
+    analyser_version: payload.analyser_version,
+    summary: payload.summary,
+  };
+  if (payload.requiresInteraction !== undefined) {
+    meta.requiresInteraction = payload.requiresInteraction;
+  }
+  if (payload.interactionStyle !== undefined) {
+    meta.interactionStyle = payload.interactionStyle;
+  }
+  if (opts.invalidate === true) {
+    meta.invalidate = true;
+  }
+  if (opts.fixtureJustifications && opts.fixtureJustifications.length > 0) {
+    meta.fixture_justifications = opts.fixtureJustifications.slice();
+  }
+  return meta;
+}
 
 /**
  * Parity manifest consumed by `scripts/check-analyser-payload-parity.ts`. The
@@ -1181,6 +1232,8 @@ export const ANALYSER_PAYLOAD_PARITY_SPEC: ParityType[] = [
       { name: "source_path", optional: false },
       { name: "source_hash", optional: false },
       { name: "summary", optional: false },
+      { name: "requiresInteraction", optional: true },
+      { name: "interactionStyle", optional: true },
       { name: "cases", optional: false },
     ],
   },
@@ -1193,7 +1246,7 @@ export interface AnalyserConfig {
 }
 
 const DEFAULT_ANALYSER_CFG: AnalyserConfig = {
-  modelId: "composer-2",
+  modelId: "composer-2.5",
   concurrency: 4,
   maxCallsPerInvocation: 50,
 };
@@ -1590,9 +1643,13 @@ function buildAnalyserPrompt(args: {
   "source_path": "${repoRelPosix(args.resolved.sourcePath)}",
   "source_hash": "${args.sourceHash}",
   "summary": "...",
+  "requiresInteraction": true,
+  "interactionStyle": "command-owned",
   "cases": [ ... ]
 }
 \`\`\``,
+    "",
+    "Also emit top-level `requiresInteraction` (boolean) and `interactionStyle` (`command-owned` | `subagent-escalated` | `none`) per the **Interaction classification** section. Omit both only when you truly cannot classify.",
     "",
     `## Primitive`,
     `- **target_id**: \`${args.resolved.targetId}\``,

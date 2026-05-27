@@ -195,7 +195,7 @@ Run `askQuestion` for each field in this order. Use enum-backed options (no free
 6. **`llm.strategy`** *(new — subtask 02)* — `code` / `declarative`. Default `declarative` for new repos.
 7. **`llm.codeFramework`** *(new — subtask 02; conditional)* — only ask when `llm.strategy === "code"`. Options: `vitest` / `jest`. When `static.framework` is also a TS framework, default the suggestion to match it.
 8. **llm.runtime** — `tsx` vs `node`.
-9. **llm.model.id** — `composer-2` / `opus-4.6` / `sonnet`.
+9. **llm.model.id** — `composer-2.5` / `opus-4.6` / `sonnet`.
 10. **judgeModel** — same set; default `opus-4.6`.
 11. **manualChecklists.enabled** — yes / no.
 12. **additionalAutomation** — none / vitest / jest / bats (multi-select).

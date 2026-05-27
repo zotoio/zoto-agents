@@ -12,13 +12,13 @@ Read `.zoto/eval-system/config.yml`. If missing, return a `needs_user_input` blo
 
 Key fields used:
 - **`static.framework`** — `pytest` | `vitest` | `jest` (which static harness is stamped/run).
-- **`llm.strategy`** — `code` | `declarative` (LLM eval case shape and runner path).
-- **`llm.codeFramework`** — `vitest` | `jest` when `llm.strategy` is `code` (code-strategy reporter/harness scaffold).
 - `evalsDir` — where eval scaffolding lands.
 - `skillsRoots[]` — discovery roots.
 - `discoveryTargets[]` — which kinds to scaffold evals for.
 - `llm.model.id` and `judgeModel` — baked into the generated README snippet.
 - `manualChecklists.enabled` — whether to stamp user checklists.
+
+The LLM backend has no per-repo selector axis. Every approved primitive is stamped as a co-located `<kind>/evals/<name>.test.ts` file driven by the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts` (exported as `defineLlmEval`); the harness reads each case's `requiresInteraction` flag and branches at runtime.
 
 ## Skills You Use
 
@@ -37,12 +37,12 @@ Expect the Task prompt from `/z-eval-create` to include pre-collected approval l
 3. Target approval is **already** decided by the command — proceed with the approved lists passed in the prompt.
 4. Stamp BOTH backends every time — static pytest and LLM (@cursor/sdk).
 5. Generate eval cases for each approved target using the correct template per kind (`skills/<x>/evals/evals.json`, `plugins/<p>/evals/commands|agents|hooks/…`). Every generated case gets `_meta.generated: true`, `source_hash` (sha256 of normalised source), `last_updated` (ISO-8601), and `generated_by: zoto-create-evals`.
-6. Stamp `.env.example` at the repo root from `templates/env/.env.example.tmpl` — only when it does not already exist; never overwrite, never write `.env`.
+6. Stamp `.env.example` at the repo root from `templates/env/.env.example.tmpl` AND ensure the host `.gitignore` excludes `.env` (creates `.gitignore` if missing, appends the rule lines if missing — never duplicates). Both steps happen via `scripts/ensure-host-env-and-gitignore.ts` (`pnpm exec tsx <plugin>/scripts/ensure-host-env-and-gitignore.ts`) which returns a JSON report you must surface to the operator. Never overwrite an existing `.env.example`; never write `.env`.
 7. Merge `templates/package-scripts/base.json` into the host repo's `package.json` (includes `dotenv` so the LLM runner can auto-load `.env`).
 8. If `manualChecklists.enabled`, stamp `USER_EVAL_CHECKLISTS.md`.
 9. Write `.zoto/eval-system/manifest.yml` and append to `.zoto/eval-system/manifest.history.yml`.
 10. Validate: `pnpm run eval:list`, `pnpm run eval -- --collect-only`, `pnpm run eval:update --check` (must exit 0 immediately after create).
-11. Surface in the final report: any pre-existing `.env.example` skipped, plus a one-liner reminding the operator to run their package manager once to pick up new devDeps.
+11. Surface in the final report: any pre-existing `.env.example` skipped, the `.gitignore` action taken by `ensure-host-env-and-gitignore.ts` (`created` / `appended` / `no-change` plus the lines added), plus a one-liner reminding the operator to run their package manager once to pick up new devDeps.
 
 ## Critical Rules
 

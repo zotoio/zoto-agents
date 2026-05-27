@@ -153,7 +153,7 @@ function fakePayload(
   const payload: AnalyserPayload = {
     schema_version: 1,
     analyser_version: ANALYSER_VERSION,
-    model_id: "composer-2",
+    model_id: "composer-2.5",
     target_id: `${kind}:${slug}`,
     kind,
     source_path: sourcePath,

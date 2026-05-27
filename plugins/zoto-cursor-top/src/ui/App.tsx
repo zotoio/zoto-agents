@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Box, Text, useApp, useInput } from "ink";
 import type { AgentSnapshot } from "../types.js";
 import { Tree, flattenVisible } from "./Tree.js";
+import { headerRow } from "./format.js";
 
 export interface AppProps {
   /** Returns the next snapshot to render. */
@@ -26,6 +27,7 @@ export function App({ load, initial, intervalMs }: AppProps): React.JSX.Element 
     initial.roots[0] ?? null,
   );
   const [now, setNow] = useState<number>(Date.now());
+  const [paused, setPaused] = useState<boolean>(false);
 
   const visible = useMemo(
     () => flattenVisible(snapshot, expanded),
@@ -33,6 +35,11 @@ export function App({ load, initial, intervalMs }: AppProps): React.JSX.Element 
   );
 
   useEffect(() => {
+    // When paused, both the data-fetch and the wall-clock timers are
+    // skipped. Manual refresh ("r") still works because it bypasses
+    // this effect entirely. We re-subscribe whenever `paused` flips so
+    // the loop comes back online cleanly without a stale closure.
+    if (paused) return;
     let cancelled = false;
     const tick = async (): Promise<void> => {
       try {
@@ -52,7 +59,7 @@ export function App({ load, initial, intervalMs }: AppProps): React.JSX.Element 
       clearInterval(timer);
       clearInterval(clock);
     };
-  }, [load, intervalMs]);
+  }, [load, intervalMs, paused]);
 
   useInput((input, key) => {
     if (input === "q" || (key.ctrl && input === "c")) {
@@ -76,10 +83,16 @@ export function App({ load, initial, intervalMs }: AppProps): React.JSX.Element 
       return;
     }
     if (input === "r") {
+      // Manual refresh — runs even when paused so the user can take a
+      // single-shot snapshot without resuming the auto-refresh loop.
       void load().then((next) => {
         setSnapshot(next);
         setNow(Date.now());
       });
+      return;
+    }
+    if (input === "p" || input === " ") {
+      setPaused((prev) => !prev);
       return;
     }
     if (input === "e") {
@@ -114,11 +127,18 @@ export function App({ load, initial, intervalMs }: AppProps): React.JSX.Element 
   return (
     <Box flexDirection="column">
       <Box justifyContent="space-between">
-        <Text bold color="cyan">
-          cursor-top
-        </Text>
+        <Box>
+          <Text bold color="cyan">
+            cursor-top
+          </Text>
+          {paused ? (
+            <Text bold color="yellow">
+              {"  ⏸ PAUSED"}
+            </Text>
+          ) : null}
+        </Box>
         <Text dimColor>
-          {`${totals.processes} processes · ${totals.roots} roots · ${totals.subs} subagents · refresh ${intervalMs}ms`}
+          {`${totals.processes} processes · ${totals.roots} roots · ${totals.subs} subagents · refresh ${paused ? "paused" : `${intervalMs}ms`}`}
         </Text>
       </Box>
       <Box>
@@ -143,7 +163,7 @@ export function App({ load, initial, intervalMs }: AppProps): React.JSX.Element 
       ) : null}
       <Box marginTop={1}>
         <Text dimColor>
-          [↑/↓] move  [→/enter] expand  [←] collapse  [e]xpand all  [c]ollapse all  [r]efresh  [q]uit
+          [↑/↓] move  [→/enter] expand  [←] collapse  [e]xpand all  [c]ollapse all  [r]efresh  [p]ause  [q]uit
         </Text>
       </Box>
     </Box>
@@ -152,18 +172,6 @@ export function App({ load, initial, intervalMs }: AppProps): React.JSX.Element 
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
-}
-
-function headerRow(): string {
-  return [
-    "TYPE".padEnd(5),
-    "   PID",
-    " AGENT".padEnd(40),
-    " MODEL".padEnd(18),
-    " REPO".padEnd(24),
-    " START (elapsed)",
-    " STATUS",
-  ].join(" ");
 }
 
 interface Totals {

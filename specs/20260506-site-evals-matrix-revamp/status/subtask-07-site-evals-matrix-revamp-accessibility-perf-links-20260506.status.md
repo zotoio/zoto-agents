@@ -7,7 +7,7 @@
 | subtask_id | 07 |
 | feature | site-evals-matrix-revamp |
 | assigned_agent | integrity-expert |
-| model | composer-2-fast |
+| model | composer-2.5-fast |
 | token_budget | 200000 |
 | state | completed |
 | started_at | 2026-05-07T05:33:00Z |

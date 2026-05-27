@@ -14,10 +14,8 @@ const TEMPLATE_CONFIG_PATH = join(__dirname, "..", "templates", "config.json");
 /* ------------------------------------------------------------------ */
 
 export type StaticFramework = "pytest" | "vitest" | "jest";
-export type LlmStrategy = "code" | "declarative";
-export type LlmCodeFramework = "vitest" | "jest";
 export type LlmRuntime = "tsx" | "node";
-export type ModelId = "composer-2" | "opus-4.6" | "sonnet";
+export type ModelId = "composer-2.5" | "opus-4.6" | "sonnet";
 export type DiscoveryTarget = "skill" | "command" | "agent" | "hook" | "cli" | "lib";
 
 export interface EvalSystemConfig {
@@ -29,8 +27,6 @@ export interface EvalSystemConfig {
   llm: {
     runtime: LlmRuntime;
     model: { id: ModelId };
-    strategy: LlmStrategy;
-    codeFramework: LlmCodeFramework;
   };
   judgeModel: ModelId;
   manualChecklists: { enabled: boolean };

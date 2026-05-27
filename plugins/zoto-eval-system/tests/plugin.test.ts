@@ -537,7 +537,7 @@ describe("Fixture repo — update semantics", () => {
       evalsDir: "evals",
       skillsRoots: ["skills"],
       discoveryTargets: ["skill"],
-      llm: { runtime: "tsx", model: { id: "composer-2" } },
+      llm: { runtime: "tsx", model: { id: "composer-2.5" } },
       judgeModel: "opus-4.6",
       manualChecklists: { enabled: false },
       additionalAutomation: [],

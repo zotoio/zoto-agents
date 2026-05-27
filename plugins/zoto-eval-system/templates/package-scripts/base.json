@@ -14,7 +14,8 @@
     "eval:update:check": "tsx evals/_llm/update.ts --check",
     "eval:compare": "tsx evals/_llm/compare.ts",
     "eval:static:jest": "NODE_OPTIONS=--experimental-vm-modules jest --config evals/jest.config.ts",
-    "eval:static:vitest": "vitest run --config evals/vitest.config.ts"
+    "eval:static:vitest": "vitest run --config evals/vitest.config.ts",
+    "eval:ensure-host": "tsx scripts/eval-ensure-host.ts"
   },
   "devDependencies": {
     "@cursor/sdk": "^1.0.12",

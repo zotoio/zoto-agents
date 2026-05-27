@@ -44,12 +44,12 @@ Stamp (generate) per-primitive eval test files from an analyser payload.
 | **Args** | `-- <target-id> [--dry-run] [--baseline-only]` |
 | **Output** | Files written under `{evalsDir}/` for command/agent/hook targets; **`skill:zoto-eval-tooling`** stamps `plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json` from the analyser cache — stdout reports the path written |
 | **Exit codes** | 0 = success, 1 = error (missing payload, bad target), 2 = non-allowlisted `skill:*` target |
-| **Config fields used** | `static.framework`, `llm.strategy`, `llm.codeFramework`, `evalsDir` |
+| **Config fields used** | `static.framework`, `evalsDir` |
 | **Note** | **`skill:zoto-eval-tooling`** is allowlisted: run `pnpm run eval:analyse -- skill:zoto-eval-tooling` first (cache under `.zoto/eval-system/cache/analyser/`), then `pnpm run eval:stamp -- skill:zoto-eval-tooling`. Every other `skill:*` refuses stamp — use `templates/skill-evals/evals.json.tmpl` (see `CENTRAL_STAMP_SKILL_ALLOWLIST` in the host `scripts/eval-stamp.ts`). |
 
 ### `pnpm run eval:cleanup-stale`
 
-Safe workflow before deleting generated eval assets after a **static framework** or **LLM strategy / codeFramework** change: default mode only **plans**; destructive `--apply` is gated.
+Safe workflow before deleting generated eval assets after a **static framework** change: default mode only **plans**; destructive `--apply` is gated. The unified LLM eval harness ships a single backend shape (one TS-everywhere co-located eval per target), so cleanup only sweeps stale static-framework fingerprints / tests and orphaned co-located `<kind>/evals/<name>.test.ts` files (and orphaned generated rows in central `evals.json`).
 
 | Detail | Value |
 |--------|-------|
@@ -61,7 +61,7 @@ Safe workflow before deleting generated eval assets after a **static framework**
 | **`-- --force`** | Only meaningful with `--apply`; bypasses session/token gate. |
 | **Output** | Full **`cleanup_plan` JSON on stdout** in default / `--dry-run` only; **`--check`** uses exit code + stderr; **`--apply`** prints apply summary JSON on stdout |
 | **Exit codes** | **`0`** — success (dry-run printed, check found no drift, or apply completed). **`1`** — invalid mode mix, missing session/token on apply, expired/missing lockfile, plan hash mismatch vs lockfile, refused paths, or other runtime errors. **`2`** — **`--check`** detected stale files (`totals.files > 0`). **`3`** — emitted plan failed AJV validation against the cleanup-plan schema (engine/schema drift). |
-| **Config fields used** | `static.framework`, `llm.strategy`, `llm.codeFramework`, `ignore` (removed-target group) |
+| **Config fields used** | `static.framework`, `ignore` (removed-target group) |
 | **Schema** | Printed and internally validated against **`plugins/zoto-eval-system/templates/schema/cleanup-plan.schema.json`** (same path as `templates/schema/cleanup-plan.schema.json` relative to the eval-system plugin). This is the schema `/z-eval-configure` and the configurer skill use for `cleanup_plan`. |
 
 ### `pnpm run eval:update`
@@ -86,7 +86,7 @@ Orchestrate a full eval run (static + optional LLM backends).
 | **Args** | `-- [--full] [--llm-only] [--model <id>]` |
 | **Output** | Run folder at `{evalsDir}/_runs/<ts>/` |
 | **Exit codes** | 0 = success |
-| **Config fields used** | `evalsDir`, `static.framework`, `llm.strategy`, `llm.codeFramework`, `llm.model.id`, `runs.retention` |
+| **Config fields used** | `evalsDir`, `static.framework`, `llm.model.id`, `runs.retention` |
 
 ### `pnpm run eval:gc`
 

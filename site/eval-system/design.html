@@ -114,12 +114,12 @@
           they consume pre-collected answers, or return a structured <code>needs_user_input</code>
           block so the command can prompt the user and resume the subagent with the answer.
           This is standard Cursor subagent plumbing — the important guarantee is that the user
-          sees and approves every change.
+          sees and approves every change. This <strong>operator</strong> flow is distinct from
+          <strong>eval-runner</strong> scripted <code>AskQuestion</code> simulation on code-strategy
+          cases — see <a href="#strategy-bridge">Strategy bridge</a> below. Code-strategy evals
+          simulate the same contract via
+          <code>evals/llm/_shared/askquestion-bridge.ts</code> (scripted answers, no human).
         </p>
-        <figure>
-          <img src="../images/diagrams/eval-askquestion-flow.svg" alt="Sequence diagram with three lifelines (User, Command, Subagent). The Command exclusively owns askQuestion; the Subagent never calls askQuestion. When the Subagent needs a human answer it returns needs_user_input, the Command askQuestions the user, then resumes the Subagent.">
-          <figcaption>The command relays user decisions to subagents. <code>needs_user_input</code> is the structured handoff contract.</figcaption>
-        </figure>
 
         <h2 id="static-backend">Static backend</h2>
         <p>The default static layout is stamped from <code>templates/static/pytest/</code> when <code>static.framework</code> is <code>pytest</code>. Vitest and jest variants follow their respective template trees.</p>
@@ -138,11 +138,49 @@
           <code>february</code> SDK package is not used anywhere in this plugin.
         </p>
         <p>
-          <code>llm.strategy</code> chooses <strong><code>code</code></strong> vs
-          <strong><code>declarative</code></strong> case shapes; when <code>code</code>,
-          <code>llm.codeFramework</code> selects vitest or jest reporters co-stamped with the
-          runner. The LLM backend is stamped at <code>{evalsDir}/_llm/</code>:
+          LLM eval shape is chosen <strong>per target</strong> by analyser classification — not by a
+          single repo-wide <code>llm.strategy</code> knob. The
+          <code>zoto-eval-analyser-subagent</code> emits <code>requiresInteraction</code> (and optional
+          <code>interactionStyle</code>) into cached analyser payloads; the stamper routes each target
+          to either declarative JSON or code-strategy TypeScript. Global
+          <code>llm.strategy</code> in <code>.zoto/eval-system/config.yml</code> is the
+          <strong>fallback default</strong> when classification is unavailable; <code>llm.codeFramework</code>
+          applies to all code-strategy targets.
         </p>
+
+        <h3 id="strategy-bridge">Strategy bridge</h3>
+        <p>
+          Full pipeline: <strong>source primitive</strong> → <strong>analyser</strong> →
+          <code>{requiresInteraction, interactionStyle}</code> → <strong>stamper</strong> →
+          declarative JSON <em>or</em> code-strategy TS →
+          <code>evals/llm/_shared/askquestion-bridge.ts</code> (interactive code path only) →
+          <code>@cursor/sdk</code> <code>Agent.run</code> → <code>zoto-llm-reporter</code> /
+          writer → <code>report.yml</code> row with <code>backend: declarative|code</code>.
+        </p>
+        <figure>
+          <img src="../images/diagrams/eval-askquestion-flow.svg" alt="Eval strategy bridge pipeline from source primitive through analyser, classification, stamper, declarative or code-strategy branches, askquestion-bridge on the interactive path, @cursor/sdk, and report.yml with backend annotation.">
+          <figcaption>Per-target routing at stamp time. Code-strategy interactive cases simulate operator <code>AskQuestion</code> turns via <code>askquestion-bridge.ts</code>; each turn is tagged <code>interaction_style: synthetic</code> on SDK 1.0.12.</figcaption>
+        </figure>
+        <p>
+          <code>askquestion-bridge.ts</code> wraps <code>sdk-bridge.ts</code> and replays scripted
+          answers from case <code>interactions.answers</code> (legacy fallback: <code>follow_ups[]</code>).
+          Stamped <code>test_*.test.ts</code> files import the bridge through
+          <code>evals/llm/_shared/</code>; the suite harness in
+          <code>run-code-strategy-suite.ts</code> wires interactive cases automatically.
+        </p>
+        <table>
+          <thead><tr><th>Branch</th><th>Stamped artefact</th><th>Runner script</th></tr></thead>
+          <tbody>
+            <tr><td><code>requiresInteraction: false</code></td><td><code>plugins/*/evals/**/evals.json</code></td><td><code>pnpm run eval:llm:declarative</code></td></tr>
+            <tr><td><code>requiresInteraction: true</code></td><td><code>evals/llm/test_*.test.ts</code></td><td><code>pnpm run eval:llm:code</code></td></tr>
+          </tbody>
+        </table>
+        <p>
+          Both runners may execute in one <code>pnpm run eval:full</code> pass. Apply-mode update with
+          reclassification may migrate a target between JSON and TS; <code>eval:cleanup-stale</code>
+          removes wrong-backend artefacts per target.
+        </p>
+        <p>The declarative scaffold is stamped at <code>{evalsDir}/_llm/</code>; code-strategy tests live under <code>{evalsDir}/llm/</code>:</p>
         <table>
           <thead><tr><th>File</th><th>Role</th></tr></thead>
           <tbody>
@@ -163,7 +201,10 @@
         </ol>
 
         <h2 id="run-outputs">Run output layout</h2>
-        <p>Each <code>/z-eval-execute</code> writes a single timestamped folder.</p>
+        <p>Each <code>/z-eval-execute</code> writes a single timestamped folder. Per-case rows in
+          <code>llm.yml</code> and merged <code>report.yml</code> include
+          <code>backend: declarative</code> or <code>backend: code</code> so comparers and CI can
+          group hybrid runs.</p>
         <pre><code class="language-bash">{evalsDir}/_runs/&lt;ts&gt;/
   static.yml          # static-backend totals + per-case rows
   llm.yml             # LLM-backend totals + soft metrics + per-case rows
@@ -194,11 +235,21 @@ aggregates:
 cases:
   - id: zoto-create-spec/1
     status: passed
+    backend: declarative
     tokens: 3182
     duration_ms: 2710
     verbosity: 0.38
     accuracy: 0.92
-    confidence: 0.81</code></pre>
+    confidence: 0.81
+  - id: z-eval-configure/2
+    status: passed
+    backend: code
+    interaction_style: synthetic
+    tokens: 4521
+    duration_ms: 3890
+    verbosity: 0.44
+    accuracy: 0.88
+    confidence: 0.79</code></pre>
 
         <h2 id="meta-generated">The <code>_meta.generated</code> contract</h2>
         <p>Every generated eval case carries a <code>_meta</code> block. Cases without <code>_meta</code>, or with <code>_meta.generated === false</code>, are user-authored and are preserved verbatim.</p>
@@ -210,10 +261,14 @@ cases:
   generated: true
   source_hash: &lt;sha256 of the target's normalised content at generation time&gt;
   last_updated: &lt;ISO 8601 timestamp&gt;
-  generated_by: "zoto-create-evals" | "zoto-update-evals"</code></pre>
+  generated_by: "zoto-create-evals" | "zoto-update-evals"
+  primitive_analysis:
+    requiresInteraction: true
+    interactionStyle: synthetic</code></pre>
         <ul>
           <li>The updater <strong>never</strong> modifies user-authored cases.</li>
           <li>It flags them for "may need review" and moves on.</li>
+          <li>Classification fields in <code>_meta.primitive_analysis</code> drive stamper routing on apply-mode update.</li>
           <li>The validator rejects any <code>update.ts</code> source that does not enforce this guard at compile time (literal-string check for <code>_meta?.generated === true</code>).</li>
         </ul>
 
@@ -251,7 +306,16 @@ targets:
       frontmatter: { name: zoto-create-spec, description: "Guided..." }
       tools: []
     eval_files:
-      - plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json</code></pre>
+      - plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+  - id: command:z-eval-configure
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-configure.md
+    content_hash: 3a2b...c91
+    public_surface:
+      frontmatter: { name: z-eval-configure, description: "Interactive config..." }
+      tools: []
+    eval_files:
+      - evals/llm/test_command_z-eval-configure.test.ts</code></pre>
 
         <h2 id="judge-vs-advise">Judge vs Adviser</h2>
         <p>

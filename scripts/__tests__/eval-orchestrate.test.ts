@@ -87,7 +87,7 @@ function makeLlmDoc(runId: string): Record<string, unknown> {
     started_at: "2026-05-04T00:00:01Z",
     ended_at: "2026-05-04T00:00:05Z",
     backend: "llm",
-    model: "composer-2",
+    model: "composer-2.5",
     totals: { cases: 2, passed: 1, failed: 1, skipped: 0 },
     aggregates: { tokens_total: 1500, duration_ms_total: 4000 },
     cases: [
@@ -123,17 +123,84 @@ async function run(): Promise<void> {
     assert(a.full === true, "full implied");
   });
 
+  await test("parseArgs: legacy --strategy/--llm-strategy is warn-and-ignore (subtask 03)", () => {
+    const origWrite = process.stderr.write.bind(process.stderr);
+    const captured: string[] = [];
+    (process.stderr as unknown as { write: typeof origWrite }).write = ((
+      chunk: string | Uint8Array,
+    ): boolean => {
+      captured.push(typeof chunk === "string" ? chunk : chunk.toString());
+      return true;
+    }) as typeof origWrite;
+    try {
+      const a = parseArgs([
+        "--strategy=code",
+        "--full",
+        "--llm-strategy",
+        "declarative",
+        "--model",
+        "opus-4-6",
+      ]);
+      assert(a.full === true, "--full survives the legacy flags");
+      assert(a.model === "opus-4-6", "--model survives the legacy flags");
+      assert(
+        !("strategy" in (a as Record<string, unknown>)),
+        "OrchestrateArgs must not expose strategy",
+      );
+      const joined = captured.join("");
+      assert(
+        joined.includes("ignoring legacy '--strategy=code'"),
+        `expected warn for --strategy=, got: ${joined}`,
+      );
+      assert(
+        joined.includes("ignoring legacy '--llm-strategy'"),
+        `expected warn for --llm-strategy, got: ${joined}`,
+      );
+    } finally {
+      (process.stderr as unknown as { write: typeof origWrite }).write =
+        origWrite;
+    }
+  });
+
   await test("computeRunStamp: stable shape YYYYMMDDTHHMMSSZ", () => {
     const { runId, runTs } = computeRunStamp(new Date(Date.UTC(2026, 4, 4, 1, 2, 3)));
     assert(runId === runTs, "runId === runTs");
     assert(/^[0-9]{8}T[0-9]{6}Z$/.test(runId), `unexpected stamp: ${runId}`);
   });
 
-  await test("loadResolvedConfig: falls back to defaults if config missing", () => {
-    const cfg = loadResolvedConfig();
-    assert(typeof cfg.staticFramework === "string", "staticFramework");
-    assert(typeof cfg.llmStrategy === "string", "llmStrategy");
-    assert(cfg.retention >= 1, "retention >= 1");
+  await test("loadResolvedConfig: returns ResolvedConfig without legacy LLM strategy fields", () => {
+    // Hermetic — uses a tmp host root rather than the live repo config, so this
+    // assertion does not couple to subtask 01's parallel config.yml migration
+    // state. Verifies the subtask-03 contract: ResolvedConfig no longer carries
+    // llmStrategy / llmCodeFramework.
+    const tmpRoot = mkdtempSync(join(tmpdir(), "zoto-orch-cfg-"));
+    try {
+      mkdirSync(join(tmpRoot, ".zoto", "eval-system"), { recursive: true });
+      writeFileSync(
+        join(tmpRoot, ".zoto", "eval-system", "config.yml"),
+        YAML.stringify({
+          evalsDir: "evals",
+          static: { framework: "vitest" },
+          llm: { model: { id: "composer-2.5" } },
+          runs: { retention: 7 },
+        }),
+        "utf-8",
+      );
+      const cfg = loadResolvedConfig(tmpRoot);
+      assert(typeof cfg.staticFramework === "string", "staticFramework");
+      assert(cfg.retention === 7, `retention 7, got ${cfg.retention}`);
+      assert(typeof cfg.modelId === "string", "modelId");
+      assert(
+        !("llmStrategy" in (cfg as Record<string, unknown>)),
+        "ResolvedConfig must not expose llmStrategy after subtask 03",
+      );
+      assert(
+        !("llmCodeFramework" in (cfg as Record<string, unknown>)),
+        "ResolvedConfig must not expose llmCodeFramework after subtask 03",
+      );
+    } finally {
+      rmSync(tmpRoot, { recursive: true, force: true });
+    }
   });
 
   await test("buildMergedReport: backend=mixed when both backends present", () => {
@@ -150,7 +217,7 @@ async function run(): Promise<void> {
       staticPath: "/tmp/x/static.yml",
       llmPath: "/tmp/x/llm.yml",
       notes: [],
-      modelId: "composer-2",
+      modelId: "composer-2.5",
     });
     assert(doc.backend === "mixed", `backend should be mixed, got ${String(doc.backend)}`);
     assert(
@@ -179,7 +246,7 @@ async function run(): Promise<void> {
       staticPath: "/tmp/y/static.yml",
       llmPath: null,
       notes: ["llm_skip: CURSOR_API_KEY missing"],
-      modelId: "composer-2",
+      modelId: "composer-2.5",
     });
     assert(doc.backend === "static", `backend should be static`);
     const report = doc.report as Record<string, unknown>;
@@ -198,15 +265,12 @@ async function run(): Promise<void> {
         YAML.stringify({
           evalsDir: "evals",
           static: { framework: "vitest" },
-          llm: {
-            strategy: "code",
-            codeFramework: "vitest",
-            model: { id: "composer-2" },
-          },
+          llm: { model: { id: "composer-2.5" } },
           runs: { retention: 5 },
         }),
         "utf-8",
       );
+      let llmScriptSpawned: string | null = null;
       const result = await orchestrate({
         argv: ["--full"],
         now: new Date(Date.UTC(2026, 4, 4, 1, 2, 3)),
@@ -215,6 +279,14 @@ async function run(): Promise<void> {
         spawnRunner: (script, env) => {
           assert(typeof env.ZOTO_EVAL_RUN_ID === "string" && env.ZOTO_EVAL_RUN_ID.length > 0, "ZOTO_EVAL_RUN_ID set");
           assert(typeof env.ZOTO_EVAL_RUN_TS === "string", "ZOTO_EVAL_RUN_TS set");
+          assert(
+            env.ZOTO_EVAL_LLM_STRATEGY === undefined,
+            "subtask 03: orchestrator must not inject ZOTO_EVAL_LLM_STRATEGY",
+          );
+          assert(
+            env.ZOTO_EVAL_LLM_CODE_FRAMEWORK === undefined,
+            "subtask 03: orchestrator must not inject ZOTO_EVAL_LLM_CODE_FRAMEWORK",
+          );
           const runDir = join(
             tmpRoot,
             "evals",
@@ -228,17 +300,24 @@ async function run(): Promise<void> {
               YAML.stringify(makeStaticDoc(env.ZOTO_EVAL_RUN_ID as string)),
               "utf-8",
             );
-          } else if (script.startsWith("eval:llm:")) {
+          } else if (script === "eval:llm") {
+            llmScriptSpawned = script;
             writeFileSync(
               join(runDir, "llm.yml"),
               YAML.stringify(makeLlmDoc(env.ZOTO_EVAL_RUN_ID as string)),
               "utf-8",
             );
+          } else {
+            throw new Error(`unexpected spawn script: ${script}`);
           }
           return { exitCode: 0 };
         },
         spawnDrift: () => ({ exitCode: 0, stdout: "drift hook stub: clean" }),
       });
+      assert(
+        llmScriptSpawned === "eval:llm",
+        "subtask 03: LLM dispatch must be the single 'eval:llm' script",
+      );
       assert(existsSync(result.reportPath), "report.yml exists");
       assert(
         result.staticReportPath && existsSync(result.staticReportPath),
@@ -252,8 +331,14 @@ async function run(): Promise<void> {
         readFileSync(join(result.runDir, ".run-meta.json"), "utf-8"),
       );
       assert(meta.static_framework === "vitest", "meta static_framework");
-      assert(meta.llm_strategy === "code", "meta llm_strategy");
-      assert(meta.llm_codeFramework === "vitest", "meta llm_codeFramework");
+      assert(
+        !("llm_strategy" in meta),
+        "subtask 03: .run-meta.json must not record llm_strategy",
+      );
+      assert(
+        !("llm_codeFramework" in meta),
+        "subtask 03: .run-meta.json must not record llm_codeFramework",
+      );
       assert(typeof meta.git_ref === "string", "meta git_ref");
 
       const reportDoc = YAML.parse(readFileSync(result.reportPath, "utf-8"));
@@ -282,10 +367,7 @@ async function run(): Promise<void> {
         YAML.stringify({
           evalsDir: "evals",
           static: { framework: "vitest" },
-          llm: {
-            strategy: "declarative",
-            model: { id: "composer-2" },
-          },
+          llm: { model: { id: "composer-2.5" } },
           runs: { retention: 5 },
         }),
         "utf-8",
@@ -318,13 +400,15 @@ async function run(): Promise<void> {
               YAML.stringify(makeStaticDoc(env.ZOTO_EVAL_RUN_ID as string)),
               "utf-8",
             );
-          } else if (script.startsWith("eval:llm:")) {
+          } else if (script === "eval:llm") {
             llmModelCli = modelCli;
             writeFileSync(
               join(runDir, "llm.yml"),
               YAML.stringify(makeLlmDoc(env.ZOTO_EVAL_RUN_ID as string)),
               "utf-8",
             );
+          } else {
+            throw new Error(`unexpected spawn script: ${script}`);
           }
           return { exitCode: 0 };
         },
@@ -348,7 +432,7 @@ async function run(): Promise<void> {
         YAML.stringify({
           evalsDir: "evals",
           static: { framework: "pytest" },
-          llm: { strategy: "declarative", model: { id: "composer-2" } },
+          llm: { model: { id: "composer-2.5" } },
           runs: { retention: 5 },
         }),
         "utf-8",
@@ -397,7 +481,7 @@ async function run(): Promise<void> {
         YAML.stringify({
           evalsDir: "evals",
           static: { framework: "pytest" },
-          llm: { strategy: "declarative", model: { id: "composer-2" } },
+          llm: { model: { id: "composer-2.5" } },
         }),
         "utf-8",
       );

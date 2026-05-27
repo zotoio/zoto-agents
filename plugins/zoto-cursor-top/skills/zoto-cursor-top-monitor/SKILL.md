@@ -60,7 +60,8 @@ npx -p @zoto-agents/zoto-cursor-top cursor-top --demo
 | `←` (or `h`) | Collapse the selected node. |
 | `e` | Expand all nodes. |
 | `c` | Collapse all nodes. |
-| `r` | Force a refresh now. |
+| `r` | Force a refresh now (works even while paused). |
+| `p` (or space) | Pause / resume the auto-refresh loop. |
 | `q` (or `Ctrl-C`) | Quit. |
 
 ### Step 4: Interpret Each Row

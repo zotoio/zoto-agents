@@ -1,0 +1,120 @@
+// _meta.generated: true
+/**
+ * LLM eval for command `z-eval-operator`.
+ *
+ * Generated from the legacy declarative JSON eval payload by
+ * `scripts/eval-relocate-migration.ts` as part of spec
+ * `20260526-eval-single-backend-colocated-restructure` (subtask 08).
+ *
+ * The literal first line of this file MUST remain `// _meta.generated: true`.
+ * The cleanup engine and overwrite gate both use
+ * `plugins/zoto-eval-system/engine/_user-case-guards.ts#isGeneratedFile(path, { strict: true })`
+ * to decide whether this file is safe to replace or delete. Edit the
+ * source primitive and re-run `pnpm run eval:update --apply`, not this
+ * emitted file.
+ */
+import { describe, it, afterAll, expect } from "vitest";
+
+import type { LlmCaseDefinition } from "../../../../evals/llm/_shared/llm-case.js";
+import { defineLlmEval } from "../../../../evals/llm/_shared/run-llm-suite.js";
+
+const CASES = [
+  {
+    "id": 1,
+    "prompt": "/z-eval-operator",
+    "assertions": [
+      "Assistant output repeats verbatim: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+      "After that reply, `.zoto/eval-system/config.yml` is still absent at the repository root."
+    ],
+    "_meta": {
+      "generated": true,
+      "source_hash": "d03c4d8428b02e04db9cf00d1074907edd7dd56e411b8e5704e305a3b8ac3174",
+      "last_updated": "2026-05-26T03:22:43.358Z",
+      "generated_by": "zoto-create-evals",
+      "primitive_analysis": {
+        "source_hash": "d03c4d8428b02e04db9cf00d1074907edd7dd56e411b8e5704e305a3b8ac3174",
+        "analysed_at": "2026-05-26T03:22:43.358Z",
+        "analyser_version": "2026.05.26-1",
+        "summary": "/z-eval-operator mirrors /z-eval-workflow once `.zoto/eval-system/config.yml` exists—Probe stays read-only, Lifecycle maps stages with AskQuestion ordering, Resolution names paste-ready slashes, manifests and configs never change from this slash, and no subagents or skills launch.",
+        "requiresInteraction": false,
+        "interactionStyle": "none"
+      }
+    },
+    "expected_output": "The assistant emits only the documented initialisation refusal and directs `/z-eval-init`, without surfacing evaluator lifecycle branching."
+  },
+  {
+    "id": 2,
+    "prompt": "/z-eval-operator",
+    "assertions": [
+      "Probe narration states whether `.zoto/eval-system/manifest.yml` exists without rewriting that file or touching `.zoto/eval-system/config.yml`.",
+      "Lifecycle AskQuestion exposes options labelled configure → scaffold → drift-check → drift-apply → execute → judge → compare → advise → help referencing `/z-eval-configure`, `/z-eval-create`, `/z-eval-update`, `/z-eval-update --apply`, `/z-eval-execute`, `/z-eval-judge`, `/z-eval-compare` with paired run operands, `/z-eval-advise`, and `/z-eval-help [<topic>]`, while the execute hint mentions `--full` with the documented `CURSOR_API_KEY` warning.",
+      "Closing guidance cites executing `commands/z-eval-workflow.md` from `plugins/zoto-eval-system/commands/` verbatim (or cites the mirrored `zoto-eval-system/commands/z-eval-workflow.md` wording) before operators pick a lifecycle stage.",
+      "Assistant tells operators to invoke the delegated `/z-eval-*` commands directly next rather than spawning subagents or touching disk inside this slash."
+    ],
+    "_meta": {
+      "generated": true,
+      "source_hash": "d03c4d8428b02e04db9cf00d1074907edd7dd56e411b8e5704e305a3b8ac3174",
+      "last_updated": "2026-05-26T03:22:43.358Z",
+      "generated_by": "zoto-create-evals",
+      "primitive_analysis": {
+        "source_hash": "d03c4d8428b02e04db9cf00d1074907edd7dd56e411b8e5704e305a3b8ac3174",
+        "analysed_at": "2026-05-26T03:22:43.358Z",
+        "analyser_version": "2026.05.26-1",
+        "summary": "/z-eval-operator mirrors /z-eval-workflow once `.zoto/eval-system/config.yml` exists—Probe stays read-only, Lifecycle maps stages with AskQuestion ordering, Resolution names paste-ready slashes, manifests and configs never change from this slash, and no subagents or skills launch.",
+        "requiresInteraction": false,
+        "interactionStyle": "none"
+      }
+    },
+    "expected_output": "Assistant narrates Probe results for `.zoto/eval-system/manifest.yml`, explains routing comes straight from `plugins/zoto-eval-system/commands/z-eval-workflow.md` including mirror-path guidance, emits the Lifecycle AskQuestion with ordered choices, cites execute caveats referencing `--full` plus `CURSOR_API_KEY`, and performs no edits to manifests or configs."
+  },
+  {
+    "id": 3,
+    "prompt": "/z-eval-operator",
+    "assertions": [
+      "Opening turn restates Probe and ordered lifecycle questionnaire before reacting to follow-up staging choices.",
+      "Resolution tied to execute leads with conspicuous bold wording that `/z-eval-create` still has not run because `.zoto/eval-system/manifest.yml` is missing, then outlines `/z-eval-execute` with the documented API key caveat.",
+      "Neither turn writes `.zoto/eval-system/manifest.yml`, mutates seeded `.zoto/eval-system/config.yml`, nor introduces Task-directed subagents or skills."
+    ],
+    "_meta": {
+      "generated": true,
+      "source_hash": "d03c4d8428b02e04db9cf00d1074907edd7dd56e411b8e5704e305a3b8ac3174",
+      "last_updated": "2026-05-26T03:22:43.358Z",
+      "generated_by": "zoto-create-evals",
+      "primitive_analysis": {
+        "source_hash": "d03c4d8428b02e04db9cf00d1074907edd7dd56e411b8e5704e305a3b8ac3174",
+        "analysed_at": "2026-05-26T03:22:43.358Z",
+        "analyser_version": "2026.05.26-1",
+        "summary": "/z-eval-operator mirrors /z-eval-workflow once `.zoto/eval-system/config.yml` exists—Probe stays read-only, Lifecycle maps stages with AskQuestion ordering, Resolution names paste-ready slashes, manifests and configs never change from this slash, and no subagents or skills launch.",
+        "requiresInteraction": false,
+        "interactionStyle": "none",
+        "fixture_justifications": [
+          "Seeds `.zoto/eval-system/config.yml` so precondition passes while the sandbox workspace omits `.zoto/eval-system/manifest.yml`, exercising the tailoring clause when operators pick stages outside configure or help."
+        ]
+      }
+    },
+    "fixtures": {
+      "files": [
+        {
+          "path": "workspace/.zoto/eval-system/config.yml",
+          "from": "evals/fixtures/baseline/.zoto/eval-system/config.yml"
+        }
+      ]
+    },
+    "expected_output": "First turn repeats Probe plus lifecycle enumeration; Resolution after choosing execute fronts bold scaffolding guidance that `/z-eval-create` has not run yet before enumerating `/z-eval-execute` usage notes including API key prerequisites.",
+    "follow_ups": [
+      "After the questionnaire, send me down the execute branch even though artefacts may lag."
+    ]
+  }
+] as unknown as LlmCaseDefinition[];
+
+defineLlmEval({
+  targetId: "command:z-eval-operator",
+  cases: CASES,
+  modelId: process.env.ZOTO_EVAL_MODEL ?? "composer-2.5",
+  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6",
+  caseTimeoutMs: 180000,
+  describe,
+  it,
+  afterAll,
+  expect,
+});
