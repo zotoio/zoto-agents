@@ -1,0 +1,36 @@
+schema_version: 1
+subtask_id: "10"
+feature: Eval Single Backend & Co-located Restructure
+assigned_agent: zoto-plugin-manager
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "`plugins/zoto-eval-system/README.md` — rewrite the section that describes the eval layout. The new section MUST:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: '`plugins/zoto-eval-system/README.md` — add a new "Adding an eval as a plugin author" section. Content:'
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "`plugins/zoto-eval-system/docs/**/*.md` — audit and update any file that mentions strategy / codeFramework. Common candidates: a config-schema doc, a layout doc. Bring them in line with the new design"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "`CHANGELOG.md` at repo root (or `plugins/zoto-eval-system/CHANGELOG.md` per the plugin's existing convention — verify which one this repo uses) — append a single entry under a new release section. Format:"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: If the repo has a top-level eval-architecture diagram (mermaid, ASCII, or image), update it to show the co-located layout
+    done: false
+    evidence_path: null
+  - id: D06
+    text: If `plugins/zoto-eval-system/.cursor-plugin/plugin.json` has a `description` mentioning strategy, update it
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

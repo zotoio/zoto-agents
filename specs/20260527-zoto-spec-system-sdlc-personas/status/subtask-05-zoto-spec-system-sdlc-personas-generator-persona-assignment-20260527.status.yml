@@ -1,0 +1,32 @@
+schema_version: 1
+subtask_id: "05"
+feature: zoto-spec-system-sdlc-personas
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "**D01** — Updated `plugins/zoto-spec-system/agents/zoto-spec-generator.md`:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "**D02** — Updated `plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md`:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "**D03** — Update the `zoto-create-spec` skill's **What NOT to Do**"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "**D04** — Update or add eval cases for `zoto-create-spec` in"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: '**D05** — Add a "persona override" example to the generator agent'
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

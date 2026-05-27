@@ -1,0 +1,66 @@
+schema_version: 1
+subtask_id: "11"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: '`site/eval-system/index.html` — overview gains a "Strategy bridge" section explaining declarative-vs-code + the analyser classification, with a link to the design page.'
+    done: true
+    evidence_path: site/eval-system/index.html#strategy-bridge
+  - id: D02
+    text: "`site/eval-system/design.html` — full flow described: analyser → classification → stamper → backend → bridge (when interactive) → SDK → report. Reference `_shared/askquestion-bridge.ts` and the `interaction_style` annotation."
+    done: true
+    evidence_path: site/eval-system/design.html#strategy-bridge
+  - id: D03
+    text: "`site/eval-system/configuration.html` — `llm.strategy` documentation refreshed to explain that strategy is per-target (analyser-driven) within a hybrid scaffold; the global `llm.strategy:` knob in `.zoto/eval-system/config.yml` becomes the **fallback default** when classification is unavailable, not the per-target choice."
+    done: true
+    evidence_path: site/eval-system/configuration.html#llm-backend
+  - id: D04
+    text: '`site/eval-system/quickstart.html` — new "What gets stamped where?" callout pointing to the design page.'
+    done: true
+    evidence_path: site/eval-system/quickstart.html#configure
+  - id: D05
+    text: "`site/images/diagrams/eval-askquestion-flow.svg` regenerated to show: source primitive → analyser → `{requiresInteraction, interactionStyle}` → stamper → declarative JSON OR code-strategy TS → askquestion-bridge (interactive only) → @cursor/sdk → `report.yml` with `backend: declarative|code`."
+    done: true
+    evidence_path: site/images/diagrams/eval-askquestion-flow.svg
+  - id: D06
+    text: Cross-link audit performed against `site/spec-system/{index,design,configuration,quickstart}.html` per Subtask 03's `docs-spec-system-impact.md`; broken or stale links fixed.
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/docs-spec-system-impact.md
+  - id: D07
+    text: "Markup smoke check: pages render without unclosed tags (use a simple HTML linter or `node --check` on any inline scripts touched)."
+    done: true
+    evidence_path: null
+artifacts:
+  - path: site/eval-system/index.html
+    kind: modified
+    note: Strategy bridge section and dual-backend updates
+  - path: site/eval-system/design.html
+    kind: modified
+    note: Full analyser-to-report pipeline and strategy-bridge subsection
+  - path: site/eval-system/configuration.html
+    kind: modified
+    note: llm.strategy reframed as fallback default
+  - path: site/eval-system/quickstart.html
+    kind: modified
+    note: What gets stamped where callout and hybrid notes
+  - path: site/images/diagrams/eval-askquestion-flow.svg
+    kind: modified
+    note: Regenerated strategy-bridge pipeline diagram
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/docs-update-map.md
+    kind: modified
+    note: Phase 5 completion checklist ticked
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/docs-spec-system-impact.md
+    kind: modified
+    note: Subtask 11 cross-link audit result recorded
+errors: []
+notes: "Cross-link audit: spec-system nav-only; no HTML edits required. HTML tag-balance smoke check passed."
+extra:
+  judge:
+    verdict: verified
+    at: "2026-05-26T12:00:00Z"
+    notes: "All seven deliverables and five DoD gates confirmed on disk. Strategy-bridge sections present in index/design/configuration/quickstart; SVG regenerated with title/desc and full pipeline nodes; spec-system nav links resolve; HTML tag-balance delta zero on all four pages; docs-update-map Phase 5 marked done; git diff scope limited to site/ paths."
+    fix_list: []

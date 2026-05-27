@@ -1,0 +1,40 @@
+schema_version: 1
+subtask_id: "06"
+feature: evals-json-first-migration
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Update `evals/vitest.config.ts`:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "Update `package.json`:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "Update `scripts/eval-orchestrate.ts`:"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "Update `evals/llm/_shared/zoto-llm-reporter.ts`:"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "Update `evals/reporters/zoto-eval-reporter.ts`:"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "Smoke-test the wiring locally (without API key):"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: Document the new flow with a short paragraph at the top of `evals/vitest.config.ts` (replace the stale "subtask 08 will relocate" comment block).
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

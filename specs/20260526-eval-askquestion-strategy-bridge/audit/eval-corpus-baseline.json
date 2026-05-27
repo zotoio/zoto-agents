@@ -1,0 +1,1018 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-25T15:18:13.488517Z",
+  "manifest_target_count": 52,
+  "llm_test_count": 43,
+  "migration_class_totals": {
+    "no-eval-yet": 9,
+    "keep-code-bridge-only": 32,
+    "migrate-to-declarative": 11
+  },
+  "migration_class_by_kind": {
+    "agent": {
+      "no-eval-yet": 3,
+      "keep-code-bridge-only": 8,
+      "migrate-to-declarative": 4
+    },
+    "command": {
+      "no-eval-yet": 3,
+      "keep-code-bridge-only": 14,
+      "migrate-to-declarative": 3
+    },
+    "hook": {
+      "migrate-to-declarative": 3
+    },
+    "skill": {
+      "no-eval-yet": 3,
+      "keep-code-bridge-only": 10,
+      "migrate-to-declarative": 1
+    }
+  },
+  "reconciliation": {
+    "orphan_llm_tests": [],
+    "targets_without_llm_test": [
+      "skill:zoto-create-plugin",
+      "skill:zoto-cursor-top-monitor",
+      "skill:zoto-advise-evals",
+      "command:zoto-cursor-top",
+      "command:z-eval-jump",
+      "command:z-eval-operator",
+      "agent:zoto-cursor-top-troubleshooter",
+      "agent:zoto-eval-architect",
+      "agent:zoto-eval-engineer"
+    ],
+    "requires_interaction_true": 30,
+    "requires_interaction_false": 22,
+    "follow_ups_in_test_count": 28,
+    "eval_list_total": 299
+  },
+  "targets": {
+    "skill:zoto-create-plugin": {
+      "kind": "skill",
+      "source_path": ".cursor/skills/zoto-create-plugin/SKILL.md",
+      "eval_files": [
+        ".cursor/skills/zoto-create-plugin/evals/evals.json"
+      ],
+      "llm_test_path": null,
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 0,
+      "user_authored_case_count": 3,
+      "migration_class": "no-eval-yet",
+      "follow_ups_in_test": false,
+      "test_is_generated": null
+    },
+    "skill:zoto-cursor-top-monitor": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json"
+      ],
+      "llm_test_path": null,
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 0,
+      "user_authored_case_count": 3,
+      "migration_class": "no-eval-yet",
+      "follow_ups_in_test": false,
+      "test_is_generated": null
+    },
+    "skill:zoto-advise-evals": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/skills/zoto-advise-evals/evals/evals.json"
+      ],
+      "llm_test_path": null,
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md:18: Also reads `.zoto/eval-system/manifest.yml` for the current target inventory, eval file paths, and content hashes. If the manifest is missing, the skill aborts with `needs_user_input` pointing the user to `/z-eval-create`.",
+        "plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md:271: ### Step 5: Return summary with needs_user_input (Breakpoint 1)",
+        "plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md:295: The full `adviser_report` is attached alongside the `needs_user_input` block so the command can reference it if the user wants raw data.",
+        "plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md:324: ### Step 7: Return recommendations with needs_user_input (Breakpoint 2)",
+        "plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md:408: - Do **not** call `askQuestion`. Use `needs_user_input` so the command can prompt and resume."
+      ],
+      "generated_case_count": 0,
+      "user_authored_case_count": 4,
+      "migration_class": "no-eval-yet",
+      "follow_ups_in_test": false,
+      "test_is_generated": null
+    },
+    "skill:zoto-compare-evals": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-eval-system/skills/zoto-compare-evals/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/skills/zoto-compare-evals/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-compare-evals.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/skills/zoto-compare-evals/SKILL.md:21: Prefer receiving identifiers that resolve to exactly one **`_runs/`** folder. If **`/z-eval-compare`** received only a fragment (`20260503`) and multiple hourly directories match, the command surfaces **`needs_user_input`** with **`{evalsDi",
+        "plugins/zoto-eval-system/skills/zoto-compare-evals/SKILL.md:31: **Ambiguity:** If lookup yields **multiple** `_runs/` directories for one argument **and** the Task prompt did not pin that argument to a single path (exact basename, unequivocal relative path, or other explicit resolution), stop comparison"
+      ],
+      "generated_case_count": 2,
+      "user_authored_case_count": 2,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "skill:zoto-configure-evals": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/skills/zoto-configure-evals/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-configure-evals.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md:66: If critical fields are missing, return `needs_user_input` \u2014 **never** call `askQuestion`.",
+        "plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md:117: - When `llm.strategy === \"code\"`, `llm.codeFramework` MUST be set. If the payload omits it, return `needs_user_input` asking the command to re-prompt.",
+        "plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md:133: The skill emits the `cleanup_plan` payload alongside the written config (e.g. as part of the `needs_user_input` payload or a final report block). It **does not** delete any file, prompt for confirmation, or invoke ``pnpm run eval:cleanup-st",
+        "plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md:148: Write `.zoto/eval-system/config.yml` atomically (write to a temp file, then rename). Validate using `ajv` against `templates/schema/config.schema.json`. Validate the `cleanup_plan` payload against `templates/schema/cleanup-plan.schema.json`"
+      ],
+      "generated_case_count": 7,
+      "user_authored_case_count": 2,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "skill:zoto-create-evals": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-create-evals.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md:9: Reads `.zoto/eval-system/config.yml`. If missing, return `needs_user_input` so `/z-eval-create` can hand off to `/z-eval-configure` \u2014 **do not** call `askQuestion`.",
+        "plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md:37: Read `.zoto/eval-system/config.yml`. If missing, end with `needs_user_input` describing that configure must run first \u2014 do not prompt interactively.",
+        "plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md:139: If any gate fails, report errors in your final output; if user decision is needed to retry, use `needs_user_input` \u2014 **never** `askQuestion`.",
+        "plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md:145: - **Cleanup**: Operators run `pnpm exec tsx scripts/eval-cleanup-vendored.ts` (supports `--dry-run`) to unlink generated-only (`_meta.generated === true` everywhere) skill/central JSON whose mapped source sits under ignored globs, then prun"
+      ],
+      "generated_case_count": 5,
+      "user_authored_case_count": 3,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "skill:zoto-eval-tooling": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-eval-tooling.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 8,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "skill:zoto-execute-evals": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/skills/zoto-execute-evals/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-execute-evals.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md:58: `needs_user_input` with abort vs static-only options \u2014 **never** call"
+      ],
+      "generated_case_count": 7,
+      "user_authored_case_count": 3,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "skill:zoto-help-evals": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-help-evals.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md:39: If `selected_section` is missing **and** cannot be inferred safely, return `needs_user_input` with candidate sections \u2014 **never** call `askQuestion`.",
+        "plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md:99: If `follow_up` is absent but the user clearly needs another section, return `needs_user_input` with section options so the command can `askQuestion` and resume. Do not chain to a second section silently.",
+        "plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md:124: - Do not call `askQuestion` from this skill. Use `needs_user_input` so the command can prompt and resume."
+      ],
+      "generated_case_count": 13,
+      "user_authored_case_count": 3,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "skill:zoto-judge-evals": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-eval-system/skills/zoto-judge-evals/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/skills/zoto-judge-evals/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-judge-evals.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/skills/zoto-judge-evals/SKILL.md:63: ### Step 5: Offer follow-up (needs_user_input)"
+      ],
+      "generated_case_count": 5,
+      "user_authored_case_count": 3,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "skill:zoto-update-evals": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/skills/zoto-update-evals/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-update-evals.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md:145: - If a palette-driven or resumed apply flow reaches an undocumented branch, return structured `needs_user_input` (validate against `plugins/zoto-eval-system/templates/schema/needs-user-input.schema.json`) for the command instead of calling "
+      ],
+      "generated_case_count": 9,
+      "user_authored_case_count": 3,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "skill:zoto-create-spec": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-create-spec.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md:46: - **Resume:** Your immediately prior turn ended with `needs_user_input` (see below) and the current user message contains `USER_ANSWERS:` with numbered replies matching those questions.",
+        "plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md:51: Ask clarifying questions to understand the scope. **Interactive chat:** ask **one question at a time**, up to **10** maximum. **Batched subagent mode:** you may emit up to **10** numbered questions in a single `needs_user_input` block.",
+        "plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md:53: #### `needs_user_input` (when you cannot loop interactively)",
+        "plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md:103: **Precondition:** Step 1 gate satisfied (see **Step 1: Gather Requirements**). If not satisfied, stop with `needs_user_input` or ask the host to supply `REQUIREMENTS_GATE: satisfied`.",
+        "plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md:121: Use **`askQuestion`** (if running as a command/executor) or return **`needs_user_input`** (if running as a subagent) to get structured user approval before proceeding to the automatic judge review.",
+        "plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md:132: - **Conditional** (3.0\u20133.9): Flag the issues and use **`askQuestion`** / **`needs_user_input`** to ask whether to revise or proceed",
+        "plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md:133: - **Reject** (< 3.0): Flag the issues and use **`askQuestion`** / **`needs_user_input`** to ask whether to revise or proceed anyway",
+        "plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md:150: - Do not skip user confirmation \u2014 always use **`askQuestion`** (commands/executors) or **`needs_user_input`** (subagents/skills) for user gates"
+      ],
+      "generated_case_count": 5,
+      "user_authored_case_count": 4,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "skill:zoto-execute-spec": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-execute-spec.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md:414: - Do not use free-form chat to request user decisions \u2014 all choices must go through **`askQuestion`** (executor/commands) or **`needs_user_input`** (subagents/skills)"
+      ],
+      "generated_case_count": 10,
+      "user_authored_case_count": 5,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "skill:zoto-judge-spec": {
+      "kind": "skill",
+      "source_path": "plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md",
+      "eval_files": [
+        "plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json"
+      ],
+      "llm_test_path": "evals/llm/test_skill_zoto-judge-spec.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md:172: Then use **`askQuestion`** (if running as a command/executor) or return **`needs_user_input`** (if running as a subagent) to get structured approval:"
+      ],
+      "generated_case_count": 4,
+      "user_authored_case_count": 3,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:zoto-cursor-top": {
+      "kind": "command",
+      "source_path": "plugins/zoto-cursor-top/commands/zoto-cursor-top.md",
+      "eval_files": [],
+      "llm_test_path": null,
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 0,
+      "user_authored_case_count": 0,
+      "migration_class": "no-eval-yet",
+      "follow_ups_in_test": false,
+      "test_is_generated": null
+    },
+    "command:z-eval-advise": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-advise.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-advise.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-advise.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "command-owned",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/commands/z-eval-advise.md:3: description: Pre-hoc eval coverage adviser. Assesses gaps across five dimensions (trigger-phrase, schema, regression, citation, checklist) and recommends actions. Command-owned askQuestion drives multi-turn interaction at two breakpoints (d"
+      ],
+      "generated_case_count": 9,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-eval-compare": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-compare.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-compare.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-compare.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 4,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "command:z-eval-configure": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-configure.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-configure.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-configure.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "command-owned",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/commands/z-eval-configure.md:3: description: Writes .zoto/eval-system/config.yml using command-owned askQuestion for every field, then spawns zoto-eval-configurer with pre-collected answers. Diffs the chosen config against the manifest snapshot (discovery_config.static / ",
+        "plugins/zoto-eval-system/commands/z-eval-configure.md:3: description: Writes .zoto/eval-system/config.yml using command-owned askQuestion for every field, then spawns zoto-eval-configurer with pre-collected answers. Diffs the chosen config against the manifest snapshot (discovery_config.static / ",
+        "plugins/zoto-eval-system/commands/z-eval-configure.md:73: ### Confirm cleanup_plan (command-owned askQuestion)"
+      ],
+      "generated_case_count": 9,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-eval-create": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-create.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-create.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-create.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "command-owned",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/commands/z-eval-create.md:3: description: Scaffold static (pytest) and LLM (@cursor/sdk) eval backends, generate eval cases with _meta.generated markers for approved skills/commands/agents/hooks, and write the persistent manifest. Command pre-collects target checklists"
+      ],
+      "generated_case_count": 3,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-eval-execute": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-execute.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-execute.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-execute.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "command-owned",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/commands/z-eval-execute.md:3: description: Run the eval suite via the host repo's package.json scripts. Command-owned askQuestion when --full lacks CURSOR_API_KEY; zoto-eval-executor returns needs_user_input if unresolved. --model forwards to LLM runner."
+      ],
+      "generated_case_count": 6,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-eval-help": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-help.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-help.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-help.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "command-owned",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/commands/z-eval-help.md:3: description: Section-routed help for the Eval System plugin. Command-owned askQuestion for section selection and follow-ups; zoto-help-evals composes a project-tailored answer anchored on the chosen README section, with mandatory `start:end",
+        "plugins/zoto-eval-system/commands/z-eval-help.md:3: description: Section-routed help for the Eval System plugin. Command-owned askQuestion for section selection and follow-ups; zoto-help-evals composes a project-tailored answer anchored on the chosen README section, with mandatory `start:end",
+        "plugins/zoto-eval-system/commands/z-eval-help.md:3: description: Section-routed help for the Eval System plugin. Command-owned askQuestion for section selection and follow-ups; zoto-help-evals composes a project-tailored answer anchored on the chosen README section, with mandatory `start:end"
+      ],
+      "generated_case_count": 7,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-eval-init": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-init.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-init.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-init.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 5,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "command:z-eval-judge": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-judge.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-judge.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-judge.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "command-owned",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/commands/z-eval-judge.md:3: description: Adversarial post-hoc analysis of the most recent eval run. Command-owned askQuestion for handoff to /z-eval-update; judge subagent surfaces needs_user_input. Enriches llm.yml with a judge block."
+      ],
+      "generated_case_count": 3,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-eval-jump": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-jump.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-jump.json"
+      ],
+      "llm_test_path": null,
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 2,
+      "user_authored_case_count": 0,
+      "migration_class": "no-eval-yet",
+      "follow_ups_in_test": false,
+      "test_is_generated": null
+    },
+    "command:z-eval-operator": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-operator.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-operator.json"
+      ],
+      "llm_test_path": null,
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 2,
+      "user_authored_case_count": 0,
+      "migration_class": "no-eval-yet",
+      "follow_ups_in_test": false,
+      "test_is_generated": null
+    },
+    "command:z-eval-start": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-start.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-start.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-start.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 4,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-eval-update": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-update.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-update.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-update.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "command-owned",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/commands/z-eval-update.md:3: description: \"Diff-aware eval updater. Re-invokes the LLM analyser per drifted primitive, dispatches per-framework / per-strategy regeneration through hard-coded user-case preservation gates, and appends a manifest snapshot. Command-owned a"
+      ],
+      "generated_case_count": 9,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-eval-workflow": {
+      "kind": "command",
+      "source_path": "plugins/zoto-eval-system/commands/z-eval-workflow.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/commands/z-eval-workflow.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-eval-workflow.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "command-owned",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/commands/z-eval-workflow.md:3: description: Interactive evaluator entry point \u2014 command-owned askQuestion maps the operator\u2019s current lifecycle stage to the correct Eval System slash command (configure, scaffold, drift, execute, judge, compare, advise, help) without spaw"
+      ],
+      "generated_case_count": 11,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-spec-create": {
+      "kind": "command",
+      "source_path": "plugins/zoto-spec-system/commands/z-spec-create.md",
+      "eval_files": [
+        "plugins/zoto-spec-system/evals/commands/z-spec-create.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-spec-create.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 5,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-spec-execute": {
+      "kind": "command",
+      "source_path": "plugins/zoto-spec-system/commands/z-spec-execute.md",
+      "eval_files": [
+        "plugins/zoto-spec-system/evals/commands/z-spec-execute.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-spec-execute.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 9,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:z-spec-init": {
+      "kind": "command",
+      "source_path": "plugins/zoto-spec-system/commands/z-spec-init.md",
+      "eval_files": [
+        "plugins/zoto-spec-system/evals/commands/z-spec-init.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-spec-init.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 4,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "command:z-spec-judge": {
+      "kind": "command",
+      "source_path": "plugins/zoto-spec-system/commands/z-spec-judge.md",
+      "eval_files": [
+        "plugins/zoto-spec-system/evals/commands/z-spec-judge.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_z-spec-judge.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 5,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:sync-plugins": {
+      "kind": "command",
+      "source_path": ".cursor/commands/sync-plugins.md",
+      "eval_files": [
+        ".cursor/evals/commands/sync-plugins.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_sync-plugins.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 2,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "command:zoto-create-plugin": {
+      "kind": "command",
+      "source_path": ".cursor/commands/zoto-create-plugin.md",
+      "eval_files": [
+        ".cursor/evals/commands/zoto-create-plugin.json"
+      ],
+      "llm_test_path": "evals/llm/test_command_zoto-create-plugin.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 3,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "agent:zoto-cursor-top-troubleshooter": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md",
+      "eval_files": [],
+      "llm_test_path": null,
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 0,
+      "user_authored_case_count": 0,
+      "migration_class": "no-eval-yet",
+      "follow_ups_in_test": false,
+      "test_is_generated": null
+    },
+    "agent:zoto-eval-adviser": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-eval-system/agents/zoto-eval-adviser.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/agents/zoto-eval-adviser.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-eval-adviser.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/agents/zoto-eval-adviser.md:28: 1. Load `.zoto/eval-system/config.yml`. If missing, return `needs_user_input` asking the command to run `/z-eval-configure` first.",
+        "plugins/zoto-eval-system/agents/zoto-eval-adviser.md:29: 2. Load `.zoto/eval-system/manifest.yml`. If missing, return `needs_user_input` asking the command to run `/z-eval-create` first.",
+        "plugins/zoto-eval-system/agents/zoto-eval-adviser.md:38: 6. Return the summary with **`needs_user_input` (Breakpoint 1)** \u2014 the command presents drill-down options via `askQuestion`.",
+        "plugins/zoto-eval-system/agents/zoto-eval-adviser.md:44: 9. Return detailed findings and recommendations with **`needs_user_input` (Breakpoint 2)** \u2014 the command presents accept/reject options via `askQuestion`.",
+        "plugins/zoto-eval-system/agents/zoto-eval-adviser.md:53: - **Never** call `askQuestion` \u2014 use `needs_user_input` at the two defined breakpoints."
+      ],
+      "generated_case_count": 6,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "agent:zoto-eval-analyser-subagent": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/agents/zoto-eval-analyser-subagent.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-eval-analyser-subagent.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 6,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "agent:zoto-eval-comparer": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-eval-system/agents/zoto-eval-comparer.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/agents/zoto-eval-comparer.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-eval-comparer.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/agents/zoto-eval-comparer.md:17: 1. Resolve each argument to a run directory containing **`report.yml`**. Run-folder basenames may be timestamp stamps or symbolic labels (for example `run-a`, `run-b`, `run-c`). Use **`report.static`** / **`report.llm`** for rollup fields; "
+      ],
+      "generated_case_count": 3,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "agent:zoto-eval-configurer": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-eval-system/agents/zoto-eval-configurer.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/agents/zoto-eval-configurer.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-eval-configurer.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/agents/zoto-eval-configurer.md:44: 8. If validation fails and you cannot proceed without user clarification, return `needs_user_input` with specific questions \u2014 never call `askQuestion`.",
+        "plugins/zoto-eval-system/agents/zoto-eval-configurer.md:57: - `llm.strategy === \"code\"` requires a concrete `llm.codeFramework`. If missing, return `needs_user_input` so the command re-prompts."
+      ],
+      "generated_case_count": 10,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "agent:zoto-eval-executor": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-eval-system/agents/zoto-eval-executor.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/agents/zoto-eval-executor.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-eval-executor.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/agents/zoto-eval-executor.md:26: Runs `pnpm run eval:full` (static + LLM). Requires `CURSOR_API_KEY` to be available to the runner. The runner imports `dotenv/config`, so consider the key present if **either** `process.env.CURSOR_API_KEY` is set in your environment, **or**",
+        "plugins/zoto-eval-system/agents/zoto-eval-executor.md:40: - **Never** call `askQuestion`. Credential gaps \u2192 `needs_user_input` for `/z-eval-execute` to handle via resume."
+      ],
+      "generated_case_count": 4,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "agent:zoto-eval-generator": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-eval-system/agents/zoto-eval-generator.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/agents/zoto-eval-generator.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-eval-generator.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/agents/zoto-eval-generator.md:7: Read `.zoto/eval-system/config.yml`. If missing, return a `needs_user_input` block asking the command to run `/z-eval-configure` first (or include `reason` + `questions` so the command can hand off). Do **not** call `askQuestion`.",
+        "plugins/zoto-eval-system/agents/zoto-eval-generator.md:31: 1. Confirm config exists; if not, `needs_user_input` \u2014 do not prompt inline.",
+        "plugins/zoto-eval-system/agents/zoto-eval-generator.md:45: - **Never** call `askQuestion`. Use `needs_user_input` only when something essential was not pre-provided."
+      ],
+      "generated_case_count": 5,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "agent:zoto-eval-judge": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-eval-system/agents/zoto-eval-judge.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/agents/zoto-eval-judge.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-eval-judge.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/agents/zoto-eval-judge.md:25: 5. When affected targets need `/z-eval-update`, emit `needs_user_input` with accept/reject-style options \u2014 the **`/z-eval-judge` command** translates those via `askQuestion` and resumes you with answers."
+      ],
+      "generated_case_count": 3,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "agent:zoto-eval-updater": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-eval-system/agents/zoto-eval-updater.md",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/agents/zoto-eval-updater.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-eval-updater.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-eval-system/agents/zoto-eval-updater.md:52: - **Never** call `askQuestion`. Unanticipated choices \u2192 `needs_user_input` for the command, then resume.",
+        "plugins/zoto-eval-system/agents/zoto-eval-updater.md:53: - **Command palette / Task resume**: if apply-mode hits an unexpected or ambiguous branch (including palette-driven flows), return structured `needs_user_input` for the owning command to map through `askQuestion`\u2014the subagent does not promp"
+      ],
+      "generated_case_count": 10,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "agent:zoto-spec-executor": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-spec-system/agents/zoto-spec-executor.md",
+      "eval_files": [
+        "plugins/zoto-spec-system/evals/agents/zoto-spec-executor.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-spec-executor.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 9,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "agent:zoto-spec-generator": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-spec-system/agents/zoto-spec-generator.md",
+      "eval_files": [
+        "plugins/zoto-spec-system/evals/agents/zoto-spec-generator.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-spec-generator.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-spec-system/agents/zoto-spec-generator.md:184: 1. **Gather Requirements (gate)**: Do **not** write under `{specsDir}/` until Step 1 is complete \u2014 via host-supplied `REQUIREMENTS_GATE: satisfied`, `USER_ANSWERS:` after `needs_user_input`, or the narrow signed-doc exception in the skill. ",
+        "plugins/zoto-spec-system/agents/zoto-spec-generator.md:184: 1. **Gather Requirements (gate)**: Do **not** write under `{specsDir}/` until Step 1 is complete \u2014 via host-supplied `REQUIREMENTS_GATE: satisfied`, `USER_ANSWERS:` after `needs_user_input`, or the narrow signed-doc exception in the skill. ",
+        "plugins/zoto-spec-system/agents/zoto-spec-generator.md:188: 5. **Present for Review**: Summarise the bundle and use **`askQuestion`** (if interactive) or return **`needs_user_input`** (if subagent) for structured user approval (skill Step 7).",
+        "plugins/zoto-spec-system/agents/zoto-spec-generator.md:214: - **ALWAYS use `askQuestion` or `needs_user_input` for user confirmation** at key decision points and **before** spawning `zoto-spec-judge` \u2014 never plain-text `[Yes / No]`"
+      ],
+      "generated_case_count": 6,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "agent:zoto-spec-judge": {
+      "kind": "agent",
+      "source_path": "plugins/zoto-spec-system/agents/zoto-spec-judge.md",
+      "eval_files": [
+        "plugins/zoto-spec-system/evals/agents/zoto-spec-judge.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-spec-judge.test.ts",
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        "plugins/zoto-spec-system/agents/zoto-spec-judge.md:144: - **NEVER apply fixes without explicit user approval** \u2014 use **`askQuestion`** (if running as command/executor) or return **`needs_user_input`** (if running as subagent) to get structured approval (Mode 3 only)"
+      ],
+      "generated_case_count": 4,
+      "user_authored_case_count": 0,
+      "migration_class": "keep-code-bridge-only",
+      "follow_ups_in_test": true,
+      "test_is_generated": true
+    },
+    "agent:zoto-eval-architect": {
+      "kind": "agent",
+      "source_path": ".cursor/agents/zoto-eval-architect.md",
+      "eval_files": [],
+      "llm_test_path": null,
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        ".cursor/agents/zoto-eval-architect.md:9: - **Surface ergonomics review** \u2014 the 13-command surface (including same-delegation aliases), `askQuestion` / `needs_user_input` contract, help-routing rule, error-message tone, onboarding friction.",
+        ".cursor/agents/zoto-eval-architect.md:83: Eval subagents **never** call `askQuestion` themselves. They return `needs_user_input` payloads (schema-validated against `needs-user-input.schema.json`), and the owning slash command surfaces those via `askQuestion`, then resumes the subag",
+        ".cursor/agents/zoto-eval-architect.md:104: 5. **Audit `askQuestion` contract**: are subagents disciplined about returning `needs_user_input`? Any leaks?",
+        ".cursor/agents/zoto-eval-architect.md:150: - **RESPECT the askQuestion contract** \u2014 if you discover a decision the user must make, return `needs_user_input` payloads, not direct prompts."
+      ],
+      "generated_case_count": 0,
+      "user_authored_case_count": 0,
+      "migration_class": "no-eval-yet",
+      "follow_ups_in_test": false,
+      "test_is_generated": null
+    },
+    "agent:zoto-eval-engineer": {
+      "kind": "agent",
+      "source_path": ".cursor/agents/zoto-eval-engineer.md",
+      "eval_files": [],
+      "llm_test_path": null,
+      "requires_interaction": true,
+      "interaction_style": "subagent-escalated",
+      "interaction_evidence": [
+        ".cursor/agents/zoto-eval-engineer.md:103: Subagents return `needs_user_input` payloads (validated against `needs-user-input.schema.json`). The owning slash command surfaces via `askQuestion`. **No subagent ever calls `askQuestion` directly.** If you find a subagent that does, it's "
+      ],
+      "generated_case_count": 0,
+      "user_authored_case_count": 0,
+      "migration_class": "no-eval-yet",
+      "follow_ups_in_test": false,
+      "test_is_generated": null
+    },
+    "agent:zoto-plugin-manager": {
+      "kind": "agent",
+      "source_path": ".cursor/agents/zoto-plugin-manager.md",
+      "eval_files": [
+        ".cursor/evals/agents/zoto-plugin-manager.json"
+      ],
+      "llm_test_path": "evals/llm/test_agent_zoto-plugin-manager.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 6,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "hook:zoto-eval-system": {
+      "kind": "hook",
+      "source_path": "plugins/zoto-eval-system/hooks/hooks.json",
+      "eval_files": [
+        "plugins/zoto-eval-system/evals/hooks/zoto-eval-system.json"
+      ],
+      "llm_test_path": "evals/llm/test_hook_zoto-eval-system.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 4,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "hook:zoto-spec-system": {
+      "kind": "hook",
+      "source_path": "plugins/zoto-spec-system/hooks/hooks.json",
+      "eval_files": [
+        "plugins/zoto-spec-system/evals/hooks/zoto-spec-system.json"
+      ],
+      "llm_test_path": "evals/llm/test_hook_zoto-spec-system.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 2,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    },
+    "hook:cursor-workspace": {
+      "kind": "hook",
+      "source_path": ".cursor/hooks.json",
+      "eval_files": [
+        ".cursor/evals/hooks/hooks.json"
+      ],
+      "llm_test_path": "evals/llm/test_hook_cursor-workspace.test.ts",
+      "requires_interaction": false,
+      "interaction_style": "none",
+      "interaction_evidence": [
+        "none"
+      ],
+      "generated_case_count": 3,
+      "user_authored_case_count": 0,
+      "migration_class": "migrate-to-declarative",
+      "follow_ups_in_test": false,
+      "test_is_generated": true
+    }
+  }
+}

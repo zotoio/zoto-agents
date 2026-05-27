@@ -1,0 +1,48 @@
+schema_version: 1
+subtask_id: "05"
+feature: Eval Single Backend & Co-located Restructure
+assigned_agent: zoto-eval-architect
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: '`plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md` — remove strategy / codeFramework prompts (lines ~19–21, 108–122, 131 per exploration); replace with a single "static framework" prompt block; remove the cross-field validation that rejected `static.framework` ≠ `llm.codeFramework`'
+    done: false
+    evidence_path: null
+  - id: D02
+    text: '`plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md` — remove the "single input downstream stampers use to choose declarative JSON vs code-strategy TypeScript" sentence (line ~73 per exploration); replace with "single input the unified harness uses to choose scripted-answer vs single-prompt runtime branch"'
+    done: false
+    evidence_path: null
+  - id: D03
+    text: '`plugins/zoto-eval-system/agents/zoto-eval-generator.md` — remove `llm.strategy` / `llm.codeFramework` bullets (lines ~14–16 per exploration); update the "what fields you respect from config" section to drop the LLM strategy block'
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "`plugins/zoto-eval-system/agents/zoto-eval-updater.md` — remove the `regenerateLlmCode` / `regenerateLlmDeclarative` dispatch description (lines ~31–37 per exploration); replace with a single `regenerateLlm` mention"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "`plugins/zoto-eval-system/agents/zoto-eval-executor.md` — remove the strategy-aware orchestrator note (line ~11 per exploration); replace with the single `eval:llm` script reference"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "`plugins/zoto-eval-system/agents/zoto-eval-configurer.md` — remove strategy / codeFramework prompts (lines ~37–44 per exploration); align with the SKILL.md rewrite"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "`plugins/zoto-eval-system/commands/z-eval-configure.md` — remove any \"ask the user about LLM strategy\" guidance; align with the configurer agent's new prompt set"
+    done: false
+    evidence_path: null
+  - id: D08
+    text: '`plugins/zoto-eval-system/commands/z-eval-execute.md` — remove the per-strategy invocation table; replace with a single "runs the unified LLM suite" description'
+    done: false
+    evidence_path: null
+  - id: D09
+    text: Search across the eval-system plugin's `agents/`, `skills/`, `commands/`, `docs/` for any other mention of "code strategy", "declarative strategy", "llm.strategy", "codeFramework" and rewrite the prose
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

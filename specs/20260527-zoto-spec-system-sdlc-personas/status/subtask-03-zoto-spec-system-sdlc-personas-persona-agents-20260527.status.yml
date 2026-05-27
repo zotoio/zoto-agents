@@ -1,0 +1,56 @@
+schema_version: 1
+subtask_id: "03"
+feature: zoto-spec-system-sdlc-personas
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "**D01** — `plugins/zoto-spec-system/agents/zoto-product-analyst.md`"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "**D02** — `plugins/zoto-spec-system/agents/zoto-software-architect.md`"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "**D03** — `plugins/zoto-spec-system/agents/zoto-backend-engineer.md`"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "**D04** — `plugins/zoto-spec-system/agents/zoto-frontend-engineer.md`"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "**D05** — `plugins/zoto-spec-system/agents/zoto-test-engineer.md`"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "**D06** — `plugins/zoto-spec-system/agents/zoto-devops-engineer.md`"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "**D07** — `plugins/zoto-spec-system/agents/zoto-technical-writer.md`"
+    done: false
+    evidence_path: null
+  - id: D08
+    text: "**D08** — `plugins/zoto-spec-system/agents/zoto-security-engineer.md`"
+    done: false
+    evidence_path: null
+  - id: D09
+    text: "**D09** — `plugins/zoto-spec-system/agents/zoto-sre.md` pointing at"
+    done: false
+    evidence_path: null
+  - id: D10
+    text: "**D10** — `plugins/zoto-spec-system/agents/zoto-code-reviewer.md`"
+    done: false
+    evidence_path: null
+  - id: D11
+    text: "**D11** — Verify each file is ≤ 200 lines (use `wc -l` on each). Any"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

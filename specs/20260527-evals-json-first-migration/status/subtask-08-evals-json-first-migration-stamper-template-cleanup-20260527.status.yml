@@ -1,0 +1,40 @@
+schema_version: 1
+subtask_id: "08"
+feature: evals-json-first-migration
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: Delete `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
+    done: false
+    evidence_path: null
+  - id: D02
+    text: Delete any sibling files under `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/` that only existed to support the TS template (e.g. a per-target setup file if present). Audit the directory and confirm — do not delete shared assets (vitest.config.tmpl, setup.tmpl, etc.) without verifying nothing else consumes them.
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "Update `scripts/eval-stamp.ts`:"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "Update `plugins/zoto-eval-system/engine/update.ts`:"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "Update the JSON templates (`templates/{command,agent,hook}-evals/evals.json.tmpl`) so each one:"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Update `scripts/eval-stamp.ts` baseline-only mode (`--baseline-only`) to write the new JSON baseline fixtures into `plugins/zoto-eval-system/templates/baseline-fixtures/` if the current fixtures still reference TS.
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "Add focused tests:"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

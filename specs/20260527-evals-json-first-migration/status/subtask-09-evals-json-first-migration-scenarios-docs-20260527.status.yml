@@ -1,0 +1,48 @@
+schema_version: 1
+subtask_id: "09"
+feature: evals-json-first-migration
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Create the example scenario as a **template** (not a live file in this repo) at `plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl`:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "Add a host-repo install hook so `/z-eval-create` copies the template:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "Update `plugins/zoto-eval-system/README.md`:"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "Update `plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md`:"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "Update `plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json`:"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "Update `plugins/zoto-eval-system/CHANGELOG.md`:"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: Update the repo-root `CHANGELOG.md` with a brief pointer to the eval-system plugin entry.
+    done: false
+    evidence_path: null
+  - id: D08
+    text: Update `AGENTS.md` only if it currently describes the TS-eval convention; otherwise leave untouched. Grep for `\.test\.ts` mentions related to evals.
+    done: false
+    evidence_path: null
+  - id: D09
+    text: "Update any other plugin README / skill doc that references the TS LLM eval convention:"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

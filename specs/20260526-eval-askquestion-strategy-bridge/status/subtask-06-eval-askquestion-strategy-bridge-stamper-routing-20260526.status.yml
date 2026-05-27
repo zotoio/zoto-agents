@@ -1,0 +1,55 @@
+schema_version: 1
+subtask_id: "06"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "Stamper code path identified and updated. Likely entry points (verify in Phase 1 read of `scripts/eval-stamp.ts` or wherever `stampLlmCodeStrategy` lives — the `per-primitive-test.ts.tmpl` JSDoc names the function): the analyser-payload reader, the per-target dispatch, and the file-write call."
+    done: true
+    evidence_path: scripts/eval-stamp.ts
+  - id: D02
+    text: "Per-target dispatch logic: when `_meta.primitive_analysis.requiresInteraction === true`, stamp the code-strategy TypeScript file under `evals/llm/test_<kind>_<name>.test.ts`; when `false` (or omitted), stamp the declarative JSON case row(s) under the appropriate `plugins/<plugin>/evals/<kind>/<name>.json`. Hooks always default to declarative (they never call `AskQuestion`)."
+    done: true
+    evidence_path: scripts/eval-stamp.ts
+  - id: D03
+    text: "Mutual-exclusion guard: before writing, the stamper checks the OPPOSITE backend's expected output path; if it exists, the stamper either rewrites away (when `--apply` AND we are migrating intentionally) or fails with a clear stderr message + non-zero exit (when not migrating). The guard reuses `_user-case-guards.isGeneratedFile` to avoid touching user-authored stamps."
+    done: true
+    evidence_path: scripts/eval-stamp.ts
+  - id: D04
+    text: "Per-target classification echoed into stamped output: every generated case row gets `_meta.primitive_analysis.requiresInteraction` + `_meta.primitive_analysis.interactionStyle` mirroring the analyser payload; every stamped TypeScript file gets a leading JSDoc comment annotating the choice and the analyser version that drove it."
+    done: true
+    evidence_path: scripts/eval-stamp.ts
+  - id: D05
+    text: Targeted unit tests for the new dispatch + guard logic (vitest scoped to the stamper file).
+    done: true
+    evidence_path: scripts/__tests__/eval-stamp-routing.test.ts
+artifacts:
+  - path: scripts/eval-stamp.ts
+    kind: modified
+    note: Per-target routing exports, main() wire-in, buildPrimitiveAnalysisMeta integration
+  - path: scripts/__tests__/eval-stamp-routing.test.ts
+    kind: created
+    note: 9 vitest cases for dispatch, guard, and stamp routing
+errors: []
+notes: |
+  Added resolveLlmPerTargetBackend, resolveLlmPerTargetBackendPaths, enforcePerTargetBackendExclusion,
+  stampTargetWithBackendRouting, and --apply CLI flag. main() routes via cached/fresh analyser payload;
+  heuristic fallback tags classification_source fallback-default. No live eval migration (subtask 09).
+  Vitest 9/9 passed. tsc --skipLibCheck reports only pre-existing eval-analyse.ts errors.
+extra:
+  tests_passed: 9
+  tests_total: 9
+  judge:
+    verdict: verified
+    at: "2026-05-26T01:30:00+10:00"
+    notes: |
+      Independently confirmed resolveLlmPerTargetBackend, enforcePerTargetBackendExclusion,
+      stampTargetWithBackendRouting, and main() routing in scripts/eval-stamp.ts. PerTargetBackendConflictError
+      cites chosen and conflicting paths. Classification echoed in declarative _meta.primitive_analysis and
+      code JSDoc via annotateLlmCodeTestWithClassification. Vitest scripts/__tests__/eval-stamp-routing.test.ts
+      9/9 passed. Scoped tsc on eval-stamp still reports pre-existing eval-analyse.ts and .ts-extension import
+      errors repo-wide; not introduced by this subtask. No live-tree migration observed.
+    fix_list: []

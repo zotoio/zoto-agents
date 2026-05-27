@@ -1,0 +1,32 @@
+schema_version: 1
+subtask_id: "04"
+feature: evals-json-first-migration
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "`engine/case.ts`:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "`engine/runner.ts`:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "`engine/update.ts`:"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "`engine/_user-case-guards.ts`: confirm `isUserAuthoredCase` already returns `true` for any case without `_meta.generated === true`. No change expected, but add a focused test that a runner case with `_meta.generated: false` is treated as user-authored."
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "Unit tests:"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

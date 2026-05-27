@@ -1,0 +1,1260 @@
+Migration started @ 2026-05-25T15:52:43Z
+
+===== BATCH: full-catalog-routing-migration @ 2026-05-25T15:52:43Z =====
+
+> zoto-agents@ eval:update /home/andrewv/git/cursor/zoto-agents
+> tsx plugins/zoto-eval-system/engine/update.ts --apply --with-analyser
+
+{"target_id":"skill:zoto-judge-evals","regeneration_error":"SyntaxError","message":"Unexpected token ] in JSON at position 11922"}
+{"target_id":"skill:zoto-update-evals","regeneration_error":"SyntaxError","message":"Unexpected token ] in JSON at position 18205"}
+{"target_id":"skill:zoto-execute-spec","regeneration_error":"Error","message":"Refusing to stamp declarative case for skill:zoto-execute-spec#4: prompt contains placeholder marker: Drive execution for workspace/specs/20260526-concurrency-guard/concurrency-guard"}
+{"target_id":"skill:zoto-configure-evals","analyser_error":"response_not_json","message":"analyser response was not parseable JSON: Unexpected token 'B', \"Baseline c\"... is not valid JSON; first 200 chars: Baseline classifies `skill:zoto-configure-evals` as `requiresInteraction: true`, `interactionStyle: \"subagent-escalated\"`. Building JSON covering each workflow step.\n\n"}
+{"target_id":"skill:zoto-create-evals","regeneration_error":"SyntaxError","message":"Unexpected token ] in JSON at position 20030"}
+{"target_id":"skill:zoto-eval-tooling","regeneration_error":"SyntaxError","message":"Unexpected token ] in JSON at position 12398"}
+{"target_id":"skill:zoto-execute-evals","regeneration_error":"SyntaxError","message":"Unexpected token ] in JSON at position 10533"}
+{"target_id":"skill:zoto-help-evals","regeneration_error":"SyntaxError","message":"Unexpected token ] in JSON at position 17377"}
+{"target_id":"skill:zoto-judge-evals","regeneration_error":"SyntaxError","message":"Unexpected token ] in JSON at position 11922"}
+{"target_id":"skill:zoto-update-evals","regeneration_error":"SyntaxError","message":"Unexpected token ] in JSON at position 18205"}
+{"target_id":"skill:zoto-execute-spec","regeneration_error":"Error","message":"Refusing to stamp declarative case for skill:zoto-execute-spec#5: prompt contains placeholder marker: Confirmation landed for specs/reliability-upgrade/20260106 — fan out phased work"}
+{"target_id":"command:z-spec-execute","analyser_error":"response_not_json","message":"analyser response was not parseable JSON: Expected ',' or ']' after array element in JSON at position 6361 (line 1 column 6362); first 200 chars: {\"schema_version\":1,\"analyser_version\":\"2026.05.26-1\",\"model_id\":\"composer-2\",\"target_id\":\"command:z-spec-execute\",\"kind\":\"command\",\"source_path\":\"plugins/zoto-spec-system/commands/z-spec-execute.md\","}
+
+===== BATCH: resume-full-catalog-routing @ 2026-05-25T16:11:17Z =====
+
+> zoto-agents@ eval:update /home/andrewv/git/cursor/zoto-agents
+> tsx plugins/zoto-eval-system/engine/update.ts --apply --with-analyser
+
+{"target_id":"agent:zoto-eval-generator","analyser_error":"response_not_json","message":"analyser response was not parseable JSON: Unexpected end of JSON input; first 200 chars: Rubric warns agent prompts shouldn’t **lead** with a slash—a leading `/` violates “no leading `/`”; they can include quoted slash text later (“I ran `/z-eval-create`…” is fine).\n\n```json\n\n```\n\nI'll pr"}
+{"target_id":"agent:zoto-spec-executor","regeneration_error":"Error","message":"Refusing to stamp declarative case for agent:zoto-spec-executor#0: prompt contains placeholder marker: Coordinate `zoto-spec-executor` for the Ready initiative under workspace/specs/2"}
+{"target_id":"skill:zoto-eval-tooling","analyser_error":"response_invalid","message":"analyser response failed schema validation: [{\"instancePath\":\"/cases/4/expected_output\",\"schemaPath\":\"#/properties/cases/items/properties/expected_output/minLength\",\"keyword\":\"minLength\",\"params\":{\"limit\":1},\"message\":\"must NOT have fewer than 1 characters\"},{\"instancePath\":\"/cases/4/assertions\",\"schemaPath\":\"#/properties/cases/items/properties/assertions/minItems\",\"keyword\":\"minItems\",\"params\":{\"limit\":1},\"message\":\"must NOT have fewer than 1 items\"}]"}
+{"target_id":"command:z-spec-judge","analyser_error":"response_not_json","message":"analyser response was not parseable JSON: Bad escaped character in JSON at position 1075 (line 1 column 1076); first 200 chars: {\"schema_version\":1,\"analyser_version\":\"2026.05.26-1\",\"model_id\":\"composer-2\",\"target_id\":\"command:z-spec-judge\",\"kind\":\"command\",\"source_path\":\"plugins/zoto-spec-system/commands/z-spec-judge.md\",\"sou"}
+{"target_id":"agent:zoto-eval-adviser","regeneration_error":"SyntaxError","message":"Unexpected token ] in JSON at position 10629"}
+{
+  "mode": "rediscovery-apply",
+  "regenerated_targets": 35,
+  "files_written": 34,
+  "files_preserved_user_authored": 1,
+  "user_cases_preserved": 17,
+  "reports": [
+    {
+      "target_id": "skill:zoto-create-plugin",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [],
+      "files_preserved": [
+        "/home/andrewv/git/cursor/zoto-agents/.cursor/skills/zoto-create-plugin/evals/evals.json"
+      ],
+      "cases_replaced": 0,
+      "cases_added": 8,
+      "cases_removed": 0,
+      "user_cases_preserved": 3,
+      "notes": [
+        "case-level guard skipped 3 non-generated case(s) — preserved verbatim",
+        "manual_merge_required: declarative eval would add generated cases to user-authored-only .cursor/skills/zoto-create-plugin/evals/evals.json (pass --overwrite)"
+      ]
+    },
+    {
+      "target_id": "agent:zoto-eval-analyser-subagent",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/agents/zoto-eval-analyser-subagent.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 6,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "agent:zoto-plugin-manager",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/.cursor/evals/agents/zoto-plugin-manager.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 6,
+      "cases_added": 2,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "skill:zoto-compare-evals",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/skills/zoto-compare-evals/evals/evals.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 2,
+      "cases_added": 1,
+      "cases_removed": 0,
+      "user_cases_preserved": 2,
+      "notes": [
+        "case-level guard skipped 2 non-generated case(s) — preserved verbatim"
+      ]
+    },
+    {
+      "target_id": "skill:zoto-configure-evals",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/skills/zoto-configure-evals/evals/evals.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 7,
+      "cases_added": 2,
+      "cases_removed": 0,
+      "user_cases_preserved": 2,
+      "notes": [
+        "case-level guard skipped 2 non-generated case(s) — preserved verbatim"
+      ]
+    },
+    {
+      "target_id": "skill:zoto-create-evals",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 7,
+      "cases_added": 0,
+      "cases_removed": 1,
+      "user_cases_preserved": 3,
+      "notes": [
+        "case-level guard skipped 3 non-generated case(s) — preserved verbatim"
+      ]
+    },
+    {
+      "target_id": "skill:zoto-create-spec",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 5,
+      "cases_added": 1,
+      "cases_removed": 0,
+      "user_cases_preserved": 4,
+      "notes": [
+        "case-level guard skipped 4 non-generated case(s) — preserved verbatim"
+      ]
+    },
+    {
+      "target_id": "skill:zoto-judge-spec",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 4,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 3,
+      "notes": [
+        "case-level guard skipped 3 non-generated case(s) — preserved verbatim"
+      ]
+    },
+    {
+      "target_id": "command:z-eval-advise",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-advise.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 9,
+      "cases_added": 1,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-eval-compare",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-compare.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 4,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-eval-configure",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-configure.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 9,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-eval-create",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-create.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 3,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-eval-execute",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-execute.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 6,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-eval-help",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-help.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 7,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-eval-init",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-init.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 5,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-eval-judge",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-judge.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 3,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-eval-start",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-start.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 4,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-eval-update",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-update.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 9,
+      "cases_added": 1,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-eval-workflow",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-workflow.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 8,
+      "cases_added": 0,
+      "cases_removed": 3,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-spec-create",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/evals/commands/z-spec-create.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 5,
+      "cases_added": 1,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-spec-init",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/evals/commands/z-spec-init.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 3,
+      "cases_added": 0,
+      "cases_removed": 1,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:z-spec-judge",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/evals/commands/z-spec-judge.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 5,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:sync-plugins",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/.cursor/evals/commands/sync-plugins.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 2,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "command:zoto-create-plugin",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/.cursor/evals/commands/zoto-create-plugin.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 3,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "agent:zoto-eval-adviser",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/agents/zoto-eval-adviser.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 5,
+      "cases_added": 0,
+      "cases_removed": 1,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "agent:zoto-eval-comparer",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/agents/zoto-eval-comparer.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 3,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "agent:zoto-eval-configurer",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/agents/zoto-eval-configurer.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 7,
+      "cases_added": 0,
+      "cases_removed": 3,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "agent:zoto-eval-executor",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/agents/zoto-eval-executor.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 3,
+      "cases_added": 0,
+      "cases_removed": 1,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "agent:zoto-eval-judge",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/agents/zoto-eval-judge.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 2,
+      "cases_added": 0,
+      "cases_removed": 1,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "agent:zoto-eval-updater",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/agents/zoto-eval-updater.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 8,
+      "cases_added": 0,
+      "cases_removed": 2,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "agent:zoto-spec-generator",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/evals/agents/zoto-spec-generator.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 6,
+      "cases_added": 2,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "agent:zoto-spec-judge",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/evals/agents/zoto-spec-judge.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 4,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "hook:zoto-eval-system",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/hooks/zoto-eval-system.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 4,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "hook:zoto-spec-system",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/evals/hooks/zoto-spec-system.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 2,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "hook:cursor-workspace",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/.cursor/evals/hooks/hooks.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 3,
+      "cases_added": 0,
+      "cases_removed": 3,
+      "user_cases_preserved": 0,
+      "notes": []
+    }
+  ]
+}
+MIGRATION_EXIT=0
+{"target_id":"agent:zoto-spec-executor","regeneration_error":"Error","message":"Refusing to stamp declarative case for agent:zoto-spec-executor#0: prompt contains placeholder marker: Treat me as handing you `/z-spec-execute` intent on the active dated initiative:"}
+{"target_id":"agent:zoto-spec-generator","analyser_error":"response_not_json","message":"analyser response was not parseable JSON: Expected ',' or ']' after array element in JSON at position 2286 (line 1 column 2287); first 200 chars: {\"schema_version\":1,\"analyser_version\":\"2026.05.26-1\",\"model_id\":\"composer-2\",\"target_id\":\"agent:zoto-spec-generator\",\"kind\":\"agent\",\"source_path\":\"plugins/zoto-spec-system/agents/zoto-spec-generator."}
+{"target_id":"command:zoto-create-plugin","analyser_error":"response_not_json","message":"analyser response was not parseable JSON: Expected ',' or ']' after array element in JSON at position 3792 (line 1 column 3793); first 200 chars: {\"schema_version\":1,\"analyser_version\":\"2026.05.26-1\",\"model_id\":\"composer-2\",\"target_id\":\"command:zoto-create-plugin\",\"kind\":\"command\",\"source_path\":\".cursor/commands/zoto-create-plugin.md\",\"source_h"}
+{"target_id":"agent:zoto-eval-configurer","regeneration_error":"SyntaxError","message":"Unexpected token ] in JSON at position 17021"}
+{"target_id":"agent:zoto-eval-updater","analyser_error":"response_not_json","message":"analyser response was not parseable JSON: Expected ',' or ']' after array element in JSON at position 4469 (line 1 column 4470); first 200 chars: {\"schema_version\":1,\"analyser_version\":\"2026.05.26-1\",\"model_id\":\"composer-2\",\"target_id\":\"agent:zoto-eval-updater\",\"kind\":\"agent\",\"source_path\":\"plugins/zoto-eval-system/agents/zoto-eval-updater.md\","}
+ ELIFECYCLE  Command failed.
+
+===== BATCH: cache-only-routing @ 2026-05-25T16:53:23Z =====
+
+> zoto-agents@ eval:update /home/andrewv/git/cursor/zoto-agents
+> tsx plugins/zoto-eval-system/engine/update.ts --apply --no-analyser
+
+{
+  "mode": "rediscovery-apply",
+  "regenerated_targets": 3,
+  "files_written": 2,
+  "files_preserved_user_authored": 1,
+  "user_cases_preserved": 3,
+  "reports": [
+    {
+      "target_id": "skill:zoto-create-plugin",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [],
+      "files_preserved": [
+        "/home/andrewv/git/cursor/zoto-agents/.cursor/skills/zoto-create-plugin/evals/evals.json"
+      ],
+      "cases_replaced": 0,
+      "cases_added": 5,
+      "cases_removed": 0,
+      "user_cases_preserved": 3,
+      "notes": [
+        "case-level guard skipped 3 non-generated case(s) — preserved verbatim",
+        "manual_merge_required: declarative eval would add generated cases to user-authored-only .cursor/skills/zoto-create-plugin/evals/evals.json (pass --overwrite)"
+      ]
+    },
+    {
+      "target_id": "agent:zoto-eval-analyser-subagent",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/agents/zoto-eval-analyser-subagent.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 6,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    },
+    {
+      "target_id": "agent:zoto-plugin-manager",
+      "framework": null,
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/.cursor/evals/agents/zoto-plugin-manager.json"
+      ],
+      "files_preserved": [],
+      "cases_replaced": 8,
+      "cases_added": 0,
+      "cases_removed": 0,
+      "user_cases_preserved": 0,
+      "notes": []
+    }
+  ]
+}
+MIGRATION_EXIT=0
+ConfigValidationError: Invalid eval system config
+    at loadEvalConfig (/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/src/config-loader.ts:220:11)
+    at main (/home/andrewv/git/cursor/zoto-agents/specs/20260526-eval-askquestion-strategy-bridge/audit/complete-routing-migration.ts:69:18)
+    at <anonymous> (/home/andrewv/git/cursor/zoto-agents/specs/20260526-eval-askquestion-strategy-bridge/audit/complete-routing-migration.ts:145:1)
+    at Object.<anonymous> (/home/andrewv/git/cursor/zoto-agents/specs/20260526-eval-askquestion-strategy-bridge/audit/complete-routing-migration.ts:151:1)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object.transformer (/home/andrewv/git/cursor/zoto-agents/node_modules/.pnpm/tsx@4.22.0/node_modules/tsx/dist/register-DJgoUG_Q.cjs:9:1709)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24) {
+  errors: [
+    {
+      instancePath: '/llm/model/id',
+      schemaPath: '#/properties/llm/properties/model/properties/id/enum',
+      keyword: 'enum',
+      params: [Object],
+      message: 'must be equal to one of the allowed values'
+    },
+    {
+      instancePath: '/judgeModel',
+      schemaPath: '#/properties/judgeModel/enum',
+      keyword: 'enum',
+      params: [Object],
+      message: 'must be equal to one of the allowed values'
+    }
+  ]
+}
+ReferenceError: loadEvalConfig is not defined
+    at main (/home/andrewv/git/cursor/zoto-agents/specs/20260526-eval-askquestion-strategy-bridge/audit/complete-routing-migration.ts:68:18)
+    at <anonymous> (/home/andrewv/git/cursor/zoto-agents/specs/20260526-eval-askquestion-strategy-bridge/audit/complete-routing-migration.ts:144:1)
+    at Object.<anonymous> (/home/andrewv/git/cursor/zoto-agents/specs/20260526-eval-askquestion-strategy-bridge/audit/complete-routing-migration.ts:150:1)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object.transformer (/home/andrewv/git/cursor/zoto-agents/node_modules/.pnpm/tsx@4.22.0/node_modules/tsx/dist/register-DJgoUG_Q.cjs:9:1709)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at cjsLoader (node:internal/modules/esm/translators:309:5)
+{
+  "reports": [
+    {
+      "target_id": "agent:zoto-eval-adviser",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "agent:zoto-eval-analyser-subagent",
+      "migration_class": "migrate-to-declarative",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-analyser-subagent.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/agents/zoto-eval-analyser-subagent.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_agent_zoto-eval-analyser-subagent.test.ts"
+      ],
+      "cases_replaced": 6
+    },
+    {
+      "target_id": "agent:zoto-eval-comparer",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "agent:zoto-eval-configurer",
+      "migration_class": "migrate-to-declarative",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-configurer.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/agents/zoto-eval-configurer.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_agent_zoto-eval-configurer.test.ts"
+      ],
+      "cases_replaced": 10
+    },
+    {
+      "target_id": "agent:zoto-eval-executor",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "agent:zoto-eval-generator",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "agent:zoto-eval-judge",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "agent:zoto-eval-updater",
+      "migration_class": "migrate-to-declarative",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "agent:zoto-plugin-manager",
+      "migration_class": "migrate-to-declarative",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-plugin-manager.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/.cursor/evals/agents/zoto-plugin-manager.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_agent_zoto-plugin-manager.test.ts"
+      ],
+      "cases_replaced": 8
+    },
+    {
+      "target_id": "agent:zoto-spec-executor",
+      "migration_class": "keep-code-bridge-only",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-executor.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/evals/agents/zoto-spec-executor.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_agent_zoto-spec-executor.test.ts"
+      ],
+      "cases_replaced": 9
+    },
+    {
+      "target_id": "agent:zoto-spec-generator",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "agent:zoto-spec-judge",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:sync-plugins",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-eval-advise",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-eval-compare",
+      "migration_class": "migrate-to-declarative",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-compare.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-compare.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_command_z-eval-compare.test.ts"
+      ],
+      "cases_replaced": 4
+    },
+    {
+      "target_id": "command:z-eval-configure",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-eval-create",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-eval-execute",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-eval-help",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-eval-init",
+      "migration_class": "migrate-to-declarative",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-init.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-init.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_command_z-eval-init.test.ts"
+      ],
+      "cases_replaced": 5
+    },
+    {
+      "target_id": "command:z-eval-judge",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-eval-start",
+      "migration_class": "keep-code-bridge-only",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-start.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/commands/z-eval-start.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_command_z-eval-start.test.ts"
+      ],
+      "cases_replaced": 4
+    },
+    {
+      "target_id": "command:z-eval-update",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-eval-workflow",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-spec-create",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-spec-execute",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:z-spec-init",
+      "migration_class": "migrate-to-declarative",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-init.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/evals/commands/z-spec-init.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_command_z-spec-init.test.ts"
+      ],
+      "cases_replaced": 4
+    },
+    {
+      "target_id": "command:z-spec-judge",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "command:zoto-create-plugin",
+      "migration_class": "keep-code-bridge-only",
+      "error": "Invalid eval system config"
+    },
+    {
+      "target_id": "hook:cursor-workspace",
+      "migration_class": "migrate-to-declarative",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/.cursor/evals/hooks/hooks.json"
+      ],
+      "notes": [],
+      "cases_replaced": 3
+    },
+    {
+      "target_id": "hook:zoto-eval-system",
+      "migration_class": "migrate-to-declarative",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_hook_zoto-eval-system.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/evals/hooks/zoto-eval-system.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_hook_zoto-eval-system.test.ts"
+      ],
+      "cases_replaced": 4
+    },
+    {
+      "target_id": "hook:zoto-spec-system",
+      "migration_class": "migrate-to-declarative",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_hook_zoto-spec-system.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/evals/hooks/zoto-spec-system.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_hook_zoto-spec-system.test.ts"
+      ],
+      "cases_replaced": 2
+    },
+    {
+      "target_id": "skill:zoto-compare-evals",
+      "migration_class": "keep-code-bridge-only",
+      "error": "cannot derive declarative output path for skill:zoto-compare-evals"
+    },
+    {
+      "target_id": "skill:zoto-configure-evals",
+      "migration_class": "keep-code-bridge-only",
+      "error": "cannot derive declarative output path for skill:zoto-configure-evals"
+    },
+    {
+      "target_id": "skill:zoto-create-evals",
+      "migration_class": "keep-code-bridge-only",
+      "error": "cannot derive declarative output path for skill:zoto-create-evals"
+    },
+    {
+      "target_id": "skill:zoto-create-spec",
+      "migration_class": "keep-code-bridge-only",
+      "error": "cannot derive declarative output path for skill:zoto-create-spec"
+    },
+    {
+      "target_id": "skill:zoto-eval-tooling",
+      "migration_class": "migrate-to-declarative",
+      "llm_strategy": "declarative",
+      "files_written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-eval-tooling.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json"
+      ],
+      "notes": [
+        "removed_opposite: evals/llm/test_skill_zoto-eval-tooling.test.ts"
+      ],
+      "cases_replaced": 8
+    },
+    {
+      "target_id": "skill:zoto-execute-evals",
+      "migration_class": "keep-code-bridge-only",
+      "error": "cannot derive declarative output path for skill:zoto-execute-evals"
+    },
+    {
+      "target_id": "skill:zoto-execute-spec",
+      "migration_class": "keep-code-bridge-only",
+      "error": "cannot derive declarative output path for skill:zoto-execute-spec"
+    },
+    {
+      "target_id": "skill:zoto-help-evals",
+      "migration_class": "keep-code-bridge-only",
+      "error": "cannot derive declarative output path for skill:zoto-help-evals"
+    },
+    {
+      "target_id": "skill:zoto-judge-evals",
+      "migration_class": "keep-code-bridge-only",
+      "error": "cannot derive declarative output path for skill:zoto-judge-evals"
+    },
+    {
+      "target_id": "skill:zoto-judge-spec",
+      "migration_class": "keep-code-bridge-only",
+      "error": "cannot derive declarative output path for skill:zoto-judge-spec"
+    },
+    {
+      "target_id": "skill:zoto-update-evals",
+      "migration_class": "keep-code-bridge-only",
+      "error": "cannot derive declarative output path for skill:zoto-update-evals"
+    }
+  ],
+  "skipped": [
+    {
+      "target_id": "agent:zoto-cursor-top-troubleshooter",
+      "reason": "no-eval-yet"
+    },
+    {
+      "target_id": "agent:zoto-eval-architect",
+      "reason": "no-eval-yet"
+    },
+    {
+      "target_id": "agent:zoto-eval-engineer",
+      "reason": "no-eval-yet"
+    },
+    {
+      "target_id": "command:z-eval-jump",
+      "reason": "no-eval-yet"
+    },
+    {
+      "target_id": "command:z-eval-operator",
+      "reason": "no-eval-yet"
+    },
+    {
+      "target_id": "command:zoto-cursor-top",
+      "reason": "no-eval-yet"
+    },
+    {
+      "target_id": "skill:zoto-advise-evals",
+      "reason": "no-eval-yet"
+    },
+    {
+      "target_id": "skill:zoto-create-plugin",
+      "reason": "no-eval-yet"
+    },
+    {
+      "target_id": "skill:zoto-cursor-top-monitor",
+      "reason": "no-eval-yet"
+    }
+  ]
+}
+{
+  "reports": [
+    {
+      "target_id": "agent:zoto-eval-adviser",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-adviser.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/_shared/zoto-llm-reporter.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-adviser.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-eval-comparer",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-comparer.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-comparer.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-eval-executor",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-executor.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-executor.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-eval-generator",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-generator.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-generator.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-eval-judge",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-judge.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-judge.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-spec-executor",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-executor.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-executor.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-spec-generator",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-generator.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-generator.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-spec-judge",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-judge.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-judge.test.ts"
+    },
+    {
+      "target_id": "command:sync-plugins",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_sync-plugins.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_sync-plugins.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-advise",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-advise.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-advise.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-configure",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-configure.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-configure.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-create",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-create.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-create.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-execute",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-execute.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-execute.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-help",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-help.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-help.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-judge",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-judge.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-judge.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-start",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-start.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-start.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-update",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-update.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-update.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-workflow",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-workflow.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-workflow.test.ts"
+    },
+    {
+      "target_id": "command:z-spec-create",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-create.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-create.test.ts"
+    },
+    {
+      "target_id": "command:z-spec-execute",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-execute.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-execute.test.ts"
+    },
+    {
+      "target_id": "command:z-spec-judge",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-judge.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-judge.test.ts"
+    },
+    {
+      "target_id": "command:zoto-create-plugin",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_zoto-create-plugin.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_zoto-create-plugin.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-compare-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-compare-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-compare-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-configure-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-configure-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-configure-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-create-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-create-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-create-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-create-spec",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-create-spec.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-create-spec.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-execute-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-execute-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-execute-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-execute-spec",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-execute-spec.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-execute-spec.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-help-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-help-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-help-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-judge-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-judge-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-judge-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-judge-spec",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-judge-spec.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-judge-spec.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-update-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-update-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-update-evals.test.ts"
+    }
+  ],
+  "skipped": []
+}
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error: Transform failed with 1 error:
+/home/andrewv/git/cursor/zoto-agents/specs/20260526-eval-askquestion-strategy-bridge/audit/stamp-updater-declarative.ts:23:15: ERROR: Top-level await is currently not supported with the "cjs" output format
+    at failureErrorWithLog (/home/andrewv/git/cursor/zoto-agents/node_modules/.pnpm/esbuild@0.28.0/node_modules/esbuild/lib/main.js:1748:15)
+    at /home/andrewv/git/cursor/zoto-agents/node_modules/.pnpm/esbuild@0.28.0/node_modules/esbuild/lib/main.js:1017:50
+    at responseCallbacks.<computed> (/home/andrewv/git/cursor/zoto-agents/node_modules/.pnpm/esbuild@0.28.0/node_modules/esbuild/lib/main.js:884:9)
+    at handleIncomingPacket (/home/andrewv/git/cursor/zoto-agents/node_modules/.pnpm/esbuild@0.28.0/node_modules/esbuild/lib/main.js:939:12)
+    at Socket.readFromStdout (/home/andrewv/git/cursor/zoto-agents/node_modules/.pnpm/esbuild@0.28.0/node_modules/esbuild/lib/main.js:862:7)
+    at Socket.emit (node:events:519:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23) {
+  name: 'TransformError'
+}
+
+Node.js v22.22.0
+{
+  "target_id": "agent:zoto-eval-updater",
+  "backend": "declarative",
+  "written": true,
+  "paths": {
+    "code": "evals/llm/test_agent_zoto-eval-updater.test.ts",
+    "declarative": "plugins/zoto-eval-system/evals/agents/zoto-eval-updater.json"
+  },
+  "removed_opposite": "evals/llm/test_agent_zoto-eval-updater.test.ts",
+  "cases": 8
+}

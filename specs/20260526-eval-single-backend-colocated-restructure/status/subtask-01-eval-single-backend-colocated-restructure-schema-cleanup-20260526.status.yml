@@ -1,0 +1,44 @@
+schema_version: 1
+subtask_id: "01"
+feature: Eval Single Backend & Co-located Restructure
+assigned_agent: zoto-eval-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "`plugins/zoto-eval-system/templates/schema/config.schema.json` — remove `llm.strategy`, `llm.codeFramework`, and the cross-field documentation between them; retain `static.framework` enum, `update.preserveUserAuthoredCases: const true`, `update.writeMetaMarker: const true`"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "`plugins/zoto-eval-system/engine/analyser-payload.ts` — remove `LlmStrategy` and `CodeFramework` exports if they exist; keep `RequiresInteraction`, `InteractionStyle`, and all payload shape types"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "`plugins/zoto-eval-system/engine/manifest-snapshot.ts` — remove `LlmStrategy` / `CodeFramework` re-exports; drop reads of `discovery_config.llm.strategy` and `discovery_config.llm.codeFramework`; keep `discovery_config.static.framework`"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "`plugins/zoto-eval-system/src/config-loader.ts` — drop `llm.strategy` / `llm.codeFramework` parsing branches; keep `static.framework` resolution"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "`.zoto/eval-system/config.yml` — remove the entire `llm:` block (strategy + codeFramework keys); leave `static.framework: vitest` intact"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "`evals/fixtures/baseline/.zoto/eval-system/config.yml` — same edit; remove `llm:` block, keep `static.framework`"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: Any other fixture configs discovered under `evals/fixtures/**/.zoto/eval-system/config.yml` — same edit
+    done: false
+    evidence_path: null
+  - id: D08
+    text: Targeted vitest tests for the schema validator (or AJV harness) confirming a config without `llm.strategy` validates cleanly and a config WITH `llm.strategy` is rejected with the AJV `additionalProperties` error
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

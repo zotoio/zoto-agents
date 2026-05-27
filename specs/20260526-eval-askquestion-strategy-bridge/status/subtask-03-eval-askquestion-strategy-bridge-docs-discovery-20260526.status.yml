@@ -1,0 +1,54 @@
+schema_version: 1
+subtask_id: "03"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: '`specs/20260526-eval-askquestion-strategy-bridge/audit/docs-update-map.md` — table grouped by section: (a) `site/eval-system/index.html`; (b) `site/eval-system/design.html`; (c) `site/eval-system/configuration.html`; (d) `site/eval-system/quickstart.html`; (e) `site/images/diagrams/eval-askquestion-flow.svg` (current contents summary + redraw instructions); (f) `plugins/zoto-eval-system/README.md` (every `## section` with a one-line summary of what changes); (g) the planned new `evals/llm/_shared/README.md` (outline only); (h) `plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md` anchor table (current entries + new "Strategy bridge" anchor).'
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/docs-update-map.md
+  - id: D02
+    text: List of cross-links the docs currently cite (e.g. README anchors referenced from the site, code references like `12:14:evals/llm/_shared/sdk-bridge.ts` that will be invalidated by Phase 3 changes); flagged for re-resolution in subtasks 11/12.
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/docs-update-map.md#cross-link-impact-list-re-resolve-in-subtasks-11--12
+  - id: D03
+    text: "`specs/20260526-eval-askquestion-strategy-bridge/audit/docs-spec-system-impact.md` — short note on whether `site/spec-system/*.html` references the eval-system pages; if so, list the cross-links."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/docs-spec-system-impact.md
+  - id: D04
+    text: "Suggested SVG-redraw spec for `site/images/diagrams/eval-askquestion-flow.svg`: arrows from analyser → classification flag → stamper → declarative JSON OR code-strategy TS → askquestion-bridge → SDK → report.yml with backend annotation."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/docs-update-map.md#e-siteimagesdiagramseval-askquestion-flowsvg
+artifacts:
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/docs-update-map.md
+    kind: created
+    note: Documentation update map with 19 flagged HTML sections and 14 cross-link entries
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/docs-spec-system-impact.md
+    kind: created
+    note: Spec-system nav-only cross-link impact note
+errors: []
+notes: "Fix round: explore agent completed discovery but could not write files; generalPurpose subagent wrote audit deliverables and status heartbeat."
+extra:
+  flagged_html_sections: 19
+  files_created: 2
+  git_sha: e49961f
+  completed_at: "2026-05-26T00:00:00Z"
+  last_heartbeat: "2026-05-26T00:00:00Z"
+  judge:
+    verdict: verified
+    at: "2026-05-26T12:00:00Z"
+    notes: >-
+      Both audit files exist under specs/20260526-eval-askquestion-strategy-bridge/audit/.
+      docs-update-map.md covers all eight grouped surfaces (a–h): four site/eval-system HTML pages,
+      SVG summary + redraw spec, all 21 README ## sections, planned _shared/README outline, and
+      zoto-help-evals Step 3 anchor table with [NEW] Strategy bridge row. Cross-link impact lists
+      14 entries with source path, line range (one forward-looking TBD placeholder for post-Phase-3
+      grep), broken-link risk, and action. docs-spec-system-impact.md documents nav-only impact across
+      all four site/spec-system/*.html pages with href patterns and broken-link risk. DoD spot-checks:
+      all four eval-system HTML files enumerated; keyword-bearing sections flagged with one-line changes;
+      no application code outside the spec directory touched by this subtask. Minor nit: LLM backend
+      anchor row adds "from `.env`" vs SKILL.md source wording — does not block Phase 5.
+    fix_list: []

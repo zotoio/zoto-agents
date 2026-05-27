@@ -1,0 +1,40 @@
+schema_version: 1
+subtask_id: "07"
+feature: evals-json-first-migration
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Create `scripts/eval-migrate-ts-to-json.ts`:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "Add CLI flags to the script:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "Add unit tests at `scripts/eval-migrate-ts-to-json.test.ts`:"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "Execute the migration:"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: If any of the 38 files contain `interactions` blocks with `answers[]`, ensure the migration preserves them verbatim — the JSON loader and harness already handle that field.
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Cross-reference the migration result against the audit produced inline (the dry-run report serves as the audit). Save the dry-run report at `specs/20260527-evals-json-first-migration/migration-audit-20260527.md` for traceability.
+    done: false
+    evidence_path: null
+  - id: D07
+    text: Commit the migrated JSON files, deleted TS files, manifest update, and the migration script in **one** commit so the diff is reviewable. (The actual commit is performed by the executor; this subtask just lands the changes in the working tree.)
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

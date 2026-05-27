@@ -1,0 +1,137 @@
+ M .cursor/evals/agents/zoto-plugin-manager.json
+ D .cursor/evals/commands/sync-plugins.json
+ D .cursor/evals/commands/zoto-create-plugin.json
+ M .cursor/evals/hooks/hooks.json
+ M evals/_llm/types.py
+ M evals/llm/_shared/code-strategy-case.ts
+ M evals/llm/_shared/run-code-strategy-suite.ts
+ M evals/llm/test_agent_zoto-eval-adviser.test.ts
+ D evals/llm/test_agent_zoto-eval-analyser-subagent.test.ts
+ M evals/llm/test_agent_zoto-eval-comparer.test.ts
+ D evals/llm/test_agent_zoto-eval-configurer.test.ts
+ M evals/llm/test_agent_zoto-eval-executor.test.ts
+ M evals/llm/test_agent_zoto-eval-generator.test.ts
+ M evals/llm/test_agent_zoto-eval-judge.test.ts
+ D evals/llm/test_agent_zoto-eval-updater.test.ts
+ D evals/llm/test_agent_zoto-plugin-manager.test.ts
+ M evals/llm/test_agent_zoto-spec-executor.test.ts
+ M evals/llm/test_agent_zoto-spec-generator.test.ts
+ M evals/llm/test_agent_zoto-spec-judge.test.ts
+ M evals/llm/test_command_sync-plugins.test.ts
+ M evals/llm/test_command_z-eval-advise.test.ts
+ D evals/llm/test_command_z-eval-compare.test.ts
+ M evals/llm/test_command_z-eval-configure.test.ts
+ M evals/llm/test_command_z-eval-create.test.ts
+ M evals/llm/test_command_z-eval-execute.test.ts
+ M evals/llm/test_command_z-eval-help.test.ts
+ D evals/llm/test_command_z-eval-init.test.ts
+ M evals/llm/test_command_z-eval-judge.test.ts
+ M evals/llm/test_command_z-eval-start.test.ts
+ M evals/llm/test_command_z-eval-update.test.ts
+ M evals/llm/test_command_z-eval-workflow.test.ts
+ M evals/llm/test_command_z-spec-create.test.ts
+ M evals/llm/test_command_z-spec-execute.test.ts
+ D evals/llm/test_command_z-spec-init.test.ts
+ M evals/llm/test_command_z-spec-judge.test.ts
+ M evals/llm/test_command_zoto-create-plugin.test.ts
+ D evals/llm/test_hook_cursor-workspace.test.ts
+ D evals/llm/test_hook_zoto-eval-system.test.ts
+ D evals/llm/test_hook_zoto-spec-system.test.ts
+ M evals/llm/test_skill_zoto-compare-evals.test.ts
+ M evals/llm/test_skill_zoto-configure-evals.test.ts
+ M evals/llm/test_skill_zoto-create-evals.test.ts
+ M evals/llm/test_skill_zoto-create-spec.test.ts
+ D evals/llm/test_skill_zoto-eval-tooling.test.ts
+ M evals/llm/test_skill_zoto-execute-evals.test.ts
+ M evals/llm/test_skill_zoto-execute-spec.test.ts
+ M evals/llm/test_skill_zoto-help-evals.test.ts
+ M evals/llm/test_skill_zoto-judge-evals.test.ts
+ M evals/llm/test_skill_zoto-judge-spec.test.ts
+ M evals/llm/test_skill_zoto-update-evals.test.ts
+ M plugins/zoto-cursor-top/commands/zoto-cursor-top.md
+ M plugins/zoto-cursor-top/rules/zoto-cursor-top.mdc
+ M plugins/zoto-cursor-top/scripts/install-local.ts
+ M plugins/zoto-cursor-top/scripts/uninstall-local.ts
+ M plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
+ M plugins/zoto-cursor-top/src/cli.ts
+ M plugins/zoto-cursor-top/src/discovery/collector.ts
+ M plugins/zoto-cursor-top/src/discovery/logs.ts
+ M plugins/zoto-cursor-top/src/discovery/paths.ts
+ M plugins/zoto-cursor-top/src/discovery/sessions.ts
+ M plugins/zoto-cursor-top/src/types.ts
+ M plugins/zoto-cursor-top/src/ui/App.tsx
+ M plugins/zoto-cursor-top/src/ui/Row.tsx
+ M plugins/zoto-cursor-top/src/ui/format.ts
+ M plugins/zoto-cursor-top/src/ui/render-text.ts
+ M plugins/zoto-cursor-top/tests/collector.test.ts
+ M plugins/zoto-cursor-top/tests/logs.test.ts
+ M plugins/zoto-cursor-top/tests/sessions.test.ts
+ M plugins/zoto-cursor-top/tsup.config.ts
+ M plugins/zoto-eval-system/README.md
+ M plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
+ M plugins/zoto-eval-system/agents/zoto-eval-generator.md
+ M plugins/zoto-eval-system/commands/z-eval-create.md
+ M plugins/zoto-eval-system/engine/analyser-payload.ts
+ M plugins/zoto-eval-system/engine/case.ts
+ M plugins/zoto-eval-system/engine/update.ts
+ M plugins/zoto-eval-system/engine/writer.ts
+ D plugins/zoto-eval-system/evals/agents/zoto-eval-adviser.json
+ M plugins/zoto-eval-system/evals/agents/zoto-eval-analyser-subagent.json
+ D plugins/zoto-eval-system/evals/agents/zoto-eval-comparer.json
+ M plugins/zoto-eval-system/evals/agents/zoto-eval-configurer.json
+ D plugins/zoto-eval-system/evals/agents/zoto-eval-executor.json
+ D plugins/zoto-eval-system/evals/agents/zoto-eval-generator.json
+ D plugins/zoto-eval-system/evals/agents/zoto-eval-judge.json
+ M plugins/zoto-eval-system/evals/agents/zoto-eval-updater.json
+ D plugins/zoto-eval-system/evals/commands/z-eval-advise.json
+ M plugins/zoto-eval-system/evals/commands/z-eval-compare.json
+ D plugins/zoto-eval-system/evals/commands/z-eval-configure.json
+ D plugins/zoto-eval-system/evals/commands/z-eval-create.json
+ D plugins/zoto-eval-system/evals/commands/z-eval-execute.json
+ D plugins/zoto-eval-system/evals/commands/z-eval-help.json
+ M plugins/zoto-eval-system/evals/commands/z-eval-init.json
+ D plugins/zoto-eval-system/evals/commands/z-eval-judge.json
+ M plugins/zoto-eval-system/evals/commands/z-eval-jump.json
+ M plugins/zoto-eval-system/evals/commands/z-eval-operator.json
+ M plugins/zoto-eval-system/evals/commands/z-eval-start.json
+ D plugins/zoto-eval-system/evals/commands/z-eval-update.json
+ D plugins/zoto-eval-system/evals/commands/z-eval-workflow.json
+ M plugins/zoto-eval-system/evals/hooks/zoto-eval-system.json
+ M plugins/zoto-eval-system/skills/zoto-compare-evals/evals/evals.json
+ M plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+ M plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json
+ M plugins/zoto-eval-system/templates/llm/agent-sdk/case.ts.tmpl
+ M plugins/zoto-eval-system/templates/llm/agent-sdk/runner.ts.tmpl
+ M plugins/zoto-eval-system/templates/llm/agent-sdk/writer.ts.tmpl
+ M plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl
+ M plugins/zoto-eval-system/templates/package-scripts/base.json
+ M plugins/zoto-eval-system/templates/schema/analyser-payload.schema.json
+ M plugins/zoto-spec-system/evals/agents/zoto-spec-executor.json
+ D plugins/zoto-spec-system/evals/agents/zoto-spec-generator.json
+ D plugins/zoto-spec-system/evals/agents/zoto-spec-judge.json
+ D plugins/zoto-spec-system/evals/commands/z-spec-create.json
+ D plugins/zoto-spec-system/evals/commands/z-spec-execute.json
+ M plugins/zoto-spec-system/evals/commands/z-spec-init.json
+ D plugins/zoto-spec-system/evals/commands/z-spec-judge.json
+ M plugins/zoto-spec-system/evals/hooks/zoto-spec-system.json
+ M plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+ M plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+ M plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
+?? evals/llm/_shared/askquestion-bridge.test.ts
+?? evals/llm/_shared/askquestion-bridge.ts
+?? evals/llm/_shared/index.ts
+?? evals/llm/_shared/run-code-strategy-suite.test.ts
+?? evals/llm/_shared/tsconfig.json
+?? evals/llm/_shared/vitest.config.ts
+?? evals/llm/_shared/zoto-create-plugin-strategy.test.ts
+?? evals/llm/_shared/zoto-create-plugin-strategy.ts
+?? plugins/zoto-cursor-top/src/discovery/composer-models.ts
+?? plugins/zoto-cursor-top/src/discovery/repo-url.ts
+?? plugins/zoto-cursor-top/tests/cli.test.ts
+?? plugins/zoto-cursor-top/tests/composer-models.test.ts
+?? plugins/zoto-cursor-top/tests/render-text.test.ts
+?? plugins/zoto-cursor-top/tests/repo-url.test.ts
+?? plugins/zoto-eval-system/scripts/ensure-host-env-and-gitignore.ts
+?? plugins/zoto-eval-system/templates/runner/eval-ensure-host.ts.tmpl
+?? plugins/zoto-eval-system/tests/declarative-validate-enriched-interactions.test.ts
+?? specs/20260526-eval-askquestion-strategy-bridge/audit/

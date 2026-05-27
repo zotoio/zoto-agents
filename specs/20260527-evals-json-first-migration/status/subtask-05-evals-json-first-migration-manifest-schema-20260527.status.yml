@@ -1,0 +1,40 @@
+schema_version: 1
+subtask_id: "05"
+feature: evals-json-first-migration
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Update `plugins/zoto-eval-system/templates/schema/manifest.schema.json`:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "Update `plugins/zoto-eval-system/tests/plugin.test.ts` (or the schema compile test): add an Ajv compile test that:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: Update any TypeScript types for the manifest snapshot (`engine/manifest-snapshot.ts`) so the documented contract matches the new constraint. If the type currently allows any string, narrow the JSDoc to reference the schema and note `.json` requirement. No runtime change beyond the JSDoc.
+    done: false
+    evidence_path: null
+  - id: D04
+    text: Update `templates/manifest.yml.tmpl` (if it exists; check `plugins/zoto-eval-system/templates/` and `baseline-fixtures/`) so the bootstrap manifest emits `.json` eval files for examples.
+    done: false
+    evidence_path: null
+  - id: D05
+    text: Update `scripts/validate-template.mjs` or add a new lightweight validator step that warns when a co-located `<kind>/evals/<name>.test.ts` LLM eval file exists alongside a manifest entry pointing to `.json` — this is a transitional check to surface drift during the migration window (subtask 10 will tighten it to an error).
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Update `evals/fixtures/baseline/.zoto/eval-system/config.yml` and any other baseline fixtures only if they currently contain references to `.test.ts` LLM eval files; otherwise leave them alone.
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "Add a JSDoc / Markdown note (top of schema file or `plugins/zoto-eval-system/docs/manifest.md` if present) explaining: scenarios under `evals/scenarios/<name>.test.ts` are **intentionally not tracked in the manifest** and the schema does not need to allow them."
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

@@ -1,0 +1,44 @@
+schema_version: 1
+subtask_id: "10"
+feature: evals-json-first-migration
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Run every relevant validator locally and capture results in the Work Log:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "Tighten `scripts/validate-template.mjs`:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "Add a new CI workflow (or extend an existing one) under `.github/workflows/`:"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "Update `.github/workflows/eval-update-check.yml` to additionally assert:"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "Update `plugins/zoto-eval-system/tests/plugin.test.ts` (or add a new test file) with assertions that run as part of `pnpm test`:"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "Clean up dead code referenced by earlier subtasks:"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "Update the spec status file:"
+    done: false
+    evidence_path: null
+  - id: D08
+    text: "Final smoke test of `/z-eval-create` end-to-end:"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

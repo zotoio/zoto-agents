@@ -1,0 +1,61 @@
+schema_version: 1
+subtask_id: "07"
+feature: Eval Prompt Realism Audit
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`plugins/zoto-eval-system/evals/hooks/zoto-eval-system.json` updated per the payload (hook cases stay framed around concrete Cursor lifecycle events)."
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/hooks/zoto-eval-system.json
+  - id: D02
+    text: All 9 per-skill `evals.json` files under `plugins/zoto-eval-system/skills/*/evals/` updated per the payload.
+    done: true
+    evidence_path: plugins/zoto-eval-system/skills/
+  - id: D03
+    text: User-authored rows (those lacking `_meta` or with `_meta.generated !== true`) are byte-identical to pre-spec state.
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/status/subtask-07-eval-prompt-realism-audit-rewrite-eval-system-hooks-and-skills-20260525.status.md
+  - id: D04
+    text: Generated rows carry refreshed `_meta.last_updated` + `_meta.generated_by`; `_meta.source_hash` and `_meta.primitive_analysis` preserved per Subtask 05's rule.
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/hooks/zoto-eval-system.json
+  - id: D05
+    text: Per-file byte-preservation proof captured in the status report (diff hunk count = 0 for non-generated rows).
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/status/subtask-07-eval-prompt-realism-audit-rewrite-eval-system-hooks-and-skills-20260525.status.md
+artifacts:
+  - path: specs/20260525-eval-prompt-realism-audit/audit/apply-subtask07-rewrites.py
+    kind: created
+    note: Mechanical applier with JSONDecoder span extraction and user-row byte preservation
+errors: []
+notes: |
+  Applied audit/eval-rewrites.json via apply-subtask07-rewrites.py from git HEAD. 60 generated cases rewritten; 23 user-authored rows byte-preserved (0 violations). zoto-advise-evals unchanged (all preserve:true).
+
+  Per-file rewrite counts: hook 4/0; advise 0/4; compare 2/2; configure 7/2; create 5/3; tooling 8/0; execute 7/3; help 13/3; judge 5/3; update 9/3 (generated/user).
+
+  Byte-preservation proof (D03/D05): user-authored spans extracted via JSONDecoder.raw_decode from git HEAD compared byte-for-byte post-write — 0 violations across 23 user rows. zoto-advise-evals byte-identical to HEAD.
+
+  _meta contract (D04): source_hash and primitive_analysis preserved on all rewritten rows; last_updated refreshed on 60 generated rows.
+extra:
+  rewritten_generated: 60
+  preserved_user: 23
+  user_byte_violations: 0
+  judge:
+    verdict: verified
+    at: "2026-05-25T13:26:30Z"
+    notes: >-
+      Independently confirmed all 10 in-scope eval files JSON-parse; 60 generated
+      rows match eval-rewrites.json (rewrite or preserve:true); 23 user-authored
+      rows byte-identical to git HEAD (0 span violations); hook prompts are
+      lifecycle-framed; _meta.source_hash and _meta.primitive_analysis preserved
+      on every rewritten row; _meta.last_updated refreshed on all 60 generated
+      rows. Counts in status notes match disk. zoto-advise-evals byte-identical
+      to HEAD (all preserve:true). DoD JSON-parse and scope checks pass for plugin
+      eval paths. Audit applier script under specs/.../audit/ follows the spec's
+      mechanical-rewrite pattern (same as other subtasks). Status notes cite
+      last_updated 2026-05-25T07:02:50Z but on-disk stamps are 2026-05-25T13:25:01Z
+      after idempotent apply-subtask07-rewrites.py re-run during judge verification.
+    fix_list: []
