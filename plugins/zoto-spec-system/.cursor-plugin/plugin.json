@@ -12,7 +12,7 @@
   "license": "MIT",
   "keywords": ["spec-creation", "execution", "specs", "engineering", "adversarial-verification"],
   "category": "developer-tools",
-  "logo": "assets/logo.png",
+  "logo": "assets/logo.svg",
   "agents": "./agents/",
   "skills": "./skills/",
   "commands": "./commands/",

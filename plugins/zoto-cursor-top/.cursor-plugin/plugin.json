@@ -12,7 +12,7 @@
   "license": "MIT",
   "keywords": ["htop", "monitor", "agents", "tui", "developer-tools"],
   "category": "developer-tools",
-  "logo": "assets/logo.png",
+  "logo": "assets/logo.svg",
   "agents": "./agents/",
   "skills": "./skills/",
   "commands": "./commands/",
