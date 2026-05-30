@@ -1,0 +1,48 @@
+schema_version: 1
+subtask_id: "08"
+feature: Eval Single Backend & Co-located Restructure
+assigned_agent: zoto-eval-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "`scripts/eval-relocate-migration.ts` — new file. Imports `isGeneratedCase` and `isGeneratedFile` from `plugins/zoto-eval-system/engine/_user-case-guards.ts`. Supports `--dry-run` (default) and `--apply` flags. NO `--force` flag."
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "Migration walks the following inputs:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "Per artefact, the migration:"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "After all artefact moves complete, the migration atomically:"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: Stamps `_meta.primitive_analysis.invalidate = true` on every cached analyser payload under `.zoto/eval-system/cache/analyser/*.json` whose payload's `discovery_config` snapshot referenced the dropped `llm.strategy` / `llm.codeFramework` (i.e. all of them, since the migration drops both fields)
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Removes the now-empty directories `evals/llm/test_*.test.ts` pattern files (the `_shared/` directory stays); removes `plugins/<p>/evals/{commands,agents,hooks}/` if empty after migration; removes `.cursor/evals/{commands,agents,hooks}/` if empty after migration
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "Skill exemption gate: the migration script explicitly enumerates the 14 skill `evals.json` paths and SKIPS them. If any code path attempts to read/write/delete one, the script aborts with a fatal error referencing KD-1"
+    done: false
+    evidence_path: null
+  - id: D08
+    text: "Idempotency: re-running `scripts/eval-relocate-migration.ts --apply` after a successful migration produces zero file diff and zero manifest diff. Verified by a final `git diff --stat` returning empty in the migration's own self-check at end-of-run"
+    done: false
+    evidence_path: null
+  - id: D09
+    text: "Unit test `scripts/__tests__/eval-relocate-migration.test.ts` — tests:"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

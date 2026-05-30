@@ -1,0 +1,225 @@
+{
+  "skill_name": "zoto-execute-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run /z-eval-execute with no flags in a repo where the LLM API key is not set.",
+      "expected_output": "Static pytest suite runs via pnpm run eval. No LLM cases are run. llm.yml is written under evals/_runs/<ts>/. A drift line is appended after eval:update --check.",
+      "files": [],
+      "assertions": [
+        "pnpm run eval was invoked (not eval:full)",
+        "No invocation of the LLM runner occurred",
+        "A llm.yml exists under evals/_runs/<ts>/",
+        "The llm.yml contains a drift block with status in {clean, critical, unknown}"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run /z-eval-execute --full --model opus-4.6 with CURSOR_API_KEY set in the environment.",
+      "expected_output": "Both static and LLM suites run. The LLM runner receives opus-4.6 both via --model and via ZOTO_EVAL_MODEL. llm.yml records model: opus-4.6.",
+      "files": [],
+      "assertions": [
+        "pnpm run eval:full was invoked",
+        "The LLM runner received --model opus-4.6 on the CLI",
+        "The ZOTO_EVAL_MODEL environment variable was set to opus-4.6 for the child process",
+        "llm.yml contains model: opus-4.6",
+        "A drift line is appended to llm.yml after the run"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run /z-eval-execute --full in a repo where CURSOR_API_KEY is missing.",
+      "expected_output": "The skill stops, uses askQuestion to offer either aborting or running static-only, and never invokes the LLM runner.",
+      "files": [],
+      "assertions": [
+        "askQuestion was used to ask how to proceed",
+        "The LLM runner was not invoked",
+        "If the user chose static-only, pnpm run eval was invoked instead"
+      ]
+    }
+  ,
+    {
+      "id": 1,
+      "prompt": "The palette ran `/z-eval-execute` with no flags. You have the execute-evals skill loaded—run the static suite end-to-end and close with the skill’s wrap-up.",
+      "assertions": [
+        "Step 1 chose pnpm run eval because neither --full nor an LLM-only path applied",
+        "Step 4 used a shell subagent and streamed stdout and stderr during execution rather than hiding output until the command finished",
+        "Step 5 ran pnpm run eval:update --check and translated exit code 0 to drift status clean, exit code 2 to critical, and any other code to unknown before appending drift with status, exit_code, and message to the most recent llm.yml as warn-only overlay data",
+        "Step 6 summarized totals and aggregates such as tokens, duration, verbosity, accuracy, and confidence together with the drift line and omitted graphical charts",
+        "Conventions were respected so artefact paths referenced the eval-system layout static.yml, llm.yml, report.yml, and logs under the timestamped run directory beneath evalsDir",
+        "The workflow never called askQuestion and never modified .zoto-eval-system/config.json or .zoto-eval-system/manifest.yml",
+        "Execution stayed inside package.json scripts using pnpm run eval and pnpm run eval:update --check rather than invoking harness entrypoints directly"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+        "last_updated": "2026-05-17T13:36:46.582Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched."
+        }
+      },
+      "expected_output": "The assistant drives a shell run of pnpm run eval, streams combined output as it arrives, runs pnpm run eval:update --check afterward, appends a drift block to the newest llm.yml under the configured evals tree, and finishes with pass or fail counts plus token or timing style aggregates and the drift line, without charts or edits to manifest files."
+    },
+    {
+      "id": 2,
+      "prompt": "`/z-eval-execute --full --model opus-4.6` was issued, CURSOR_API_KEY is already available to the executor process, and credentials are settled—carry out the skill.",
+      "assertions": [
+        "Step 1 selected pnpm run eval:full because --full was present with a usable Cursor API key per Step 3",
+        "Step 2 forwarded opus-4.6 through pnpm run eval:full -- --model opus-4.6 and also set ZOTO_EVAL_MODEL=opus-4.6 so downstream precedence rules can observe either channel",
+        "The executor refused to start the LLM backend without both --full and a resolved key",
+        "After completion Step 5 appended the drift YAML fragment to the freshest llm.yml with warn-only semantics that leave the run verdict unchanged",
+        "Step 6 combined backend aggregates with the drift summary and avoided rendering charts"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+        "last_updated": "2026-05-17T13:36:46.582Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched."
+        }
+      },
+      "expected_output": "pnpm run eval:full runs with opus-4.6 supplied both after -- via --model and through ZOTO_EVAL_MODEL on the same invocation pattern, LLM work only happens alongside --full with a resolved key, drift check runs afterward, and the closing narrative cites merged totals plus drift without charts."
+    },
+    {
+      "id": 3,
+      "prompt": "Run `/z-eval-execute --full`. Credential_resolution was not supplied ahead of time, CURSOR_API_KEY is absent from the executor environment, and the repo root `.env` has no uncommented CURSOR_API_KEY line with non-empty trimmed content. Apply zoto-execute-evals.",
+      "assertions": [
+        "Step 3 concluded the API key was missing under both environment and dotenv checks before any LLM run started",
+        "The response packaged needs_user_input with abort versus static-only choices instead of calling askQuestion",
+        "No shell invocation began pnpm run eval:full or otherwise executed LLM-tier tests without the key"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+        "last_updated": "2026-05-17T13:36:46.582Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched."
+        }
+      },
+      "expected_output": "The assistant emits a structured needs_user_input payload that contrasts aborting versus falling back to static-only work, issues no askQuestion prompts, and never launches eval:full or another LLM runner entrypoint."
+    },
+    {
+      "id": 4,
+      "prompt": "Task envelope shows `/z-eval-execute --full` yet credential_resolution already selected static-only continuation because the LLM tier cannot start safely. Execute using the loaded execute-evals guidance.",
+      "assertions": [
+        "Step 1 respected credential_resolution from the task payload so the shell run targeted pnpm run eval rather than pnpm run eval:full",
+        "After the static run finished Step 5 still invoked pnpm run eval:update --check and appended drift metadata warn-only to llm.yml",
+        "No LLM runner subprocess started because the resolved credential path forbade it"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+        "last_updated": "2026-05-17T13:36:46.582Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched."
+        }
+      },
+      "expected_output": "Despite the command line mentioning --full, the executor honors the resolved intent by running only pnpm run eval, still performs the post-run drift stamp on llm.yml, and summarizes static outcomes plus drift without attempting LLM execution."
+    },
+    {
+      "id": 5,
+      "prompt": "`/z-eval-execute` ran without flags. Config at `.zoto/eval-system/config.yml` sets a non-default evalsDir—follow the skill so reporting paths align with that directory.",
+      "assertions": [
+        "Configuration handling used config.evalsDir from workspace/.zoto/eval-system/config.yml so the newest run folder resolved under regression_targets/_runs instead of the default evals directory",
+        "Step 4 executed pnpm run eval while treating artefact locations relative to the configured evalsDir per the documented layout",
+        "Step 5 appended drift to the llm.yml sibling inside the newest regression_targets/_runs timestamp directory"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+        "last_updated": "2026-05-17T13:36:46.582Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched.",
+          "fixture_justifications": [
+            "Needed so the run proves eval outputs resolve under a deliberate evalsDir rather than assuming the default evals folder"
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "schema_version: 2\nevalsDir: regression_targets\n"
+          }
+        ]
+      },
+      "expected_output": "Before spawning work the assistant reads workspace/.zoto/eval-system/config.yml, resolves regression_targets as the evalsDir, and anchors references to _runs, static.yml, llm.yml, report.yml, and logs beneath that folder while running pnpm run eval and the drift follow-up."
+    },
+    {
+      "id": 6,
+      "prompt": "`/z-eval-execute --full` is requested. process.env.CURSOR_API_KEY is unset, but the repo root `.env` file holds an uncommented CURSOR_API_KEY entry whose trimmed value is non-empty. Proceed per Step 3 and complete the skill.",
+      "assertions": [
+        "Step 3 counted the repo root .env assignment toward key presence even though process.env lacked CURSOR_API_KEY at launch",
+        "Because the key resolved through dotenv, the workflow skipped needs_user_input and proceeded into pnpm run eval:full",
+        "Streaming and drift stamping behaved the same as when the key was exported directly"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+        "last_updated": "2026-05-17T13:36:46.582Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched.",
+          "fixture_justifications": [
+            "Creates only the dotenv branch of Step 3 so graders can observe acceptance without exporting CURSOR_API_KEY into the parent shell"
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.env",
+            "content": "CURSOR_API_KEY=k\n"
+          }
+        ]
+      },
+      "expected_output": "The executor treats the key as present via the dotenv branch alone, launches pnpm run eval:full without needs_user_input, streams shell output, applies dual model forwarding when --model is provided elsewhere in the task, runs drift check afterward, and summarizes aggregates plus drift."
+    },
+    {
+      "id": 7,
+      "prompt": "`/z-eval-execute --model opus-4.6` executed without --full. With the execute-evals skill active, run what the workflow mandates.",
+      "assertions": [
+        "Step 1 mapped the invocation to pnpm run eval since --full was absent meaning LLM cases stay inactive",
+        "The executor did not invoke pnpm run eval:full solely due to the isolated --model flag",
+        "Any model forwarding side-effects stayed compatible with static-only execution per Step 1’s rule that --model affects LLM cases only",
+        "Post-run drift handling via pnpm run eval:update --check still ran and updated llm.yml warn-only"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+        "last_updated": "2026-05-17T13:36:46.582Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "58ff9803666db903c3cb3b134ed6b5f4b91d9dbb193ec0333309760578c757a3",
+          "analysed_at": "2026-05-17T13:36:46.582Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers script selection for static versus full tiers, dual model forwarding, credential handling via environment and repo-root dotenv without askQuestion, shell streaming with drift stamping on llm.yml, summaries that exclude charts, honouring task credential_resolution, and locating runs via evalsDir from config.yml while leaving manifest and eval-system JSON untouched."
+        }
+      },
+      "expected_output": "The assistant selects pnpm run eval because LLM cases are off without --full, ensures opus-4.6 forwarding applies only to LLM-eligible paths so static execution dominates, then completes drift stamping and the textual summary."
+    }
+  ]
+}

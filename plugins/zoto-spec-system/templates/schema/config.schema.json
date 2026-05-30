@@ -1,0 +1,183 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-spec-system/config.schema.json",
+  "title": "Zoto Spec System Config",
+  "description": "Configuration for `.zoto/spec-system/config.yml`. Unknown top-level keys are allowed for forward compatibility.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "unitOfWork": {
+      "type": "string",
+      "default": "spec",
+      "description": "Term used for work items in user-facing messages (e.g. `spec`, `prp`, `task`, `story`)."
+    },
+    "specsDir": {
+      "type": "string",
+      "default": "specs",
+      "minLength": 1,
+      "description": "Directory where spec folders are created, relative to the repository root."
+    },
+    "workDir": {
+      "type": "string",
+      "default": "specs/current",
+      "minLength": 1,
+      "description": "Directory monitored by hooks for unprocessed items, relative to the repository root."
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Hook integration settings.",
+      "properties": {
+        "sessionStartNudge": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Session-start nudge when `workDir` contains enough unprocessed items.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "When true, the session start hook checks item counts under `workDir`."
+            },
+            "threshold": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 0,
+              "description": "Minimum item count before the nudge fires."
+            },
+            "message": {
+              "type": "string",
+              "default": "You have ${count} unprocessed ${unitOfWork}s...",
+              "description": "Template string supporting `${count}` and `${unitOfWork}` interpolation."
+            }
+          }
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Spec execution limits and verification policy.",
+      "properties": {
+        "maxSubtasks": {
+          "type": "integer",
+          "default": 99,
+          "minimum": 1,
+          "description": "Maximum subtasks allowed per spec."
+        },
+        "parallelLimit": {
+          "type": "integer",
+          "default": 4,
+          "minimum": 1,
+          "description": "Maximum concurrent subagents during execution."
+        },
+        "adversarialVerification": {
+          "type": "boolean",
+          "default": true,
+          "description": "When true, adversarial verification is mandatory before closing the spec."
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional integrations layered on the core workflow.",
+      "properties": {
+        "memory": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Memory extension (optional memory plugin integration).",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "When true, memory tooling may attach contextual memories to spec flows."
+            },
+            "plugin": {
+              "default": null,
+              "description": "Name of the memory plugin to load, or null to disable plugin binding.",
+              "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+            }
+          }
+        }
+      }
+    },
+    "subagents": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Per-role defaults for spawned subagents (token budget and optional model override).",
+      "properties": {
+        "default": { "$ref": "#/definitions/subagentRoleConfig" },
+        "generator": { "$ref": "#/definitions/subagentRoleConfig" },
+        "executor": { "$ref": "#/definitions/subagentRoleConfig" },
+        "judge": { "$ref": "#/definitions/subagentRoleConfig" },
+        "subtask": { "$ref": "#/definitions/subagentRoleConfig" }
+      }
+    },
+    "aggregator": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Live status aggregator that rolls per-subtask yml files into spec-root status outputs.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Master switch for background aggregation."
+        },
+        "pollIntervalMs": {
+          "type": "integer",
+          "default": 1500,
+          "minimum": 250,
+          "maximum": 60000,
+          "description": "Polling interval for filesystem changes."
+        },
+        "debounceMs": {
+          "type": "integer",
+          "default": 250,
+          "minimum": 50,
+          "maximum": 5000,
+          "description": "Debounce window before recomputing aggregate status."
+        },
+        "outputs": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Relative output paths under the spec directory for paired md/yml artifacts.",
+          "properties": {
+            "specStatusMd": {
+              "type": "string",
+              "default": "status.md",
+              "minLength": 1,
+              "description": "Markdown file containing block markers (human view)."
+            },
+            "specStatusYml": {
+              "type": "string",
+              "default": "status.yml",
+              "minLength": 1,
+              "description": "Authoritative yml for aggregate status (machine view)."
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "subagentRoleConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Token budget and optional model for a logical subagent role.",
+      "properties": {
+        "tokenBudget": {
+          "type": "integer",
+          "default": 200000,
+          "minimum": 1000,
+          "maximum": 2000000,
+          "description": "Maximum tokens budgeted for this role when spawning work."
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional explicit model slug; when omitted the host uses its default routing."
+        }
+      }
+    }
+  }
+}

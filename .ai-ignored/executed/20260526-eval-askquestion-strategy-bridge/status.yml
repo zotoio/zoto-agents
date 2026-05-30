@@ -1,0 +1,410 @@
+schema_version: 1
+spec_id: 20260526-eval-askquestion-strategy-bridge
+phase: 0
+aggregate_state: completed
+started_at: 2026-05-25T15:06:57.207Z
+updated_at: 2026-05-25T17:47:51.922Z
+aggregate_progress:
+  total: 13
+  completed: 13
+  in_progress: 0
+  blocked: 0
+  failed: 0
+subtasks:
+  - subtask_id: "01"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-01-eval-askquestion-strategy-bridge-sdk-investigation-20260526.status.yml
+    last_heartbeat: 2026-05-25T15:12:12.473Z
+  - subtask_id: "02"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-02-eval-askquestion-strategy-bridge-eval-corpus-baseline-20260526.status.yml
+    last_heartbeat: 2026-05-25T15:18:20.477Z
+  - subtask_id: "03"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-03-eval-askquestion-strategy-bridge-docs-discovery-20260526.status.yml
+    last_heartbeat: null
+  - subtask_id: "04"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-04-eval-askquestion-strategy-bridge-analyser-classification-20260526.status.yml
+    last_heartbeat: null
+  - subtask_id: "05"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-05-eval-askquestion-strategy-bridge-bridge-helper-module-20260526.status.yml
+    last_heartbeat: null
+  - subtask_id: "06"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-06-eval-askquestion-strategy-bridge-stamper-routing-20260526.status.yml
+    last_heartbeat: null
+  - subtask_id: "07"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-07-eval-askquestion-strategy-bridge-code-template-upgrade-20260526.status.yml
+    last_heartbeat: 2026-05-25T15:28:50Z
+  - subtask_id: "08"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-08-eval-askquestion-strategy-bridge-declarative-template-upgrade-20260526.status.yml
+    last_heartbeat: null
+  - subtask_id: "09"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-09-eval-askquestion-strategy-bridge-existing-eval-migration-20260526.status.yml
+    last_heartbeat: 2026-05-25T17:46:29.228Z
+  - subtask_id: "10"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+    last_heartbeat: null
+  - subtask_id: "11"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-11-eval-askquestion-strategy-bridge-site-docs-update-20260526.status.yml
+    last_heartbeat: null
+  - subtask_id: "12"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-12-eval-askquestion-strategy-bridge-readme-and-help-update-20260526.status.yml
+    last_heartbeat: null
+  - subtask_id: "13"
+    state: completed
+    status_path: specs/20260526-eval-askquestion-strategy-bridge/status/subtask-13-eval-askquestion-strategy-bridge-validation-and-manifest-20260526.status.yml
+    last_heartbeat: 2026-05-25T17:46:40.147Z
+blockers: []
+definition_of_done_status:
+  - id: DOD01
+    text: "`analyser-payload.schema.json` carries optional `requiresInteraction` and `interactionStyle` fields; `analyser_version` is bumped exactly once."
+    done: true
+  - id: DOD02
+    text: "`evals/llm/_shared/askquestion-bridge.ts` exists with the ADR-pinned surface and unit-test coverage."
+    done: true
+  - id: DOD03
+    text: Stamper picks one backend per target and rejects dual-backend scaffolds.
+    done: true
+  - id: DOD04
+    text: Every eligible non-interactive stamped LLM test is migrated to declarative JSON; every interactive one switches to the new bridge import; user-authored cases are byte-identical (except 1-line pre-existing JSON fix on execute-spec).
+    done: true
+  - id: DOD05
+    text: "`/zoto-create-plugin` produces the right backend on first stamp; the smoke test passes."
+    done: true
+  - id: DOD06
+    text: "`evals/_runs/<ts>/llm.yml` carries a `backend:` field per case row (code backend verified)."
+    done: true
+  - id: DOD07
+    text: "`site/eval-system/*.html`, `site/images/diagrams/eval-askquestion-flow.svg`, `plugins/zoto-eval-system/README.md`, `evals/llm/_shared/README.md`, and the `zoto-help-evals` anchor table are updated."
+    done: true
+  - id: DOD08
+    text: "`pnpm run eval:list` exits 0."
+    done: true
+  - id: DOD09
+    text: "`pnpm run eval -- --collect-only` exits 0."
+    done: true
+  - id: DOD10
+    text: "`pnpm run eval:update --check` exits 0."
+    done: true
+  - id: DOD11
+    text: A smoke `pnpm run eval:llm` cohort with `CURSOR_API_KEY` set passes both backends (declarative hook case deferred — see execution report).
+    done: false
+  - id: DOD12
+    text: "`.zoto/eval-system/manifest.yml` is refreshed exactly once and `manifest.history.yml` gains exactly one new appended entry."
+    done: true
+  - id: DOD13
+    text: Execution report captures all four gate exit logs and the backend distribution (per-plugin, per-kind).
+    done: true
+config_reloaded: []
+events:
+  - at: 2026-05-25T17:04:37.613Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest f1e3d17b…
+  - at: 2026-05-25T17:09:39.881Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:09:39.881Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest d8326791…
+  - at: 2026-05-25T17:11:33.864Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:11:33.864Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 045da4f5…
+  - at: 2026-05-25T17:11:37.247Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:11:37.247Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest c42476a9…
+  - at: 2026-05-25T17:12:56.821Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:12:56.821Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-12-eval-askquestion-strategy-bridge-readme-and-help-update-20260526.status.yml
+  - at: 2026-05-25T17:12:56.821Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest d82bc0cd…
+  - at: 2026-05-25T17:12:58.390Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:12:58.390Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-12-eval-askquestion-strategy-bridge-readme-and-help-update-20260526.status.yml
+  - at: 2026-05-25T17:12:58.390Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 95fd972b…
+  - at: 2026-05-25T17:13:04.982Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:13:04.982Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-12-eval-askquestion-strategy-bridge-readme-and-help-update-20260526.status.yml
+  - at: 2026-05-25T17:13:04.982Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 63363eac…
+  - at: 2026-05-25T17:13:06.640Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:13:06.640Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-11-eval-askquestion-strategy-bridge-site-docs-update-20260526.status.yml
+  - at: 2026-05-25T17:13:06.640Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-12-eval-askquestion-strategy-bridge-readme-and-help-update-20260526.status.yml
+  - at: 2026-05-25T17:13:06.640Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest af18c6ce…
+  - at: 2026-05-25T17:13:08.238Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:13:08.238Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-11-eval-askquestion-strategy-bridge-site-docs-update-20260526.status.yml
+  - at: 2026-05-25T17:13:08.238Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-12-eval-askquestion-strategy-bridge-readme-and-help-update-20260526.status.yml
+  - at: 2026-05-25T17:13:08.238Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest b0adc1f1…
+  - at: 2026-05-25T17:14:27.292Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:14:27.292Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-11-eval-askquestion-strategy-bridge-site-docs-update-20260526.status.yml
+  - at: 2026-05-25T17:14:27.292Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-12-eval-askquestion-strategy-bridge-readme-and-help-update-20260526.status.yml
+  - at: 2026-05-25T17:14:27.292Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 8ab806c4…
+  - at: 2026-05-25T17:14:36.907Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:14:36.907Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-11-eval-askquestion-strategy-bridge-site-docs-update-20260526.status.yml
+  - at: 2026-05-25T17:14:36.907Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-12-eval-askquestion-strategy-bridge-readme-and-help-update-20260526.status.yml
+  - at: 2026-05-25T17:14:36.907Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest eacb3abe…
+  - at: 2026-05-25T17:14:58.984Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:14:58.984Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-12-eval-askquestion-strategy-bridge-readme-and-help-update-20260526.status.yml
+  - at: 2026-05-25T17:14:58.984Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 9ef2514d…
+  - at: 2026-05-25T17:15:00.597Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:15:00.597Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest ba64e739…
+  - at: 2026-05-25T17:15:02.161Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:15:02.161Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 6aafd806…
+  - at: 2026-05-25T17:38:22.865Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:38:22.865Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-13-eval-askquestion-strategy-bridge-validation-and-manifest-20260526.status.yml
+  - at: 2026-05-25T17:38:22.865Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest bc7c8791…
+  - at: 2026-05-25T17:38:24.467Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:38:24.467Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-13-eval-askquestion-strategy-bridge-validation-and-manifest-20260526.status.yml
+  - at: 2026-05-25T17:38:24.467Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 045a3fab…
+  - at: 2026-05-25T17:39:18.063Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:39:18.063Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-13-eval-askquestion-strategy-bridge-validation-and-manifest-20260526.status.yml
+  - at: 2026-05-25T17:39:18.063Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest da537305…
+  - at: 2026-05-25T17:39:33.258Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:39:33.258Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 5ebdef90…
+  - at: 2026-05-25T17:39:34.782Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:39:34.782Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 75660214…
+  - at: 2026-05-25T17:43:18.328Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:43:18.328Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 3fad280f…
+  - at: 2026-05-25T17:43:19.848Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:43:19.848Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest a499df65…
+  - at: 2026-05-25T17:43:22.895Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:43:22.895Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-13-eval-askquestion-strategy-bridge-validation-and-manifest-20260526.status.yml
+  - at: 2026-05-25T17:43:22.895Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 667a797d…
+  - at: 2026-05-25T17:43:24.425Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:43:24.425Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-13-eval-askquestion-strategy-bridge-validation-and-manifest-20260526.status.yml
+  - at: 2026-05-25T17:43:24.425Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 215e97a0…
+  - at: 2026-05-25T17:44:51.142Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:44:51.142Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-13-eval-askquestion-strategy-bridge-validation-and-manifest-20260526.status.yml
+  - at: 2026-05-25T17:44:51.142Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 88d82e50…
+  - at: 2026-05-25T17:45:00.257Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:45:00.257Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-13-eval-askquestion-strategy-bridge-validation-and-manifest-20260526.status.yml
+  - at: 2026-05-25T17:45:00.257Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 6bc4889f…
+  - at: 2026-05-25T17:45:03.302Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:45:03.302Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 85fb7c98…
+  - at: 2026-05-25T17:45:04.826Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:45:04.826Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 33bd80d9…
+  - at: 2026-05-25T17:45:39.740Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:45:39.740Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest d6b36e09…
+  - at: 2026-05-25T17:45:42.823Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:45:42.823Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest b3060ad4…
+  - at: 2026-05-25T17:45:45.864Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:45:45.864Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 39ad25e7…
+  - at: 2026-05-25T17:45:48.914Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:45:48.914Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 7aef6652…
+  - at: 2026-05-25T17:46:17.786Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:46:17.786Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 4beb9d4e…
+  - at: 2026-05-25T17:46:19.308Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:46:19.308Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest dfa6df3e…
+  - at: 2026-05-25T17:46:22.351Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:46:22.351Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest d7073e71…
+  - at: 2026-05-25T17:46:23.872Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:46:23.872Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest dcce8f08…
+  - at: 2026-05-25T17:46:30.046Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:46:30.046Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 63f023cf…
+  - at: 2026-05-25T17:46:37.660Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:46:37.660Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 3b8fb133…
+  - at: 2026-05-25T17:46:40.701Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:46:40.701Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 56239229…
+  - at: 2026-05-25T17:47:33.818Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:47:33.818Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest aa23aa4f…
+  - at: 2026-05-25T17:47:35.340Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260526-eval-askquestion-strategy-bridge/status/subtask-10-eval-askquestion-strategy-bridge-plugin-creation-integration-20260526.status.yml
+  - at: 2026-05-25T17:47:35.340Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 7453c748…
+  - at: 2026-05-25T17:47:50.552Z
+    kind: rebuild
+    message: Aggregated 13 subtask source(s); digest 8e9d21e0…
+  - at: 2026-05-25T17:47:51.922Z
+    kind: rebuild
+    message: Aggregated 13 subtask source(s); digest 2ba02054…
+extra:
+  aggregator_digest: 2ba02054d790b4556df1c4fd84894e3eab21b47b90c558e299452cf0556edf6e

@@ -1,0 +1,204 @@
+{
+  "target_id": "agent:zoto-eval-analyser-subagent",
+  "_meta": {
+    "generated": true,
+    "migrated_from": "plugins/zoto-eval-system/agents/evals/zoto-eval-analyser-subagent.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": "skill-envelope-pinning-and-sterile-json",
+      "prompt": "Our stamp pipeline regenerated `pnpm run eval:analyse`; please replay the Cursor subagent invocation with envelope fields already fixed and analyse `workspace/plugins/repo-tools/skills/verify-release/SKILL.md` as `kind: skill`, `target_id: skill:verify-release`, handing it the hashed frontmatter-plus-body excerpt and digest from the queued job. Treat the eventual assistant reply as the raw stream the extractor will slice.",
+      "assertions": [
+        "Assistant reply trims to one object whose UTF-8 text begins with `{` and ends with `}` without conversational framing that would break deterministic extraction beyond what the extractor already tolerates.",
+        "After parsing, JSON validates successfully against `plugins/zoto-eval-system/templates/schema/analyser-payload.schema.json` including `additionalProperties: false`.",
+        "Emitted `schema_version` equals integer 1 and `analyser_version`, `model_id`, `target_id`, `kind`, `source_path`, and `source_hash` duplicate the queued envelope verbatim.",
+        "Top-level `requiresInteraction` is boolean typed and `interactionStyle` is strictly one of command-owned, subagent-escalated, or none, consistent with imperative guidance for the analysed primitive itself rather than the analyser subagent.",
+        "The serialized reply omits lexical hygiene violations named in primitive hard-rule 4, including angled editor tokens and the enumerated banned phrases table.",
+        "Whenever `fixtures.files` is non-empty, `fixture_justifications` exists with the same length in order and every `path` stays sandbox-relative without absolute roots or traversal segments escaping the sandbox.",
+        "When the analysed skill needs no per-case workspace overlay, `fixtures` is omitted or `fixtures.files` is an empty array."
+      ],
+      "assertion_patterns": [
+        "\\{",
+        "plugins/zoto-eval-system/templates/schema/analyser-payload\\.schema\\.json",
+        "schema_version",
+        "requiresInteraction",
+        "fixtures\\.files",
+        "fixtures"
+      ],
+      "expected_output": "A single analysable payload for the staged skill covering realistic upstream loading prompts plus behaviour checks the runner can grade.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+        "last_updated": "2026-05-29T11:52:12.852Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+          "analysed_at": "2026-05-29T11:52:12.852Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The analyser subagent consumes one primitive envelope from `pnpm run eval:analyse` and must return exactly one schema-valid AnalyserPayload with pinned envelope fields, per-kind prompt tailoring, interaction classification, lexical hygiene, and fixture coupling rules when overlays appear."
+        }
+      }
+    },
+    {
+      "id": "command-kind-slash-palette-with-realistic-args",
+      "prompt": "Queue `eval:analyse` against `workspace/plugins/zoto-eval-system/commands/z-eval-help.md` as `kind: command`, `target_id: command:z-eval-help`; keep the Cursor model pinned to opus and insist the classifier emit cases an operator could paste verbatim from the command palette alongside realistic flags such as topical help sections.",
+      "assertions": [
+        "Because the analysed envelope marks `kind: command`, each emitted `cases[].prompt` begins with `/` referencing a Cursor command slug rather than rewriting the flow as unsolicited prose.",
+        "Every command case prompt includes realistic flags or arguments unless the analysed command documents a bare no-args invocation or a precondition-abort path under KD-2.",
+        "Assertions cite operator-visible outcomes such as manifest rows, CLI stdout, or on-screen refuse strings rather than internal harness narration."
+      ],
+      "assertion_patterns": [
+        "kind: command"
+      ],
+      "expected_output": "Cases whose analysed prompts obey command-table slash-first styling with realistic arguments for each documented flow in that Markdown.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+        "last_updated": "2026-05-29T11:52:12.852Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+          "analysed_at": "2026-05-29T11:52:12.852Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The analyser subagent consumes one primitive envelope from `pnpm run eval:analyse` and must return exactly one schema-valid AnalyserPayload with pinned envelope fields, per-kind prompt tailoring, interaction classification, lexical hygiene, and fixture coupling rules when overlays appear."
+        }
+      }
+    },
+    {
+      "id": "agent-kind-conversational-realism",
+      "prompt": "Hand the bundled digest for `agent:zoto-eval-generator` at `workspace/plugins/zoto-eval-system/agents/zoto-eval-generator.md` after the updater copied it locally; classifications must reflect Markdown instructions describing structured needs_user_input without operator chat flourishes masking the analysed agent behaviours.",
+      "assertions": [
+        "For this analysed agent kind envelope, emitted `cases[].prompt` sentences read like pasted operator chat coordinating that agent route instead of single-token slash palettes.",
+        "When the analysed agent forbids AskQuestion from its subagent loop, emitted `requiresInteraction` is true and `interactionStyle` is subagent-escalated.",
+        "Assertions for the analysed agent cite structured `needs_user_input` payloads or observable filesystem artefacts rather than transcript-side tool emissions."
+      ],
+      "assertion_patterns": [
+        "cases\\[\\]\\.prompt",
+        "requiresInteraction",
+        "needs_user_input"
+      ],
+      "expected_output": "An AnalyserPayload where natural-language analysed prompts mimic real Cursor delegation without slash-led palettes as the dominant voice unless quoted operator breadcrumbs appear inside richer prose.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+        "last_updated": "2026-05-29T11:52:12.852Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+          "analysed_at": "2026-05-29T11:52:12.852Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The analyser subagent consumes one primitive envelope from `pnpm run eval:analyse` and must return exactly one schema-valid AnalyserPayload with pinned envelope fields, per-kind prompt tailoring, interaction classification, lexical hygiene, and fixture coupling rules when overlays appear."
+        }
+      }
+    },
+    {
+      "id": "hook-kind-lifecycle-narration",
+      "prompt": "Target `workspace/plugins/zoto-eval-system/hooks/eval-system.json` with `kind: hook`, `target_id: hook:zoto-eval-system` so regenerated eval rows cite which Cursor lifecycle stanza invokes the binaries and stresses JSON stdout contracts the hook bundle asserts.",
+      "assertions": [
+        "Emitted hook analyses describe the Cursor lifecycle invocation tying each behavioural assertion to externally visible exit statuses or JSON stdout payloads the hook emits.",
+        "Top-level `requiresInteraction` is false and `interactionStyle` is none for the analysed hook primitive.",
+        "No `fixtures.files` overlays are emitted when the hook case can run on the repo-wide baseline alone."
+      ],
+      "assertion_patterns": [
+        "requiresInteraction",
+        "fixtures\\.files"
+      ],
+      "expected_output": "Hooks-oriented cases referencing concrete lifecycle anchors from the analysed bundle rather than conversational IDE chat for unrelated agents.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+        "last_updated": "2026-05-29T11:52:12.852Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+          "analysed_at": "2026-05-29T11:52:12.852Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The analyser subagent consumes one primitive envelope from `pnpm run eval:analyse` and must return exactly one schema-valid AnalyserPayload with pinned envelope fields, per-kind prompt tailoring, interaction classification, lexical hygiene, and fixture coupling rules when overlays appear."
+        }
+      }
+    },
+    {
+      "id": "rule-kind-editor-centred-prompts",
+      "prompt": "Analyse `workspace/.cursor/rules/committing-changes-with-git.mdc` as `rule:committing-changes-with-git` so downstream rows exercise how assistants must comply with invariants spelled in that constrained Markdown globs narrative.",
+      "assertions": [
+        "Emitted `cases[].prompt` wording mirrors plausible user editing requests constrained by globs scoped in that rule file instead of repurposing unrelated command palette strings.",
+        "Assertions describe whether the rule enforcement triggered or did not trigger at the documented file glob with an externally observable proxy.",
+        "Top-level `requiresInteraction` is false and `interactionStyle` is none for the analysed rule primitive."
+      ],
+      "assertion_patterns": [
+        "cases\\[\\]\\.prompt",
+        "requiresInteraction"
+      ],
+      "expected_output": "Cases whose analysed prompts imitate user-visible editor requests constrained by rule scope instead of infra-only slash commands unless operator quotes appear inside conversational glue.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+        "last_updated": "2026-05-29T11:52:12.852Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+          "analysed_at": "2026-05-29T11:52:12.852Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The analyser subagent consumes one primitive envelope from `pnpm run eval:analyse` and must return exactly one schema-valid AnalyserPayload with pinned envelope fields, per-kind prompt tailoring, interaction classification, lexical hygiene, and fixture coupling rules when overlays appear."
+        }
+      }
+    },
+    {
+      "id": "comparer-speciality-weaving-compare-plus-judge-stakes",
+      "prompt": "Force envelope `kind: agent`, `target_id: agent:zoto-eval-comparer`, `source_path: workspace/plugins/zoto-eval-system/agents/zoto-eval-comparer.md`, including both compare-mode instructions and adjudication overlays so regenerated rows obey the speciality section rather than shortening to generic agent prose.",
+      "assertions": [
+        "Every emitted comparer-facing prompt is a conversational orchestration request that does not begin with `/z-eval-compare` unless that token appears as quoted operator text inside longer prose.",
+        "Emitted comparer-facing prompts weave multi-run reconciliation details including report rollups destined for canvases, symbolic run labels, and ambiguity handling plus judge-tier stakes such as confidence columns surviving flattening and judge prerequisites without trimming away either theme.",
+        "Assertions cite the comparer no-AskQuestion contract by referencing structured `needs_user_input` when operands stay ambiguous rather than operator Q&A from the subagent loop."
+      ],
+      "assertion_patterns": [
+        "/z-eval-compare",
+        "needs_user_input"
+      ],
+      "expected_output": "Comparer-target payload cases whose prompts orchestrate conversational compare-mode hand-offs referencing multi-run rollup folders alongside judge artefacts in one contiguous narrative arc.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+        "last_updated": "2026-05-29T11:52:12.852Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+          "analysed_at": "2026-05-29T11:52:12.852Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The analyser subagent consumes one primitive envelope from `pnpm run eval:analyse` and must return exactly one schema-valid AnalyserPayload with pinned envelope fields, per-kind prompt tailoring, interaction classification, lexical hygiene, and fixture coupling rules when overlays appear."
+        }
+      }
+    },
+    {
+      "id": "interaction-classification-and-bare-command-kd-2",
+      "prompt": "Run two back-to-back analyse jobs: first `command:z-eval-configure` at `workspace/plugins/zoto-eval-system/commands/z-eval-configure.md`, then `command:z-eval-init` at `workspace/plugins/zoto-eval-system/commands/z-eval-init.md`. Each envelope must carry its own digest and the classifier must honour interaction heuristics and the bare-command exception register for documented no-args invocations.",
+      "assertions": [
+        "For `command:z-eval-configure`, emitted `requiresInteraction` is true and `interactionStyle` is command-owned aligned with parent-owned AskQuestion guidance in the analysed Markdown.",
+        "For `command:z-eval-init`, at least one case prompt is the bare `/z-eval-init` slug because the analysed command documents no-args as the intended invocation under KD-2.",
+        "For `command:z-eval-configure`, bare slash-only prompts without documented precondition-abort or no-args exemption are absent from emitted cases."
+      ],
+      "assertion_patterns": [
+        "command:z-eval-configure",
+        "command:z-eval-init",
+        "command:z-eval-configure"
+      ],
+      "expected_output": "Separate payloads where configure analyses emit command-owned interaction labels and init analyses retain a bare slash invocation only because the Usage section documents no-args as intended.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+        "last_updated": "2026-05-29T11:52:12.852Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "32ef1de755fa944d15263092b1280be8227eef7cb618a1c1b9dec31758de4df7",
+          "analysed_at": "2026-05-29T11:52:12.852Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The analyser subagent consumes one primitive envelope from `pnpm run eval:analyse` and must return exactly one schema-valid AnalyserPayload with pinned envelope fields, per-kind prompt tailoring, interaction classification, lexical hygiene, and fixture coupling rules when overlays appear."
+        }
+      }
+    }
+  ]
+}

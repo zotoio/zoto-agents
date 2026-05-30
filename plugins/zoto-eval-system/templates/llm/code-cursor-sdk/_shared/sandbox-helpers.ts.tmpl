@@ -1,0 +1,85 @@
+// _meta.generated: true
+/**
+ * LLM `code` strategy — sandbox helpers.
+ *
+ * Stamped at `<host-repo>/evals/llm/_shared/sandbox-helpers.ts` by
+ * `scripts/eval-stamp.ts#stampLlmCodePerPrimitive` (subtask 09).
+ *
+ * What this module does
+ * ---------------------
+ *   - Re-exports the canonical sandbox primitives from
+ *     `evals/_llm/sandbox.ts` (subtask 05) so per-test files have a single
+ *     `import` path that doesn't depend on the relative depth between
+ *     `evals/llm/<test>.test.ts` and `evals/_llm/sandbox.ts`.
+ *   - Adds two convenience aliases (`preSnapshot`, `postSnapshot`) that
+ *     wrap `snapshotDir` with names matching the `repo_mutations` lifecycle
+ *     used by per-case test bodies.
+ *   - Adds `diffMutations(before, after)` that returns the schema-shaped
+ *     `repo_mutations` block (added/modified/removed) consumed by the
+ *     reporter when it builds `evals/_runs/<ts>/llm.yml`.
+ *
+ * Re-exports — DO NOT re-implement
+ * --------------------------------
+ * The actual heavy lifting (per-case tmp dir allocation, baseline copy,
+ * fixture overlays, snapshot hashing) lives in `evals/_llm/sandbox.ts`.
+ * This module is intentionally thin so a future change to the sandbox
+ * contract is a one-place patch in subtask 05's owner module.
+ */
+export {
+  createSandbox,
+  prepareSandbox,
+  resolveBaselineDir,
+  materializeFixtures,
+  snapshotDir,
+  snapshotRepo,
+  diffSnapshots,
+  verifyExpectedFilesystemAgainstDiff,
+  slugifyCaseId,
+  caseSlug,
+} from "../../_llm/sandbox.js";
+
+export type {
+  SandboxHandle,
+  RepoSnapshot,
+  SnapshotDiff,
+  FilesystemVerdict,
+  PrepareSandboxOptions,
+} from "../../_llm/sandbox.js";
+
+import { snapshotDir, diffSnapshots } from "../../_llm/sandbox.js";
+import type { RepoSnapshot, SnapshotDiff } from "../../_llm/sandbox.js";
+
+/**
+ * Snapshot the sandbox tree BEFORE the agent runs. Mirror of
+ * `snapshotDir` with the documented lifecycle name. Use with
+ * `postSnapshot` and `diffMutations` to populate the `repo_mutations`
+ * block on the per-case YAML row.
+ */
+export function preSnapshot(rootDir: string): RepoSnapshot {
+  return snapshotDir(rootDir);
+}
+
+/**
+ * Snapshot the sandbox tree AFTER the agent runs. Identical shape to
+ * `preSnapshot` so consumers can keep the lifecycle pair symmetric.
+ */
+export function postSnapshot(rootDir: string): RepoSnapshot {
+  return snapshotDir(rootDir);
+}
+
+/**
+ * Returns a schema-shaped `{ added, modified, removed }` block ready for
+ * direct serialisation under `cases[].repo_mutations` in
+ * `evals/_runs/<ts>/llm.yml`.
+ */
+export function diffMutations(
+  before: RepoSnapshot,
+  after: RepoSnapshot,
+): { added: string[]; modified: string[]; removed: string[] } {
+  const diff: SnapshotDiff = diffSnapshots(before, after);
+  return {
+    added: diff.added,
+    modified: diff.modified,
+    removed: diff.removed,
+  };
+}

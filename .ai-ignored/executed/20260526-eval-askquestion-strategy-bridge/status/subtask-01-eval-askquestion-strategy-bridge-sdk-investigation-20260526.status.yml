@@ -1,0 +1,46 @@
+schema_version: 1
+subtask_id: "01"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: explore
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-26T00:00:00.000Z
+last_heartbeat: 2026-05-25T15:12:12.473Z
+completed_at: 2026-05-25T15:12:12.473Z
+git_sha: e49961f
+checklist:
+  - id: D01
+    text: "`specs/20260526-eval-askquestion-strategy-bridge/audit/sdk-askquestion-adr.md` — short ADR with: (a) what `@cursor/sdk` 1.0.12 exposes (`Run`, `RunResult`, `agent.send`, `run.wait`, etc.); (b) whether the SDK surfaces tool-call interception, replay, or scripted answers; (c) the chosen helper architecture (concrete signatures); (d) a fallback path if the SDK has no native interception (script answers as ordinary follow-up prompts but tag them so the runner can mark `interaction_style: synthetic` in the report); (e) at least one concrete usage sketch."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/sdk-askquestion-adr.md
+  - id: D02
+    text: "`specs/20260526-eval-askquestion-strategy-bridge/audit/sdk-surface-snapshot.md` — verbatim transcript of the relevant `node_modules/@cursor/sdk/dist/esm/*.d.ts` entries, plus a list of any release-note-relevant SDK fields (e.g. `RunResult` extensions like `usage.totalTokens`)."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/sdk-surface-snapshot.md
+  - id: D03
+    text: An exported-surface table for the new `evals/llm/_shared/askquestion-bridge.ts` module, copied verbatim into the ADR — function names, parameter shapes, return types, and the package barrel re-export plan.
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/sdk-askquestion-adr.md#exported-surface-evalsllm_sharedaskquestion-bridge.ts
+artifacts:
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/sdk-askquestion-adr.md
+    kind: created
+    note: ADR pinning askquestion-bridge exported surface and synthetic fallback strategy
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/sdk-surface-snapshot.md
+    kind: created
+    note: Verbatim @cursor/sdk@1.0.12 .d.ts excerpts and drift watchlist
+errors: []
+notes: SDK 1.0.12 exposes observe-only tool streaming (run.stream, SendOptions.onDelta) but no AskQuestion interception. ADR locks interaction_style synthetic, resolveInteractionPlanFromCase, runCaseWithScriptedAnswers, and interactions.answers > follow_ups[] precedence.
+extra:
+  judge:
+    verdict: verified
+    at: "2026-05-26T12:00:00.000Z"
+    notes: >-
+      Both audit artefacts exist and satisfy the subtask contract. ADR documents
+      observe-only SDK 1.0.12 surface, synthetic fallback with interaction_style tagging,
+      exported askquestion-bridge surface (resolveInteractionPlanFromCase,
+      beginScriptedInteractionCase, runCaseWithScriptedAnswers), follow_ups[] precedence,
+      and a usage sketch. Snapshot run.d.ts/agent.d.ts/messages.d.ts excerpts match the
+      pinned 1.0.12 baseline (local node_modules is 1.0.13; snapshot drift watchlist
+      documents the delta). No production code modified for this subtask.
+    fix_list: []

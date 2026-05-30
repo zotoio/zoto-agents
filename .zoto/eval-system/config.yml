@@ -1,0 +1,88 @@
+# =============================================================================
+# Zoto Eval System — .zoto/eval-system/config.yml
+# =============================================================================
+# Every key below is shown alongside its internal default. Lines starting with
+# `#` are inactive — uncomment to override. Lines without `#` are this repo's
+# active overrides (preserved from the prior .zoto-eval-system/config.json).
+#
+# Schema: plugins/zoto-eval-system/templates/schema/config.schema.json
+# =============================================================================
+
+
+# ─────────────────────────────  discovery  ───────────────────────────────────
+# evalsDir: evals
+# skillsRoots:
+#   - .cursor/skills
+#   - skills
+#   - plugins/*/skills
+# discoveryTargets:
+#   - skill
+#   - command
+#   - agent
+#   - hook
+
+# Active override: skip CRUX primitives in this repo.
+ignore:
+  - ".cursor/skills/crux-*"
+  - ".cursor/commands/crux-*.md"
+  - ".cursor/agents/crux-cursor-*.md"
+  - ".cursor/hooks/crux-*"
+
+
+# ──────────────────────────────  backends  ───────────────────────────────────
+# Active overrides: this repo runs vitest for static evals. The single
+# unified LLM harness emits `<kind>/evals/<name>.test.ts` co-located with
+# every non-skill primitive; there is no `llm.strategy` / `llm.codeFramework`
+# knob any more.
+static:
+  framework: vitest          # default: pytest
+
+
+# ────────────────────────────────  llm  ──────────────────────────────────────
+# Active override: pin the analyser model explicitly. Schema enum:
+# composer-2.5 | opus-4.6 | sonnet. composer-2.5 matches the schema default;
+# pinning it here lets us swap with one edit if composer empties out again.
+llm:
+  runtime: tsx
+  model:
+    id: composer-2.5
+
+
+# ────────────────────────────────  judge  ────────────────────────────────────
+judgeModel: opus-4.6
+
+
+# ────────────────────────────  manual checklists  ────────────────────────────
+# manualChecklists:
+#   enabled: false
+
+
+# ────────────────────────────  extra automation  ─────────────────────────────
+# additionalAutomation: []
+
+
+# ───────────────────────────────  analyser  ──────────────────────────────────
+# analyser:
+#   concurrency: 4
+#   maxCallsPerInvocation: 50
+
+
+# ───────────────────────────  run retention (gc)  ────────────────────────────
+# runs:
+#   retention: 30
+
+
+# ────────────────────────────────  update  ───────────────────────────────────
+# update:
+#   criticalChangeRules:
+#     addedTargetWithoutCoverage: true
+#     removedTargetWithActiveCases: true
+#     skillFrontmatterChange: true
+#     publicSurfaceChange: true
+#     promptTemplateChange: true
+#   preserveUserAuthoredCases: true       # hard-coded contract — do not change
+#   writeMetaMarker: true                 # hard-coded contract — do not change
+#   manifestPath: .zoto/eval-system/manifest.yml
+#   historyPath: .zoto/eval-system/manifest.history.yml
+#   rediscoverWithSameDefaults: true
+#   checkExitCodeOnCriticalDrift: 2

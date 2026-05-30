@@ -1,0 +1,195 @@
+{
+  "skill_name": "zoto-create-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Scaffold the eval system into a fresh pnpm monorepo with two skills under plugins/example-plugin/skills/.",
+      "expected_output": "Static pytest backend stamped at evals/, LLM backend at evals/_llm/, evals.json generated for each skill with _meta.generated=true, manifest.yml and manifest.history.yml written, and package.json merged with eval scripts. pnpm run eval:update --check exits 0.",
+      "files": [],
+      "assertions": [
+        "evals/conftest.py exists",
+        "evals/_llm/runner.ts exists",
+        "Each discovered skill has evals/evals.json with >= 2 cases",
+        "Every generated case includes _meta.generated = true",
+        "Every generated case includes a 64-character sha256 source_hash in _meta",
+        "package.json includes the eval, eval:full, eval:update, eval:update:check and eval:compare scripts",
+        ".zoto/eval-system/manifest.yml exists and validates against manifest.schema.json",
+        ".zoto/eval-system/manifest.history.yml contains exactly one snapshot after create",
+        "pnpm run eval:update --check exits with code 0"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run /z-eval-create in a repository that already has a user-authored case at skills/foo/evals/evals.json (no _meta block). Ensure the user case is preserved.",
+      "expected_output": "The user-authored case is untouched; new generated cases may be appended, but existing cases without _meta remain byte-for-byte identical. All interactive prompts go through askQuestion.",
+      "files": [],
+      "assertions": [
+        "Pre-existing user-authored case is preserved verbatim (no _meta added retroactively)",
+        "Any new generated cases have _meta.generated = true",
+        "The skill uses askQuestion before overwriting or appending to any existing evals.json",
+        ".zoto/eval-system/manifest.yml lists the user's evals.json as an eval_file for the relevant target"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run /z-eval-create in a repository whose git working tree has no HEAD (brand new repo with no initial commit).",
+      "expected_output": "The skill completes successfully and records a placeholder git_ref in the manifest, clearly flagged. No crash.",
+      "files": [],
+      "assertions": [
+        "The skill does not crash on missing HEAD",
+        "manifest.yml is written with a placeholder or zero sha git_ref",
+        "The skill asks, via askQuestion, whether the user wants to make an initial commit before continuing"
+      ]
+    }
+  ,
+    {
+      "id": 1,
+      "prompt": "We already ran `/z-eval-create` and approved every discovered command, agent, and hook target plus the proprietary skills; proceed with the create-evals workflow now so `pnpm run eval:list`, static collection, and LLM harness wiring land together.",
+      "assertions": [
+        "Before stamping templates, the agent dispatched `pnpm run eval:discover` (via an explore subagent) and reconciled the Task-approved ID list with `config.ignore` minimatches without calling `askQuestion`.",
+        "`templates/static/pytest/*` landed under `{evalsDir}/`, `templates/llm/agent-sdk/*` under `{evalsDir}/_llm/`, `templates/runner/test.py.tmpl` became `scripts/test.py`, and `templates/schema/result.schema.json` copied beside the LLM harness.",
+        "`static.framework`, `llm.strategy`, and `llm.codeFramework` selections read from `.zoto/eval-system/config.yml` governed which pytest versus Vitest or Jest bundles were emitted without silent framework drift.",
+        "Only command, agent, and hook targets received `pnpm run eval:analyse -- …` followed by `pnpm run eval:stamp -- …`; skill targets consumed `templates/skill-evals/evals.json.tmpl` locally without central `eval-stamp.ts` runs.",
+        "`pnpm exec tsx scripts/package-json-merger.ts` merged `templates/package-scripts/base.json` without touching unrelated host sources outside the documented allow-list.",
+        "`manifest.yml` and the appended `manifest.history.yml` entry share identical YAML payloads including `schema_version`, timestamps, `git_ref`, `generated_by: zoto-create-evals`, and populated `targets[].eval_files`.",
+        "No `.env` file was created; if `.env.example` pre-existed the report calls out verifying `CURSOR_API_KEY` coverage instead of rewriting the file.",
+        "Optional hygiene instructions mention running `pnpm exec tsx scripts/eval-cleanup-vendored.ts` after tightening `ignore[]` so vendored-only fixtures disappear.",
+        "When cleanup tooling encounters mixed authored and generated rows inside the same eval asset, the workflow surfaces `needs_user_input` instead of deleting anything automatically."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
+        "last_updated": "2026-05-30T14:05:11.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
+          "analysed_at": "2026-05-30T14:05:11.456Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers the dual-backend scaffold path with discovery, manifest writes, package merge, validation gates, ignore-driven skips, and guardrails around interactive prompts and env template handling."
+        }
+      },
+      "expected_output": "Final report lists stamped pytest + agent-sdk `_llm` trees under the configured eval directory, refreshed `package.json` scripts and devDependencies including dotenv, new `.zoto/eval-system/manifest.yml` matching an appended `manifest.history.yml` snapshot, per-command/agent/hook JSON rows under both plugin and `.cursor/evals` roots with `_meta.generated: true`, templated per-skill `evals/evals.json` files from `templates/skill-evals/evals.json.tmpl` for each approved skill directory, explicit passes for `pnpm run eval:list`, `pnpm run eval -- --collect-only`, and `pnpm run eval:update --check`, a reminder to install packages once, and notes that only `hook:cursor-workspace` should be targeted while legacy `hook:cursor` stays deprecated."
+    },
+    {
+      "id": 2,
+      "prompt": "Spin up the eval suite from `/z-eval-create` immediately—this workspace still lacks `.zoto/eval-system/config.yml`, so finish provisioning via the skill.",
+      "assertions": [
+        "The response returns `needs_user_input` describing that `.zoto/eval-system/config.yml` must exist before scaffolding.",
+        "No `askQuestion` hooks fired from the skill loop.",
+        "No writes occurred under `{evalsDir}/`, `.zoto/eval-system/manifest.yml`, or `manifest.history.yml`."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
+        "last_updated": "2026-05-30T14:05:11.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
+          "analysed_at": "2026-05-30T14:05:11.456Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers the dual-backend scaffold path with discovery, manifest writes, package merge, validation gates, ignore-driven skips, and guardrails around interactive prompts and env template handling."
+        }
+      },
+      "expected_output": "Structured `needs_user_input` tells the operator run `/z-eval-configure` first, explicitly citing the absent config path; no template directories were stamped yet."
+    },
+    {
+      "id": 3,
+      "prompt": "Approved IDs include `command:upstream-docs` but its canonical Markdown sits under `upstream-vendor/commands/upstream-docs.md` matched by `config.ignore`; run create-evals now.",
+      "assertions": [
+        "`pnpm run eval:analyse -- command:upstream-docs` (when accidentally invoked) exits reporting `{ ignored: true, matched_glob }` and emits no new JSON under `.cursor/evals/commands/`.",
+        "`pnpm run eval:stamp -- command:upstream-docs` likewise refuses writes for ignored sources.",
+        "Other approved targets still receive analyse/stamp cycles after filtering."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
+        "last_updated": "2026-05-30T14:05:11.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
+          "analysed_at": "2026-05-30T14:05:11.456Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers the dual-backend scaffold path with discovery, manifest writes, package merge, validation gates, ignore-driven skips, and guardrails around interactive prompts and env template handling.",
+          "fixture_justifications": [
+            "Provides realistic `ignore` globs so minimatched targets exit analyse/stamp with `{ ignored: true }` without touching forbidden paths."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "schema_version: 2\nstatic:\n  framework: pytest\nllm:\n  strategy: code\n  codeFramework: vitest\nevalsDir: evals\nignore:\n  - \"upstream-vendor/**\"\nmanualChecklists:\n  enabled: false\n"
+          }
+        ]
+      },
+      "expected_output": "Report confirms skipped IDs honour minimatches, documents matching globs, and reminds operators to run `pnpm exec tsx scripts/eval-cleanup-vendored.ts` once ignores ship."
+    },
+    {
+      "id": 4,
+      "prompt": "Approved checklist matches defaults—finish create-evals while respecting existing secrets guidance files.",
+      "assertions": [
+        "SHA256 of `.env.example` stayed unchanged relative to the pre-run workspace overlay.",
+        "Final narration mentions reconciling `CURSOR_API_KEY` without rewriting the env template file.",
+        "`.env` was not introduced anywhere in the repo."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
+        "last_updated": "2026-05-30T14:05:11.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
+          "analysed_at": "2026-05-30T14:05:11.456Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers the dual-backend scaffold path with discovery, manifest writes, package merge, validation gates, ignore-driven skips, and guardrails around interactive prompts and env template handling.",
+          "fixture_justifications": [
+            "Forces the skill to skip overwriting `.env.example` yet surface an explicit reminder about `CURSOR_API_KEY` coverage."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.env.example",
+            "content": "# host-managed secrets\nCURSOR_API_KEY=\nCUSTOM_CI_SECRET=\n"
+          }
+        ]
+      },
+      "expected_output": "`.env.example` bytes remain identical while the report highlights verifying `CURSOR_API_KEY` entries manually."
+    },
+    {
+      "id": 5,
+      "prompt": "Operator toggled manual checklist generation—complete `/z-eval-create` after approvals.",
+      "assertions": [
+        "`templates/user-checklists/USER_EVAL_CHECKLISTS.md.tmpl` copied into `{evalsDir}/USER_EVAL_CHECKLISTS.md` when `manualChecklists.enabled` is true.",
+        "Other scaffolding steps still completed plus validation commands succeeded.",
+        "`askQuestion` remained unused inside the skill execution."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
+        "last_updated": "2026-05-30T14:05:11.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
+          "analysed_at": "2026-05-30T14:05:11.456Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Covers the dual-backend scaffold path with discovery, manifest writes, package merge, validation gates, ignore-driven skips, and guardrails around interactive prompts and env template handling.",
+          "fixture_justifications": [
+            "Turns on `manualChecklists.enabled` so `{evalsDir}/USER_EVAL_CHECKLISTS.md` must materialise from `templates/user-checklists/USER_EVAL_CHECKLISTS.md.tmpl`."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "schema_version: 2\nstatic:\n  framework: pytest\nllm:\n  strategy: code\n  codeFramework: vitest\nevalsDir: evals\nignore: []\nmanualChecklists:\n  enabled: true\n"
+          }
+        ]
+      },
+      "expected_output": "`{evalsDir}/USER_EVAL_CHECKLISTS.md` exists with templated sections operators can annotate during review."
+    }
+  ]
+}

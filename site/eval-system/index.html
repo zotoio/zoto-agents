@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overview — Eval System — Zoto Agents</title>
+  <meta name="description" content="zoto-eval-system overview — generate, run, and consciously update static + LLM eval suites when AI primitives change, with a sovereign user-authored case lane.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Eval System — Overview — Zoto Agents">
+  <meta property="og:description" content="Static (pytest) + LLM (@cursor/sdk) eval suites stamped side-by-side, updated with user confirmation when AI primitives change, compared on /canvas.">
+  <meta property="og:url" content="https://zotoio.github.io/zoto-agents/eval-system/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Eval System — Overview — Zoto Agents">
+  <meta name="twitter:description" content="Static + LLM eval suites kept in lockstep with code; user-authored cases stay sovereign.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
+</head>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <nav class="top-nav" aria-label="Main navigation">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="../spec-system/index.html" class="nav-dropdown-toggle">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../spec-system/index.html">Overview</a></li>
+            <li><a href="../spec-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../spec-system/design.html">Design</a></li>
+            <li><a href="../spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="index.html" class="nav-dropdown-toggle active">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="quickstart.html">Quickstart</a></li>
+            <li><a href="design.html">Design</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" aria-label="Eval System pages">
+        <h3 class="sidebar-heading">Eval System</h3>
+        <ul class="sidebar-list">
+          <li><a href="index.html" class="sidebar-link active">Overview</a></li>
+          <li><a href="quickstart.html" class="sidebar-link">Quickstart</a></li>
+          <li><a href="design.html" class="sidebar-link">Design</a></li>
+          <li><a href="configuration.html" class="sidebar-link">Configuration</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="index.html">Eval System</a></li>
+          <li>Overview</li>
+        </ul>
+
+        <h1 id="overview">Eval System</h1>
+        <p>
+          <strong>Generate, run, and consciously update evals when AI primitives change — for any repository.</strong>
+          The <code>zoto-eval-system</code> plugin scaffolds two eval backends side by side: a
+          <strong>static backend</strong> (pytest, vitest, or jest) for fast, deterministic checks,
+          and an <strong>LLM backend</strong> powered by <code>@cursor/sdk</code> for agent-based
+          evaluations with soft metrics — tokens, duration, verbosity, accuracy, confidence.
+          LLM cases may be stamped as <strong>declarative JSON</strong> or <strong>code-strategy
+          TypeScript per target</strong> after analyser classification — not as a single global mode.
+        </p>
+        <p>
+          A diff-aware updater detects when covered targets have changed, classifies each change as
+          critical or non-critical, and presents proposed eval updates for user confirmation before
+          writing anything. Behavioural drift in AI primitives is managed consciously, never silently.
+          User-authored cases stay sovereign — the runtime and compile-time guards both refuse to
+          touch them.
+        </p>
+
+        <figure>
+          <img src="../images/diagrams/eval-lifecycle.svg" alt="Eval system lifecycle: init → configure → create → execute → judge → compare, with update as a continuous sync loop.">
+          <figcaption>The lifecycle. <code>update</code> detects drift after code changes and presents each proposed eval change for your approval.</figcaption>
+        </figure>
+
+        <h2 id="when-to-use">When to use</h2>
+        <p>Reach for the eval system when you want to:</p>
+        <ul>
+          <li>Stand up an eval suite for a brand-new repo or an existing one, with no bespoke plumbing.</li>
+          <li>Detect when eval cases for skills, agents, commands, libraries, and hooks have drifted from the code they describe — and update them with your confirmation.</li>
+          <li>Gate CI on drift between code and evals (<code>pnpm run eval:update --check</code>).</li>
+          <li>Compare runs across models, dates, or PRs using merged <code>report.yml</code> data and Cursor's built-in <code>/canvas</code> tool.</li>
+        </ul>
+        <p>
+          The eval system is a <em>coverage and run-quality engine</em>, not a replacement for plugin
+          unit tests. It works alongside any test runner you already have.
+        </p>
+
+        <h2 id="dual-backend">Two backends, one suite</h2>
+        <p>
+          Every <code>/z-eval-execute</code> run produces a single timestamped folder under
+          <code>{evalsDir}/_runs/&lt;ts&gt;/</code> with three YAML outputs and per-case logs.
+        </p>
+        <table>
+          <thead>
+            <tr><th>Output</th><th>Backend</th><th>Role</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>static.yml</code></td>
+              <td>pytest / vitest / jest</td>
+              <td>Static-backend totals, per-case pass/fail, framework-specific aggregates.</td>
+            </tr>
+            <tr>
+              <td><code>llm.yml</code></td>
+              <td><code>@cursor/sdk</code></td>
+              <td>LLM-backend totals, soft metrics, append-only overlays (<code>drift:</code>, <code>judge:</code>).</td>
+            </tr>
+            <tr>
+              <td><code>report.yml</code></td>
+              <td>aggregator</td>
+              <td>Merged rollup with per-case <code>backend: declarative|code</code>. Primary input for <code>/z-eval-compare</code> and CI summaries. Hybrid suites can populate both artifact shapes under one run.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          The LLM backend is <strong>always gated</strong> on <code>--full</code> +
+          <code>CURSOR_API_KEY</code>. It never self-runs. CI workflows can opt into LLM evals without
+          breaking PRs from forks.
+        </p>
+
+        <h2 id="user-confirmation">User confirmation for every change</h2>
+        <p>
+          No eval is rewritten without your explicit consent. When the updater detects drift or the
+          configurer proposes a change, you see and approve each modification before it is written.
+          In CI, the <code>--check</code> mode detects drift without writing — it is your gate, not
+          an auto-fixer.
+        </p>
+        <p>
+          Operator approval (configure, update apply) is <strong>orthogonal</strong> to eval-time
+          <code>AskQuestion</code> simulation: code-strategy LLM evals replay scripted answers via
+          <code>evals/llm/_shared/askquestion-bridge.ts</code> without a human in the loop.
+          See <a href="design.html#strategy-bridge">Strategy bridge</a> on the Design page.
+        </p>
+        <p>
+          Under the hood, commands collect operator answers via <code>askQuestion</code> and relay
+          them to subagents through a structured <code>needs_user_input</code> / resume contract.
+          Run <code>/z-eval-init</code> once per repository to drop a fully-commented config template
+          into <code>.zoto/eval-system/config.yml</code>. Then either edit the YAML by hand or run
+          <code>/z-eval-configure</code> for the interactive flow.
+        </p>
+
+        <h2 id="strategy-bridge">Strategy bridge</h2>
+        <p>
+          The LLM analyser classifies each covered primitive with
+          <code>requiresInteraction</code> (and optional <code>interactionStyle</code>). The stamper
+          routes non-interactive targets to <strong>declarative JSON</strong>
+          (<code>plugins/*/evals/**/evals.json</code>) and interactive targets to
+          <strong>code-strategy TypeScript</strong> (<code>evals/llm/test_*.test.ts</code>).
+          Both backends can coexist in one hybrid suite; global <code>llm.strategy</code> in
+          <code>.zoto/eval-system/config.yml</code> is the fallback default when classification is
+          unavailable, not the per-target choice.
+        </p>
+        <figure>
+          <img src="../images/diagrams/eval-askquestion-flow.svg" alt="Eval strategy bridge pipeline: source primitive through analyser classification and stamper routing to declarative JSON or code-strategy TypeScript, with askquestion-bridge on the interactive path, then @cursor/sdk and report.yml with backend annotation.">
+          <figcaption>Analyser-driven per-target routing. Interactive code-strategy cases pass through <code>askquestion-bridge.ts</code> before <code>@cursor/sdk</code>. Full flow on the <a href="design.html#strategy-bridge">Design page</a>.</figcaption>
+        </figure>
+
+        <h2 id="meta-generated">The <code>_meta.generated</code> contract</h2>
+        <p>
+          Every generated eval case carries a <code>_meta</code> block. Cases without
+          <code>_meta</code>, or with <code>_meta.generated === false</code>, are user-authored.
+        </p>
+        <figure>
+          <img src="../images/diagrams/eval-update-contract.svg" alt="Two columns: generated cases on the left receive update arrows; user-authored cases on the right are preserved verbatim — no arrow touches them.">
+          <figcaption>The updater regenerates only cases marked <code>_meta.generated: true</code>. User-authored cases are preserved verbatim — both at runtime and at compile time.</figcaption>
+        </figure>
+        <ul>
+          <li>The updater <strong>never</strong> modifies user-authored cases.</li>
+          <li>It flags them for "may need review" and moves on.</li>
+          <li>The validator rejects any <code>update.ts</code> source that does not enforce this guard at compile time (literal-string check for <code>_meta?.generated === true</code>).</li>
+          <li>Classification metadata (<code>requiresInteraction</code>, <code>interactionStyle</code>) lives in <code>_meta.primitive_analysis</code> on stamped cases — see <a href="design.html#llm-backend">LLM backend</a>.</li>
+        </ul>
+
+        <h2 id="see-also">See also</h2>
+        <div class="grid grid-3">
+          <a class="link-card" href="quickstart.html">
+            <span class="link-card-title">Quickstart</span>
+            <span class="link-card-desc">Run the lifecycle end-to-end: init → configure → create → execute → judge → compare.</span>
+            <span class="link-card-arrow">→</span>
+          </a>
+          <a class="link-card" href="design.html">
+            <span class="link-card-title">Design</span>
+            <span class="link-card-desc">Architecture, strategy bridge + hybrid stamping, the <code>_meta.generated</code> contract, run outputs.</span>
+            <span class="link-card-arrow">→</span>
+          </a>
+          <a class="link-card" href="configuration.html">
+            <span class="link-card-title">Configuration</span>
+            <span class="link-card-desc">Schema-grounded reference for <code>.zoto/eval-system/config.yml</code>.</span>
+            <span class="link-card-arrow">→</span>
+          </a>
+        </div>
+
+        <p>
+          Source-of-truth: <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-eval-system/README.md" target="_blank" rel="noopener noreferrer"><code>plugins/zoto-eval-system/README.md</code></a>.
+        </p>
+
+        <nav class="page-nav" aria-label="Page navigation">
+          <a class="page-nav-link page-nav-next" href="quickstart.html">
+            <span class="page-nav-label">Next</span>
+            <span class="page-nav-title">Quickstart →</span>
+          </a>
+        </nav>
+
+      </div>
+
+      <footer class="site-footer">
+        <p>Eval System v0.2.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

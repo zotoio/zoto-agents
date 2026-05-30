@@ -1,0 +1,22 @@
+schema_version: 1
+subtask_id: "01"
+feature: spec-system-live-status
+assigned_agent: crux-software-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`specs/20260506-spec-system-live-status/design-token-budget-and-no-restart.md` — short design memo (≤ 50 lines, prefer compact tables over prose) with these sections:"
+    done: true
+    evidence_path: specs/20260506-spec-system-live-status/design-token-budget-and-no-restart.md
+artifacts:
+  - path: specs/20260506-spec-system-live-status/design-token-budget-and-no-restart.md
+    kind: created
+    note: design memo
+errors: []
+notes: ""
+extra: {}
+last_heartbeat: 2026-05-06T08:04:23.744Z
+started_at: 2026-05-06T08:02:21.203Z
+completed_at: 2026-05-06T08:04:23.744Z

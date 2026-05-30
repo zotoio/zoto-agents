@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/case-meta.schema.json",
+  "title": "Zoto Eval Case Meta Block",
+  "description": "Every generated eval case carries a _meta block. Cases without _meta or with _meta.generated=false are user-authored and are never touched by the updater. Applies equally to declarative and runner cases — runner cases delegate execution to external `.test.ts` files but may still carry `_meta.generated` as the user-vs-generated discriminator at row granularity.",
+  "type": "object",
+  "required": ["generated"],
+  "additionalProperties": true,
+  "properties": {
+    "generated": { "type": "boolean" },
+    "source_hash": {
+      "oneOf": [
+        { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        { "type": "null" }
+      ]
+    },
+    "last_updated": {
+      "oneOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ]
+    },
+    "generated_by": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "null" }
+      ]
+    },
+    "primitive_analysis": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Cached LLM analyser output for the source primitive (subtask 04). Consumers MUST re-invoke the analyser when `source_hash` no longer matches the live primitive's sha256 OR when `invalidate` is true. The configurer (subtask 02) sets `invalidate: true` when a framework/strategy switch makes prior analysis stale.",
+      "required": ["source_hash", "analysed_at", "analyser_version", "summary"],
+      "properties": {
+        "source_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "sha256 of the source primitive markdown (skill/command/agent/hook/rule body) at analysis time."
+        },
+        "analysed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 timestamp recorded when the analyser produced this entry."
+        },
+        "analyser_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Free-form version string (e.g. semver, git ref, or analyser prompt hash) used to spot drift in analyser logic itself."
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Short natural-language summary of the analyser's findings for this primitive — used for human review and for differential prompts on update."
+        },
+        "invalidate": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, subtask 04's analyser flow treats the cache entry as stale on the next run regardless of source_hash. Used by subtask 02's configurer when framework/strategy switches occur."
+        }
+      }
+    }
+  }
+}

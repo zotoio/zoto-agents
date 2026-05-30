@@ -1,0 +1,53 @@
+schema_version: 1
+subtask_id: "01"
+feature: Eval Prompt Realism Audit
+assigned_agent: explore
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-25T06:55:00.000Z
+last_heartbeat: 2026-05-25T06:57:38.222Z
+completed_at: 2026-05-25T06:58:00.000Z
+git_sha: e49961ff5330e60d9adf4aa48727cf8247371d5e
+checklist:
+  - id: D01
+    text: "`specs/20260525-eval-prompt-realism-audit/audit/eval-inventory.md` — human-readable table per scope bucket (eval-system commands / eval-system agents / eval-system hooks / eval-system skills / spec-system commands / spec-system agents / spec-system hooks / spec-system skills / cursor-top skills / workspace `.cursor/evals` / workspace `.cursor/skills`)."
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/audit/eval-inventory.md
+  - id: D02
+    text: '`specs/20260525-eval-prompt-realism-audit/audit/eval-inventory.json` — machine-readable mirror keyed by `path` → `{ container_shape: "cases[]" | "evals[]" | "mixed", target_id?: string, case_count_generated: number, case_count_user_authored: number, manifest_listed: boolean }`.'
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/audit/eval-inventory.json
+  - id: D03
+    text: Manifest reconciliation diff — list any in-scope file the manifest does not list, and any manifest `eval_files[]` entry that points at a missing file (zero of either is the expected outcome).
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/audit/eval-inventory.md
+  - id: D04
+    text: "Per-target case-count totals (rows: target kind; columns: generated, user-authored, total) appended to `eval-inventory.md`."
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/audit/eval-inventory.md
+artifacts:
+  - path: specs/20260525-eval-prompt-realism-audit/audit/eval-inventory.md
+    kind: created
+    note: Human-readable inventory tables, manifest reconciliation, per-target-kind totals
+  - path: specs/20260525-eval-prompt-realism-audit/audit/eval-inventory.json
+    kind: created
+    note: 48 path-keyed entries with container_shape, case counts, manifest_listed
+errors: []
+notes: "Re-verified 48 in-scope eval JSON files (299 cases: 258 generated, 41 user-authored). Container shapes: 30 cases[], 8 evals[], 10 mixed. Manifest has 47 eval_files entries; 0 broken pointers; 1 missing from manifest (zoto-cursor-top-monitor, byte-preserve per Subtask 09). git ls-files grep returns 52 paths; 4 are out-of-scope template stubs under plugins/zoto-eval-system/templates/."
+extra:
+  judge:
+    verdict: verified
+    at: "2026-05-25T06:59:11.000Z"
+    notes: >-
+      Independently verified audit/eval-inventory.md and audit/eval-inventory.json.
+      files{} contains exactly 48 path-keyed entries; set matches git ls-files in-scope
+      enumeration (52 grep hits minus 4 template stubs) with zero missing/extra paths.
+      All per-file fields populated (zero nulls). Summary totals: 299 cases (258 generated,
+      41 user-authored); shapes 30 cases[], 8 evals[], 10 mixed. Manifest reconciliation
+      confirmed: 47 eval_files[] paths, 0 broken pointers, 1 missing-from-manifest
+      (plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json) with
+      explicit Subtask 09 explanation. eval-inventory.md includes all 11 scope buckets,
+      manifest diff section, and per-target-kind totals table. Spot-check of mixed
+      zoto-create-evals/evals/evals.json (5 gen / 3 user) matches inventory.
+    fix_list: []

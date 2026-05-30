@@ -1,0 +1,61 @@
+// _meta.generated: true
+/**
+ * Thin re-export of the canonical `@cursor/sdk` bridge.
+ *
+ * Stamped at `<host-repo>/evals/llm/_shared/sdk-bridge.ts` by
+ * `scripts/eval-stamp.ts#stampLlmCodePerPrimitive` (subtask 09).
+ *
+ * Why a re-export?
+ * ----------------
+ * Every per-primitive `*.test.ts` file emitted by the LLM `code` strategy
+ * imports the SDK call surface from THIS module instead of `@cursor/sdk`
+ * directly. The actual bridge lives at `evals/_llm/sdk-bridge.ts` (the
+ * single in-repo wrapper). Going through the local re-export means:
+ *
+ *   1. A future `@cursor/sdk` API change is a one-place patch in
+ *      `evals/_llm/sdk-bridge.ts` — no per-test rewrite required.
+ *   2. Stamped tests never need to know the relative depth between
+ *      `evals/llm/<test>.test.ts` and `evals/_llm/sdk-bridge.ts` — they
+ *      just `import { … } from "./_shared/sdk-bridge.js"`.
+ *
+ * Bridge surface (canonical owners: subtask 09)
+ * ---------------------------------------------
+ *   PINNED_SDK_VERSION   — string constant pinning the verified SDK version
+ *   TOKEN_RESULT_FIELD   — string constant naming the resolved token field
+ *   createAgent(opts)    — Agent.create wrapper
+ *   sendPrompt(agent, p) — agent.send wrapper
+ *   awaitRun(run)        — run.wait wrapper, returns { text, result }
+ *   closeAgent(agent)    — best-effort dispose
+ *   resolveTokens(...)   — token-field resolver with documented fallback
+ *
+ * `@cursor/sdk` token-field decision
+ * ----------------------------------
+ * As of `@cursor/sdk@1.0.12`, `RunResult` does NOT expose a per-run
+ * `tokens` field. `resolveTokens(result, prompt, response)` falls back
+ * to a `chars/4` heuristic and reports the resolved source via the
+ * `TOKEN_RESULT_FIELD` constant. The reporter writes the running total
+ * to `evals/_runs/<ts>/llm.yml#cases[].tokens` so the schema's
+ * `aggregates.tokens_total` aggregate stays populated.
+ *
+ * If a future SDK ships `result.tokens` (or `result.usage.totalTokens`),
+ * `resolveTokens()` detects it automatically and `TOKEN_RESULT_FIELD`
+ * gets re-pinned in `evals/_llm/sdk-bridge.ts` — templates pick it up on
+ * the next `pnpm run eval:llm:code`.
+ */
+export {
+  PINNED_SDK_VERSION,
+  TOKEN_RESULT_FIELD,
+  createAgent,
+  sendPrompt,
+  awaitRun,
+  closeAgent,
+  resolveTokens,
+} from "../../_llm/sdk-bridge.js";
+
+export type {
+  CreateAgentOptions,
+  AwaitedRun,
+  SDKAgent,
+  Run,
+  RunResult,
+} from "../../_llm/sdk-bridge.js";

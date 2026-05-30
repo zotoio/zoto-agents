@@ -1,0 +1,214 @@
+{
+  "skill_name": "zoto-configure-evals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up the eval system config for a monorepo with skills under plugins/*/skills. Use composer-2.5 for the runner and opus-4.6 for the judge.",
+      "expected_output": ".zoto/eval-system/config.yml written with skillsRoots containing plugins/*/skills, llm.model.id = composer-2.5, judgeModel = opus-4.6, and all contract fields stamped true.",
+      "files": [],
+      "assertions": [
+        ".zoto/eval-system/config.yml is created at the repository root",
+        "Every interactive prompt is asked via the askQuestion tool by the command (the skill itself never calls askQuestion)",
+        "skillsRoots includes plugins/*/skills",
+        "llm.model.id equals composer-2.5",
+        "judgeModel equals opus-4.6",
+        "update.preserveUserAuthoredCases is true",
+        "update.writeMetaMarker is true",
+        "The written config validates against templates/schema/config.schema.json"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Attempt to configure the eval system with preserveUserAuthoredCases set to false.",
+      "expected_output": "The skill refuses to write this config and explains that preserveUserAuthoredCases is a hard-coded contract.",
+      "files": [],
+      "assertions": [
+        "No config file is written with preserveUserAuthoredCases: false",
+        "The skill returns needs_user_input so the command can route the refusal through askQuestion (the skill itself never calls askQuestion)",
+        "The user is told preserveUserAuthoredCases is a contract (schema const: true)",
+        "If the user accepts the contract, the config is written with preserveUserAuthoredCases: true"
+      ]
+    }
+  ,
+    {
+      "id": 1,
+      "prompt": "I finished `/z-eval-configure` on a repo that has never stamped evals. Overwrite if needed. Fields: evalsDir evals; skillsRoots [\".cursor/skills\",\"plugins/*/skills\"]; discoveryTargets [\"skill\",\"command\",\"agent\",\"hook\"]; static.framework vitest; llm.runtime tsx; llm.model.id composer-2.5; judgeModel opus-4.6; manualChecklists.enabled true; additionalAutomation []; ignore []; update.criticalChangeRules all true. Apply zoto-configure-evals and write the eval-system config.",
+      "assertions": [
+        "`.zoto/eval-system/config.yml` is created with `update.preserveUserAuthoredCases` and `update.writeMetaMarker` both true",
+        "The written config validates against `templates/schema/config.schema.json`",
+        "Because the manifest snapshot source is missing, the emitted `cleanup_plan` has `totals.files` equal to zero",
+        "The closing summary tells the operator to let `/z-eval-configure` render cleanup confirmation and only then proceed toward generation work like `/z-eval-create`",
+        "The skill does not invoke `pnpm run eval:cleanup-stale` and does not emit askQuestion from the subagent loop"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+        "last_updated": "2026-05-29T11:46:57.214Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+          "analysed_at": "2026-05-29T11:46:57.214Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The skill consumes `/z-eval-configure` questionnaire answers, refuses upstream attempts to disable contract update flags before any I/O, writes AJV-validated config.yml with a manifest-snapshot cleanup plan, stamps analyser invalidation on framework switches, and escalates via needs_user_input without calling askQuestion."
+        }
+      },
+      "expected_output": "A concise report showing the effective config.yml values, an empty or minimal cleanup_plan because no prior manifest exists, both contract update flags stamped true, schema validation success, and next-step guidance deferring any cleanup execution to `/z-eval-configure` before `/z-eval-create`."
+    },
+    {
+      "id": 2,
+      "prompt": "`/z-eval-configure` forwarded a complete-looking bundle but set `update.preserveUserAuthoredCases` to false at the top level. Run zoto-configure-evals and obey the Step 0 immutable contract gate before any manifest read or config write.",
+      "assertions": [
+        "The skill returns an explicit refusal before reading the manifest snapshot or writing `.zoto/eval-system/config.yml`",
+        "No `.zoto/eval-system/config.yml` is written and `.zoto/eval-system/manifest.history.yml` is not appended",
+        "No `cleanup_plan` is emitted and no `_meta.primitive_analysis.invalidate` flags are stamped on generated rows",
+        "The refusal states that `update.preserveUserAuthoredCases` must remain true and is not operator-configurable",
+        "The skill does not emit askQuestion from the subagent loop"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+        "last_updated": "2026-05-29T11:46:57.214Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+          "analysed_at": "2026-05-29T11:46:57.214Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The skill consumes `/z-eval-configure` questionnaire answers, refuses upstream attempts to disable contract update flags before any I/O, writes AJV-validated config.yml with a manifest-snapshot cleanup plan, stamps analyser invalidation on framework switches, and escalates via needs_user_input without calling askQuestion."
+        }
+      },
+      "expected_output": "An explicit refusal naming the contract breach, with no config.yml write, no manifest history append, no cleanup_plan, and no analyser invalidate stamping."
+    },
+    {
+      "id": 3,
+      "prompt": "Configure hand-off from `/z-eval-configure` nests answers under `bundledAnswers.update.writeMetaMarker: false` while other fields look valid. Apply zoto-configure-evals and check every payload mirror listed in Step 0.",
+      "assertions": [
+        "The skill detects `bundledAnswers.update.writeMetaMarker: false` and refuses before merging Step 3 fields",
+        "No `.zoto/eval-system/config.yml` is written and no `cleanup_plan` payload is returned",
+        "No manifest history entry is appended and no generated eval rows receive `_meta.primitive_analysis.invalidate`",
+        "The refusal explains that `update.writeMetaMarker` is a hard-coded true contract",
+        "The skill returns structured output without emitting askQuestion from the subagent loop"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+        "last_updated": "2026-05-29T11:46:57.214Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+          "analysed_at": "2026-05-29T11:46:57.214Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The skill consumes `/z-eval-configure` questionnaire answers, refuses upstream attempts to disable contract update flags before any I/O, writes AJV-validated config.yml with a manifest-snapshot cleanup plan, stamps analyser invalidation on framework switches, and escalates via needs_user_input without calling askQuestion."
+        }
+      },
+      "expected_output": "A hard stop refusal for the nested false mirror, with zero filesystem mutations beyond the refusal text itself."
+    },
+    {
+      "id": 4,
+      "prompt": "`/z-eval-configure` returned a partial bundle: evalsDir and skillsRoots are present but `discoveryTargets` and `static.framework` were omitted. Run zoto-configure-evals with that incomplete payload.",
+      "assertions": [
+        "The agent returns structured `needs_user_input` naming the missing `discoveryTargets` and `static.framework` fields",
+        "No `.zoto/eval-system/config.yml` is written while critical fields remain absent",
+        "The skill does not emit askQuestion from the subagent loop",
+        "No `cleanup_plan` is emitted and no `_meta.primitive_analysis.invalidate` stamping occurs"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+        "last_updated": "2026-05-29T11:46:57.214Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+          "analysed_at": "2026-05-29T11:46:57.214Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The skill consumes `/z-eval-configure` questionnaire answers, refuses upstream attempts to disable contract update flags before any I/O, writes AJV-validated config.yml with a manifest-snapshot cleanup plan, stamps analyser invalidation on framework switches, and escalates via needs_user_input without calling askQuestion."
+        }
+      },
+      "expected_output": "A structured needs_user_input payload listing the missing discoveryTargets and static.framework values, with no promoted config.yml on disk."
+    },
+    {
+      "id": 5,
+      "prompt": "`/z-eval-configure` authorized overwrite while switching `static.framework` from pytest to vitest; other answers match our vitest monorepo defaults (evalsDir evals, skillsRoots [\"plugins/*/skills\"], discoveryTargets [\"skill\",\"command\",\"agent\",\"hook\"], llm.runtime tsx, llm.model.id composer-2.5, judgeModel opus-4.6, manualChecklists.enabled true, ignore []). Apply zoto-configure-evals against the repo that already has a manifest and stamped co-located eval rows.",
+      "assertions": [
+        "Before writing, the manifest snapshot reflected the prior pytest static framework",
+        "`cleanup_plan.groups` contains a `framework-switch` reason listing the previous pytest fingerprint and stamped test assets",
+        "`cleanup_plan.totals.files` equals the sum of every `groups[].files` entry and validates against `templates/schema/cleanup-plan.schema.json`",
+        "Each generated row under manifest-listed `eval_files` paths sets `_meta.primitive_analysis.invalidate` to true after the framework change",
+        "An audit line is appended to `.zoto/eval-system/manifest.history.yml` describing the framework switch without deleting files in this skill run",
+        "The skill does not invoke `pnpm run eval:cleanup-stale` and does not emit askQuestion from the subagent loop"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+        "last_updated": "2026-05-29T11:46:57.214Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+          "analysed_at": "2026-05-29T11:46:57.214Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The skill consumes `/z-eval-configure` questionnaire answers, refuses upstream attempts to disable contract update flags before any I/O, writes AJV-validated config.yml with a manifest-snapshot cleanup plan, stamps analyser invalidation on framework switches, and escalates via needs_user_input without calling askQuestion.",
+          "fixture_justifications": [
+            "Seeds manifest discovery_config.static.framework pytest so the snapshot diff can emit a real framework-switch cleanup group instead of an empty plan.",
+            "Provides a manifest-listed generated eval JSON row so cache invalidation stamping targets an actual on-disk asset path."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/manifest.yml",
+            "content": "discovery_config:\n  static:\n    framework: pytest\n  llm:\n    runtime: tsx\n    model:\n      id: composer-2.5\ntargets:\n  - eval_files:\n      - workspace/plugins/acme/skills/reporting/evals/evals.json\n"
+          },
+          {
+            "path": "workspace/plugins/acme/skills/reporting/evals/evals.json",
+            "content": "[{\"id\":\"gen-row-reporting\",\"prompt\":\"export path resolves\",\"assertions\":[\"bundle still resolves\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Prior analysis\",\"model_id\":\"composer-2.5\",\"source_hash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}]"
+          }
+        ]
+      },
+      "expected_output": "Updated config.yml reflecting vitest, a cleanup_plan whose groups include framework-switch assets tied to the old pytest fingerprint, every generated row gaining `_meta.primitive_analysis.invalidate: true`, totals.files reconciled, manifest.history.yml appended, and cleanup execution still deferred to `/z-eval-configure`."
+    },
+    {
+      "id": 6,
+      "prompt": "`/z-eval-configure` now adds `ignore: [\"plugins/legacy/**\"]` while keeping discoveryTargets [\"skill\",\"command\",\"agent\",\"hook\"] and static.framework vitest with the usual llm and judge defaults. Apply zoto-configure-evals so orphaned generated JSON is planned for removal but not deleted here.",
+      "assertions": [
+        "`cleanup_plan.groups` includes `removed-target` entries pointing at orphaned generated eval JSON for the legacy primary source",
+        "`cleanup_plan.totals.files` matches the grouped file counts and validates against `templates/schema/cleanup-plan.schema.json`",
+        "The written `.zoto/eval-system/config.yml` records `ignore: [\"plugins/legacy/**\"]` exactly as supplied",
+        "The skill emits the plan without deleting workspace files and does not invoke `pnpm run eval:cleanup-stale`",
+        "The skill does not emit askQuestion from the subagent loop"
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+        "last_updated": "2026-05-29T11:46:57.214Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "f5cfb08b955eb2459e97b96bcab0c385155468c66e3b964ef0fed0cb2518f7b8",
+          "analysed_at": "2026-05-29T11:46:57.214Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The skill consumes `/z-eval-configure` questionnaire answers, refuses upstream attempts to disable contract update flags before any I/O, writes AJV-validated config.yml with a manifest-snapshot cleanup plan, stamps analyser invalidation on framework switches, and escalates via needs_user_input without calling askQuestion.",
+          "fixture_justifications": [
+            "Captures two discovery targets so narrowing scope via ignore surfaces a removed-target cleanup bucket.",
+            "Retains the non-legacy eval file referenced by the manifest for contrast against the orphaned legacy asset.",
+            "Supplies legacy generated JSON that should appear in the removed-target file list once ignore excludes that primary source."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/manifest.yml",
+            "content": "discovery_config:\n  static:\n    framework: vitest\n  llm:\n    runtime: tsx\n    model:\n      id: composer-2.5\ntargets:\n  - eval_files:\n      - workspace/plugins/core/skills/alpha/evals/evals.json\n  - eval_files:\n      - workspace/plugins/legacy/hooks/pkg/evals/evals.json\n"
+          },
+          {
+            "path": "workspace/plugins/core/skills/alpha/evals/evals.json",
+            "content": "[]"
+          },
+          {
+            "path": "workspace/plugins/legacy/hooks/pkg/evals/evals.json",
+            "content": "[{\"id\":\"orphan-legacy-hook\",\"prompt\":\"legacy hook wiring\",\"assertions\":[\"signal stays wired\"],\"_meta\":{\"generated\":true,\"primitive_analysis\":{\"invalidate\":false,\"summary\":\"Legacy hook row\",\"model_id\":\"composer-2.5\",\"source_hash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}}}]"
+          }
+        ]
+      },
+      "expected_output": "A cleanup_plan whose removed-target group lists the legacy hook eval JSON, totals.files consistent with grouped counts, config.yml recording the ignore globs, and instructions deferring actual deletion to `/z-eval-configure` plus `pnpm run eval:cleanup-stale` after operator approval."
+    }]
+}

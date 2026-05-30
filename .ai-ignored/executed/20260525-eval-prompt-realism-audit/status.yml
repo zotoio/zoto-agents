@@ -1,0 +1,403 @@
+schema_version: 1
+spec_id: 20260525-eval-prompt-realism-audit
+phase: 0
+aggregate_state: completed
+started_at: 2026-05-25T06:27:55.979Z
+updated_at: 2026-05-25T13:36:37.184Z
+aggregate_progress:
+  total: 12
+  completed: 12
+  in_progress: 0
+  blocked: 0
+  failed: 0
+subtasks:
+  - subtask_id: "01"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-01-eval-prompt-realism-audit-eval-file-inventory-20260525.status.yml
+    last_heartbeat: 2026-05-25T06:57:38.222Z
+  - subtask_id: "02"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-02-eval-prompt-realism-audit-transcript-mining-20260525.status.yml
+    last_heartbeat: 2026-05-25T06:56:08.358Z
+  - subtask_id: "03"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-03-eval-prompt-realism-audit-redaction-rules-20260525.status.yml
+    last_heartbeat: 2026-05-25T16:59:30.000Z
+  - subtask_id: "04"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-04-eval-prompt-realism-audit-rubric-and-rewrites-20260525.status.yml
+    last_heartbeat: 2026-05-25T18:05:00.000Z
+  - subtask_id: "05"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-05-eval-prompt-realism-audit-rewrite-eval-system-commands-20260525.status.yml
+    last_heartbeat: 2026-05-25T07:02:30.000Z
+  - subtask_id: "06"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-06-eval-prompt-realism-audit-rewrite-eval-system-agents-20260525.status.yml
+    last_heartbeat: null
+  - subtask_id: "07"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-07-eval-prompt-realism-audit-rewrite-eval-system-hooks-and-skills-20260525.status.yml
+    last_heartbeat: null
+  - subtask_id: "08"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-08-eval-prompt-realism-audit-rewrite-spec-system-suite-20260525.status.yml
+    last_heartbeat: null
+  - subtask_id: "09"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-09-eval-prompt-realism-audit-rewrite-workspace-and-cursor-top-20260525.status.yml
+    last_heartbeat: 2026-05-25T07:04:35.000Z
+  - subtask_id: "10"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-10-eval-prompt-realism-audit-tighten-analyser-prompt-20260525.status.yml
+    last_heartbeat: 2026-05-25T13:31:17.000Z
+  - subtask_id: "11"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+    last_heartbeat: 2026-05-25T13:36:00Z
+  - subtask_id: "12"
+    state: completed
+    status_path: specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+    last_heartbeat: null
+blockers: []
+definition_of_done_status:
+  - id: DOD01
+    text: Every in-scope eval file is enumerated in `audit/eval-inventory.md` and reconciled against `.zoto/eval-system/manifest.yml`.
+    done: true
+  - id: DOD02
+    text: "`audit/transcript-index.json` exists and maps every in-scope command/agent target to at least one transcript-uuid seed OR a documented `synthetic_seed: readme|skill-usage` fallback."
+    done: true
+  - id: DOD03
+    text: "`audit/redaction-rules.md` documents every redaction rule and `audit/redact.ts` exports a pure `redact(text: string): string` helper the rewrite subtasks consume."
+    done: true
+  - id: DOD04
+    text: "`audit/realism-rubric.md`, `audit/eval-case-audit.md`, and `audit/eval-rewrites.json` exist with one entry per in-scope case."
+    done: true
+  - id: DOD05
+    text: "Every rewritten case retains `_meta.generated: true` and carries a refreshed `last_updated`; `generated_by` remains `\"zoto-update-evals\"` and `source_hash` is preserved per Subtask 05's \"Source-hash recomputation rule\"."
+    done: true
+  - id: DOD06
+    text: Every user-authored case (no `_meta` or `_meta.generated !== true`) is byte-identical to its pre-spec state; subtasks 05–09 record a diff-empty proof.
+    done: true
+  - id: DOD07
+    text: '`plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md` has a "Forbidden internal-mechanic vocabulary" section with ≥ 2 worked before/after examples; `analyser_version` is unchanged.'
+    done: true
+  - id: DOD08
+    text: "`pnpm run eval:list` exits 0."
+    done: true
+  - id: DOD09
+    text: "`pnpm run eval -- --collect-only` exits 0."
+    done: true
+  - id: DOD10
+    text: "`pnpm run eval:update --check` exits 0."
+    done: true
+  - id: DOD11
+    text: "`.zoto/eval-system/manifest.yml` is refreshed exactly once and `.zoto/eval-system/manifest.history.yml` gains exactly one new appended entry."
+    done: true
+  - id: DOD12
+    text: Execution report captures all three gate exit logs and the redaction rule citations used per rewrite suite.
+    done: true
+config_reloaded: []
+events:
+  - at: 2026-05-25T13:26:39.704Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:26:39.704Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:26:39.704Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 03233c6c…
+  - at: 2026-05-25T13:26:42.840Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-07-eval-prompt-realism-audit-rewrite-eval-system-hooks-and-skills-20260525.status.yml
+  - at: 2026-05-25T13:26:42.840Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-09-eval-prompt-realism-audit-rewrite-workspace-and-cursor-top-20260525.status.yml
+  - at: 2026-05-25T13:26:42.840Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-10-eval-prompt-realism-audit-tighten-analyser-prompt-20260525.status.yml
+  - at: 2026-05-25T13:26:42.840Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:26:42.840Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:26:42.840Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 50a3cc9d…
+  - at: 2026-05-25T13:26:44.408Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-09-eval-prompt-realism-audit-rewrite-workspace-and-cursor-top-20260525.status.yml
+  - at: 2026-05-25T13:26:44.408Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-10-eval-prompt-realism-audit-tighten-analyser-prompt-20260525.status.yml
+  - at: 2026-05-25T13:26:44.408Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:26:44.408Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:26:44.408Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest c97e30db…
+  - at: 2026-05-25T13:26:46.056Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-09-eval-prompt-realism-audit-rewrite-workspace-and-cursor-top-20260525.status.yml
+  - at: 2026-05-25T13:26:46.056Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-10-eval-prompt-realism-audit-tighten-analyser-prompt-20260525.status.yml
+  - at: 2026-05-25T13:26:46.056Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:26:46.056Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:26:46.056Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 43168ec1…
+  - at: 2026-05-25T13:26:50.811Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-09-eval-prompt-realism-audit-rewrite-workspace-and-cursor-top-20260525.status.yml
+  - at: 2026-05-25T13:26:50.811Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-10-eval-prompt-realism-audit-tighten-analyser-prompt-20260525.status.yml
+  - at: 2026-05-25T13:26:50.811Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:26:50.811Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:26:50.811Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 9f556e06…
+  - at: 2026-05-25T13:27:00.135Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-09-eval-prompt-realism-audit-rewrite-workspace-and-cursor-top-20260525.status.yml
+  - at: 2026-05-25T13:27:00.135Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-10-eval-prompt-realism-audit-tighten-analyser-prompt-20260525.status.yml
+  - at: 2026-05-25T13:27:00.135Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:27:00.135Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:27:00.135Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 09fc3db0…
+  - at: 2026-05-25T13:27:01.767Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-09-eval-prompt-realism-audit-rewrite-workspace-and-cursor-top-20260525.status.yml
+  - at: 2026-05-25T13:27:01.767Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:27:01.767Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:27:01.767Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 178f89ce…
+  - at: 2026-05-25T13:27:03.366Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-09-eval-prompt-realism-audit-rewrite-workspace-and-cursor-top-20260525.status.yml
+  - at: 2026-05-25T13:27:03.366Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:27:03.366Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:27:03.366Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 314f9b8e…
+  - at: 2026-05-25T13:27:12.769Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:27:12.769Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:27:12.769Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 326759c1…
+  - at: 2026-05-25T13:27:14.350Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:27:14.350Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:27:14.350Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 9aecadcd…
+  - at: 2026-05-25T13:27:34.746Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:27:34.746Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:27:34.746Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest e7c63155…
+  - at: 2026-05-25T13:27:47.194Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:27:47.194Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:27:47.194Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 0543bb08…
+  - at: 2026-05-25T13:27:50.288Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:27:50.288Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-12-eval-prompt-realism-audit-update-analyser-cache-and-restamp-20260525.status.yml
+  - at: 2026-05-25T13:27:50.288Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest b44a645b…
+  - at: 2026-05-25T13:28:13.498Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:28:13.498Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 9d74100d…
+  - at: 2026-05-25T13:28:15.057Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:28:15.057Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest d6502b1f…
+  - at: 2026-05-25T13:29:06.300Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:29:06.300Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 995d3e73…
+  - at: 2026-05-25T13:29:09.426Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:29:09.426Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 688e2ba9…
+  - at: 2026-05-25T13:29:12.558Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:29:12.558Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest f9fdfac8…
+  - at: 2026-05-25T13:29:14.095Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:29:14.095Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 760f6005…
+  - at: 2026-05-25T13:29:21.803Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:29:21.803Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest a50139f9…
+  - at: 2026-05-25T13:29:23.345Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:29:23.345Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 97834295…
+  - at: 2026-05-25T13:29:26.485Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:29:26.485Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 4455a11d…
+  - at: 2026-05-25T13:29:29.648Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:29:29.648Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 9a62f266…
+  - at: 2026-05-25T13:29:37.389Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:29:37.389Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest c795382c…
+  - at: 2026-05-25T13:30:22.313Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:30:22.313Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 28f507fd…
+  - at: 2026-05-25T13:31:55.195Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:31:55.195Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 70c41e76…
+  - at: 2026-05-25T13:31:58.294Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:31:58.294Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 14561214…
+  - at: 2026-05-25T13:32:02.955Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260525-eval-prompt-realism-audit/status/subtask-11-eval-prompt-realism-audit-validation-and-manifest-refresh-20260525.status.yml
+  - at: 2026-05-25T13:32:02.955Z
+    kind: rebuild
+    message: Aggregated 11 subtask source(s); digest 66f92546…
+  - at: 2026-05-25T13:32:18.558Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 46f4941b…
+  - at: 2026-05-25T13:32:20.131Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 03956263…
+  - at: 2026-05-25T13:32:47.925Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 9c385f83…
+  - at: 2026-05-25T13:32:51.040Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 0449b6bc…
+  - at: 2026-05-25T13:32:54.140Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 24ab156c…
+  - at: 2026-05-25T13:33:05.009Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 9f858d8e…
+  - at: 2026-05-25T13:33:36.116Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 9679068e…
+  - at: 2026-05-25T13:34:34.975Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 54ff5771…
+  - at: 2026-05-25T13:34:36.509Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest fa89cb9a…
+  - at: 2026-05-25T13:34:38.051Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest d532269d…
+  - at: 2026-05-25T13:34:39.587Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 0f29d8ce…
+  - at: 2026-05-25T13:35:53.775Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 2160cedd…
+  - at: 2026-05-25T13:35:56.860Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 0b929b4e…
+  - at: 2026-05-25T13:35:59.942Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest df365da5…
+  - at: 2026-05-25T13:36:12.608Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 8f4564e2…
+  - at: 2026-05-25T13:36:31.081Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest c4d6d134…
+  - at: 2026-05-25T13:36:34.134Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest ec0c1381…
+  - at: 2026-05-25T13:36:37.184Z
+    kind: rebuild
+    message: Aggregated 12 subtask source(s); digest 2a7b08be…
+extra:
+  aggregator_digest: 2a7b08be2fba7d32c70e972050dee6705caf64d510872214cfc95b0b513526c2

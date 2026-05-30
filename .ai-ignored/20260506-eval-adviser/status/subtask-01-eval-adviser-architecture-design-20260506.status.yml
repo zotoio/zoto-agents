@@ -1,0 +1,36 @@
+schema_version: 1
+subtask_id: "01"
+feature: Eval Adviser
+assigned_agent: crux-platform-architect
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Design document: `specs/20260506-eval-adviser/design-eval-adviser-architecture.md`"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: Gap analysis taxonomy defining five dimensions with severity scoring
+    done: false
+    evidence_path: null
+  - id: D03
+    text: Interaction model diagram showing askQuestion/needs_user_input flow across command → agent → skill
+    done: false
+    evidence_path: null
+  - id: D04
+    text: Assessment rubric specifying how each gap dimension is scored (e.g., coverage percentage, severity levels)
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "Interface contract: shape of the structured gap report the skill produces"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "Handoff protocol: how recommendations map to `/zoto-eval-create` and `/zoto-eval-update` actions"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

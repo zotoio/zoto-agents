@@ -1,0 +1,6 @@
+# Self-contained eval-system runtime artefacts
+node_modules/
+cache/
+.env
+.env.*
+!.env.example

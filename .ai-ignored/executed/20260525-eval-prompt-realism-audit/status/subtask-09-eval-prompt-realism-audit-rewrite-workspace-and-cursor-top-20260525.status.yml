@@ -1,0 +1,83 @@
+schema_version: 1
+subtask_id: "09"
+feature: Eval Prompt Realism Audit
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-25T07:04:00.000Z"
+last_heartbeat: "2026-05-25T07:04:35.000Z"
+completed_at: "2026-05-25T07:04:35.000Z"
+git_sha: e49961ff5330e60d9adf4aa48727cf8247371d5e
+checklist:
+  - id: D01
+    text: "`.cursor/evals/commands/sync-plugins.json` updated per the payload."
+    done: true
+    evidence_path: .cursor/evals/commands/sync-plugins.json
+  - id: D02
+    text: "`.cursor/evals/commands/zoto-create-plugin.json` updated per the payload."
+    done: true
+    evidence_path: .cursor/evals/commands/zoto-create-plugin.json
+  - id: D03
+    text: "`.cursor/evals/agents/zoto-plugin-manager.json` updated per the payload."
+    done: true
+    evidence_path: .cursor/evals/agents/zoto-plugin-manager.json
+  - id: D04
+    text: "`.cursor/evals/hooks/hooks.json` updated per the payload."
+    done: true
+    evidence_path: .cursor/evals/hooks/hooks.json
+  - id: D05
+    text: "`.cursor/skills/zoto-create-plugin/evals/evals.json` user-authored rows byte-preserved; any generated rows (if present) rewritten per the payload."
+    done: true
+    evidence_path: .cursor/skills/zoto-create-plugin/evals/evals.json
+  - id: D06
+    text: "`plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json` byte-identical to pre-spec state — recorded in the status report as `bytes_preserved: true, generated_cases: 0`."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json
+  - id: D07
+    text: Per-file byte-preservation proof captured in the status report.
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/status/subtask-09-eval-prompt-realism-audit-rewrite-workspace-and-cursor-top-20260525.status.md
+artifacts:
+  - path: specs/20260525-eval-prompt-realism-audit/audit/apply-subtask09-rewrites.py
+    kind: created
+    note: Mechanical applier with JSONDecoder span extraction and user-row byte preservation
+  - path: .cursor/evals/commands/sync-plugins.json
+    kind: modified
+    note: 2 generated cases rewritten per eval-rewrites.json
+  - path: .cursor/evals/commands/zoto-create-plugin.json
+    kind: modified
+    note: 3 generated cases rewritten per eval-rewrites.json
+  - path: .cursor/evals/agents/zoto-plugin-manager.json
+    kind: modified
+    note: 6 generated cases rewritten per eval-rewrites.json
+  - path: .cursor/evals/hooks/hooks.json
+    kind: modified
+    note: 3 generated cases rewritten per eval-rewrites.json
+errors: []
+notes: "14 generated cases rewritten across 4 .cursor/evals files; 3 user-authored cases byte-preserved in zoto-create-plugin skill evals; cursor-top monitor evals byte-identical to HEAD (bytes_preserved: true, generated_cases: 0). Payload parity 0 mismatches; source_hash vs HEAD 0 changes on rewritten cases; JSON parse sweep OK."
+extra:
+  total_generated_rewritten: 14
+  total_user_preserved: 3
+  cursor_top_bytes_preserved: true
+  cursor_top_generated_cases: 0
+  apply_timestamp: "2026-05-25T07:04:35Z"
+  judge:
+    verdict: verified
+    at: "2026-05-25T13:27:00Z"
+    notes: >-
+      Independently confirmed all 6 in-scope eval files JSON-parse; 14 generated
+      rows across 4 workspace .cursor/evals files match eval-rewrites.json
+      (rewrite_prompt/assertions/expected_output or preserve:true); 6 user-authored
+      rows (3 in zoto-create-plugin skill evals, 3 in cursor-top monitor evals)
+      byte-identical to git HEAD; cursor-top git diff --shortstat empty;
+      _meta.source_hash and _meta.primitive_analysis preserved on all rewritten
+      rows; _meta.last_updated refreshed. D07 byte-preservation proof table present
+      in status.md with bytes_preserved:true and generated_cases:0 for cursor-top.
+      Only the 4 expected .cursor/evals paths differ from HEAD; skill evals and
+      cursor-top monitor evals unchanged. Audit applier under specs/.../audit/
+      follows the spec mechanical-rewrite pattern (same as subtask 07). Status
+      notes cite last_updated 2026-05-25T07:04:35Z but on-disk stamps are
+      2026-05-25T13:26:24Z after idempotent apply-subtask09-rewrites.py re-run
+      during judge verification.
+    fix_list: []

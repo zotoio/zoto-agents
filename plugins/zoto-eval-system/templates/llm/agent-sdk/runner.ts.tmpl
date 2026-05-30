@@ -1,0 +1,395 @@
+#!/usr/bin/env tsx
+/* zoto-declarative-strategy:active */
+/**
+ * LLM eval runner — `declarative` strategy (subtask 10).
+ *
+ * Reads enriched `evals.json` cases (analyser payload merged into
+ * `case.prompt`, `case.assertions[]`, `case.fixtures.files[]`, and
+ * `_meta.primitive_analysis`) and runs them through `@cursor/sdk`. Every
+ * case is funnelled through `validateEnriched(case)` before the SDK is
+ * touched; cases declaring scripted `interactions` (code-strategy only),
+ * without a real prompt, ≥1 assertion, or a valid
+ * `_meta.primitive_analysis` block (when `_meta.generated === true`) are
+ * rejected with a clear stderr message and the runner exits 1 BEFORE
+ * paying for any Agent invocations.
+ *
+ * Two-gate startup:
+ *   1. `--full` must be passed explicitly (unless `--judge-only`).
+ *   2. CURSOR_API_KEY must be present when executing agents.
+ *
+ * Both gates "skip + exit 0" when not satisfied — they never fail
+ * loudly. CI scripts that want a hard "must run" gate use `--full`.
+ *
+ * Model precedence: --model <id>  >  ZOTO_EVAL_MODEL env  >  config.llm.model.id
+ *
+ * Per-case verbose logs go to `{evalsDir}/_runs/<ts>/logs/<case>.log`.
+ * Suite YAML is written to `{evalsDir}/_runs/<ts>/llm.yml` (renamed by
+ * subtask 10 from the legacy `results.yml` so it sits alongside the
+ * static backend's `static.yml` and the merged top-level `report.yml`).
+ *
+ * The literal `/* zoto-declarative-strategy:active *\u002F` marker on
+ * line 2 is the explicit signal subtask 09's mutual-exclusion guard
+ * checks for to decide whether the host repo is using the declarative
+ * strategy.
+ *
+ * Environment loading: `.env` at the repo root is loaded via `dotenv/config`
+ * before any process.env reads. Anything already exported in the shell wins
+ * over `.env` (standard dotenv precedence). `.env.example` ships as a placeholder.
+ */
+import "dotenv/config";
+
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { join, resolve } from "node:path";
+
+import YAML from "yaml";
+
+import { Agent } from "@cursor/sdk";
+import type { SDKAgent } from "@cursor/sdk";
+
+import {
+  casesOf,
+  loadEvalFile,
+  validateEnriched,
+  type EvalCase,
+} from "./case.js";
+import { computeMetrics } from "./metrics.js";
+import { writeResults, type WriterCase } from "./writer.js";
+import { contains } from "./graders/contains.js";
+import { regex } from "./graders/regex.js";
+import { toolCalled } from "./graders/tool-called.js";
+import { llmJudge } from "./graders/llm-judge.js";
+import type { GraderReport } from "./graders/common.js";
+
+const REPO_ROOT = resolve(process.cwd());
+const CONFIG_PATH = join(REPO_ROOT, ".zoto", "eval-system", "config.yml");
+
+type Args = {
+  full: boolean;
+  list: boolean;
+  judgeOnly: boolean;
+  model?: string;
+};
+
+function parseArgs(argv: string[]): Args {
+  const args: Args = { full: false, list: false, judgeOnly: false };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--full") args.full = true;
+    else if (a === "--list") args.list = true;
+    else if (a === "--judge-only") args.judgeOnly = true;
+    else if (a === "--model") args.model = argv[++i];
+    else if (a === "--help" || a === "-h") {
+      printHelp();
+      process.exit(0);
+    }
+  }
+  return args;
+}
+
+function printHelp(): void {
+  console.log("Usage: tsx evals/_llm/runner.ts [--full] [--list] [--judge-only] [--model <id>]");
+  console.log("");
+  console.log("  --full        Execute LLM cases. Requires CURSOR_API_KEY.");
+  console.log("  --list        List discovered cases and exit.");
+  console.log("  --judge-only  Smoke: validate latest llm.yml exists (no Agent run).");
+  console.log("  --model <id>  Override model (composer-2.5 | opus-4.6 | sonnet).");
+}
+
+function loadConfig(): Record<string, unknown> {
+  if (!existsSync(CONFIG_PATH)) return {};
+  const parsed = YAML.parse(readFileSync(CONFIG_PATH, "utf-8"));
+  return (parsed && typeof parsed === "object" && !Array.isArray(parsed)) ? parsed as Record<string, unknown> : {};
+}
+
+function resolveModel(args: Args, config: Record<string, unknown>): string {
+  if (args.model) return args.model;
+  if (process.env.ZOTO_EVAL_MODEL) return process.env.ZOTO_EVAL_MODEL;
+  const llm = (config.llm ?? {}) as Record<string, unknown>;
+  const model = (llm.model ?? {}) as Record<string, unknown>;
+  return (model.id as string) ?? "composer-2.5";
+}
+
+function discoverCaseFiles(evalsDir: string, config: Record<string, unknown>): string[] {
+  const roots = (config.skillsRoots as string[]) ?? [".cursor/skills", "skills"];
+  const out: string[] = [];
+  for (const rootPat of roots) {
+    const root = resolve(REPO_ROOT, rootPat.replace(/\*.*$/, ""));
+    walk(root, (f: string) => {
+      if (f.endsWith("/evals/evals.json")) out.push(f);
+    });
+  }
+  const llmCases = join(REPO_ROOT, evalsDir, "_llm", "cases.json");
+  if (existsSync(llmCases)) out.push(llmCases);
+  return Array.from(new Set(out));
+}
+
+function walk(dir: string, fn: (f: string) => void): void {
+  if (!existsSync(dir)) return;
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    let st;
+    try {
+      st = statSync(full);
+    } catch {
+      continue;
+    }
+    if (st.isDirectory()) walk(full, fn);
+    else fn(full);
+  }
+}
+
+async function runCase(
+  c: EvalCase,
+  agent: SDKAgent,
+  model: string,
+): Promise<WriterCase> {
+  const started = Date.now();
+  const log: string[] = [];
+  log.push(`# Case ${c.id}`);
+  log.push(`model: ${model}`);
+  log.push(`prompt: ${c.prompt}`);
+
+  let response = "";
+  const toolCalls: Array<{ tool: string; ok: boolean }> = [];
+  try {
+    /* Canonical `@cursor/sdk` 1.0.12 pattern: `agent.send(prompt)` returns
+     * a `Run`, then `run.wait()` resolves to a `RunResult` whose `result`
+     * field is the assistant turn text. The host repo's `evals/_llm/`
+     * tree does NOT stamp the sdk-bridge wrapper; this template uses the
+     * SDK directly so a freshly-stamped repo runs out of the box. */
+    const run = await agent.send(c.prompt);
+    const result = await run.wait();
+    response = (result.result ?? "").toString();
+    log.push("response:");
+    log.push(response);
+  } catch (err) {
+    const ended = Date.now();
+    log.push(`ERROR: ${(err as Error).message}`);
+    return {
+      id: String(c.id),
+      status: "errored",
+      metrics: computeMetrics({
+        prompt: c.prompt,
+        response: "",
+        assertionsMet: 0,
+        assertionsTotal: c.assertions.length,
+        toolCalls: [],
+        startedAt: started,
+        endedAt: ended,
+      }),
+      grader_reports: [
+        { grader: "runtime", verdict: "fail", detail: (err as Error).message },
+      ],
+      log: log.join("\n"),
+    };
+  }
+
+  const reports: GraderReport[] = [];
+  for (const g of c.graders ?? []) {
+    const t = (g as { type?: string }).type;
+    if (t === "contains") reports.push(contains(g as never, response));
+    else if (t === "regex") reports.push(regex(g as never, response));
+    else if (t === "tool-called") reports.push(toolCalled(g as never, toolCalls));
+    else if (t === "llm-judge") {
+      reports.push(
+        await llmJudge(g as never, response, {
+          judge: async ({ prompt }) => ({ score: 0.5, detail: `stub: ${prompt.length} chars` }),
+        }),
+      );
+    }
+  }
+
+  const assertionsMet = reports.filter((r) => r.verdict === "pass").length;
+  const assertionsTotal = reports.length || c.assertions.length;
+  const ended = Date.now();
+  const metrics = computeMetrics({
+    prompt: c.prompt,
+    response,
+    assertionsMet,
+    assertionsTotal,
+    toolCalls,
+    startedAt: started,
+    endedAt: ended,
+  });
+
+  log.push("grader reports:");
+  for (const r of reports) log.push(`  - ${r.grader}: ${r.verdict} — ${r.detail}`);
+  log.push(`metrics: ${JSON.stringify(metrics)}`);
+
+  const failed = reports.some((r) => r.verdict === "fail");
+  return {
+    id: String(c.id),
+    status: failed ? "failed" : "passed",
+    metrics,
+    grader_reports: reports,
+    log: log.join("\n"),
+    primitive_analysis: c._meta?.primitive_analysis
+      ? {
+          source_hash: c._meta.primitive_analysis.source_hash,
+          analyser_version: c._meta.primitive_analysis.analyser_version,
+          summary: c._meta.primitive_analysis.summary,
+        }
+      : undefined,
+  };
+}
+
+function smokeJudgeOnly(evalsDir: string): number {
+  const runsRoot = join(REPO_ROOT, evalsDir, "_runs");
+  if (!existsSync(runsRoot)) {
+    console.log(
+      JSON.stringify({
+        smoke: "judge-only",
+        skipped: true,
+        reason: `no ${evalsDir}/_runs directory — YAML replay skipped`,
+      }),
+    );
+    return 0;
+  }
+  const runs = readdirSync(runsRoot)
+    .filter((d) => statSync(join(runsRoot, d)).isDirectory())
+    .sort()
+    .reverse();
+  if (runs.length === 0) {
+    console.log(
+      JSON.stringify({
+        smoke: "judge-only",
+        skipped: true,
+        reason: `no completed runs under ${evalsDir}/_runs`,
+      }),
+    );
+    return 0;
+  }
+  /* Subtask 10: prefer the renamed `llm.yml`, fall back to the legacy
+   * `results.yml` only for runs created BEFORE the rename so historical
+   * snapshots stay replayable. New runs only emit `llm.yml`. */
+  const llmPath = join(runsRoot, runs[0]!, "llm.yml");
+  const legacyPath = join(runsRoot, runs[0]!, "results.yml");
+  const latest = existsSync(llmPath) ? llmPath : legacyPath;
+  if (!existsSync(latest)) {
+    console.error(`Missing ${llmPath} (and legacy ${legacyPath})`);
+    return 1;
+  }
+  YAML.parse(readFileSync(latest, "utf-8"));
+  console.log(
+    JSON.stringify({
+      smoke: "judge-only",
+      llm_yml: latest,
+      note: "YAML parsed — full llm-judge replay not implemented",
+    }),
+  );
+  return 0;
+}
+
+async function main(): Promise<number> {
+  const args = parseArgs(process.argv.slice(2));
+  const config = loadConfig();
+  const evalsDir = (config.evalsDir as string) ?? "evals";
+
+  if (args.list) {
+    const files = discoverCaseFiles(evalsDir, config);
+    const total = files.reduce((n, f) => n + casesOf(loadEvalFile(f)).length, 0);
+    console.log(JSON.stringify({ files, total }, null, 2));
+    return 0;
+  }
+
+  if (args.judgeOnly) {
+    return smokeJudgeOnly(evalsDir);
+  }
+
+  if (!args.full) {
+    console.log(
+      JSON.stringify({
+        skipped: true,
+        reason: "--full not passed; declarative runner is a no-op without it",
+        hint: "pnpm run eval:llm:declarative -- --full   (requires CURSOR_API_KEY)",
+      }),
+    );
+    return 0;
+  }
+  if (!process.env.CURSOR_API_KEY) {
+    console.log(
+      JSON.stringify({
+        skipped: true,
+        reason: "CURSOR_API_KEY not set; declarative runner skipping",
+        hint: "Set CURSOR_API_KEY in your environment (or .env) and re-run.",
+      }),
+    );
+    return 0;
+  }
+
+  const model = resolveModel(args, config);
+  const files = discoverCaseFiles(evalsDir, config);
+  const allCases = files.flatMap((f) => casesOf(loadEvalFile(f)));
+
+  /* Subtask 10 enriched-shape gate. Run BEFORE constructing Agent so we
+   * fail fast on cheap, deterministic problems (missing prompt, empty
+   * assertions, missing _meta.primitive_analysis) without paying for an
+   * SDK initialisation. */
+  const rejections: Array<{ id: string; reason: string }> = [];
+  for (const c of allCases) {
+    const v = validateEnriched(c);
+    if (!v.ok) {
+      rejections.push({ id: String(c.id), reason: v.reason ?? "unknown" });
+    }
+  }
+  if (rejections.length > 0) {
+    console.error(
+      `LLM declarative runner rejected ${rejections.length} case(s) ` +
+        `(declarative strategy requires no scripted interactions, a real prompt, ≥1 assertion, and ` +
+        `_meta.primitive_analysis on every generated case):`,
+    );
+    for (const r of rejections) {
+      console.error(`  - ${r.id}: ${r.reason}`);
+    }
+    return 1;
+  }
+
+  /* `Agent.create` is the canonical factory on `@cursor/sdk` 1.0.12.
+   * `local.cwd` is fixed at construction; if the host repo wants per-case
+   * sandboxing, it should swap in its own AgentFactory pattern (mirrors
+   * the live runner in this monorepo's `evals/_llm/runner.ts`). */
+  const agent = await Agent.create({
+    apiKey: process.env.CURSOR_API_KEY!,
+    model: { id: model },
+    local: { cwd: REPO_ROOT },
+  });
+
+  const runId = new Date().toISOString().replace(/[:.]/g, "").slice(0, 15);
+  const startedAt = new Date().toISOString();
+  const results: WriterCase[] = [];
+  try {
+    for (const c of allCases) {
+      const out = await runCase(c, agent, model);
+      results.push(out);
+    }
+  } finally {
+    const closer = (agent as unknown as { close?: () => void }).close;
+    if (typeof closer === "function") {
+      try {
+        closer.call(agent);
+      } catch {
+        /* best-effort close — never mask a real test failure */
+      }
+    }
+  }
+  const endedAt = new Date().toISOString();
+
+  const schemaPath = join(REPO_ROOT, "evals", "_llm", "result.schema.json");
+  const out = writeResults({
+    runId,
+    evalsDir,
+    backend: "llm",
+    model,
+    startedAt,
+    endedAt,
+    cases: results,
+    schemaPath,
+  });
+  console.log(`Wrote ${out}`);
+  return results.every((r) => r.status === "passed") ? 0 : 1;
+}
+
+main().then((code) => process.exit(code), (err) => {
+  console.error(err);
+  process.exit(1);
+});

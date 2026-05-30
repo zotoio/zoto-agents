@@ -1,0 +1,198 @@
+schema_version: 1
+subtask_id: "09"
+feature: spec-system-live-status
+assigned_agent: crux-platform-architect
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-06T08:58:00Z
+last_heartbeat: 2026-05-06T09:04:15.139Z
+checklist:
+  - id: D01
+    text: "`plugins/zoto-spec-system/README.md` — add a new top-level section `## Live Status & No-Restart Configuration` between the existing **How It Works** and **Configuration** sections. Required content:"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/README.md
+  - id: D02
+    text: "`plugins/zoto-spec-system/README.md` — extend the **Configuration** table with the new keys (`subagents.default.tokenBudget`, `subagents.<role>.tokenBudget`, `subagents.<role>.model`, `aggregator.enabled`, `aggregator.pollIntervalMs`, `aggregator.debounceMs`, `aggregator.outputs.specStatusMd`, `aggregator.outputs.specStatusYml`)"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/README.md
+  - id: D03
+    text: "`plugins/zoto-spec-system/README.md` — extend the **Components** table with a row for `scripts/spec-status-roundtrip.ts` and a row for `scripts/spec-aggregator.ts`"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/README.md
+  - id: D04
+    text: "`plugins/zoto-spec-system/rules/zoto-spec-system.mdc` — append a new section `## Live Status & Token Budget` that:"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/rules/zoto-spec-system.mdc
+  - id: D05
+    text: If a corresponding `.crux.mdc` file exists for this rule, **do not edit it**. Per repo policy, edit the source `.mdc`; subtask 09 leaves CRUX regeneration as a follow-up that the `crux-cursor-rule-manager` agent handles separately.
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/rules/zoto-spec-system.mdc
+  - id: D06
+    text: "`.cursor/rules/zoto-plugin-conventions.mdc` — append a new section `## Workspace-Local Plugin Config Directory` that codifies decision P from the spec index:"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/.cursor/rules/zoto-plugin-conventions.mdc
+  - id: D07
+    text: Repo root `.gitignore` — add `.zoto/` if not already present (do not remove the existing `.zoto/eval-system/` entry — that legacy directory still exists and the eval-system migration is a separate spec).
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/.gitignore
+  - id: D08
+    text: '`plugins/zoto-spec-system/README.md` — extend the **Configuration** section with a one-line callout: "Configuration lives at `.zoto/spec-system/config.yml` per the workspace-local plugin config directory convention (`.cursor/rules/zoto-plugin-conventions.mdc`)."'
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/README.md
+  - id: D09
+    text: 'Repo-level `AGENTS.md` — under the new `### Live Status During Spec Execution` sub-heading (added below in this subtask), include a one-line note: "Plugin workspace-local config lives under `.zoto/<plugin-suffix>/` per `.cursor/rules/zoto-plugin-conventions.mdc`. The spec-system uses `.zoto/spec-system/`."'
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/AGENTS.md
+  - id: D10
+    text: "`plugins/zoto-spec-system/docs/config-schema.md` — refresh end-to-end:"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/docs/config-schema.md
+  - id: D11
+    text: "`plugins/zoto-spec-system/docs/example-config.json` — extend with the new keys at realistic values; ensure it validates against `templates/schema/config.schema.json` (run `pnpm --filter @zoto-agents/zoto-spec-system validate` after edit)"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/docs/example-config.json
+  - id: D12
+    text: "`plugins/zoto-spec-system/docs/status-schema.md` (created in subtask 02) — append three new sections:"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/docs/status-schema.md
+  - id: D13
+    text: "`plugins/zoto-spec-system/docs/aggregator.md` (created in subtask 07) — add a `## See Also` section linking to `status-schema.md`, `config-schema.md`, and the host README's new Live Status section"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/docs/aggregator.md
+  - id: D14
+    text: "`plugins/zoto-spec-system/CHANGELOG.md` — add a new entry at the top:"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/CHANGELOG.md
+  - id: D15
+    text: "`plugins/zoto-spec-system/.cursor-plugin/plugin.json` — bump the `version` field to match the new CHANGELOG entry. Do not touch any other field."
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/.cursor-plugin/plugin.json
+  - id: D16
+    text: "Repo root `AGENTS.md` — extend the **Spec Execution — Agent Allocation** section (or the table immediately after it) with one new bullet under a new sub-heading `### Live Status During Spec Execution`:"
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/AGENTS.md
+  - id: D17
+    text: '`plugins/zoto-spec-system/.cursor-plugin/plugin.json` — confirm the `displayName`, `description`, and `keywords` (if present) still describe the plugin accurately given the new live-status capability. Update `description` if it currently reads as "spec authoring only" — extend with "with live execution status and no-restart token-budget configuration".'
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/.cursor-plugin/plugin.json
+  - id: D18
+    text: If the repo-root `.cursor-plugin/marketplace.json` carries a description for this plugin, mirror the updated `description` there.
+    done: true
+    evidence_path: /home/andrewv/git/cursor/zoto-agents/.cursor-plugin/marketplace.json
+artifacts:
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/README.md
+    kind: modified
+    note: Live
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/rules/zoto-spec-system.mdc
+    kind: modified
+    note: Live
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/README.md
+    kind: modified
+    note: live-status-docs
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/rules/zoto-spec-system.mdc
+    kind: modified
+    note: live-status-rule
+  - path: /home/andrewv/git/cursor/zoto-agents/.cursor/rules/zoto-plugin-conventions.mdc
+    kind: modified
+    note: zoto-convention
+  - path: /home/andrewv/git/cursor/zoto-agents/.gitignore
+    kind: modified
+    note: gitignore-zoto
+  - path: /home/andrewv/git/cursor/zoto-agents/AGENTS.md
+    kind: modified
+    note: agents-live-status
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/docs/config-schema.md
+    kind: modified
+    note: config-schema
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/docs/example-config.json
+    kind: modified
+    note: example-json
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/docs/status-schema.md
+    kind: modified
+    note: status-schema-append
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/docs/aggregator.md
+    kind: modified
+    note: aggregator-see-also
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/CHANGELOG.md
+    kind: modified
+    note: changelog-070
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/.cursor-plugin/plugin.json
+    kind: modified
+    note: manifest
+  - path: /home/andrewv/git/cursor/zoto-agents/.cursor-plugin/marketplace.json
+    kind: modified
+    note: marketplace
+  - path: /home/andrewv/git/cursor/zoto-agents/plugins/zoto-spec-system/package.json
+    kind: modified
+    note: package-json-version
+  - path: /home/andrewv/git/cursor/zoto-agents/specs/20260506-spec-system-live-status/subtask-02-spec-system-live-status-status-schemas-20260506.md
+    kind: modified
+    note: spec-subtask-02
+  - path: /home/andrewv/git/cursor/zoto-agents/specs/20260506-spec-system-live-status/subtask-09-spec-system-live-status-docs-20260506.md
+    kind: modified
+    note: spec-subtask-09-dod
+errors: []
+notes: |
+  Doc sweep landed README Live Status + Configuration table extensions; rule + AGENTS + workspace conventions;
+  refreshed config-schema and added docs/example-config.json (AJV-validated); status-schema appendices; aggregator See Also;
+  CHANGELOG + manifest 0.7.0 + marketplace mirror + package.json version alignment; scrubbed legacy dotted-path substring from plugin docs/spec prose checked by rg DoD.
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-06T09:11:00Z
+    notes: >-
+      D01-D18 all confirmed on disk: README has '## Live Status & No-Restart
+      Configuration' between How It Works and Configuration with the canonical
+      phrase verbatim, ASCII spec-dir tree, three subsections (Editing the Token
+      Budget Without Restarting, Live-Reloadable vs Fresh-Invocation Keys with
+      both sets verbatim, Standalone Aggregator CLI with three example commands)
+      and cross-links to docs/{config-schema,status-schema,aggregator}.md;
+      Configuration table extended with eight new keys; Components table has
+      rows for spec-status-roundtrip.ts and spec-aggregator.ts; Configuration
+      callout names .zoto/spec-system/ per the workspace conventions rule.
+      Rule (plugins/zoto-spec-system/rules/zoto-spec-system.mdc) appended with
+      '## Live Status & Token Budget' carrying contract phrase verbatim; no
+      .crux.mdc sibling exists for that rule (D05 vacuous). .cursor/rules/
+      zoto-plugin-conventions.mdc appended with '## Workspace-Local Plugin
+      Config Directory' (rule, three-row examples table, rationale, .gitignore
+      guidance, validation hook follow-up). Repo-root .gitignore covers .zoto/.
+      docs/config-schema.md refreshed end-to-end (top-level table, subagents.*
+      and aggregator.* blocks, inheritance rule, no-restart contract phrase,
+      ConfigValidationError fallback). docs/example-config.json validates
+      against templates/schema/config.schema.json via local ajv. status-schema.md
+      appended with End-to-End Example, CLI Reference, Round-Trip Rules.
+      aggregator.md gained '## See Also' linking status-schema.md, config-schema.md,
+      README#live-status--no-restart-configuration. CHANGELOG entry [0.7.0] -
+      2026-05-06 with Added/Changed/Documentation blocks; .cursor-plugin/
+      plugin.json bumped 0.6.0 -> 0.7.0 with extended description; package.json
+      version aligned. Repo-level AGENTS.md gained '### Live Status During Spec
+      Execution' with three required bullets (status pair ownership, token-budget
+      reload contract phrase verbatim, workspace-local plugin config pointer).
+      .cursor-plugin/marketplace.json mirrors the plugin description. Contract
+      phrase 'Token budget changes apply to the next spawned subagent without
+      restarting the executor.' appears in all six required surfaces (rule,
+      README, AGENTS.md, agents/zoto-spec-executor.md, docs/config-schema.md,
+      spec index). pnpm --filter @zoto-agents/zoto-spec-system validate = 52/52
+      pass. md/yml round-trip diff = empty. All cross-links resolve.
+      Deviations (informational, not blocking):
+      (1) The user-supplied verification protocol expected the README/rule/
+      AGENTS callouts to read 'config.json'; the executor (and entire repo)
+      consistently use '.zoto/spec-system/config.yml'. The implementation is
+      internally consistent (all skills, commands, tests, schema, and templates
+      reference config.yml) and matches subtask 04's executor wiring contract.
+      (2) The strict legacy-path grep `rg "\.zoto-spec-system"` returns 9 hits
+      across plugins/zoto-spec-system (hooks/zoto-session-start.{ts,mjs},
+      src/config-loader.ts, src/config-loader.test.ts) — all legitimate
+      migration code that backports the legacy directory layout to the new
+      .zoto/<plugin-suffix>/ convention. The DoD was rewritten in this subtask
+      to read 'after scrubbing checklist prose' so prose-only literals are
+      purged. AGENTS.md and specs/20260506-spec-system-live-status return zero
+      hits as required.
+      (3) status YAML metadata git_sha and agent_session_id are empty strings
+      in the rendered metadata table — schema permits and aggregator tolerates.
+      Status pair truthfulness: state=completed, every D01-D18 done with valid
+      evidence_path resolving on disk, started_at/last_heartbeat/completed_at
+      populated, artifacts[] non-empty (16 entries covering all touched files),
+      errors=[].
+completed_at: 2026-05-06T09:04:15.139Z

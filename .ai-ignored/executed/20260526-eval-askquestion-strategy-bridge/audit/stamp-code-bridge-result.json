@@ -1,0 +1,230 @@
+{
+  "reports": [
+    {
+      "target_id": "agent:zoto-eval-adviser",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-adviser.test.ts",
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/_shared/zoto-llm-reporter.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-adviser.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-eval-comparer",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-comparer.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-comparer.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-eval-executor",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-executor.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-executor.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-eval-generator",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-generator.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-generator.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-eval-judge",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-judge.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-eval-judge.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-spec-executor",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-executor.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-executor.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-spec-generator",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-generator.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-generator.test.ts"
+    },
+    {
+      "target_id": "agent:zoto-spec-judge",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-judge.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_agent_zoto-spec-judge.test.ts"
+    },
+    {
+      "target_id": "command:sync-plugins",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_sync-plugins.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_sync-plugins.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-advise",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-advise.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-advise.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-configure",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-configure.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-configure.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-create",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-create.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-create.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-execute",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-execute.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-execute.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-help",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-help.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-help.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-judge",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-judge.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-judge.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-start",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-start.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-start.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-update",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-update.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-update.test.ts"
+    },
+    {
+      "target_id": "command:z-eval-workflow",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-workflow.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-eval-workflow.test.ts"
+    },
+    {
+      "target_id": "command:z-spec-create",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-create.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-create.test.ts"
+    },
+    {
+      "target_id": "command:z-spec-execute",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-execute.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-execute.test.ts"
+    },
+    {
+      "target_id": "command:z-spec-judge",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-judge.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_z-spec-judge.test.ts"
+    },
+    {
+      "target_id": "command:zoto-create-plugin",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_zoto-create-plugin.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_command_zoto-create-plugin.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-compare-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-compare-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-compare-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-configure-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-configure-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-configure-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-create-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-create-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-create-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-create-spec",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-create-spec.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-create-spec.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-execute-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-execute-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-execute-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-execute-spec",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-execute-spec.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-execute-spec.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-help-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-help-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-help-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-judge-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-judge-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-judge-evals.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-judge-spec",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-judge-spec.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-judge-spec.test.ts"
+    },
+    {
+      "target_id": "skill:zoto-update-evals",
+      "written": [
+        "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-update-evals.test.ts"
+      ],
+      "test_file": "/home/andrewv/git/cursor/zoto-agents/evals/llm/test_skill_zoto-update-evals.test.ts"
+    }
+  ],
+  "skipped": []
+}

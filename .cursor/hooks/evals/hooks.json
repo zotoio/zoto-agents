@@ -1,0 +1,86 @@
+{
+  "target_id": "hook:cursor-workspace",
+  "_meta": {
+    "generated": true,
+    "migrated_from": ".cursor/hooks/evals/hooks.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Cursor sessionStart fires for this repository; chained hooks from `.cursor/hooks.json` run `node .cursor/hooks/sync-plugins.mjs --full` followed by `python3 .cursor/hooks/crux-session-start.py` before normal chat resumes.",
+      "assertions": [
+        "After sessionStart invokes `node .cursor/hooks/sync-plugins.mjs --full`, exit status was 0 and stdout carried a JSON object matching the Cursor hook channel contract.",
+        "The subsequent `python3 .cursor/hooks/crux-session-start.py` step exited with status 0 while stdout stayed strict JSON documenting optional compression or memory reminders.",
+        "no askQuestion was emitted from those hook binaries."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "537afcbb965dce13422b36fd10389453acede4fb46fb568373623ebcc2036077",
+        "last_updated": "2026-05-26T03:26:12.498Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "537afcbb965dce13422b36fd10389453acede4fb46fb568373623ebcc2036077",
+          "analysed_at": "2026-05-26T03:26:12.498Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "This workspace hooks bundle wires sessionStart, afterFileEdit, and stop Cursor phases to chained local Node sync scripts and CRUX Python helpers for plugin mirrors and bookkeeping, with no operator Q&A contract.",
+          "requiresInteraction": false,
+          "interactionStyle": "none"
+        }
+      },
+      "expected_output": "Both commands exit successfully; mirror sync finishes quietly and the CRUX helper prints advisory JSON lines (or `{}`) Cursor can ingest without modal prompts."
+    },
+    {
+      "id": 2,
+      "prompt": "afterFileEdit lifecycle event edits `workspace/plugins/zoto-eval-system/commands/z-eval-help.md`; Cursor runs the three-hook sequence from `.cursor/hooks.json`: `node .cursor/hooks/sync-plugins.mjs --incremental`, `python3 .cursor/hooks/crux-detect-changes.py`, then `python3 .cursor/hooks/crux-detect-memory-changes.py`, each consuming the stdin file payload Cursor attaches.",
+      "assertions": [
+        "Incremental `node .cursor/hooks/sync-plugins.mjs --incremental` completed with exit status 0 while emitting hook-channel JSON stdout.",
+        "`python3 .cursor/hooks/crux-detect-changes.py` finished with exit status 0 without raising uncaught interpreter errors after ingesting Cursor's JSON stdin line containing `file_path`.",
+        "`python3 .cursor/hooks/crux-detect-memory-changes.py` exited with status 0 and honored the documented `.memory.md` staleness signalling path when edits target configured memory-backed files.",
+        "no askQuestion was emitted from any afterFileEdit hook subprocess."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "537afcbb965dce13422b36fd10389453acede4fb46fb568373623ebcc2036077",
+        "last_updated": "2026-05-26T03:26:12.498Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "537afcbb965dce13422b36fd10389453acede4fb46fb568373623ebcc2036077",
+          "analysed_at": "2026-05-26T03:26:12.498Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "This workspace hooks bundle wires sessionStart, afterFileEdit, and stop Cursor phases to chained local Node sync scripts and CRUX Python helpers for plugin mirrors and bookkeeping, with no operator Q&A contract.",
+          "requiresInteraction": false,
+          "interactionStyle": "none"
+        }
+      },
+      "expected_output": "Incremental sync updates the mirrored plugin artefacts, queues eligible CR-marked markdown for compression bookkeeping, and flags memory index staleness paths when applicable—all without prompting the operator in chat."
+    },
+    {
+      "id": 3,
+      "prompt": "Cursor stop fires as the IDE session shuts down; `.cursor/hooks.json` executes `node .cursor/hooks/sync-plugins.mjs --full` for the concluding mirror synchronization pass.",
+      "assertions": [
+        "`node .cursor/hooks/sync-plugins.mjs --full` under the stop phase returned exit status 0.",
+        "Stdout from that stop invocation was a JSON object readable by Cursor's hook ingestion layer.",
+        "no askQuestion was emitted from the stop hook subprocess."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "537afcbb965dce13422b36fd10389453acede4fb46fb568373623ebcc2036077",
+        "last_updated": "2026-05-26T03:26:12.498Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "537afcbb965dce13422b36fd10389453acede4fb46fb568373623ebcc2036077",
+          "analysed_at": "2026-05-26T03:26:12.498Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "This workspace hooks bundle wires sessionStart, afterFileEdit, and stop Cursor phases to chained local Node sync scripts and CRUX Python helpers for plugin mirrors and bookkeeping, with no operator Q&A contract.",
+          "requiresInteraction": false,
+          "interactionStyle": "none"
+        }
+      },
+      "expected_output": "The shutdown hook terminates immediately after one successful `--full` pass with usable JSON emitted for the Cursor runner."
+    }
+  ]
+}

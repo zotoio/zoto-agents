@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2.5",
+  "target_id": "skill:zoto-eval-tooling",
+  "kind": "skill",
+  "source_path": "plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md",
+  "source_hash": "eb75be7fc020d6321a024c06e108e131cc476e52c7c6b635f7d01461fb8e5805",
+  "summary": "This skill governs how assistants invoke eval-system work exclusively through package.json pnpm aliases, argument forwarding after double-dash separators, and the documented CLI surfaces for discovery, analysis, stamping, cleanup, updates, full runs, garbage collection, migration, and structured failure reporting.",
+  "cases": [
+    {
+      "scenario": "discover-emit-manifest-yaml",
+      "prompt": "We never touched eval wiring here yet—scan the repo using the eval-system discovery command and print the manifest-shaped YAML to stdout so I can sanity-check skillsRoots and discoveryTargets without editing files.",
+      "expected_output": "The assistant proposes running the discover alias and summarizes that stdout should be YAML in manifest shape reflecting configured roots and targets.",
+      "assertions": [
+        "the assistant instructs `pnpm run eval:discover` (not a direct `tsx` path to a script under plugins/)",
+        "the assistant describes stdout as YAML matching the manifest shape emitted by discovery",
+        "the assistant ties success to exit code 0 and mentions skillsRoots, discoveryTargets, evalsDir, or ignore only as documented config inputs rather than inventing new flags"
+      ]
+    },
+    {
+      "scenario": "discover-resolve-one-path",
+      "prompt": "Resolve `workspace/plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md` through discovery only—I want the matching target id lines, nothing else.",
+      "expected_output": "The assistant gives a one-shot shell line that forwards `--resolve` after the script delimiter and explains YAML stdout listing resolved target ids.",
+      "assertions": [
+        "the assistant uses `pnpm run eval:discover -- --resolve workspace/plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md` or equivalent with args after `--`",
+        "the assistant states discovery reads eval-system config fields including skillsRoots, discoveryTargets, evalsDir, and ignore",
+        "the assistant does not tell the operator to pass a custom `--config` path because loading is automatic"
+      ]
+    },
+    {
+      "scenario": "analyse-emit-json-and-cache",
+      "prompt": "Kick off primitive analysis for `command:zoto-eval-help` and stream the JSON payload; I need it schema-clean for the stamper.",
+      "expected_output": "The assistant cites `pnpm run eval:analyse`, stdout JSON per target, cache location under the eval-system cache directory, and validation against the analyser schema path from templates.",
+      "assertions": [
+        "the assistant invokes `pnpm run eval:analyse -- command:zoto-eval-help` or adds `--pretty` or `--dry-run` without contradicting the skill",
+        "the assistant notes JSON on stdout must validate against `plugins/zoto-eval-system/templates/schema/analyser-payload.schema.json`",
+        "the assistant mentions analyser cache material under `.zoto/eval-system/cache/analyser/`",
+        "the assistant references relevant config knobs such as `llm.model.id`, analyser concurrency, analyser max calls per invocation, or ignore lists",
+        "the assistant distinguishes exit code 1 for analyser errors from exit code 2 when the per-invocation analyser call budget is exhausted",
+        "the assistant notes optional `--target` glob filtering when discussing batched primitive analysis"
+      ]
+    },
+    {
+      "scenario": "stamp-generated-tests-non-skill",
+      "prompt": "Generate stamped tests from the latest analyser payload for `command:zoto-eval-help`; write real files under the configured evals directory.",
+      "expected_output": "The assistant instructs `pnpm run eval:stamp` with the target id, notes stdout lists written paths, and ties framework choices to static.framework, llm.strategy, llm.codeFramework, and evalsDir.",
+      "assertions": [
+        "the assistant uses `pnpm run eval:stamp -- command:zoto-eval-help` and optionally `--dry-run` or `--baseline-only` if the user asked",
+        "the assistant expects exit code 0 on success and exit code 1 when payloads or targets are invalid",
+        "the assistant explains files land under the configured evals directory rather than beside arbitrary scripts"
+      ]
+    },
+    {
+      "scenario": "stamp-refuses-skill-target",
+      "prompt": "Stamp automated tests straight from the analyser output for `skill:zoto-eval-tooling` itself.",
+      "expected_output": "The assistant refuses `pnpm run eval:stamp` for the skill id and redirects maintenance to the repository skill-evals template JSON instead.",
+      "assertions": [
+        "the assistant states `pnpm run eval:stamp` refuses `skill:*` targets",
+        "the assistant points operators to `plugins/zoto-eval-system/templates/skill-evals/evals.json.tmpl` for skill coverage",
+        "the assistant still keeps prior analyser JSON workflow intact for non-skill primitives"
+      ]
+    },
+    {
+      "scenario": "cleanup-stale-dry-run-plan",
+      "prompt": "Show me what cleanup-stale would delete after our framework flip—dry plan only, JSON on stdout.",
+      "expected_output": "The assistant runs `pnpm run eval:cleanup-stale` in default dry-run mode and describes JSON stdout validated against the cleanup-plan schema.",
+      "assertions": [
+        "the assistant invokes `pnpm run eval:cleanup-stale` without prematurely applying deletions",
+        "the assistant cites stdout JSON against `plugins/zoto-eval-system/templates/schema/cleanup-plan.schema.json`",
+        "the assistant ties behaviour to static.framework, llm.strategy, and llm.codeFramework settings"
+      ]
+    },
+    {
+      "scenario": "cleanup-stale-check-exit-two",
+      "prompt": "Run cleanup-stale in check mode right before CI merges—I need a failing exit if assets drift.",
+      "expected_output": "The assistant uses the check flag pair documented for cleanup-stale and warns that exit code 2 signals drift while stdout stays JSON.",
+      "assertions": [
+        "the assistant forwards `--check` through `pnpm run eval:cleanup-stale -- --check`",
+        "the assistant explains exit code 2 means drift was detected in check mode",
+        "the assistant reminds that apply mode requires an explicit session identifier and token hash when deleting files"
+      ]
+    },
+    {
+      "scenario": "update-diff-without-analyser",
+      "prompt": "Diff eval cases against the live primitives but skip another analyser spend—use update with `--no-analyser` and report drift only.",
+      "expected_output": "The assistant chooses `pnpm run eval:update` with `--no-analyser`, describes stdout drift reporting, and notes manifest mutation happens only with `--apply`.",
+      "assertions": [
+        "the assistant uses `pnpm run eval:update -- --no-analyser` plus `--check` or `--apply` consistent with the request",
+        "the assistant states exit code 2 on critical drift when running check-oriented flows",
+        "the assistant references update.* settings alongside discoveryTargets, skillsRoots, and ignore as documented",
+        "the assistant warns that `--apply` mutates the manifest only after the operator confirms acceptable drift"
+      ]
+    },
+    {
+      "scenario": "full-eval-orchestration-run-folder",
+      "prompt": "Execute the full eval orchestrator so static and LLM backends both run—leave artifacts under the eval runs directory with timestamps.",
+      "expected_output": "The assistant schedules `pnpm run eval:full` or `pnpm run eval -- --full`, naming static.yml, llm.yml, and report.yml inside a timestamped folder beneath `_runs`.",
+      "assertions": [
+        "the assistant invokes `pnpm run eval:full` or `pnpm run eval` with `--full` rather than hand-running disparate scripts",
+        "the assistant states outputs land under the configured evals directory inside `_runs/` under a new ISO-like timestamp directory containing static.yml, llm.yml, and report.yml",
+        "the assistant mentions relevant knobs such as evalsDir, static.framework, llm.strategy, llm.codeFramework, llm.model.id, and runs.retention",
+        "the assistant references `--llm-only` or `--model` switches when the operator wants to constrain backends"
+      ]
+    },
+    {
+      "scenario": "gc-prune-old-runs-json-plan",
+      "prompt": "Preview which dated run folders exceed retention—JSON plan only, no deletes.",
+      "expected_output": "The assistant runs `pnpm run eval:gc` with dry-run semantics and ties pruning limits to runs.retention and evalsDir.",
+      "assertions": [
+        "the assistant uses `pnpm run eval:gc -- --dry-run` when previewing",
+        "the assistant describes stdout as a JSON plan listing directories past retention",
+        "the assistant notes exit code 0 on success and mentions optional `--apply` plus `--retention N` overrides"
+      ]
+    },
+    {
+      "scenario": "migration-legacy-eval-dir",
+      "prompt": "This checkout still has `.zoto-eval-system/` sitting next to `.zoto/`—will the next eval command migrate automatically?",
+      "expected_output": "The assistant confirms first-run migration from `.zoto-eval-system/` happens transparently without manual config flags.",
+      "assertions": [
+        "the assistant references automatic migration of legacy `.zoto-eval-system/` content on first eval-system invocation",
+        "the assistant avoids instructing the user to pass `--config` solely because two directories exist"
+      ]
+    },
+    {
+      "scenario": "failure-nonzero-and-stderr-json",
+      "prompt": "Discovery blew up—rerun eval:discover after I renamed config and paste whatever structured error JSON lands on stderr.",
+      "expected_output": "The assistant reruns `pnpm run eval:discover`, expects exit code 1 for missing config failures, and parses stderr for structured JSON errors when present.",
+      "assertions": [
+        "the assistant treats non-zero exit codes as hard failures",
+        "the assistant instructs parsing stderr for structured JSON errors when the CLI emits them",
+        "the assistant does not suggest bypassing failures by calling underlying TypeScript entrypoints directly"
+      ]
+    }
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
+}

@@ -32,7 +32,7 @@
     },
     {
       "id": 3,
-      "prompt": "Run /zoto-spec-execute on specs/20260402-test-infra/. This spec has 6 subtasks, phase 1 has 4 parallel subtasks, and the config sets parallelLimit to 2.",
+      "prompt": "Run /z-spec-execute on specs/20260402-test-infra/. This spec has 6 subtasks, phase 1 has 4 parallel subtasks, and the config sets parallelLimit to 2.",
       "expected_output": "Phase 1 subtasks are batched into groups of 2 (respecting parallelLimit), not all 4 at once. Each batch completes before the next starts.",
       "files": [],
       "assertions": [
@@ -43,6 +43,287 @@
         "Failed subtasks prevent dependent subtasks from starting",
         "The execution report accurately reflects batching and parallel execution"
       ]
+    },
+    {
+      "id": 4,
+      "name": "no-restart-budget-prompt",
+      "prompt": "Spawn one subtask via the spec-system spawn-prefix builder against a fixture .zoto/spec-system/config.yml that sets subagents.subtask.tokenBudget to 100000. Print the spawn prompt prefix. Then rewrite the same config.yml so subagents.subtask.tokenBudget is 250000 (without restarting the executor process). Re-run loadConfig with the previous mtime and print the second spawn prompt prefix. Show both prefixes verbatim.",
+      "expected_output": "The first spawn prefix line begins with `Token budget: 100000.` and the second spawn prefix line begins with `Token budget: 250000.` — proving the live config reload propagated to the next spawn without a process restart.",
+      "files": [],
+      "graders": ["regex"],
+      "assertions": [
+        "regex: Token budget: 100000\\.",
+        "regex: Token budget: 250000\\.",
+        "contains: Status files (you own these):",
+        "contains: Final state must be one of: completed | blocked | failed."
+      ]
+    },
+    {
+      "id": 5,
+      "name": "aggregator-surfaces-blocker",
+      "prompt": "Run `pnpm --filter @zoto-agents/zoto-spec-system exec spec-aggregator --once --spec-dir <fixture-spec-dir>` against a fixture spec directory containing three subtask `.status.yml` sources all in `state: in_progress`. Capture the spec-root `status.yml` output. Then mutate one subtask's `.status.yml` to `state: blocked` with a `severity: error` `errors[]` entry whose message reads `Database fixture refused to seed`. Re-run the aggregator with `--once`. Show the resulting spec-root `status.yml` blockers section.",
+      "expected_output": "After the second `--once` run the spec-root `status.yml` `blockers[]` array contains one entry whose `subtask_id` matches the mutated subtask, whose `reason` matches the new error message, and whose `path` ends with `.status.md`. The first run's `blockers[]` was empty.",
+      "files": [],
+      "graders": ["regex", "contains"],
+      "assertions": [
+        "The spec-root status.yml snippet includes a YAML mapping key `blockers:` that introduces the blockers list, not merely the word blockers in free text.",
+        "regex: subtask_id:\\s*['\"]?\\d{2}['\"]?",
+        "contains: Database fixture refused to seed",
+        "regex: path:\\s*['\"]?[^'\"\\n]+\\.status\\.md['\"]?"
+      ]
+    }
+  ,
+    {
+      "id": 1,
+      "prompt": "Repo has specs/payments-rail-ledger/ ready for hands-on implementation; orchestrate execution using the zoto spec system and honour whatever limits the repo's spec-system config defines.",
+      "assertions": [
+        "Before any subagents run, the agent reads `.zoto/spec-system/config.yml` at the repository root and, when the file is missing, aborts with the message: Run `/z-spec-init` first to scaffold `.zoto/spec-system/config.yml`.",
+        "When the configuration file contains only comments, the agent still proceeds because that content parses to an empty mapping and every key uses its schema default.",
+        "User-visible path substitutions use the configured `specsDir`, and wording uses the configured `unitOfWork` singular term where the skill calls for that vocabulary.",
+        "The agent only drives execution for specs under `{specsDir}/` that are Ready for Review unless the operator explicitly asked to run a Draft spec.",
+        "The agent states the effective `spec.parallelLimit` (default four when unset) whenever it discusses concurrent subagents for a phase.",
+        "The agent describes aggregator behaviour using `aggregator.pollIntervalMs` and `aggregator.debounceMs` defaults (1500 ms and 250 ms) when those details matter to the operator."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+        "last_updated": "2026-05-17T13:36:46.632Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+          "analysed_at": "2026-05-17T13:36:46.632Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The skill turns a ready engineering spec under the configured specs directory into phased subagent execution with status-pair heartbeats, a watching spec-aggregator, mandatory zoto-spec-judge verification per subtask, strict non-interference and fix routing, final gates including spec-onstop-check, and a dated execution report before index completion."
+        }
+      },
+      "expected_output": "The agent loads `.zoto/spec-system/config.yml` from the repository root before spawning work; if that file is absent it stops after telling the operator to run `/z-spec-init` first with the exact prescribed sentence. If the file exists but is only comments, it treats that as an empty mapping and continues with documented defaults (including `specsDir` specs, `unitOfWork` spec, parallel limit four, and aggregator timing defaults) in user-facing limits."
+    },
+    {
+      "id": 2,
+      "prompt": "Under specs/api-throttle-20260201/ there is an index and manifest we want executed; load that spec folder and validate the Subtask Manifest before anyone spawns work.",
+      "assertions": [
+        "Step 1 locates the spec index file matching `spec-[feature-name]-[yyyymmdd].md` under `{specsDir}/[feature-directory]/` and treats the Subtask Manifest table as the single source of truth for subagent assignment and dependency ordering.",
+        "For every manifest row the agent verifies the subtask markdown exists at the File column path and that the Metadata section's subagent and dependencies match the manifest.",
+        "The agent rejects manifests where any subtask depends on a higher-numbered subtask id and reports that violation before execution.",
+        "The agent builds execution order from the Phase column and does not start Step 3 execution when Step 1 finds missing files, mismatched agents, or dependency violations."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+        "last_updated": "2026-05-17T13:36:46.632Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+          "analysed_at": "2026-05-17T13:36:46.632Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The skill turns a ready engineering spec under the configured specs directory into phased subagent execution with status-pair heartbeats, a watching spec-aggregator, mandatory zoto-spec-judge verification per subtask, strict non-interference and fix routing, final gates including spec-onstop-check, and a dated execution report before index completion."
+        }
+      },
+      "expected_output": "The agent reads the dated spec index markdown under the feature directory, parses the Subtask Manifest table as authoritative, verifies each listed subtask file path exists, cross-checks each subtask's Metadata against the manifest row, rejects any dependency that points to a higher-numbered subtask id, derives phase ordering from the Phase column, and stops with a concrete inconsistency report instead of spawning if anything fails those checks."
+    },
+    {
+      "id": 3,
+      "prompt": "Manifest validation passed for specs/cache-warmup-jan03/; show me the execution summary and wait for my go-ahead before you spawn subagents.",
+      "assertions": [
+        "Step 2 presents `## Execution Summary` with the Spec name, subtask count, phase count, parallel limit taken from configuration (default four), and a markdown table reproducing ID, File, Subagent, Dependencies, and Phase columns from the manifest.",
+        "The recap ends by asking the operator to proceed with execution using the Yes or No choice called for in the skill.",
+        "Immediately after the operator confirms execution, Step 2b runs `date -u '+%Y-%m-%d %H:%M:%S UTC'` and stores that timestamp for the execution report duration calculation.",
+        "The agent does not spawn subtasks for Step 3 until after that confirmation gate completes."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+        "last_updated": "2026-05-17T13:36:46.632Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+          "analysed_at": "2026-05-17T13:36:46.632Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The skill turns a ready engineering spec under the configured specs directory into phased subagent execution with status-pair heartbeats, a watching spec-aggregator, mandatory zoto-spec-judge verification per subtask, strict non-interference and fix routing, final gates including spec-onstop-check, and a dated execution report before index completion."
+        }
+      },
+      "expected_output": "The agent renders an execution summary whose headings and bullet labels match the skill template (Spec, Subtasks, Phases, Parallel limit, Subtask Manifest table) filled with real values, substitutes the configured parallel limit, uses the configured unit-of-work wording naturally, asks Proceed with execution with Yes or No options, and only after an affirmative answer runs `date -u '+%Y-%m-%d %H:%M:%S UTC'` and retains that UTC string for later reporting.",
+      "follow_ups": [
+        "Yes — start execution now and record the official start time for the report."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Approved — run Phase 1 and Phase 2 subtasks for specs/ingest-pipeline-feb14/ under the manifest ordering; keep checklists honest and respect concurrency caps.",
+      "assertions": [
+        "Before spawning, the agent reads `spec.parallelLimit` from `.zoto/spec-system/config.yml` (default four) and never exceeds that many concurrent subagents within a phase.",
+        "Within each phase the agent spawns the Subagent named in the manifest column without substituting a different subagent type.",
+        "Each spawned worker receives the complete subtask file content, pertinent spec index context, the status markdown and YAML paths issued via the spawn prefix (per subtask 04), Deliverables checklist ticking instructions, Definition-of-Done ticking instructions, and guidance to record artifacts plus blockers in Execution Notes.",
+        "The agent waits for every subtask in the current phase to finish before starting the next phase and batches extra peers when a phase lists more rows than the parallel limit.",
+        "The agent updates the spec index after individual subtask completions with status, touched files, blockers, and timing rather than only at the very end.",
+        "While subtasks still run in parallel waves, the agent does not kick off the whole-repository test suite, reserving that for Step 5.",
+        "During Step 3 the agent keeps automated testing scoped to targeted checks on files each subagent touched rather than the entire repository suite.",
+        "If a subtask fails or a dependency fails, the agent stops dependent work and asks the operator whether to retry, skip, or abort instead of silently continuing."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+        "last_updated": "2026-05-17T13:36:46.632Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+          "analysed_at": "2026-05-17T13:36:46.632Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The skill turns a ready engineering spec under the configured specs directory into phased subagent execution with status-pair heartbeats, a watching spec-aggregator, mandatory zoto-spec-judge verification per subtask, strict non-interference and fix routing, final gates including spec-onstop-check, and a dated execution report before index completion."
+        }
+      },
+      "expected_output": "The agent re-reads `spec.parallelLimit`, runs all Phase 1 subtasks together up to that concurrency cap, batches additional peers inside the same phase when needed, waits for the entire phase to finish before Phase 2, spawns only the manifest-listed subagent types without reassignment, passes each subagent its full subtask markdown plus relevant index context and status paths from the spawn prefix, instructs in-file Deliverables and Definition-of-Done checkbox ticking as work completes, tells subagents to log touched files and blockers in Execution Notes, updates the spec index after subtask completion, and avoids launching the full project test suite while parallel subtasks are still in flight."
+    },
+    {
+      "id": 5,
+      "prompt": "For the active subtask under specs/search-index-mar07/status/, spell out how executors and workers coordinate the `.status.yml` and `.status.md` pair during the run.",
+      "assertions": [
+        "After spawning a subagent the executor stops writing that subtask's `.status.yml`, treating the worker's updates as truth while the aggregator only reads those files.",
+        "Workers follow the heartbeat contract: `state: in_progress` with `started_at` and `last_heartbeat` at start, `last_heartbeat` updates after checklist ticks or artifact writes, and final `completed_at` plus terminal `state` when finishing.",
+        "Checklist completion is driven by flipping `checklist[].done` in YAML (and optional `evidence_path`), then refreshing the paired `.status.md` through `spec-status-roundtrip md-from-yml` (or the `heartbeat` subcommand via `pnpm --filter @zoto-agents/zoto-spec-system run spec-status-roundtrip -- heartbeat`) rather than editing `.status.md` directly during execution.",
+        "Artifacts append with `kind` created, modified, or deleted plus a short note, and structured issues land in `errors[]` with severities `info`, `warn`, or `error`, using `state: blocked` with an error entry when work cannot continue.",
+        "Workers refuse to call the subtask Verified or Done unless `state: completed` and every `checklist[].done` is true."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+        "last_updated": "2026-05-17T13:36:46.632Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+          "analysed_at": "2026-05-17T13:36:46.632Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The skill turns a ready engineering spec under the configured specs directory into phased subagent execution with status-pair heartbeats, a watching spec-aggregator, mandatory zoto-spec-judge verification per subtask, strict non-interference and fix routing, final gates including spec-onstop-check, and a dated execution report before index completion."
+        }
+      },
+      "expected_output": "The agent explains that after spawn the executor never mutates the subtask `.status.yml`, workers follow the heartbeat fields protocol, mutate checklists in YAML (optionally recording evidence paths), refresh markdown only through `spec-status-roundtrip` (preferring the heartbeat subcommand), forbid hand-editing the markdown during execution, record artifacts and structured severities, enforce the completed-state contract, and rely on the aggregator to read without taking ownership of per-subtask YAML."
+    },
+    {
+      "id": 6,
+      "prompt": "Explain how token budgets reach subagents, how live config reload interacts with `spec-aggregator --watch`, and what changes when a spec directory lacks `status/`.",
+      "assertions": [
+        "Each spawn executes `tsx plugins/zoto-spec-system/scripts/spec-spawn-prefix.ts --role <role> --status-yml <path> --status-md <path>` and the first line of stdout matches the required Token budget sentence with the resolved numeric cap plus instructions to record `token_budget` and to add a warn-level `errors[]` entry when exceeding it.",
+        "Changes to `subagents.*.tokenBudget` apply to the next spawned subagent without restarting the executor coordinator.",
+        "`spec-aggregator --watch` invokes `loadConfig(repoRoot, prevMtimeMs)` at the beginning of every poll iteration using `aggregator.pollIntervalMs` (default 1500 ms) and honours live updates to `aggregator.debounceMs`, `aggregator.enabled`, `subagents.*.model`, and `spec.parallelLimit` on subsequent ticks or spawns.",
+        "When `ConfigValidationError` appears during reload the watcher retains the previous valid configuration, keeps running, and appends an `events[]` record on the spec-root `status.yml` with `severity: error` and `kind: config_reload_failed`.",
+        "If `spec-spawn-prefix.ts` exits non-zero the executor reuses the last successfully resolved prefix text and still proceeds with the spawn.",
+        "Aggregator passes digest checks combining subtask mtimes with the live-reloadable configuration slice and skips rewriting spec-root `status.md` and `status.yml` when nothing changed.",
+        "If `<specDir>/status/` is absent the executor logs `status/ directory absent — running legacy spawn path`, does not launch `spec-aggregator --watch`, does not run `spec-spawn-prefix`, and omits status path hints from subagent prefixes.",
+        "The agent distinguishes settings that hot reload (token budgets, models, aggregator timing or enablement, parallel limit) from those that demand a fresh invocation (`unitOfWork`, `specsDir`, `workDir`, `hooks.*`, `extensions.*`)."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+        "last_updated": "2026-05-17T13:36:46.632Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+          "analysed_at": "2026-05-17T13:36:46.632Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The skill turns a ready engineering spec under the configured specs directory into phased subagent execution with status-pair heartbeats, a watching spec-aggregator, mandatory zoto-spec-judge verification per subtask, strict non-interference and fix routing, final gates including spec-onstop-check, and a dated execution report before index completion."
+        }
+      },
+      "expected_output": "The agent states that each spawn runs `tsx plugins/zoto-spec-system/scripts/spec-spawn-prefix.ts` with role and status paths so the first stdout line matches the mandated token budget sentence with the resolved integer, that updated per-role token budgets apply on the next spawn without restarting the executor, that the watching aggregator calls `loadConfig` at the start of every poll (1500 ms default) while keeping debounce 250 ms, that failed reloads keep the last valid config and append a spec-root `status.yml` event `{ severity: error, kind: config_reload_failed }`, that a non-zero prefix script exit reuses the last good prefix, that digest-stable aggregator ticks skip rewriting spec-root files, and that missing `<specDir>/status/` triggers the legacy log line, skips aggregator watch, skips `spec-spawn-prefix`, and withholds status paths from prompts."
+    },
+    {
+      "id": 7,
+      "prompt": "We need a one-off dashboard rebuild and a CI validation pass for the same spec root — which `spec-aggregator` invocations apply?",
+      "assertions": [
+        "The agent backgrounds `spec-aggregator --watch` during normal execution and treats that process as the sole writer of the spec-root `status.md` and `status.yml`, tracking its PID and stopping it with SIGINT or SIGTERM when cancelling.",
+        "For ad-hoc rebuilds the agent references `tsx scripts/spec-aggregator.ts --repo-root <repoRoot> --once`.",
+        "For CI gates the agent references the same entrypoint with `--validate-only`, expecting a non-zero exit if any subtask source fails validation and no spec-root writes in that mode.",
+        "The watch mode continues to reload configuration each polling cycle as documented for aggregator execution."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+        "last_updated": "2026-05-17T13:36:46.632Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+          "analysed_at": "2026-05-17T13:36:46.632Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The skill turns a ready engineering spec under the configured specs directory into phased subagent execution with status-pair heartbeats, a watching spec-aggregator, mandatory zoto-spec-judge verification per subtask, strict non-interference and fix routing, final gates including spec-onstop-check, and a dated execution report before index completion."
+        }
+      },
+      "expected_output": "The agent instructs running `tsx scripts/spec-aggregator.ts` with `--repo-root`, describes `--watch` as the default long-running mode that reloads configuration each poll, `--once` as a single aggregation pass for dashboards or resume flows, and `--validate-only` as a no-write CI validator that exits non-zero on invalid subtask sources, and notes the executor tracks the watch PID and ends it with SIGINT or SIGTERM on cancellation."
+    },
+    {
+      "id": 8,
+      "prompt": "First subtask for specs/webhook-hardening-apr22/ just finished its worker; run the mandatory judge pass and outline how Partial verdicts get fixed.",
+      "assertions": [
+        "After each executing subagent completes Step 3 the coordinator spawns a new `zoto-spec-judge` instance as a background subagent for adversarial verification.",
+        "The judge reads Deliverables and Definition-of-Done from the subtask markdown read-only, treats `.status.yml` as live truth, and inspects deliverables on disk including build, lint, and test expectations spelled out in the skill.",
+        "The judge reconciles checklist truth only inside the per-subtask `.status.yml` (and derived `.status.md` through round-trips), never mutates subtask deliverables, the subtask brief, the spec index, the execution report, or spec-root `status.{md,yml}` during Mode 1.",
+        "For Partial or Failed verdicts the executor surfaces `extra.judge.fix_list`, sets the manifest Status column accordingly, offers the operator the documented choices (re-spawn the assigned subagent with the fix list, accept-as-is and continue, or abort), and re-spawns the originally assigned subagent type only after the operator selects that path—never by editing code itself.",
+        "Following a fix-list remediation the executor launches another distinct `zoto-spec-judge` pass before advancing dependencies.",
+        "A Verified verdict updates the manifest Status column to `Done` before moving on, while Failed stops downstream dependents until the operator chooses how to proceed."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+        "last_updated": "2026-05-17T13:36:46.632Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+          "analysed_at": "2026-05-17T13:36:46.632Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The skill turns a ready engineering spec under the configured specs directory into phased subagent execution with status-pair heartbeats, a watching spec-aggregator, mandatory zoto-spec-judge verification per subtask, strict non-interference and fix routing, final gates including spec-onstop-check, and a dated execution report before index completion."
+        }
+      },
+      "expected_output": "The agent schedules a fresh `zoto-spec-judge` subagent in the background after the executing subagent finishes, ensures the judge reads the markdown brief and the live YAML, cross-checks claimed checklist rows against disk, keeps reviewer edits confined to the per-subtask status pair via YAML-driven markdown refresh, never lets the judge mutate deliverables or spec-root aggregation files, maps Partial or Failed `extra.judge.fix_list` entries back through a re-spawn of the original manifest subagent (never executor-authored patches), and schedules another brand-new judge after the fix cycle."
+    },
+    {
+      "id": 9,
+      "prompt": "All phased subtasks for specs/idempotency-keys-may05/ passed adversarial review; close out final verification, run the mandated consistency CLI, write the execution report, and get my sign-off.",
+      "assertions": [
+        "Step 5 verifies every manifest entry is `Done`, otherwise it reports Partial or Failed rows and seeks guidance before claiming closure.",
+        "The agent walks the spec index `## Definition of Done`, ticks confirmed items in that markdown, and understands those ticks feed `definition_of_done_status` in the spec-root `status.yml` through aggregation.",
+        "The agent runs the repository's full automated test suite and performs linter passes on all files touched during execution during Step 5 rather than during parallel Step 3 waves.",
+        "The agent spawns a fresh `zoto-spec-judge` subagent for the concise quality audit mandated in Step 5.",
+        "Before declaring completion the agent runs `pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --repo-root <repoRoot>` and treats exit code 2 as a hard stop until critical inconsistencies are cleared.",
+        "The agent references the defence-in-depth `hooks/zoto-onstop-check.mjs` stop hook as sharing that consistency library when explaining why the sweep must pass.",
+        "Step 6 captures the ending UTC timestamp using the same `date -u` helper, computes duration from the Step 2b start timestamp, and writes `execution-report-[feature-name]-[yyyymmdd].md` with the Summary, Subtask Results, Verification, Files Modified, Outstanding Items, and Lessons Learned sections described in the skill.",
+        "Step 7 presents the templated completion summary with `{specsDir}` replaced by the configured directory and asks for final approval using the prescribed wording.",
+        "After approval Step 8 updates the spec index status to `Completed`, fills execution notes, and reports completion to the operator."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+        "last_updated": "2026-05-17T13:36:46.632Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+          "analysed_at": "2026-05-17T13:36:46.632Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The skill turns a ready engineering spec under the configured specs directory into phased subagent execution with status-pair heartbeats, a watching spec-aggregator, mandatory zoto-spec-judge verification per subtask, strict non-interference and fix routing, final gates including spec-onstop-check, and a dated execution report before index completion."
+        }
+      },
+      "expected_output": "The agent confirms every manifest row reads `Done`, ticks the spec index Definition-of-Done section against reality, runs the full project test suite and repository linter checks, spawns another `zoto-spec-judge` for the quality audit, updates docs when behaviour changed, runs `pnpm --filter @zoto-agents/zoto-spec-system exec tsx plugins/zoto-spec-system/scripts/spec-onstop-check.ts --human --repo-root <repoRoot>` and refuses to finish if it exits 2, captures a closing UTC timestamp via the same `date -u` pattern, writes `execution-report-[feature]-[yyyymmdd].md` using the skill template sections, presents the final review block with `{specsDir}` substituted, and only after operator approval marks the index `Completed` with closing notes."
+    },
+    {
+      "id": 10,
+      "prompt": "Session dropped mid-run on specs/otel-tracing-jul11/ after subtask 02 verified; resume without redoing finished work and restate the non-negotiable guardrails.",
+      "assertions": [
+        "On resume the agent reads the spec index, determines completed subtasks from manifest status, picks the next incomplete node respecting dependencies, and avoids re-running subtasks already marked complete unless verifying regressions.",
+        "The agent re-checks that deliverables from previously completed subtasks remain present before proceeding.",
+        "The agent refuses to edit application code directly, insisting even minute judge fix-list items return through the manifest-listed subagent.",
+        "The agent refuses to let reviewers modify files beyond `<specDir>/status/<subtask>.status.{md,yml}` during Mode 1.",
+        "The agent does not skip adversarial `zoto-spec-judge` verification for any subtask and does not advance past failed dependencies without operator direction."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+        "last_updated": "2026-05-17T13:36:46.632Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "138f146e76066b84027593919d059cae73ad14105ea4b99756ead3ece768ef0e",
+          "analysed_at": "2026-05-17T13:36:46.632Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The skill turns a ready engineering spec under the configured specs directory into phased subagent execution with status-pair heartbeats, a watching spec-aggregator, mandatory zoto-spec-judge verification per subtask, strict non-interference and fix routing, final gates including spec-onstop-check, and a dated execution report before index completion."
+        }
+      },
+      "expected_output": "The agent reloads the spec index and dependency graph, resumes at the first incomplete subtask without repeating verified completions, re-validates that earlier deliverables still exist, and explicitly reaffirms that executors never touch code directly (including micro-fixes or judge-identified gaps), that judges never write outside their status pair in Mode 1, that adversarial verification is never skipped, and that full-suite testing waits for Step 5."
     }
   ]
 }

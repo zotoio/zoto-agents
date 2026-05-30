@@ -1,0 +1,405 @@
+{
+  "target_id": "agent:zoto-eval-configurer",
+  "_meta": {
+    "generated": true,
+    "migrated_from": "plugins/zoto-eval-system/agents/evals/zoto-eval-configurer.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": "manifest-snapshot-declarative-refresh-with-cleanup-plan-hand-off",
+      "prompt": "I already ran `/z-eval-configure` and confirmed overwrite when needed; the payload lists vitest static tests, declarative LLM evals, and both `update.preserveUserAuthoredCases` and `update.writeMetaMarker` forwarded as true. Please drive configuration so the YAML matches those choices and give me the cleanup summary the command expects next.",
+      "assertions": [
+        "`.zoto/eval-system/config.yml` records `static.framework: vitest` and `llm.strategy: declarative` after the run.",
+        "The closing report includes a `cleanup_plan` object whose field names match the cleanup-plan schema contract and whose `totals.files` equals the summed file counts across all groups.",
+        "The agent fulfills the escalation contract without emitting `askQuestion` from the delegated run and relies solely on fields the command prefilled.",
+        "When totals show no cleanup work, the guidance still directs me toward `/z-eval-create` or routine maintenance wording consistent with idle cleanup."
+      ],
+      "assertion_patterns": [
+        "\\.zoto/eval-system/config\\.yml",
+        "cleanup_plan",
+        "askQuestion",
+        "/z-eval-create"
+      ],
+      "expected_output": "The final reply states the effective static and LLM settings, summarizes whether files need cleanup, and returns a structured cleanup plan describing grouped stale assets by reason with matching totals while pointing me toward the next eval-system step when nothing requires cleanup."
+    },
+    {
+      "id": "immutable-update-flags-refuse-before-any-write",
+      "prompt": "The forwarded bundle from `/z-eval-configure` shows `update.writeMetaMarker` set to false in every mirrored path even though pytest static plus matched vitest-code answers are otherwise ready—handle that contradiction and halt cleanly.",
+      "assertions": [
+        "The refusal appears before acknowledging any YAML write completion, emitting a cleanup plan draft, or appending manifest-history entries.",
+        "`.zoto/eval-system/config.yml` stays byte-identical to the pre-run sandbox copy.",
+        "No structured `cleanup_plan` accompanies the refusal."
+      ],
+      "assertion_patterns": [
+        "\\.zoto/eval-system/config\\.yml",
+        "cleanup_plan"
+      ],
+      "expected_output": "The response is an explicit refusal that names the non-negotiable `true` requirement for both update flags and ends without producing a cleanup plan or claiming the config file changed."
+    },
+    {
+      "id": "code-strategy-without-llm-codeframework-needs-user-input-escalation",
+      "prompt": "With orchestrated questionnaire answers otherwise valid, apply llm.strategy \"code\" but omit llm.codeFramework so I can replay how `/z-eval-configure` resumes after your structured escalation.",
+      "assertions": [
+        "The agent returns structured `needs_user_input` describing the absent `llm.codeFramework` instead of inventing silent defaults.",
+        "The escalation honors the delegated no-askQuestion contract while surfacing blocker text the host command can rerun.",
+        "No passage claims `.zoto/eval-system/config.yml` satisfies the published config-schema contract until the harness field is supplied."
+      ],
+      "assertion_patterns": [
+        "needs_user_input",
+        "\\.zoto/eval-system/config\\.yml"
+      ],
+      "expected_output": "The assistant responds with structured `needs_user_input` that lists the missing code-framework detail the command must collect, without claiming the YAML update completed."
+    },
+    {
+      "id": "legacy-filesystem-snapshot-static-only-diff-without-phantom-strategy-churn",
+      "prompt": "Our workspace only had pytest inferred from `evals/conftest.py` with no prior LLM strategy stored in YAML, and `/z-eval-configure` now captured answers adopting jest static plus declarative LLM runs. Produce the cleanup diff without inventing a historic declarative-vs-code switch that never existed in config snapshots.",
+      "assertions": [
+        "The cleanup plan documents a `framework-switch` bucket covering the prior pytest fingerprint and associated generated static artifacts instead of silent omissions.",
+        "No `strategy-switch` group appears solely because older filesystem snapshots lacked populated `llm.strategy` rows.",
+        "Any `removed-target` lines ignore tooling-only phantom catalogue listings already filtered out of the snapshot eval file list yet still reconcile ignore-driven orphans against live YAML rules."
+      ],
+      "assertion_patterns": [
+        "framework-switch",
+        "strategy-switch",
+        "removed-target"
+      ],
+      "expected_output": "The narrative highlights the static-framework migration, summarizes declarative LLM adoption, and groups cleanup strictly around real fingerprints without a hollow strategy churn bucket tied to imaginary prior LLM metadata."
+    },
+    {
+      "id": "missing-manifest-snapshot-inaugural-config-with-empty-cleanup-plan",
+      "prompt": "Bootstrap eval-system on a checkout that never shipped `.zoto/eval-system/manifest.yml`; `/z-eval-configure` already gathered vitest static plus declarative LLM answers plus both immutable update mirrors set to true. Land the YAML and characterize cleanup fallout.",
+      "assertions": [
+        "`.zoto/eval-system/config.yml` captures the questionnaire frameworks and strategies on disk.",
+        "The emitted `cleanup_plan` reports `totals.files` equal to zero because no stale manifest-linked assets exist yet.",
+        "The closing guidance mentions `/z-eval-create` onboarding even when grouped cleanup buckets stay empty."
+      ],
+      "assertion_patterns": [
+        "\\.zoto/eval-system/config\\.yml",
+        "cleanup_plan",
+        "/z-eval-create"
+      ],
+      "expected_output": "The write succeeds, the cleanup summary shows zero orphaned rows because no catalogue existed previously, yet the conversational close still pushes me toward eval scaffolding afterward."
+    },
+    {
+      "id": "llm-strategy-switch-invalidate-cached-primitive-analysis-rows",
+      "prompt": "Shift from declarative LLM suites to jest-backed code-strategy suites while keeping static suites on jest; the manifest catalogue already enumerates generated eval JSON rows whose cached primitive analyses must be marked stale.",
+      "assertions": [
+        "Each generated entry listed under the bundled manifest `eval_files` collection picks up `_meta.primitive_analysis.invalidate: true` when `llm.strategy` changes.",
+        "The reply never tells me to delete files directly; instead it publishes a structured `cleanup_plan` for whichever cleanup driver the command launches.",
+        "The cleanup plan includes a `strategy-switch` bucket tallying erstwhile declarative case rows now superseded."
+      ],
+      "assertion_patterns": [
+        "eval_files",
+        "cleanup_plan",
+        "strategy-switch"
+      ],
+      "expected_output": "After the YAML succeeds, the final note calls out `_meta.primitive_analysis.invalidate: true` on generated manifest-hosted rows while hashed analyser caches remain untouched on disk."
+    },
+    {
+      "id": "cross-field-mismatch-warn-when-static-vitest-diverges-from-jest-code-harness",
+      "prompt": "`/z-eval-configure` fused answers that pin `static.framework` to vitest while selecting `llm.strategy: \"code\"` paired with `llm.codeFramework: jest`; reproduce how soft diagnostics surface alongside the hardened write.",
+      "assertions": [
+        "`cleanup_plan.warnings` records a non-blocking vitest-vs-jest inconsistency narrative.",
+        "A `framework-switch` bucket lists artefacts tied to the displaced static-framework fingerprint alongside explicit filenames.",
+        "The summary reiterates effective field selections and distinguishes drafting guidance from destructive confirmation dialogs that `/z-eval-configure` retains."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan\\.warnings",
+        "framework-switch",
+        "/z-eval-configure"
+      ],
+      "expected_output": "The YAML still persists, narrative warnings cite the tooling mismatch, and framework-specific removals stay grouped distinctly while the handshake reminds me destructive approvals stay with the calling command palette entry."
+    },
+    {
+      "id": "manifest-snapshot-happy-path-cleanup-ready",
+      "prompt": "Spin up zoto-eval-configurer from /z-eval-configure with overwrite already settled in the task: static.framework vitest, llm.strategy code, llm.codeFramework vitest, preserveUserAuthoredCases true, writeMetaMarker true. The task payload bundles old_snapshot with source manifest reflecting the prior config so you can diff and return the cleanup_plan to the command. Summarise effective settings and steer me toward /z-eval-create unless cleanup totals require confirmation.",
+      "assertions": [
+        "The terminal agent output contains a cleanup_plan JSON object accepted by cleanup-plan.schema.json with totals.files matching the summed lengths of framework-switch, strategy-switch, or removed-target groups present in this run (zero when switching nothing).",
+        "The response states that .zoto/eval-system/config.yml was rewritten atomically and matches templates/schema/config.schema.json without requesting additional clarification.",
+        "No inline askQuestion or interactive questionnaire appears anywhere in assistant steps; only the enclosing command owns confirmation UI.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan:",
+        "totals:",
+        "cleanup-plan\\.schema\\.json"
+      ],
+      "expected_output": "Structured final report pairing the stamped .zoto/eval-system/config.yml snapshot with a cleanup_plan that satisfies the documented schema naming, echoes accurate totals.files, warns only when warranted, avoids askQuestion prompts, never deletes disks, ends with actionable pointers to execution or stale cleanup flows.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+        "last_updated": "2026-05-29T11:52:41.412Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
+        }
+      }
+    },
+    {
+      "id": "filesystem-legacy-no-prior-strategy",
+      "prompt": "Re-run configure mode where old_snapshot.source is filesystem (manifest predating subtask-01 inference). Apply static.framework pytest, llm.strategy declarative, honour overwrite already approved in the structured payload. Emit cleanup_plan deltas without inventing historical LLM artefacts.",
+      "assertions": [
+        "cleanup_plan excludes a strategy-switch group while old_snapshot lacked llm.strategy or llm.codeFramework, aligning with filesystem-mode rules.",
+        "static.framework-derived fingerprints reference pytest assets rather than hallucinated manifests.",
+        "preserveUserAuthoredCases and writeMetaMarker remain forced true throughout the narration with no solicitation to weaken them.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan:",
+        "totals:",
+        "cleanup-plan\\.schema\\.json"
+      ],
+      "expected_output": "Planner narrative plus cleanup_plan acknowledging filesystem inference: prior static fingerprints handled, declarative introduces no bogus strategy-switch files because earlier llm.strategy was unset, declarative-aligned cleanup reasons stay grouped correctly.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+        "last_updated": "2026-05-29T11:52:41.412Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
+        }
+      }
+    },
+    {
+      "id": "missing-manifest-first-bootstrap",
+      "prompt": "Drive configuration when old_snapshot.source is missing: initialise static.framework jest with llm.strategy declarative, rely on freshly collected answers, and recognise there is zero prior filesystem evidence.",
+      "assertions": [
+        "cleanup_plan lists no framework-switch, strategy-switch, or removed-target groups yet still sets totals.files to 0.",
+        "The narration explicitly references greenfield initialise behaviour instead of pretending prior manifest rows exist.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan:",
+        "totals:",
+        "cleanup-plan\\.schema\\.json"
+      ],
+      "expected_output": "Final response writes the first config.yml cleanly and returns a cleanup_plan with groups.length zero while still summarising totals as zero-file operations.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+        "last_updated": "2026-05-29T11:52:41.412Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
+        }
+      }
+    },
+    {
+      "id": "framework-switch-invalidates-manifest-rows",
+      "prompt": "Use manifest-derived old_snapshot where static.framework flips pytest to vitest without touching llm.strategy, include overwrite rationale in payload, enumerate prior fingerprint outputs for cleanup grouping.",
+      "assertions": [
+        "cleanup_plan.groups contains framework-switch referencing the departed pytest fingerprints and associated stamped files enumerated in totals.files arithmetic.",
+        "The completion message documents _meta.primitive_analysis.invalidate stamped true across generated eval_files[] manifest rows touched by automation while leaving cache blobs intact.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan:",
+        "totals:",
+        "cleanup-plan\\.schema\\.json"
+      ],
+      "expected_output": "Returned cleanup_plan includes a framework-switch group covering the departing framework fingerprint and every stamped static test artefact slated for teardown, totals.files summed, warns about cross mismatches only if warranted.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+        "last_updated": "2026-05-29T11:52:41.412Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
+        }
+      }
+    },
+    {
+      "id": "strategy-switch-remaps-llm-cases",
+      "prompt": "Switch llm.strategy from declarative to code with llm.codeFramework vitest against a manifest-backed old_snapshot highlighting prior declarative suites; keep static.framework vitest; overwrite predetermined.",
+      "assertions": [
+        "cleanup_plan presents a strategy-switch group listing erstwhile declarative case rows or declarative-derived *.test.ts assets slated for rework.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan:",
+        "totals:",
+        "cleanup-plan\\.schema\\.json"
+      ],
+      "expected_output": "Planner details strategy-switch removals or rewrites keyed to declarative artefacts while satisfying config schema pairing code strategy with Vitest scaffolding.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+        "last_updated": "2026-05-29T11:52:41.412Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
+        }
+      }
+    },
+    {
+      "id": "narrowed-discovery-removes-eval-json",
+      "prompt": "Adjust discoveryTargets ignoring a plugin path manifest already catalogued stale eval_json rows produced by tooling; propagate overwrite flag and diff against canonical manifest snapshot.",
+      "assertions": [
+        "cleanup_plan includes removed-target documenting each orphan eval JSON keyed to ignored discovery scopes.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan:",
+        "totals:",
+        "cleanup-plan\\.schema\\.json"
+      ],
+      "expected_output": "Planner flags removed-target grouping for orphaned generated eval manifests while leaving user-authored safeguards intact.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+        "last_updated": "2026-05-29T11:52:41.412Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
+        }
+      }
+    },
+    {
+      "id": "invalid-code-strategy-without-framework",
+      "prompt": "Structured payload asserts llm.strategy code but withholds llm.codeFramework intentionally; insist the agent refuses silent defaults.",
+      "assertions": [
+        "The agent returns needs_user_input with explicit questions referencing missing llm.codeFramework instead of fabricating configs.",
+        "Neither askQuestion widgets nor unauthorised config.yml commits appear anywhere in streamed steps.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan:",
+        "totals:",
+        "cleanup-plan\\.schema\\.json"
+      ],
+      "expected_output": "needs_user_input payload enumerating precisely which frameworks are permissible and why code strategy cannot proceed unanswered.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+        "last_updated": "2026-05-29T11:52:41.412Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
+        }
+      }
+    },
+    {
+      "id": "static-llm-jest-vitest-mismatch-warning",
+      "prompt": "Maintain llm.strategy code while setting static.framework vitest alongside llm.codeFramework jest deliberately; insist cleanup_plan captures soft violations while still producing schema-valid artefacts.",
+      "assertions": [
+        "cleanup_plan.warnings cites the vitest-vs-jest skew as non-blocking telemetry.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan:",
+        "totals:",
+        "cleanup-plan\\.schema\\.json"
+      ],
+      "expected_output": "warnings[] entry describing static versus code-framework mismatch plus paired framework-switch coverage for orphaned Vitest artefacts.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+        "last_updated": "2026-05-29T11:52:41.412Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
+        }
+      }
+    },
+    {
+      "id": "disallowed-meta-flag-rejection",
+      "prompt": "Upstream command mistakenly supplies preserveUserAuthoredCases false in the bundled answers; insist the configured agent rejects that contract breakage before writing configs.",
+      "assertions": [
+        "Assistant output refuses to honour false preserveUserAuthoredCases requests and reaffirms mandated true stamping.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan:",
+        "totals:",
+        "cleanup-plan\\.schema\\.json"
+      ],
+      "expected_output": "Structured refusal explaining both meta flags remain hard-true governance without mutating manifests or emitting cleanup confirmations.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+        "last_updated": "2026-05-29T11:52:41.412Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
+        }
+      }
+    },
+    {
+      "id": "audit-append-only-scope",
+      "prompt": "Routine configure run after successful manifest diff; insist final narrative reaffirms authorised write paths excluding arbitrary repo edits beyond config.yml manifest.history audit stamping and mandated manifest row invalidations.",
+      "assertions": [
+        "Assistant transcript contains no prose promising direct rm or workspace-wide rewriting outside .zoto/eval-system config or manifest-history updates plus targeted manifest eval_files[] invalidation markers.",
+        "The agent emits a `cleanup_plan:` block whose shape conforms to `templates/schema/cleanup-plan.schema.json`.",
+        "The cleanup plan reports `totals:` with a nested `files:` integer equal to the summed cleanup operations (zero when no switch group fires).",
+        "Before write, the `cleanup-plan.schema.json` validator (e.g. `ajv`) is invoked to confirm the cleanup plan JSON is schema-valid."
+      ],
+      "assertion_patterns": [
+        "cleanup_plan:",
+        "totals:",
+        "cleanup-plan\\.schema\\.json"
+      ],
+      "expected_output": "Explicit confirmation that deletes await pnpm-run cleanup while only permitted writes touch .zoto/eval-system boundaries with manifest-history logging.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+        "last_updated": "2026-05-29T11:52:41.412Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
+          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
+        }
+      }
+    }
+  ]
+}

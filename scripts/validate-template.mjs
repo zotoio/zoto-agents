@@ -4,6 +4,8 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
+import YAML from "yaml";
+
 const repoRoot = process.cwd();
 const errors = [];
 const warnings = [];
@@ -293,6 +295,96 @@ function resolveMarketplaceSource(source, pluginRoot) {
   return `${normalizedRoot}/${normalizedSource}`;
 }
 
+const COLOCATED_TS_KINDS = ["commands", "agents", "hooks"];
+const COLOCATED_TS_EXCLUDE_FRAGMENTS = ["/scenarios/", "/_shared/", "/node_modules/"];
+
+/**
+ * JSON-first invariant: co-located `<kind>/evals/*.test.ts` LLM eval files are
+ * forbidden (spec evals-json-first-migration-20260527). Scenario files under
+ * `evals/scenarios/*.test.ts` are allowed via COLOCATED_TS_EXCLUDE_FRAGMENTS.
+ */
+async function enforceJsonFirstNoColocatedTsEvals() {
+  const tsFiles = [];
+
+  async function pushFromKindDir(kindDir) {
+    const evalsDir = path.join(kindDir, "evals");
+    if (!(await pathExists(evalsDir))) return;
+    let entries;
+    try {
+      entries = await fs.readdir(evalsDir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith(".test.ts")) continue;
+      const full = path.join(evalsDir, entry.name);
+      const normalized = full.replace(/\\/g, "/");
+      if (COLOCATED_TS_EXCLUDE_FRAGMENTS.some((frag) => normalized.includes(frag))) {
+        continue;
+      }
+      tsFiles.push(full);
+    }
+  }
+
+  const pluginsRoot = path.join(repoRoot, "plugins");
+  if (await pathExists(pluginsRoot)) {
+    let plugins;
+    try {
+      plugins = await fs.readdir(pluginsRoot, { withFileTypes: true });
+    } catch {
+      plugins = [];
+    }
+    for (const plugin of plugins) {
+      if (!plugin.isDirectory()) continue;
+      const pluginDir = path.join(pluginsRoot, plugin.name);
+      for (const kind of COLOCATED_TS_KINDS) {
+        await pushFromKindDir(path.join(pluginDir, kind));
+      }
+    }
+  }
+
+  const cursorRoot = path.join(repoRoot, ".cursor");
+  if (await pathExists(cursorRoot)) {
+    for (const kind of COLOCATED_TS_KINDS) {
+      await pushFromKindDir(path.join(cursorRoot, kind));
+    }
+  }
+
+  if (tsFiles.length === 0) return;
+
+  const manifestJsonPaths = new Set();
+  const manifestPath = path.join(repoRoot, ".zoto", "eval-system", "manifest.yml");
+  if (await pathExists(manifestPath)) {
+    try {
+      const raw = await fs.readFile(manifestPath, "utf8");
+      const doc = YAML.parse(raw);
+      for (const target of doc?.targets ?? []) {
+        for (const evalFile of target?.eval_files ?? []) {
+          if (typeof evalFile === "string" && evalFile.endsWith(".json")) {
+            manifestJsonPaths.add(evalFile.replace(/\\/g, "/"));
+          }
+        }
+      }
+    } catch {
+      /* manifest parse failures are handled elsewhere */
+    }
+  }
+
+  for (const abs of tsFiles.sort()) {
+    const rel = path.relative(repoRoot, abs).replace(/\\/g, "/");
+    const jsonRel = rel.replace(/\.test\.ts$/, ".json");
+    if (manifestJsonPaths.size === 0 || manifestJsonPaths.has(jsonRel)) {
+      addError(
+        `JSON-first violation: co-located TS LLM eval \`${rel}\` must be \`${jsonRel}\` (see spec evals-json-first-migration-20260527).`,
+      );
+    } else {
+      addError(
+        `JSON-first violation: co-located TS LLM eval found at \`${rel}\` (use <kind>/evals/<name>.json instead).`,
+      );
+    }
+  }
+}
+
 async function main() {
   const marketplacePath = path.join(
     repoRoot,
@@ -450,6 +542,8 @@ async function main() {
       );
     }
   }
+
+  await enforceJsonFirstNoColocatedTsEvals();
 
   summarizeAndExit();
 }

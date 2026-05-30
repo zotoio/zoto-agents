@@ -22,28 +22,37 @@ This repository uses CRUX notation for semantic compression. **If not already lo
 | Agent | Definition | Purpose |
 |-------|-----------|---------|
 | `crux-cursor-rule-manager` | `.cursor/agents/crux-cursor-rule-manager.md` | CRUX compression, decompression, and validation |
-| `integrity-expert` | `.cursor/agents/integrity-expert.md` | Code quality audits, test coverage, security, CI/CD |
-| `docs-sync-agent` | `.cursor/agents/docs-sync-agent.md` | Documentation synchronization on source changes |
 | `crux-cursor-memory-manager` | `.cursor/agents/crux-cursor-memory-manager.md` | Memory lifecycle management (dream, REM sleep, Recall, Forget, Remember, Meditate) |
-| `crux-platform-architect` | `.cursor/agents/crux-platform-architect.md` | Platform architecture, Cursor/LLM harness design, documentation, and eval strategy |
-| `crux-software-engineer` | `.cursor/agents/crux-software-engineer.md` | Core implementation — Python, shell, MCP server, hooks, skills, and evals |
+| `crux-cursor-meditation-guide` | `.cursor/agents/crux-cursor-meditation-guide.md` | Recursive memory-informed meditation guide. Owns the Meditate persona, Research Phases A–G, Quick 6-step protocol, Adversarial Review function, Ensemble Aggregation function, and the K10 finalisation-enhancements reflection function. Spawned by `/crux-meditate` for the entire subagent tree; never user-invoked directly. |
 
-### Spec Execution — Agent Allocation
+### User Input Escalation — Subagent Protocol
 
-When building or executing engineering specs in this repository, **always use the CRUX agents** instead of `generalPurpose`. Assign subtasks based on their nature:
+Subagents NEVER call `AskQuestion` directly. All user-facing prompts must be handled by the **parent agent** (the top-level agent that the user interacts with).
 
-| Subtask Type | Assign To |
-|-------------|-----------|
-| Architecture, design, trade-off analysis | `crux-platform-architect` |
-| Documentation updates (README, AGENTS.md, CONTRIBUTORS) | `crux-platform-architect` |
-| Eval strategy and test design | `crux-platform-architect` |
-| Code implementation (Python, shell, MCP, hooks, skills) | `crux-software-engineer` |
-| Bug fixes, refactoring, feature implementation | `crux-software-engineer` |
-| Writing evals and tests | `crux-software-engineer` |
-| Integration testing and verification | `crux-software-engineer` |
-| CRUX compression or decompression tasks | `crux-cursor-rule-manager` |
-| Memory lifecycle operations (dream, REM, recall) | `crux-cursor-memory-manager` |
-| Code quality audits, security reviews, CI/CD checks | `integrity-expert` |
-| Documentation sync after source changes | `docs-sync-agent` |
+**Two supported patterns** — choose the one that fits the workflow:
 
-**Do not default to `generalPurpose`** — every subtask in a spec should map to the most appropriate CRUX agent above.
+#### Pattern A: Pre-collect then spawn
+
+Use when all user choices are known before the subagent starts (e.g. memory type, tags).
+
+1. Parent uses `AskQuestion` to collect all answers
+2. Parent spawns subagent with pre-collected answers in the task prompt
+3. Subagent executes using the provided answers without asking again
+
+#### Pattern B: Work first, then escalate
+
+Use when the subagent must do analysis, search, or computation before it can formulate the right questions (e.g. resolve memory matches before asking which to delete, analyse artifacts before presenting candidates).
+
+1. Parent spawns subagent (foreground recommended for complex workflows)
+2. Subagent does its work (search, analysis, extraction, etc.)
+3. Subagent returns results **plus** a `needs_user_input` section describing the decisions needed
+4. Parent displays the subagent's analysis to the user
+5. Parent uses `AskQuestion` to collect the user's decisions
+6. Parent resumes the subagent with the collected answers
+7. Subagent applies the confirmed decisions
+
+**Mixing patterns is fine.** A command can pre-collect simple choices (Pattern A) while using Pattern B for decisions that depend on subagent analysis. For example, `/crux-remember` pre-collects type and tags, but if the subagent discovers a conflict with an existing memory, it escalates that decision via Pattern B.
+
+Commands that invoke subagents (e.g. `/crux-dream`, `/crux-remember`, `/crux-forget`, `/crux-recall`, `/crux-meditate`) document which pattern applies to each interaction point.
+
+</CRUX>

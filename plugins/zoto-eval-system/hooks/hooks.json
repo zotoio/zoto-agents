@@ -1,0 +1,13 @@
+{
+  "$schema": "https://cursor.sh/hooks-schema.json",
+  "version": 1,
+  "description": "Eval System hooks — session-start nudge for stale runs, missing evals, and detected drift.",
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node hooks/zoto-eval-session-start.mjs",
+        "description": "Eval System: nudge on stale runs, missing evals.json, or detected drift"
+      }
+    ]
+  }
+}

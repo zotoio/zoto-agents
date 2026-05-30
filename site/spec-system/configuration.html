@@ -7,25 +7,46 @@
   <link rel="stylesheet" href="../css/style.css">
   <!-- Prism.js for syntax highlighting (Tomorrow Night theme) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
   <script defer src="../js/main.js"></script>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 420'><rect width='420' height='420' fill='%23e8e8e8'/><rect x='30' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='165' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='300' y='30' width='90' height='90' fill='%238ec0d6'/><rect x='30' y='240' width='360' height='150' fill='%238ec0d6'/><rect x='150' y='300' width='120' height='90' fill='%23e8e8e8'/></svg>">
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
 </head>
-<body>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
 
   <!-- Top Navigation -->
-  <nav class="top-nav">
+  <nav class="top-nav" aria-label="Main navigation">
     <div class="top-nav-inner">
       <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
-      <button class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
         <span class="sidebar-toggle-icon"></span>
       </button>
       <ul class="top-nav-links">
         <li><a href="../index.html">Home</a></li>
-        <li><a href="index.html" class="active">Spec System</a></li>
+        <li class="nav-dropdown">
+          <a href="index.html" class="nav-dropdown-toggle active">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="quickstart.html">Quickstart</a></li>
+            <li><a href="design.html">Design</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../eval-system/index.html">Overview</a></li>
+            <li><a href="../eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../eval-system/design.html">Design</a></li>
+            <li><a href="../eval-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
         <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
       </ul>
     </div>
@@ -35,7 +56,7 @@
   <div class="page-layout">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav" aria-label="Spec System pages">
         <h3 class="sidebar-heading">Spec System</h3>
         <ul class="sidebar-list">
           <li><a href="index.html" class="sidebar-link">Overview</a></li>
@@ -59,18 +80,18 @@
         <h1>Configuration Reference</h1>
 
         <p>
-          The Spec System is configured via a <code>config.json</code> file placed in
-          the <code>.zoto-spec-system/</code> directory at your repository root. This file
-          controls naming conventions, directory paths, execution limits, and optional
-          extensions.
+          The Spec System is configured via a single <code>config.yml</code> file at
+          <code>.zoto/spec-system/config.yml</code> in your repository root. This is the
+          <strong>only</strong> path the plugin reads &mdash; earlier versions used
+          <code>.zoto-spec-system/config.json</code>; that path is no longer supported.
         </p>
 
         <div class="callout">
-          <div class="callout-title">Configuration is optional</div>
+          <div class="callout-title">All defaults are commented</div>
           <p class="mb-0">
-            A minimal <code>{}</code> config is perfectly valid &mdash; all fields have
-            sensible defaults. You only need a config file when you want to customize
-            behaviour.
+            The init template lists every supported key &mdash; <strong>commented out</strong>
+            &mdash; alongside the value the plugin would otherwise apply internally.
+            Uncomment any line(s) to override.
           </p>
         </div>
 
@@ -78,21 +99,26 @@
         <h2 id="installation">Creating the Config File</h2>
 
         <p>
-          To configure the Spec System in your repository, create the directory and file:
+          Run the dedicated init command once per repository:
         </p>
 
-        <pre><code class="language-bash">mkdir -p .zoto-spec-system
-touch .zoto-spec-system/config.json</code></pre>
+        <pre><code class="language-bash">/z-spec-init</code></pre>
 
         <p>
-          Start with the template shipped with the plugin, then customize as needed:
+          This writes <code>.zoto/spec-system/config.yml</code> from the plugin's
+          <code>templates/init-config.yml</code>. The generated file is fully commented &mdash;
+          uncomment a line to override that field.
         </p>
 
-        <pre><code class="language-json">{
-  "unitOfWork": "spec",
-  "specsDir": "specs",
-  "workDir": "specs/current"
-}</code></pre>
+        <pre><code class="language-yaml"># unitOfWork: spec
+# specsDir: specs
+# workDir: specs/current
+
+# spec:
+#   maxSubtasks: 99
+#   parallelLimit: 4
+#   adversarialVerification: true
+# ...</code></pre>
 
         <p>
           All path fields (<code>specsDir</code>, <code>workDir</code>) are relative to the
@@ -103,8 +129,9 @@ touch .zoto-spec-system/config.json</code></pre>
         <h2 id="defaults">Default Behaviour</h2>
 
         <p>
-          When no <code>.zoto-spec-system/config.json</code> file exists, the Spec System
-          operates with its built-in defaults:
+          When the <code>.zoto/spec-system/config.yml</code> file exists but every line is
+          commented out (the shipped init template), the Spec System operates with its
+          built-in defaults:
         </p>
 
         <ul>

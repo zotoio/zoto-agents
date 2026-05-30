@@ -1,0 +1,54 @@
+// _meta.generated: true
+/**
+ * Vitest configuration for the zoto-eval-system static backend.
+ *
+ * Stamped at `<host-repo>/evals/vitest.config.ts` by
+ * `scripts/eval-stamp.ts#stampVitestPerPrimitive` (subtask 07) when
+ * `static.framework === "vitest"`.
+ *
+ * Wires:
+ *   - the bundled custom reporter at `<host-repo>/evals/reporters/zoto-eval-reporter.ts`
+ *     which writes the per-run `evals/_runs/<ts>/static.yml` document
+ *     validated against `templates/schema/result.schema.json` (subtask 01).
+ *   - `<host-repo>/evals/setup.ts` for `dotenv/config` + per-case sandbox
+ *     preparation.
+ *
+ * Path-resolution note: `root` is pinned to the directory containing this
+ * config so `include` / `setupFiles` / `reporters` are unambiguous regardless
+ * of which working directory the user invokes vitest from. The reporter's
+ * default output path (`evals/_runs/<ts>/static.yml`) stays relative to
+ * `process.cwd()` (the host repo root), which is where pnpm scripts run.
+ *
+ * Switching the static framework is a destructive operation: re-running
+ * `/z-eval-configure` invokes the cleanup engine (subtask 03) which
+ * removes vitest assets when the user picks jest, and vice versa.
+ */
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { defineConfig } from "vitest/config";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig({
+  root: __dirname,
+  test: {
+    globals: false,
+    include: ["**/*.test.ts"],
+    exclude: [
+      "**/node_modules/**",
+      "_runs/**",
+      "fixtures/**",
+      "_llm/**",
+    ],
+    setupFiles: ["./setup.ts"],
+    reporters: [
+      "default",
+      ["./reporters/zoto-eval-reporter.ts", {}],
+    ],
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
+    /* Static evals are I/O bound + read-only; threads pool keeps wall time low. */
+    pool: "threads",
+  },
+});

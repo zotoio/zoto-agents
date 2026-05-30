@@ -1,0 +1,14 @@
+{
+  "runId": "20260507T101402Z",
+  "static_framework": "vitest",
+  "llm_strategy": null,
+  "llm_codeFramework": null,
+  "model": "composer-2.5",
+  "git_ref": "36e26f7e7b8d557f0dd414ca6d63e82b657fe818",
+  "started_at": "2026-05-07T10:14:02.102Z",
+  "ended_at": "2026-05-07T10:14:03.077Z",
+  "notes": [
+    "llm_skip: --full not passed; static-only run",
+    "static_runner: no static.yml emitted"
+  ]
+}

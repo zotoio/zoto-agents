@@ -1,0 +1,101 @@
+schema_version: 1
+subtask_id: "05"
+feature: Eval Prompt Realism Audit
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-25T07:00:00.000Z"
+last_heartbeat: "2026-05-25T07:02:30.000Z"
+completed_at: "2026-05-25T07:02:30.000Z"
+git_sha: e49961ff5330e60d9adf4aa48727cf8247371d5e
+checklist:
+  - id: D01
+    text: All 13 files under `plugins/zoto-eval-system/evals/commands/*.json` updated per `audit/eval-rewrites.json`.
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/commands/
+  - id: D02
+    text: Each rewritten generated case carries a refreshed `_meta.last_updated` (ISO-8601 timestamp at write time); `_meta.generated_by` remains the existing stable string `"zoto-update-evals"` (per user decision 2026-05-25 — see spec KD-7); `_meta.source_hash` is preserved per "Source-hash recomputation rule" below.
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/commands/
+  - id: D03
+    text: "Each rewritten generated case retains `_meta.generated: true`."
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/commands/
+  - id: D04
+    text: The top-level `target_id` field is preserved verbatim per file (no schema reshape).
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/commands/
+  - id: D05
+    text: Per-file byte-preservation proof for user-authored cases written to `specs/20260525-eval-prompt-realism-audit/status/subtask-05-...status.md` (a diff hunk count of `0` for non-generated cases).
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/status/subtask-05-eval-prompt-realism-audit-rewrite-eval-system-commands-20260525.status.md
+  - id: D06
+    text: A summary table in the status report listing each file, the number of generated cases rewritten, and the number of user-authored cases preserved.
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/status/subtask-05-eval-prompt-realism-audit-rewrite-eval-system-commands-20260525.status.md
+artifacts:
+  - path: specs/20260525-eval-prompt-realism-audit/audit/apply-command-rewrites.ts
+    kind: created
+    note: Helper applying eval-rewrites.json to command eval suites
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-advise.json
+    kind: modified
+    note: Phase 3 realism rewrite (9 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-compare.json
+    kind: modified
+    note: Phase 3 realism rewrite (4 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-configure.json
+    kind: modified
+    note: Phase 3 realism rewrite (9 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-create.json
+    kind: modified
+    note: Phase 3 realism rewrite (3 generated cases); judge fix 2026-05-25T13:29:12Z — eval-rewrites parity + KD-7 generated_by
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-execute.json
+    kind: modified
+    note: Phase 3 realism rewrite (6 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-help.json
+    kind: modified
+    note: Phase 3 realism rewrite (7 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-init.json
+    kind: modified
+    note: Phase 3 realism rewrite (5 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-judge.json
+    kind: modified
+    note: Phase 3 realism rewrite (3 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-jump.json
+    kind: modified
+    note: Phase 3 realism rewrite (2 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-operator.json
+    kind: modified
+    note: Phase 3 realism rewrite (2 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-start.json
+    kind: modified
+    note: Phase 3 realism rewrite (4 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-update.json
+    kind: modified
+    note: Phase 3 realism rewrite (9 generated cases)
+  - path: plugins/zoto-eval-system/evals/commands/z-eval-workflow.json
+    kind: modified
+    note: Phase 3 realism rewrite (11 generated cases)
+errors: []
+notes: >-
+  74 generated cases rewritten across 13 files; 0 user-authored cases in scope. Payload
+  parity check 0 mismatches; source_hash vs HEAD 0 changes; JSON parse sweep OK.
+  z-eval-create.json remediated 2026-05-25T13:29:12Z from eval-rewrites.json (cases 1–3
+  prompt/assertions/expected_output/follow_ups; KD-7 generated_by; source_hash preserved).
+extra:
+  total_generated_rewritten: 74
+  total_user_preserved: 0
+  apply_timestamp: "2026-05-25T07:02:52.884Z"
+  z_eval_create_remediation_at: "2026-05-25T13:29:12.334Z"
+  judge:
+    verdict: verified
+    at: "2026-05-25T15:00:00.000Z"
+    notes: >-
+      Re-verification after fix pass: prior z-eval-create.json parity and KD-7
+      generated_by blockers remain resolved (3/3 cases match eval-rewrites.json,
+      generated_by zoto-update-evals, source_hash preserved). Independent sweep: 13/13
+      command JSON files parse; 74 generated cases; 0 generated_by violations; 0
+      eval-rewrites parity mismatches; 0 user-authored cases (D05 vacuous). Per-file
+      counts recorded in status artifacts list (D06).
+    fix_list: []

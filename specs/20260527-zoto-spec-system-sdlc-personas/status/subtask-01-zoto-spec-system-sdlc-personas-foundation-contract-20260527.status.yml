@@ -1,0 +1,52 @@
+schema_version: 1
+subtask_id: "01"
+feature: zoto-spec-system-sdlc-personas
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "**D01** — Updated `plugins/zoto-spec-system/src/spawn-prompt.ts` with"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "**D02** — Updated `plugins/zoto-spec-system/src/config-loader.ts`:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "**D03** — Updated `plugins/zoto-spec-system/scripts/spec-spawn-prefix.ts`"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "**D04** — Updated `plugins/zoto-spec-system/scripts/spec-status-roundtrip.ts`:"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "**D05** — Updated `plugins/zoto-spec-system/templates/init-config.yml`"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "**D06** — Bumped `plugins/zoto-spec-system/package.json` `version` to"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "**D07** — New `1.0.0` entry in"
+    done: false
+    evidence_path: null
+  - id: D08
+    text: "**D08** — Persona contract reference. Add the canonical list of the 10"
+    done: false
+    evidence_path: null
+  - id: D09
+    text: "**D09** — New"
+    done: false
+    evidence_path: null
+  - id: D10
+    text: "**D10** — Wire the schema into the executor + judge + scaffold parsers."
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

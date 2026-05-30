@@ -396,7 +396,7 @@ Apply all recommendations? [all/select/skip]
 
 **In `--yolo` mode**: Auto-apply everything EXCEPT conflicts (Step 3). Conflicts always require user input.
 
-**In interactive mode**: Present the full report and wait for user confirmation. Options:
+**In interactive mode**: Return the full report in your response. Do NOT call `AskQuestion` — the calling agent (or its parent) will present the report to the user and collect the confirmation decision, then pass it back to you. Expected options for the user:
 - **all**: Apply all non-conflict recommendations; then prompt for each conflict individually
 - **select**: Walk through each recommendation individually for accept/reject
 - **skip**: Abort without changes
@@ -572,13 +572,13 @@ When a memory transitions between types, follow this exact procedure:
 
 ## Integration
 
-| Component | Location | Role |
-|-----------|----------|------|
+| Component | Reference | Role |
+|-----------|-----------|------|
 | Config | `.crux/crux-memories.json` | `typeTransitions`, `demoteAfterDaysUnreferenced`, `archiveAfterDaysUnreferenced`, `referenceTracking`, `storage` |
-| Memory CRUD | `.cursor/skills/crux-skill-memory-crud/SKILL.md` | Frontmatter updates, file moves, type transitions |
-| Reference Tracker | `.cursor/skills/crux-skill-memory-reference-tracker/SKILL.md` | Tracker file format, strength sync, cleanup |
-| Memory Compress | `.cursor/skills/crux-skill-memory-compress/SKILL.md` | Compressed file handling during moves |
-| Memory Index | `.cursor/skills/crux-skill-memory-index/SKILL.md` | Index rebuild in Step 15 after all changes applied |
+| Memory CRUD | `crux-skill-memory-crud` | Frontmatter updates, file moves, type transitions |
+| Reference Tracker | `crux-skill-memory-reference-tracker` | Tracker file format, strength sync, cleanup |
+| Memory Compress | `crux-skill-memory-compress` | Compressed file handling during moves |
+| Memory Index | `crux-skill-memory-index` | Index rebuild in Step 15 after all changes applied |
 
 ## Error Handling
 
@@ -590,7 +590,7 @@ When a memory transitions between types, follow this exact procedure:
 | Target directory cannot be created | Abort the specific move, report filesystem error |
 | Conflict between two memories | Always present to user, never auto-resolve |
 | Strength exceeds `promoteAt` but `promoteTo` is not in `typePriority` | Skip promotion, report config issue |
-| File move would overwrite an existing file | Prompt user before overwriting |
+| File move would overwrite an existing file | Return `needs_user_input` for the calling agent to confirm with the user |
 
 ## What This Skill Does NOT Do
 

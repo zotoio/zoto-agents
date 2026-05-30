@@ -1,0 +1,40 @@
+schema_version: 1
+subtask_id: "07"
+feature: Eval Single Backend & Co-located Restructure
+assigned_agent: zoto-eval-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "`plugins/zoto-eval-system/engine/update.ts` — `resolveLlmStrategyFromOpts` removed (lines ~1307–1313 per exploration); `dispatchRegeneration` (lines ~1321–1344) collapses into a single `regenerate(target, opts)` call site"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "`engine/update.ts` — `regenerateLlmCode` (lines ~934–985) and `regenerateLlmDeclarative` (lines ~1038+) merged into a single `regenerateLlm` function. The merged function calls `stampLlmTarget` (subtask 06's renamed function) and the per-target path resolver"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "`engine/update.ts` — `llmCodeTestPathForTarget` (lines ~1373–1386) renamed to `llmTestPathForTarget`; the returned path matches the new co-located pattern (`<kind>/evals/<name>.test.ts`)"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "`engine/update.ts` — drift detection (the function that diffs manifest `eval_files[]` against on-disk files) is updated to recognise the new co-located paths AND emit a clear \"drift: file at LEGACY path `evals/llm/test_*.test.ts` should be at `<new>`\" message when the legacy file still exists (this message guides subtask 08's migration)"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "`engine/update.ts` — `regenerateVitest/Pytest/Jest` (the static framework regenerators) keep their separate dispatch — they are NOT in scope for this collapse"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Updater test file(s) under `plugins/zoto-eval-system/engine/__tests__/` or `scripts/__tests__/eval-update-*.test.ts` — drop strategy-branch test fixtures; ADD tests for the new path pattern + legacy-drift detection message
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "`engine/update.ts` — verify the `_meta.generated === true` case-level guard and the `// _meta.generated: true` file-level guard still gate every `--apply` write (per `_user-case-guards.ts` lines 7–10 references — KD-7)"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

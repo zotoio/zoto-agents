@@ -1,0 +1,269 @@
+schema_version: 1
+subtask_id: "10"
+feature: evals-json-first-migration
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-28T03:08:00Z
+last_heartbeat: 2026-05-29T12:10:18.540Z
+completed_at: 2026-05-29T11:33:10.283Z
+checklist:
+  - id: D01
+    text: "Run every relevant validator locally and capture results in the Work Log:"
+    done: true
+    evidence_path: specs/20260527-evals-json-first-migration/status/subtask-10-evals-json-first-migration-validation-ci-20260527.status.yml
+  - id: D02
+    text: "Tighten `scripts/validate-template.mjs`:"
+    done: true
+    evidence_path: scripts/validate-template.mjs
+  - id: D03
+    text: "Add a new CI workflow (or extend an existing one) under `.github/workflows/`:"
+    done: true
+    evidence_path: .github/workflows/eval-format-check.yml
+  - id: D04
+    text: "Update `.github/workflows/eval-update-check.yml` to additionally assert:"
+    done: true
+    evidence_path: .github/workflows/eval-format-check.yml
+  - id: D05
+    text: "Update `plugins/zoto-eval-system/tests/plugin.test.ts` (or add a new test file) with assertions that run as part of `pnpm test`:"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/plugin.test.ts
+  - id: D06
+    text: "Clean up dead code referenced by earlier subtasks:"
+    done: true
+    evidence_path: evals/vitest.config.ts
+  - id: D07
+    text: "Update the spec status file:"
+    done: true
+    evidence_path: specs/20260527-evals-json-first-migration/spec-evals-json-first-migration-20260527.md
+  - id: D08
+    text: "Final smoke test of `/z-eval-create` end-to-end:"
+    done: true
+    evidence_path: scripts/eval-ensure-host.ts
+artifacts:
+  - path: .github/workflows/eval-format-check.yml
+    kind: created
+    note: Consolidated CI — validate-template, eval:update:check, Vitest JSON discovery.
+  - path: scripts/validate-template.mjs
+    kind: modified
+    note: enforceJsonFirstNoColocatedTsEvals() hard-errors on co-located TS evals.
+  - path: plugins/zoto-eval-system/tests/plugin.test.ts
+    kind: modified
+    note: JSON-first migration invariants describe (5 tests).
+  - path: scripts/eval-ensure-host.ts
+    kind: modified
+    note: ensureScenarioExample() idempotent scenario stamp.
+  - path: evals/vitest.config.ts
+    kind: modified
+    note: "Re-restored unified JSON-loader config after the 2026-05-29 eval:update --apply rediscovery re-stamped the static template over it (writeVitestIfChanged overwrites unconditionally — see notes); reinstated #eval-engine resolve.alias, dual static+llm reporters/setups, and reworded the JSDoc bullet so the '**/evals/*.json' glob no longer emits a premature block-comment */ terminator."
+  - path: evals/llm/_shared/zoto-create-plugin-suite.test.ts
+    kind: modified
+    note: Expect .json stamp output instead of co-located .test.ts.
+  - path: scripts/bootstrap-llm-code-from-cache.ts
+    kind: deleted
+    note: Removed dead one-shot stamp-from-cache script (only referenced by package.json; superseded by eval:update apply rediscovery in JSON-first mode)
+  - path: package.json
+    kind: modified
+    note: Removed eval:bootstrap-llm-code script entry (dead code)
+  - path: .zoto/eval-system/manifest.yml
+    kind: modified
+    note: eval:update --apply --no-analyser refreshed covered-target content hashes, clearing the 5 critical skill-frontmatter drifts (configure/create/eval-tooling/help/update). eval:update:check --no-analyser now exits 0 (status clean, critical_count 0).
+  - path: .zoto/eval-system/manifest.history.yml
+    kind: modified
+    note: Append-only audit lines written by the eval:update --apply rediscovery pass.
+  - path: plugins/zoto-eval-system/skills/zoto-configure-evals/evals/evals.json
+    kind: modified
+    note: Generated cases regenerated from cached analyser payloads; 2 user-authored cases (ids 1,2) preserved verbatim. Repaired a trailing-comma ('},]') the updater's UA+generated merge emitted, which left invalid JSON; UA cases untouched.
+  - path: plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json
+    kind: modified
+    note: Generated cases regenerated from cached analyser payloads; 3 user-authored cases (ids 1,2,3) preserved verbatim. Repaired a trailing-comma (',]') merge artifact that left invalid JSON; UA cases untouched.
+  - path: plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json
+    kind: modified
+    note: Generated cases regenerated from cached analyser payloads (0 user-authored cases); JSON stayed valid (no trailing-comma artifact).
+  - path: plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json
+    kind: modified
+    note: Generated cases regenerated from cached analyser payloads; 4 user-authored cases (ids 1,2,3,4) preserved verbatim. Repaired a trailing-comma (',]') merge artifact that left invalid JSON; UA cases untouched.
+  - path: plugins/zoto-eval-system/skills/zoto-update-evals/evals/evals.json
+    kind: modified
+    note: Generated cases regenerated from cached analyser payloads; 3 user-authored cases (ids 1,2,3) preserved verbatim; JSON stayed valid (no trailing-comma artifact).
+errors: []
+notes: |
+  Re-verification 2026-05-29: migration complete (0 co-located .test.ts).
+  Deleted duplicate eval-update-check.yml (consolidated into eval-format-check.yml).
+  eval:update --apply cleared skill drift; restored zoto-eval-tooling evals.json skill shape.
+  Vitest CI mode (CURSOR_API_KEY unset): 937 passed, 266 skipped, exit 0.
+  Re-spawn 2026-05-29 (judge partial fix-list):
+  - D06: removed dead scripts/bootstrap-llm-code-from-cache.ts + eval:bootstrap-llm-code
+    package.json entry. The script's documented purpose (one-shot rematerialisation of
+    co-located LLM test files) was completed by the JSON-first migration; it was referenced
+    nowhere except package.json (no docs/CI/tests/other scripts). Remaining code-cursor-sdk
+    references are all live (template root dir holding _shared/ + JSON templates) or
+    intentional (plugin.test.ts asserting per-primitive-test.ts.tmpl is gone). Re-ran
+    validate-template, plugin.test.ts (64/64) and eval:list after removal — all green.
+  - D08: recorded /z-eval-create create/ensure-host end-to-end smoke. Ran eval-ensure-host
+    live in a fresh tempdir (exit 0): stamps .env.example, .gitignore, and the skipped
+    scenario example; idempotent on re-run. Scenario present+skipped is also covered by the
+    durable plugin.test.ts tempdir test; vitest json-loader wiring and manifest .json entries
+    are asserted by the JSON-first invariant tests.
+  - D01: confirmed extra.tests_run already includes pnpm test, tsc --noEmit per TS root,
+    eval:list, and the full vitest discovery run — accurate, kept done.
+  Re-spawn 2026-05-29 (DOD06 drift gap — eval:update:check exited 2 with 5 critical
+  skill-frontmatter drifts left by subtask 09's docs refresh):
+  - Resolved the documented way: `pnpm run eval:update -- --apply` first (key was set) but
+    the @cursor/sdk analyser could not reach the API key exchange endpoint (network), so it
+    crashed at init with no writes; fell back to `pnpm run eval:update -- --apply
+    --no-analyser` (cached payloads), which refreshed the manifest content-hashes and
+    regenerated _meta.generated cases. `eval:update:check --no-analyser` now exits 0
+    (critical_count 0). Migration invariants stayed clean (colocated_ts_eval_count 0,
+    layout_drift_count 0).
+  - User-authored cases preserved: configure=2 (ids 1,2), create=3 (1,2,3), eval-tooling=0,
+    help=4 (1,2,3,4), update=3 (1,2,3) — identical before/after; updater logged
+    "case-level guard skipped N non-generated case(s) — preserved verbatim" for each.
+  - FINDING 1 (updater serialization defect, out-of-scope to fix here): for the 3 skills
+    whose evals.json prepends user-authored cases to the generated block (configure, create,
+    help), the --no-analyser merge emitted a trailing comma before the array close ('},]' /
+    ',]'), producing invalid JSON even though eval:update:check still reported "clean" (the
+    check does not parse generated evals.json). Repaired surgically by removing the single
+    trailing comma in each file (regex ',\\s*]\\s*}$' -> ']}'); all 30 generated eval JSON
+    files now parse; UA cases byte-identical. The updater's UA+generated merge path should be
+    fixed upstream (subtask 04 territory) so apply emits valid JSON for prepended-UA files.
+  - FINDING 2 (non-idempotent apply clobbers the unified vitest config): the rediscovery
+    apply re-stamped the static vitest backend, and scripts/eval-stamp.ts#writeVitestIfChanged
+    overwrites evals/vitest.config.ts UNCONDITIONALLY (it ignores the // _meta.generated
+    marker), so it reverted the working-tree-only unified config to the static template and
+    broke plugin.test.ts's 'unified vitest config' invariant. Re-restored the unified config
+    (REPO_ROOT root, evalJsonLoader plugin, #eval-engine resolve.alias -> engine/, dual
+    static+llm reporters/setups, include **/evals/*.test.ts + **/evals/*.json +
+    scenarios/*.test.ts) and reworded the JSDoc bullet that contained the '**/evals/*.json'
+    glob so it no longer closes the block comment with a stray '*/'. plugin.test.ts 64/64 and
+    the full CI discovery run (951 passed / 270 skipped) confirm. Durable fix is to make the
+    static vitest template embed the loader OR have the stamper preserve a present unified
+    config (cross-subtask; documented as a risk, not fixed under this subtask's drift scope).
+  - Did NOT fabricate a judge verdict; left extra.judge as-is for fresh re-verification.
+  - Resolved token_budget 200000 recorded.
+extra:
+  tests_run:
+    - command: node scripts/validate-template.mjs
+      exit_code: 0
+      note: Hard error gate active; 0 co-located TS evals.
+    - command: node scripts/validate-skills.mjs
+      exit_code: 0
+      note: 13/13 skills valid.
+    - command: pnpm eval:list
+      exit_code: 0
+      note: Enumerates all targets (120 list lines).
+    - command: pnpm run eval:update:check -- --no-analyser
+      exit_code: 0
+      note: status clean; colocated_ts_eval_count=0.
+    - command: find plugins .cursor -path '*/evals/*.test.ts' -not -path '*/evals/scenarios/*' -not -path '*/_shared/*' | wc -l
+      exit_code: 0
+      note: 0 residual co-located .test.ts files.
+    - command: CI=true CURSOR_API_KEY= pnpm exec vitest run --config evals/vitest.config.ts --run --reporter=dot
+      exit_code: 0
+      note: 18 passed files, 38 skipped; 937 passed / 266 skipped tests.
+    - command: pnpm exec vitest list --config evals/vitest.config.ts
+      exit_code: 0
+      note: JSON eval discovery succeeds (~39s).
+    - command: pnpm exec vitest run plugins/zoto-eval-system/tests/plugin.test.ts -t 'JSON-first migration invariants'
+      exit_code: 0
+      note: 5 invariant tests passed.
+    - command: pnpm exec vitest run plugins/zoto-eval-system/tests/plugin.test.ts
+      exit_code: 0
+      note: 64/64 plugin tests passed.
+    - command: pnpm test
+      exit_code: 1
+      note: Monorepo unit tests; zoto-eval-system and zoto-cursor-top pass; zoto-spec-system 3 CLI integration timeouts under parallel vitest (129/132 pass, pass in isolation).
+    - command: pnpm exec tsc --noEmit -p evals/llm/_shared/tsconfig.json
+      exit_code: 2
+      note: Touched eval harness root; pre-existing errors in scripts/eval-stamp.ts outside migration scope — migration files (vitest-json-loader, runner-params, path-classifiers) clean.
+    - command: pnpm exec tsc --noEmit -p plugins/zoto-eval-system/tsconfig.json
+      exit_code: 2
+      note: Touched plugin engine root; pre-existing errors in scripts/eval-stamp.ts outside migration scope — engine/* migration files clean.
+    - command: tsx scripts/eval-ensure-host.ts --repo-root <tmpdir> (D08 /z-eval-create create/ensure-host smoke)
+      exit_code: 0
+      note: "Fresh tempdir create flow stamped .env.example, .gitignore (4 lines), and evals/scenarios/_example-multi-primitive.test.ts (describe.skip / present+skipped); idempotent re-run reported skipped-existing/no-change (exit 0). vitest json-loader wiring + manifest .json entries are asserted by the JSON-first invariant tests; durable equivalent test: plugin.test.ts 'eval-ensure-host stamps skipped scenario example idempotently'."
+    - command: node scripts/validate-template.mjs (re-run after D06 dead-code removal)
+      exit_code: 0
+      note: Still passes after removing bootstrap-llm-code-from-cache.ts and the eval:bootstrap-llm-code package.json entry.
+    - command: pnpm exec vitest run plugins/zoto-eval-system/tests/plugin.test.ts (re-run after D06)
+      exit_code: 0
+      note: 64/64 pass incl. eval-ensure-host tempdir smoke + per-primitive-test.ts.tmpl-removed invariant.
+    - command: pnpm eval:list (re-run after D06)
+      exit_code: 0
+      note: Exit 0; 121 list lines; package.json script removal did not affect target enumeration.
+    - command: pnpm run eval:update:check -- --no-analyser (re-spawn 2026-05-29, pre-fix)
+      exit_code: 2
+      note: "Confirmed the DOD06 gap: 5 critical skill-frontmatter drifts (configure name/description changed; create/eval-tooling/help/update public-surface). Migration invariants already clean (colocated_ts_eval_count=0, layout_drift_count=0)."
+    - command: pnpm run eval:update -- --apply
+      exit_code: 1
+      note: "Full apply (CURSOR_API_KEY set) attempted the @cursor/sdk analyser but failed at SDK init — ConnectError 'Failed to connect to API key exchange endpoint: fetch failed' (network unreachable). No files written (crash before analysis). Fell back to the documented --no-analyser path."
+    - command: pnpm run eval:update -- --apply --no-analyser
+      exit_code: 0
+      note: Rediscovery apply using cached analyser payloads. Refreshed manifest content-hashes and regenerated _meta.generated cases across targets; case-level guards preserved all user-authored cases verbatim ('skipped N non-generated case(s) — preserved verbatim'). Side effects repaired below.
+    - command: pnpm run eval:update:check -- --no-analyser (post-apply)
+      exit_code: 0
+      note: 'DOD06 satisfied: {"status":"clean","checked":52,"critical_count":0,"layout_drift_count":0,"colocated_ts_eval_count":0}.'
+    - command: node scripts/validate-template.mjs (post-apply)
+      exit_code: 0
+      note: Validation passed after regeneration + repairs.
+    - command: node scripts/validate-skills.mjs (post-apply)
+      exit_code: 0
+      note: 13/13 skills valid after the 3 skill evals.json trailing-comma repairs.
+    - command: pnpm eval:list (post-apply)
+      exit_code: 0
+      note: Exit 0; 122 list lines.
+    - command: pnpm exec vitest run plugins/zoto-eval-system/tests/plugin.test.ts (post-apply)
+      exit_code: 0
+      note: 64/64 pass after re-restoring evals/vitest.config.ts (the apply's static re-stamp had clobbered the unified config, breaking the 'unified vitest config wires zoto-eval-system:json-loader' invariant).
+    - command: CI=true CURSOR_API_KEY= pnpm exec vitest run --config evals/vitest.config.ts --reporter=dot (post-apply)
+      exit_code: 0
+      note: "Authoritative full discovery run with the re-restored unified config: 18 passed files / 38 skipped; 951 passed / 270 skipped tests. Confirms the #eval-engine alias, dual reporters, and JSON loader all wire correctly."
+  lints_clean: true
+  judge:
+    verdict: verified
+    at: 2026-05-29T12:14:00Z
+    notes: |
+      Fresh adversarial re-verification of the POST-FIX state (2026-05-29, after the
+      DOD06 critical-drift gap was re-fixed). Every checklist[].done re-confirmed against
+      live filesystem / command exit codes — nothing unt-ticked.
+      DOD06 / drift (primary re-verification target):
+      - `pnpm run eval:update:check -- --no-analyser` re-run by me → exit 0,
+        {"status":"clean","checked":52,"critical_count":0,"layout_drift_count":0,
+        "colocated_ts_eval_count":0}. The 5 critical skill-frontmatter drifts are gone.
+      JSON validity (FINDING 1 repair):
+      - All 5 subject skill evals.json (configure/create/eval-tooling/help/update) parse as
+        valid JSON via node require() (would throw on trailing comma) — bad=0 across ALL
+        skill evals.json repo-wide. User-authored case counts match the claim exactly:
+        configure ua=2 (ids 1,2), create ua=3 (1,2,3), eval-tooling ua=0, help ua=4
+        (1,2,3,4), update ua=3 (1,2,3); UA cases identified by absence of
+        _meta.generated:true and intact.
+      Unified config integrity (FINDING 2 repair):
+      - evals/vitest.config.ts wires `plugins:[evalJsonLoader()]`, `#eval-engine` resolve
+        alias, dual static+llm reporters & setupFiles, and the `**/evals/*.json` include
+        glob. The JSDoc block comment terminates cleanly (no premature `*/`); file imports
+        fine (plugin.test loads it). `vitest list --config evals/vitest.config.ts` → exit 0,
+        1277 discovered entries incl. synthesised JSON evals.
+      Validators green (all re-run by me):
+      - node scripts/validate-template.mjs → exit 0; node scripts/validate-skills.mjs →
+        exit 0, 13/13; vitest run plugin.test.ts → exit 0, 64/64; pnpm eval:list → exit 0,
+        120 lines.
+      Earlier deliverables still hold:
+      - D06 dead code: scripts/bootstrap-llm-code-from-cache.ts absent; per-primitive-test
+        .ts.tmpl absent; code-cursor-sdk template dir still live (holds _shared/ + JSON
+        templates) — legitimate references only.
+      - D08: scenario template .tmpl present; stamped evals/scenarios/_example-multi-
+        primitive.test.ts present with describe.skip; ensureScenarioExample present in
+        eval-ensure-host.ts; durable coverage via plugin.test (64/64).
+      - No residual co-located <kind>/evals/*.test.ts (excluding scenarios/_shared): NONE.
+      onStop gate: spec-onstop-check --human --repo-root → exit 2, but ALL 4 criticals are
+      OUT OF SCOPE for subtask 10 — spec-root status.yml `completed_with_open_dod`
+      (executor/aggregator-owned, outside Mode 1) plus unrelated specs 20260506 and
+      20260526. The subtask-10 status pair has ZERO mentions: schema-valid, no open-item
+      inconsistency. Verdict therefore stands as verified.
+      Follow-ups (NOT subtask-10 gaps — engine/cross-subtask, repo already repaired):
+      - should_fix: updater UA+generated merge emits trailing-comma invalid JSON for
+        prepended-UA skills (subtask 04 engine territory).
+      - nice_to_have: writeVitestIfChanged overwrites a present unified evals/vitest.config
+        .ts unconditionally (stamper should preserve a unified config).
+    fix_list: []

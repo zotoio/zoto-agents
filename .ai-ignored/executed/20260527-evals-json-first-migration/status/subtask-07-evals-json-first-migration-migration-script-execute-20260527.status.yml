@@ -1,0 +1,77 @@
+schema_version: 1
+subtask_id: "07"
+feature: evals-json-first-migration
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-29T19:15:00.000Z"
+last_heartbeat: "2026-05-29T19:22:00.000Z"
+completed_at: "2026-05-29T19:22:00.000Z"
+git_sha: 1fa87d469166c5a78ba836ca4bebb8667fcdc6fb
+checklist:
+  - id: D01
+    text: "Create `scripts/eval-migrate-ts-to-json.ts`:"
+    done: true
+    evidence_path: scripts/eval-migrate-ts-to-json.ts
+  - id: D02
+    text: "Add CLI flags to the script:"
+    done: true
+    evidence_path: scripts/eval-migrate-ts-to-json.ts
+  - id: D03
+    text: "Add unit tests at `scripts/eval-migrate-ts-to-json.test.ts`:"
+    done: true
+    evidence_path: scripts/eval-migrate-ts-to-json.test.ts
+  - id: D04
+    text: "Execute the migration:"
+    done: true
+    evidence_path: specs/20260527-evals-json-first-migration/migration-audit-20260527.md
+  - id: D05
+    text: If any of the 38 files contain `interactions` blocks with `answers[]`, ensure the migration preserves them verbatim — the JSON loader and harness already handle that field.
+    done: true
+    evidence_path: specs/20260527-evals-json-first-migration/migration-audit-20260527.md
+  - id: D06
+    text: Cross-reference the migration result against the audit produced inline (the dry-run report serves as the audit). Save the dry-run report at `specs/20260527-evals-json-first-migration/migration-audit-20260527.md` for traceability.
+    done: true
+    evidence_path: specs/20260527-evals-json-first-migration/migration-audit-20260527.md
+  - id: D07
+    text: Commit the migrated JSON files, deleted TS files, manifest update, and the migration script in **one** commit so the diff is reviewable. (The actual commit is performed by the executor; this subtask just lands the changes in the working tree.)
+    done: true
+    evidence_path: null
+artifacts:
+  - path: scripts/eval-migrate-ts-to-json.ts
+    kind: created
+    note: AST extraction, Ajv validation, manifest rewrite, bulk history entry
+  - path: scripts/eval-migrate-ts-to-json.test.ts
+    kind: created
+    note: 24 unit tests (extraction, idempotency, failure audit)
+  - path: specs/20260527-evals-json-first-migration/migration-audit-20260527.md
+    kind: created
+    note: 38/38 migrated, 0 failed; manifest_eval_files_rewritten 15
+  - path: .zoto/eval-system/manifest.yml
+    kind: modified
+    note: zero .test.ts eval_files refs; 29 .json refs (15 rewritten from .test.ts)
+  - path: .zoto/eval-system/manifest.history.yml
+    kind: modified
+    note: bulk-migration entry 2026-05-27T17:21:10.986Z file_count 38
+errors: []
+notes: |
+  Verified 2026-05-29: `pnpm exec vitest run scripts/eval-migrate-ts-to-json.test.ts` — 24/24 passed.
+  Idempotent `--dry-run` — total 0 (no co-located .test.ts remain).
+  `find` — 0 co-located *.test.ts under commands/agents/hooks evals; 38 *.json on disk.
+  `pnpm eval:list` — all targets enumerate (exit 0).
+  Vitest discovery: `z-eval-init.json` — 5 tests discovered (config evals/vitest.config.ts).
+  manifest: 0 .test.ts eval_files; 15 entries rewritten per history; 23 JSON files discovered by glob only (eval_files was [] pre-migration).
+  D07 commit deferred to parent executor (working tree only).
+extra:
+  judge:
+    verdict: verified
+    at: "2026-05-29T19:26:00.000Z"
+    notes: |
+      Independently confirmed migration script, 24/24 unit tests, bulk apply audit (38/38, 0 failed),
+      zero co-located *.test.ts under commands/agents/hooks evals, 38 *.json on disk, manifest has no
+      .test.ts eval_files (15 rewritten to .json per manifest.history bulk-migration entry),
+      idempotent --dry-run total 0, pnpm eval:list exit 0, Vitest discovers 5 cases from
+      z-eval-init.json (skipped without API key). D07 commit correctly deferred to executor;
+      migration artefacts present in working tree. No linter errors on new script files.
+    fix_list: []

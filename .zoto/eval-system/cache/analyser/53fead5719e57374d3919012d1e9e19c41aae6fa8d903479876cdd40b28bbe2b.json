@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2.5",
+  "target_id": "skill:zoto-update-evals",
+  "kind": "skill",
+  "source_path": "plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md",
+  "source_hash": "53fead5719e57374d3919012d1e9e19c41aae6fa8d903479876cdd40b28bbe2b",
+  "summary": "The skill defines a seven-step apply workflow for diff-aware eval refresh with framework-specific stampers, strict guards for user-authored cases and tests, plus non-interactive check, targeted glob, and cached-analyser branches.",
+  "cases": [
+    {
+      "scenario": "Dry-run reload uses manifest-backed discovery without writes",
+      "prompt": "We finished editing a SKILL.md under the configured skills root and want only a sanity pass before approving anything. Following zoto-update-evals, spell out exactly what `/z-eval-update` with no extra flags reads first, whether it writes anywhere, which discovery settings it must obey, and why eval-analyse / eval-stamp ignore ignore globs from pnpm eval:discover unless replicated manually.",
+      "expected_output": "The reply lists config and manifest reads, cites manifest.discovery_config for discovery, confirms no writes on the bare dry run, distinguishes optional ignore globs as discover-only, and mentions that freshly bootstrapped trees should classify targets as unchanged when hashes align.",
+      "assertions": [
+        "Step one loads `.zoto/eval-system/config.yml` and `.zoto/eval-system/manifest.yml` before snapshot access.",
+        "The no-argument invocation is a rediscovery dry run that does not write regenerated eval artifacts.",
+        "Rediscovery honours `manifest.discovery_config` for skillsRoots, discoveryTargets, and related knobs rather than resurrecting legacy `config.json.discoveryTargets`.",
+        "Optional ignore globs are applied by `pnpm run eval:discover` and manifest snapshots, while analyser stamp paths omit those filters unless the operator reapplies them out of band.",
+        "Active static framework and LLM stamping choices come from `readManifestSnapshot()` via `static.framework`, `llm.strategy`, and `llm.codeFramework` fields.",
+        "Immediately after `/z-eval-create`, a `/z-eval-update` dry run should surface no unexpected critical drift when every discovered hash still matches the manifest snapshot."
+      ]
+    },
+    {
+      "scenario": "Missing manifest aborts with fixed operator guidance",
+      "prompt": "Onboarding checklist: `.zoto/eval-system/config.yml` exists but `.zoto/eval-system/manifest.yml` is absent. According to zoto-update-evals, what single abort message must the updater surface and what prior command should operators run instead?",
+      "expected_output": "The assistant states work stops until manifest exists and names the prerequisite create instruction exactly as documented.",
+      "assertions": [
+        "When `.zoto/eval-system/manifest.yml` is missing, the updater aborts quoting the documented string `Run /z-eval-create first.`"
+      ]
+    },
+    {
+      "scenario": "CI drift gate runs parity tooling then exits cleanly or with configured code",
+      "prompt": "We are wiring `/z-eval-update --check` into a headless CI job. Outline every prerequisite script it invokes before delta review, whether it may prompt, how critical drift reaches stderr, and which exit statuses mean parity plus drift cleared versus gated failure defaults.",
+      "expected_output": "The reply cites the parity TypeScript harness, stresses fully non-interactive behaviour, mentions JSON summary emission plus stderr lines for critical deltas, and names exit 0 versus the configurable critical-drift exit defaulting to two.",
+      "assertions": [
+        "Check mode executes `pnpm exec tsx scripts/check-analyser-payload-parity.ts` before interpreting drift so TS and Python analyser payloads stay aligned.",
+        "The mode stays non-interactive with no prompts for operators or subagents.",
+        "Stdout prints a JSON summary line and stderr emits per-critical-delta JSON lines when problems exist.",
+        "Exit status `0` means clean parity and no blocking drift, while unresolved critical deltas return `config.update.checkExitCodeOnCriticalDrift` defaulting to `2` instead of succeeding silently.",
+        "Parity violations surface under the `parity_drift` key inside the emitted report."
+      ]
+    },
+    {
+      "scenario": "Apply path refreshes analyser payloads then dispatches stampers safely",
+      "prompt": "A covered primitive hash changed upstream. Explain the default `--apply` sequence after classification: where `runAnalyser({ target, invalidate: true })` fires, how pytest versus vitest versus jest stamping is chosen, how `declarative` differs from `code` stamping, how manifest bookkeeping updates, what JSON artefact summarizes the job, and why the Cursor skill binary must remain free of askQuestion calls.",
+      "expected_output": "The narration walks queued primitives through analyser refresh, dispatcher tables, declarative surgical edits versus code regeneration, refreshed manifest sections, appended history, structured summary payload, and defers prompting to the command layer.",
+      "assertions": [
+        "Added or modified targets call `pnpm run eval:analyse` through `runAnalyser` unless `--no-analyser` swaps in cached payloads.",
+        "`static.framework` routes to `pytest`, `vitest`, or `jest` regeneration helpers ending in per-primitive stampers.",
+        "`llm.strategy` toggles between `regenerateLlmCode` stamping and `regenerateLlmDeclarative()` merges that splice generated rows via `json-source-map` plus `buildDeclarativeStampedCase()` instead of rewriting entire mixed `evals.json` files.",
+        "Successful writes refresh `.zoto/eval-system/manifest.yml` with renewed `git_ref`, `updated_at`, `generated_by: zoto-update-evals`, and rediscovered `targets` carrying fresh `content_hash` values.",
+        "History handling appends a new snapshot to `.zoto/eval-system/manifest.history.yml` without compacting prior entries.",
+        "The terminal summary object includes `mode`, `regenerated_targets`, `files_written`, `files_preserved_user_authored`, `user_cases_preserved`, and `reports[]` with per-framework metrics.",
+        "Interactive confirmations are owned by the `/z-eval-update` command resume path, not emitted from the skill implementation itself."
+      ]
+    },
+    {
+      "scenario": "Targeted glob scopes deltas while keeping prompts command-owned",
+      "prompt": "Operators need a narrow refresh: `/z-eval-update --target 'skill:zoto-*' --apply`. Map how the glob matches discovered metadata, which target lists get filtered, and where approval prompts live relative to the skill body.",
+      "expected_output": "The answer ties glob resolution to path or id fields, limits delta computation to the matched subset, and reminds that apply decisions still flow through the command resume channel.",
+      "assertions": [
+        "Glob resolution compares the pattern against either `target.path` or `target.id` using dot-aware rules from the manifest inventory.",
+        "Only the filtered subset of discovered targets participates in delta classification and stamping.",
+        "Apply-mode confirmations remain command-owned resumes rather than skill-level prompts."
+      ]
+    },
+    {
+      "scenario": "Cached analyser reuse surfaces CI safeguards",
+      "prompt": "`--no-analyser` plus `--apply` just landed in CI for speed. Explain where payloads load from on disk, the stderr banner emitted when `CI=true`, and how `update.failOnNoAnalyserInCI` escalates failures.",
+      "expected_output": "The guidance names the hashed cache filenames, cites the stderr warning substring, and documents exit five when escalation is configured.",
+      "assertions": [
+        "Bypassing LLM refreshes loads analyser artefacts from deterministic JSON files rooted at `.zoto/eval-system/cache/analyser/` whose filenames derive from each primitive SHA-256 source hash digest.",
+        "When both `process.env.CI === \"true\"` and `--no-analyser` run, stderr logs `[CI WARNING] --no-analyser`.",
+        "Setting `update.failOnNoAnalyserInCI: true` terminates the updater with exit code `5` under those CI cached runs."
+      ]
+    },
+    {
+      "scenario": "Delta taxonomy ties critical severity to configurable rules",
+      "prompt": "Teach QA how zoto-update-evals buckets manifest deltas (`added`, `removed`, `modified`, `unchanged`) and tie each modification subtype to its criticality knobs, including whitespace-only tweaks.",
+      "expected_output": "The rundown enumerates the four classifications, aligns each with matching `criticalChangeRules` toggles, and marks whitespace deltas as benign.",
+      "assertions": [
+        "Classification recognizes `added`, `removed`, `modified`, and `unchanged` targets between manifest snapshots and freshly discovered inventories.",
+        "Criticality for additions depends on `addedTargetWithoutCoverage` when invoked.",
+        "Removed targets hinge on coverage by active generated cases gated by `removedTargetWithActiveCases`.",
+        "Frontmatter name or description deltas consult `skillFrontmatterChange`, while behavioural surface deltas consult `publicSurfaceChange`.",
+        "Comment-only or whitespace churn is explicitly non-critical per the surgical-diff policy."
+      ]
+    },
+    {
+      "scenario": "User-authored eval rows and tests survive regeneration guards",
+      "prompt": "We ship mixed `evals.json` bundles and handwritten Vitest files. Summarize every runtime and compile guard in `evals/_llm/_user-case-guards.ts`, marking rules for `_meta.generated` on cases versus first-line markers on `.test.ts` or `.py` files, and note how helpers record skipped paths versus declarative splice paths.",
+      "expected_output": "The explanation distinguishes `isGeneratedCase` protections for mixed JSON arrays from `isGeneratedFile` skips, cites literal marker strings on line one, mentions `manual_merge_required`, and reinforces surgical JSON patching for declarative mixes.",
+      "assertions": [
+        "`isGeneratedCase` leaves rows without `_meta` or with `_meta.generated === false` byte-identical while replacing only stamped generated rows.",
+        "`isGeneratedFile` refuses overwriting `*.test.ts`, `*.test.js`, or `*.test.py` files lacking the literal first-line `_meta.generated` marker, logging `manual_merge_required` and listing skips under `files_preserved`.",
+        "Declarative merges route through parsers like `json-source-map` with `surgicallyReplaceGeneratedCases()` rather than rewriting entire JSON documents when only generated sections change.",
+        "Generated TypeScript/JavaScript markers use `// _meta.generated: true` while Python equivalents use `# _meta.generated: True` on line one.",
+        "Unit expectations in `scripts/__tests__/eval-update-guards.test.ts` assert user rows stay untouched, unmarked tests survive, marked tests regenerate, and CI cached analyser stderr matches the guarded warning substring."
+      ]
+    },
+    {
+      "scenario": "Coverage footprint lists dual plugin and dot-cursor layouts",
+      "prompt": "Document every filesystem location zoto-update-evals examines for drift, including mirrored plugin and `.cursor` command or agent manifests plus the canonical hook identifier noted in the skill.",
+      "expected_output": "The answer enumerates per-primitive directories for skills, duplicated command and agent paths, hooks files, and cites `hook:cursor-workspace` explicitly.",
+      "assertions": [
+        "Skills read coverage from nested `evals/evals.json` files inside each declared skill directory rooted at configured `skillsRoots` paths.",
+        "Commands reconcile plugin-scoped JSON under each plugin eval tree alongside sibling copies under `.cursor/evals/commands/` for matching command primitives.",
+        "Agents reconcile plugin-scoped JSON under each plugin eval tree alongside sibling copies under `.cursor/evals/agents/` for matching agent primitives.",
+        "Hooks reconcile plugin-level hook manifests under each plugin eval hooks folder together with `.cursor/evals/hooks/hooks.json`, treating `hook:cursor-workspace` as the canonical bundled hook target identifier."
+      ]
+    }
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
+}

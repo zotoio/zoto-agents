@@ -1,0 +1,88 @@
+schema_version: 1
+subtask_id: "02"
+feature: Rationalise Eval System
+assigned_agent: crux-software-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-16T12:37:00Z"
+last_heartbeat: "2026-05-16T12:42:00Z"
+completed_at: "2026-05-16T12:42:00Z"
+checklist:
+  - id: D01
+    text: Replace `evals/_llm/sandbox.ts` with a thin re-export shim **or** delete it and migrate consumers to `#eval-engine/sandbox.js` — pick one approach (the shim is preferred for backward compatibility) and apply it consistently.
+    done: true
+    evidence_path: evals/_llm/sandbox.ts
+  - id: D02
+    text: Verify `evals/_llm/case.ts` is already a shim (it is); ensure exported types still resolve identically in `evals/llm/_shared/code-strategy-case.ts`.
+    done: true
+    evidence_path: evals/_llm/case.ts
+  - id: D03
+    text: Verify `evals/_llm/_user-case-guards.ts` is already a shim (it is); ensure consumers in `scripts/eval-*.ts` resolve identically.
+    done: true
+    evidence_path: evals/_llm/_user-case-guards.ts
+  - id: D04
+    text: Update `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/setup.ts.tmpl` so its `resolveBaselineDir` import points at the chosen path (shim or `#eval-engine/sandbox.js`). Re-stamp `evals/llm/_shared/setup.ts` so it matches.
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/setup.ts.tmpl
+  - id: D05
+    text: Update `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/sandbox-helpers.ts.tmpl` similarly. Re-stamp `evals/llm/_shared/sandbox-helpers.ts`.
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/sandbox-helpers.ts.tmpl
+  - id: D06
+    text: Update `plugins/zoto-eval-system/templates/static/jest/setup.ts.tmpl` so it imports from a stable path that resolves under both Vitest and Jest configs. If `#eval-engine/*` is not available in Jest, the shim path remains correct — document that explicitly in a comment.
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/static/jest/setup.ts.tmpl
+  - id: D07
+    text: Update `evals/setup.ts` so its `prepareSandbox` import resolves to the canonical engine module (either via the shim or `#eval-engine/sandbox.js`).
+    done: true
+    evidence_path: evals/setup.ts
+  - id: D08
+    text: Confirm the `evals/_llm/sandbox.smoke.ts` and `evals/_llm/sandbox.selftest.ts` files still import the right module after the change. They are kept as selftests; their imports may continue to use the local shim path for clarity.
+    done: true
+    evidence_path: evals/_llm/sandbox.selftest.ts
+  - id: D09
+    text: Update `evals/_llm/README.md` if any of the listed files change. Keep its allow-list aligned with **Decision 2**.
+    done: true
+    evidence_path: evals/_llm/README.md
+  - id: D10
+    text: Run `ReadLints` on every file touched and resolve any introduced linter errors. Pre-existing errors are acceptable but must not be made worse.
+    done: true
+    evidence_path: null
+  - id: D11
+    text: Run `pnpm exec tsx evals/_llm/sandbox.selftest.ts`, `pnpm exec tsx evals/_llm/sandbox.smoke.ts`, and `pnpm exec tsx evals/_llm/sdk-bridge.selftest.ts` to confirm the shim/aliases resolve at runtime.
+    done: true
+    evidence_path: null
+  - id: D12
+    text: Append a Work Log entry describing exactly which import paths changed and why.
+    done: true
+    evidence_path: specs/20260516-rationalise-eval-system/subtask-02-rationalise-eval-system-consolidate-evals-_llm-20260516.md
+artifacts:
+  - path: evals/_llm/sandbox.ts
+    kind: modified
+    note: "390-line duplicate → 7-line thin re-export shim"
+  - path: evals/_llm/README.md
+    kind: modified
+    note: "Rewritten with allow-list structure"
+  - path: plugins/zoto-eval-system/templates/static/jest/setup.ts.tmpl
+    kind: modified
+    note: "Added comment documenting shim import strategy"
+errors: []
+notes: "Shim approach chosen for backward compatibility. sandbox.selftest and sandbox.smoke pass. sdk-bridge.selftest has pre-existing failures (withRetry not exported, BRIDGE_SURFACE length drifted) — not introduced by this subtask."
+extra:
+  judge:
+    verdict: "verified"
+    at: "2026-05-16T12:45:00Z"
+    notes: >-
+      All 12 checklist items independently verified against filesystem state.
+      (1) sandbox.ts is a 7-line re-export shim — confirmed.
+      (2) evals/_llm/ contains exactly the 11 allow-listed files (6 selftests/tests, 3 shims, types.py, README.md) — no extras, no engine implementations.
+      (3) case.ts and _user-case-guards.ts are also thin shims — confirmed.
+      (4) Templates (setup.ts.tmpl, sandbox-helpers.ts.tmpl) import from ../../_llm/sandbox.js (shim path) — correct.
+      (5) jest/setup.ts.tmpl imports from ./_llm/sandbox.ts with documenting comment — correct.
+      (6) Stamped files (evals/llm/_shared/setup.ts, sandbox-helpers.ts) are byte-for-byte identical to their templates.
+      (7) evals/setup.ts imports from ./_llm/sandbox.js — resolves through shim correctly.
+      (8) All selftests import from canonical engine path (../../plugins/zoto-eval-system/engine/*.ts) — not through shim — which is acceptable per spec.
+      (9) ReadLints: no linter errors on modified files.
+      (10) sdk-bridge.selftest.ts pre-existing failures (withRetry import, BRIDGE_SURFACE drift) acknowledged — not introduced by this subtask.
+    fix_list: []

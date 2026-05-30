@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/eval-file.schema.json",
+  "title": "Zoto Eval Non-Skill Eval File",
+  "description": "Top-level wrapper schema for a non-skill `evals/<name>.json` file (commands / agents / hooks / central JSON files). The file declares the `target_id` once and an array of `cases` each conforming to `case.schema.json` (either a DeclarativeCase or a RunnerCase). Skill files use the Cursor-spec shape (`skill_name` + `evals[]`) and are out of scope for this schema — they continue to validate against the skill template only. Consumers MUST register `case.schema.json` and `case-meta.schema.json` with their Ajv instance before compiling this schema so the `$ref` chain resolves.",
+  "type": "object",
+  "required": ["target_id", "cases"],
+  "additionalProperties": false,
+  "properties": {
+    "target_id": {
+      "type": "string",
+      "pattern": "^(command|agent|hook|cli|lib):[^\\s]+$",
+      "description": "Stable identifier for the primitive under test. Mirrors the manifest `targets[].id` field. Skill targets are NOT permitted in this schema — skill evals stay in their own `evals.json` shape."
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional override for the agent-under-test model id. Falls back to `ZOTO_EVAL_MODEL` env / `composer-2.5` at runtime."
+    },
+    "judge_model": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional override for the LLM judge model id. Falls back to `ZOTO_EVAL_JUDGE_MODEL` env / `opus-4.6` at runtime."
+    },
+    "case_timeout_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Optional per-case Vitest timeout in milliseconds for light cases. Heavy cases automatically get a multiplied budget — see `LlmEvalConfig` in `evals/llm/_shared/run-llm-suite.ts`."
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "case.schema.json" },
+      "description": "One entry per eval case. Each case is either a DeclarativeCase or a RunnerCase as defined in `case.schema.json`."
+    },
+    "_meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional file-level metadata (e.g. `generated: true` for stamped files). Per-case `_meta` lives inside each case entry and remains the user-vs-generated discriminator at row granularity."
+    }
+  }
+}

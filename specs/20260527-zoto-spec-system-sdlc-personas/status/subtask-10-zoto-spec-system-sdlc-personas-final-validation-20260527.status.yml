@@ -1,0 +1,44 @@
+schema_version: 1
+subtask_id: "10"
+feature: zoto-spec-system-sdlc-personas
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "**D01** — Run `pnpm test` from the repo root. Capture results. Fix any"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "**D02** — Run `node scripts/validate-template.mjs` from the repo root."
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "**D03** — Run `node scripts/validate-skills.mjs` from the repo root."
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "**D04** — Run `pnpm --filter @zoto-agents/zoto-spec-system test`"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "**D05** — Validate a sample/fixture subtask markdown frontmatter"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "**D06** — Verify each spec **Definition of Done** item is satisfied"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "**D07** — Confirm DoD completion to the executor / aggregator. Do"
+    done: false
+    evidence_path: null
+  - id: D08
+    text: "**D08** — Append the spec's execution outcomes (test pass/fail"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

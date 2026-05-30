@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2.5",
+  "target_id": "command:z-spec-judge",
+  "kind": "command",
+  "source_path": "plugins/zoto-spec-system/commands/z-spec-judge.md",
+  "source_hash": "f233b4e437a3b7a886585b7f875509e7e1060aa4fabc5afca8575d31fed80319",
+  "summary": "The slash command gates on `.zoto/spec-system/config.yml`, delegates assessment to a fresh `zoto-spec-judge` subagent using `zoto-judge-spec`, supports repository-wide and spec-targeted modes with dated Markdown reports, and after spec runs may offer spec-only remediation.",
+  "cases": [
+    {
+      "scenario": "Abort when Spec System config is absent",
+      "prompt": "/z-spec-judge",
+      "expected_output": "The invocation stops before any spawned judge runs, emitting only the mandated spec-system initialisation error and leaving no new assessment markdown behind.",
+      "assertions": [
+        "When `.zoto/spec-system/config.yml` is absent at the repository root, the command does not spawn `zoto-spec-judge` and does not synthesise a replacement config file.",
+        "The surfaced text is exactly: Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.",
+        "After `/z-spec-judge`, the manifest records the `z-spec-judge` attempt and shows no completed hand-off to `zoto-spec-judge` because execution halted during precondition checking.",
+        "Judge assessments save under filenames matching `assessment-repo-<YYYYMMDD>.md` or `assessment-<spec-slug>-<YYYYMMDD>.md`.",
+        "Assessments score each spec against the documented rubric headings: `Completeness`, `Feasibility`, `Structure`, `Specificity`, `Risk Awareness`, and `Convention Compliance`.",
+        "The verdict line emits one of `Approve`, `Conditional`, or `Reject`."
+      ]
+    },
+    {
+      "scenario": "Repo-wide assessment writes rubric-backed report under specsDir",
+      "prompt": "/z-spec-judge @specs/20260508-refactor-llm-eval-approach",
+      "expected_output": "A fresh repository assessment report appears under the configured specs directory using the assessment-repo date-stamped filename pattern and summarises health across the six mandated review axes.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "from": "plugins/zoto-spec-system/templates/init-config.yml"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Creates `.zoto/spec-system/config.yml` at the workspace root so the precondition passes and Mode 1 can run."
+      ],
+      "assertions": [
+        "After `/z-spec-judge` with no arguments, a new `zoto-spec-judge` subagent starts in isolation and receives empty `$ARGUMENTS` for the full-repo pass.",
+        "The subagent executes through the `zoto-judge-spec` skill while walking agents, skills, commands, hooks, automated tests, scripts, and configuration layout.",
+        "A markdown file is written to `{specsDir}/assessment-repo-[yyyymmdd].md` using the repo’s configured `{specsDir}` segment.",
+        "The written analysis visibly covers completeness, feasibility, structure, specificity, risk awareness, and convention compliance before stating any readiness opinion.",
+        "After `/z-spec-judge`, the manifest MUST record at least two targets tying the palette command to the repository assessment outcome.",
+        "Judge assessments save under filenames matching `assessment-repo-<YYYYMMDD>.md` or `assessment-<spec-slug>-<YYYYMMDD>.md`.",
+        "Assessments score each spec against the documented rubric headings: `Completeness`, `Feasibility`, `Structure`, `Specificity`, `Risk Awareness`, and `Convention Compliance`.",
+        "The verdict line emits one of `Approve`, `Conditional`, or `Reject`."
+      ]
+    },
+    {
+      "scenario": "Directory argument auto-finds index and audits spec depth",
+      "prompt": "/z-spec-judge specs/20260403-feature-name",
+      "expected_output": "The spec assessment finishes, askQuestion prompts whether to apply structured fixes, accepted changes touch solely spec-side documents, and the assessment file records which remediations landed.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "from": "plugins/zoto-spec-system/templates/init-config.yml"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md",
+            "content": "---\ntitle: Circuit breaker HTTP API\nstatus: draft\n---\n\n# Circuit breaker HTTP API\n\n## Objectives\nDeliver a resilient edge proxy that sheds load when upstream latency spikes.\n\n## Deliverables\n- OpenAPI description for the control plane\n- Contract tests for timeout and half-open behaviour\n\n## Dependency graph\n- subtask-01-circuit-breaker-api-scaffold-20260403.md has no upstream dependencies\n\n## Subtasks\n- [subtask-01-circuit-breaker-api-scaffold-20260403.md](subtask-01-circuit-breaker-api-scaffold-20260403.md)\n"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/subtask-01-circuit-breaker-api-scaffold-20260403.md",
+            "content": "---\ntitle: Scaffold service skeleton\n---\n\n# Scaffold service skeleton\n\n## Objective\nEstablish the module layout and configuration loading path.\n\n## Deliverables\n- Runnable entrypoint\n- Configuration schema\n\n## Agent assignment\nPlatform engineer agent\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Initialises Spec System so the command may proceed past the config gate.",
+        "Provides a spec index file matching `spec-*.md` plus objectives so directory mode can locate the tree automatically.",
+        "Provides a linked subtask so subtask-quality and dependency checks have concrete material beyond the index page alone."
+      ],
+      "assertions": [
+        "For directory-scoped spec assessments the judge surfaces actionable findings and issues `askQuestion` before altering any spec index, subtask file, or dependency graph artifact.",
+        "When the operator accepts, modifications stay limited to spec markdown and dependency metadata—runtime service code and libraries remain untouched.",
+        "The assessment markdown is revised to spell out which automated fixes executed so reviewers see a complete audit trail.",
+        "After `/z-spec-judge`, the manifest MUST capture the `askQuestion` prompt prior to logging any write operations against spec paths.",
+        "Judge assessments save under filenames matching `assessment-repo-<YYYYMMDD>.md` or `assessment-<spec-slug>-<YYYYMMDD>.md`.",
+        "Assessments score each spec against the documented rubric headings: `Completeness`, `Feasibility`, `Structure`, `Specificity`, `Risk Awareness`, and `Convention Compliance`.",
+        "The verdict line emits one of `Approve`, `Conditional`, or `Reject`."
+      ],
+      "follow_ups": [
+        "Proceed with the remediation: tighten the listed subtasks, repair the dependency edges, and refresh the assessment appendix to list the edits you applied."
+      ]
+    },
+    {
+      "scenario": "Index file argument targets one spec tree",
+      "prompt": "/z-spec-judge specs/20260403-feature-name/spec-feature-name-20260403.md",
+      "expected_output": "Assessment is anchored on the supplied index file, keeps generated notes within the same spec directory hierarchy, and confines automatic edits later to spec artefacts only.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "from": "plugins/zoto-spec-system/templates/init-config.yml"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md",
+            "content": "---\ntitle: Circuit breaker HTTP API\nstatus: draft\n---\n\n# Circuit breaker HTTP API\n\n## Objectives\nDeliver a resilient edge proxy that sheds load when upstream latency spikes.\n\n## Deliverables\n- OpenAPI description for the control plane\n- Contract tests for timeout and half-open behaviour\n\n## Dependency graph\n- subtask-01-circuit-breaker-api-scaffold-20260403.md has no upstream dependencies\n\n## Subtasks\n- [subtask-01-circuit-breaker-api-scaffold-20260403.md](subtask-01-circuit-breaker-api-scaffold-20260403.md)\n"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/subtask-01-circuit-breaker-api-scaffold-20260403.md",
+            "content": "---\ntitle: Scaffold service skeleton\n---\n\n# Scaffold service skeleton\n\n## Objective\nEstablish the module layout and configuration loading path.\n\n## Deliverables\n- Runnable entrypoint\n- Configuration schema\n\n## Agent assignment\nPlatform engineer agent\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Supplies the required Spec System config file so execution is not blocked at the gate.",
+        "Gives a concrete `spec-*.md` path matching the file-argument mode in the usage section.",
+        "Includes a dependent subtask file so the judge can verify linked content when given an explicit index path."
+      ],
+      "assertions": [
+        "After `/z-spec-judge specs/20260403-feature-name/spec-feature-name-20260403.md`, judgement work uses that explicit index path when resolving the spec package.",
+        "Report output remains co-located with the spec directory housing the named index instead of drifting into unrelated product modules.",
+        "Passive review inspects implementation areas only for verification and does not rewrite application source files before any optional fix offer.",
+        "After `/z-spec-judge`, the manifest MUST echo the precise file argument so traceability matches the operator-supplied path.",
+        "Judge assessments save under filenames matching `assessment-repo-<YYYYMMDD>.md` or `assessment-<spec-slug>-<YYYYMMDD>.md`.",
+        "Assessments score each spec against the documented rubric headings: `Completeness`, `Feasibility`, `Structure`, `Specificity`, `Risk Awareness`, and `Convention Compliance`.",
+        "The verdict line emits one of `Approve`, `Conditional`, or `Reject`."
+      ]
+    },
+    {
+      "scenario": "Operator accepts spec-only remediation after assessment",
+      "prompt": "/z-spec-judge specs/20260403-circuit-breaker-api",
+      "follow_ups": [
+        "Yes—apply the recommended edits only inside this spec folder’s Markdown and refresh the assessment note afterward."
+      ],
+      "expected_output": "Following approval, edits remain confined to spec artefacts in the assessed directory and the assessment report records which corrections were applied, without touching paths outside that spec scope.",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/spec-system/config.yml",
+            "from": "plugins/zoto-spec-system/templates/init-config.yml"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/spec-circuit-breaker-api-20260403.md",
+            "content": "---\ntitle: Circuit breaker HTTP API\nstatus: draft\n---\n\n# Circuit breaker HTTP API\n\n## Objectives\nDeliver a resilient edge proxy that sheds load when upstream latency spikes.\n\n## Deliverables\n- OpenAPI description for the control plane\n- Contract tests for timeout and half-open behaviour\n\n## Dependency graph\n- subtask-01-circuit-breaker-api-scaffold-20260403.md has no upstream dependencies\n\n## Subtasks\n- [subtask-01-circuit-breaker-api-scaffold-20260403.md](subtask-01-circuit-breaker-api-scaffold-20260403.md)\n"
+          },
+          {
+            "path": "workspace/specs/20260403-circuit-breaker-api/subtask-01-circuit-breaker-api-scaffold-20260403.md",
+            "content": "---\ntitle: Scaffold service skeleton\n---\n\n# Scaffold service skeleton\n\n## Objective\nEstablish the module layout and configuration loading path.\n\n## Deliverables\n- Runnable entrypoint\n- Configuration schema\n\n## Agent assignment\nPlatform engineer agent\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Ensures the command is allowed to run by providing the Spec System configuration file.",
+        "Seeds the spec index that will receive judge recommendations so acceptance has defined targets.",
+        "Seeds a subtask document so remediation can clarify deliverables without inventing new paths."
+      ],
+      "assertions": [
+        "After the follow-up approving work, the recorded file-write operations do not touch paths outside `specs/20260403-circuit-breaker-api/`.",
+        "After remediation completes, the assessment Markdown in that directory states which spec edits were applied, satisfying the documented post-fix logging expectation."
+      ]
+    }
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
+}

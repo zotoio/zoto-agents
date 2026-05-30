@@ -1,0 +1,67 @@
+name: Eval format + manifest check
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Consolidated gate for the JSON-first eval migration (spec 20260527):
+#   - validate-template rejects co-located `<kind>/evals/*.test.ts` LLM evals
+#   - eval:update:check detects manifest drift (cached analyser in CI)
+#   - Vitest discovers JSON eval suites without CURSOR_API_KEY (cases skip)
+#
+# Replaces the former eval-update-check.yml workflow to avoid duplicate jobs.
+#
+# To debug locally:
+#   pnpm validate-template
+#   CI=true pnpm run eval:update:check -- --no-analyser
+#   pnpm exec vitest run --config evals/vitest.config.ts --run --reporter=default
+# ──────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: eval-format-check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eval-format-check:
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate plugin templates (JSON-first invariants)
+        run: pnpm validate-template
+
+      - name: Assert no co-located TS LLM eval files in PR diff
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          if git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD | grep -E '(^|/)(commands|agents|hooks)/evals/.*\.test\.ts$'; then
+            echo "ERROR: PR introduces or modifies co-located TS LLM eval files under <kind>/evals/."
+            echo "Use JSON-first eval files (<kind>/evals/<name>.json) instead."
+            exit 1
+          fi
+          echo "No co-located TS LLM eval paths in PR diff."
+
+      - name: Eval manifest drift (--check --no-analyser)
+        run: pnpm run eval:update:check -- --no-analyser
+
+      - name: Vitest JSON eval discovery (no CURSOR_API_KEY)
+        run: pnpm exec vitest run --config evals/vitest.config.ts --run --reporter=default

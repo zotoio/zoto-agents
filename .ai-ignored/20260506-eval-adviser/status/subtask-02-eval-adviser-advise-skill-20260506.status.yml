@@ -1,0 +1,40 @@
+schema_version: 1
+subtask_id: "02"
+feature: Eval Adviser
+assigned_agent: crux-software-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Skill file: `plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md`"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: Skill follows frontmatter conventions (`name`, `description`)
+    done: false
+    evidence_path: null
+  - id: D03
+    text: Skill MUST NOT call `askQuestion` — uses `needs_user_input` pattern
+    done: false
+    evidence_path: null
+  - id: D04
+    text: Skill defines the five-dimension gap analysis workflow
+    done: false
+    evidence_path: null
+  - id: D05
+    text: Skill specifies structured gap report output format
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Skill specifies `needs_user_input` blocks for interactive breakpoints
+    done: false
+    evidence_path: null
+  - id: D07
+    text: Skill defines handoff protocol to `/zoto-eval-create` and `/zoto-eval-update`
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

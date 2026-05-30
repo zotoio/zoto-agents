@@ -1,0 +1,64 @@
+schema_version: 1
+subtask_id: "05"
+feature: command-prefix-shortening
+assigned_agent: crux-software-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: Audit `plugins/zoto-spec-system/templates/schema/*.json` and `plugins/zoto-eval-system/templates/schema/*.json` for any `description`, `examples`, or hard-coded constant that mentions a slash command. Update each match to the canonical short form.
+    done: false
+    evidence_path: null
+  - id: D02
+    text: Update `plugins/zoto-eval-system/templates/schema/cleanup-plan.schema.json` if it currently references `/zoto-eval-configure` (or any other command) inside a `description` / `examples`
+    done: false
+    evidence_path: null
+  - id: D03
+    text: Update `plugins/zoto-spec-system/skills/*/evals/evals.json` cases that hard-code slash-command prompts or expected_output strings (e.g. `zoto-create-spec`, `zoto-execute-spec`, `zoto-judge-spec` skill evals)
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "Update `plugins/zoto-eval-system/skills/*/evals/evals.json` cases that hard-code slash-command prompts — explicit list:"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "Add at least **one** alias-coverage eval case per plugin (and per `askQuestion`-owning command):"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: Audit `plugins/zoto-eval-system/scripts/eval-update.ts`, `plugins/zoto-eval-system/scripts/eval-discover.ts`, `scripts/eval-stamp.ts`, `scripts/eval-cleanup-stale.ts`, `scripts/eval-orchestrate.ts`, `scripts/eval-analyse.ts`, `scripts/eval-discover.ts` (root) — wherever a slash command appears inside an **error message or help string literal**, switch it to the canonical short form
+    done: false
+    evidence_path: null
+  - id: D07
+    text: Audit `evals/_llm/*.ts` files (e.g. `runner.ts`, `update.ts`, `manifest-snapshot.ts`, `case.ts`, `sandbox.ts`, `sdk-bridge.ts`, `analyser.cache.selftest.ts`, `runner-validate-enriched.test.ts`, `result.schema.json`, `README.md`) for slash-command literals; update strings, leave class/function/field identifiers alone
+    done: false
+    evidence_path: null
+  - id: D08
+    text: Audit `evals/test_meta_invariants.py` and `scripts/test.py` for any hard-coded slash command names
+    done: false
+    evidence_path: null
+  - id: D09
+    text: Audit template files under `plugins/zoto-eval-system/templates/llm/agent-sdk/*.tmpl`, `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/*.tmpl`, `plugins/zoto-eval-system/templates/static/{pytest,jest,vitest}/**/*.tmpl`, `plugins/zoto-eval-system/templates/runner/*.tmpl`, `plugins/zoto-eval-system/templates/user-checklists/USER_EVAL_CHECKLISTS.md.tmpl` — update slash-command literals (these propagate into host-repo evals on next stamp)
+    done: false
+    evidence_path: null
+  - id: D10
+    text: "Audit `plugins/zoto-spec-system/templates/init-config.yml`, `plugins/zoto-eval-system/templates/init-config.yml`, and `plugins/zoto-eval-system/templates/baseline-fixtures/.zoto/eval-system/config.yml` (note: prose-level updates here are owned by subtask 04; this subtask only updates them if they contain *structured* data fields with command names like `examples:` or `defaults:`)"
+    done: false
+    evidence_path: null
+  - id: D11
+    text: Confirm `scripts/validate-template.mjs` and `scripts/validate-skills.mjs` do NOT regress — the validators do not hard-code a `zoto-spec-` / `zoto-eval-` prefix policy, so adding `z-spec-*` / `z-eval-*` files alongside should pass; if any check assumes a prefix, update the validator to accept both
+    done: false
+    evidence_path: null
+  - id: D12
+    text: Run `node scripts/validate-template.mjs` and `node scripts/validate-skills.mjs` after edits — both must exit 0
+    done: false
+    evidence_path: null
+  - id: D13
+    text: Run `pnpm --filter @zoto-agents/zoto-eval-system test` and `pnpm --filter @zoto-agents/zoto-spec-system test` — both must pass
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

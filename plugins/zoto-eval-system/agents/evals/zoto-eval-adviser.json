@@ -1,0 +1,91 @@
+{
+  "target_id": "agent:zoto-eval-adviser",
+  "_meta": {
+    "generated": true,
+    "migrated_from": "plugins/zoto-eval-system/agents/evals/zoto-eval-adviser.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": "discovery-config-missing-branch",
+      "prompt": "Please run the Eval System adviser pass on this sandbox. The `.zoto/eval-system/` tree here only has manifest metadata—I never installed `config.yml`—so walk `zoto-eval-adviser` through its first-load checks before any target scans.",
+      "assertions": [
+        "Returned payload is structured `needs_user_input` whose guard text cites `/z-eval-configure` before any dimensional scoring.",
+        "The agent returned structured `needs_user_input` without emitting askQuestion from the subagent loop while surfacing that blocker.",
+        "No narrative cites newly opened SKILL.md, command Markdown, agent Markdown, or evals.json excerpts because discovery config never loaded."
+      ],
+      "assertion_patterns": [
+        "needs_user_input",
+        "needs_user_input"
+      ],
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/manifest.yml",
+            "content": "schema_version: 1\nupdated_at: 2026-05-01T12:00:00Z\nlast_scan:\n  status: staged\ntargets: []\ndiscovery_config: {}\neval_roots: []\n"
+          }
+        ]
+      },
+      "expected_output": "Structured needs_user_input tells me to unblock discovery with `/z-eval-configure`; no adviser_report payloads yet."
+    },
+    {
+      "id": "manifest-missing-after-config-loaded",
+      "prompt": "Delegate `zoto-eval-adviser` inside a sandbox where `.zoto/eval-system/config.yml` exists but the paired manifest YAML is absent—we never ran discovery scaffolding—and paste what comes back before any coverage narration.",
+      "assertions": [
+        "`needs_user_input` cites `/z-eval-create` immediately after loaders detect the missing manifest.",
+        "The agent returned structured guidance without emitting askQuestion from the subagent loop.",
+        "No per-target SKILL.md excerpts or evals.json quotes appear because the manifest never enumerated rows for this sandbox."
+      ],
+      "assertion_patterns": [
+        "needs_user_input"
+      ],
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "evalsDir: evals\nskillsRoots:\n  - plugins/*/skills\ndiscoveryTargets:\n  - skill\nignore: []\n"
+          }
+        ]
+      },
+      "expected_output": "Structured needs_user_input points to `/z-eval-create`; dimensional scoring waits until manifests exist."
+    },
+    {
+      "id": "breakpoint-one-five-dimension-scan",
+      "prompt": "I need you to analyse the full Eval System manifest under the full-scan scope that `/z-eval-advise` already forwarded through this Task. Have `zoto-advise-evals` score trigger phrases, schema validation coverage, regression grader breadth, citation checks, and spec checklist completeness for each listed primitive, then halt at drill-down breakpoint one so sidebar answers can resume the flow.",
+      "assertions": [
+        "Breakpoint one returns structured `needs_user_input` for drill-down dimensions without emitting askQuestion from the subagent loop.",
+        "The adviser_report sections align with trigger-phrase, schema-validation, regression-baseline, context-citation, and status-checklist completeness dimensions from Advise Mode.",
+        "The prose explains that `zoto-advise-evals` produced the structured scoring before the pause.",
+        "Disk copies of `.zoto/eval-system/manifest.yml`, `.zoto/eval-system/config.yml`, and every referenced `evals/evals.json` remain byte-identical to their pre-run baselines.",
+        "The write-up never copies paths or excerpts from `evals/_runs`, `report.yml`, `static.yml`, or `llm.yml` trees that belong to completed evaluator runs."
+      ],
+      "assertion_patterns": [
+        "needs_user_input",
+        "zoto-advise-evals",
+        "\\.zoto/eval-system/manifest\\.yml",
+        "evals/_runs"
+      ],
+      "expected_output": "The structured adviser_report lists per-target notes for all five gap dimensions with evidence drawn from source markdown and existing eval assertions, pausing with needs_user_input for drill-down choices."
+    },
+    {
+      "id": "breakpoint-two-deterministic-handoffs",
+      "prompt": "Resume after I picked Trigger-Phrase plus Schema in the drill-down UI: deepen those dimensions, map each gap to exactly one follow-on command—`/z-eval-create` for greenfield targets or `/z-eval-update --target plugins/**/skills --apply` when rows already exist—then stop at breakpoint two so I can accept or reject bundles before returning to `/z-eval-advise`.",
+      "follow_ups": [
+        "I accepted every breakpoint-two bundle that proposed edits; close the pass with the consolidated adviser_report listing the approved `/z-eval-create` and `/z-eval-update` hand-offs for the executor."
+      ],
+      "assertions": [
+        "Breakpoint two keeps guidance inside structured `needs_user_input`, still honoring the no askQuestion-from-adviser contract.",
+        "Each gap resolves to exactly one deterministic route—`/z-eval-create` when no eval file exists versus `/z-eval-update` with `--target` and `--apply` when hardened rows demand refresh—with no competing dual commands.",
+        "The closing adviser_report lists only the accepted command hand-offs and never rewrites manifest hashes or eval JSON directly."
+      ],
+      "assertion_patterns": [
+        "needs_user_input",
+        "/z-eval-create"
+      ],
+      "expected_output": "Breakpoint two surfaces structured accept-or-reject needs_user_input, then the concluding turn merges the adviser_report once host answers finalize the selections."
+    }
+  ]
+}

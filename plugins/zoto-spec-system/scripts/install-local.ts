@@ -2,7 +2,7 @@
 /**
  * Install the Spec System plugin locally for development and testing.
  *
- * Copies plugin files to ~/.cursor/plugins/zoto-spec-system/ and registers
+ * Copies plugin files to ~/.cursor/plugins/local/zoto-spec-system/ and registers
  * the plugin in ~/.claude/ config files so Cursor discovers it on next restart.
  *
  * Usage:
@@ -27,7 +27,7 @@ const PLUGIN_ID = `${PLUGIN_NAME}@local`;
 
 const REPO_ROOT = resolve(import.meta.dirname, "..");
 
-const CURSOR_PLUGINS_DIR = join(homedir(), ".cursor", "plugins");
+const CURSOR_PLUGINS_DIR = join(homedir(), ".cursor", "plugins", "local");
 const INSTALL_DIR = join(CURSOR_PLUGINS_DIR, PLUGIN_NAME);
 
 const CLAUDE_DIR = join(homedir(), ".claude");
@@ -41,7 +41,9 @@ const PLUGIN_DIRS = [
   "docs",
   "hooks",
   "rules",
+  "scripts",
   "skills",
+  "src",
   "templates",
 ];
 const PLUGIN_FILES = ["CHANGELOG.md", "LICENSE", "README.md"];

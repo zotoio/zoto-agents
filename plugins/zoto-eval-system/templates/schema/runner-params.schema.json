@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/runner-params.schema.json",
+  "title": "Zoto Eval Runner Params Payload",
+  "description": "JSON Schema for the typed payload passed from the harness to a `.test.ts` runner's default-export function. Mirrors the `RunnerParams` TypeScript interface exported from `evals/llm/_shared/runner-params.ts`. Runner authors implement `RunnerFn = (params: RunnerParams) => Promise<RunnerResult>`; this schema is the on-the-wire contract that lets JSON tooling (case files, manifest tooling, future remote-runner bridges) statically validate the payload shape without importing the TS types. The `context` block surfaces harness internals (SDK bridge, sandbox helper, model ids, reporter) and is intentionally typed as a free-form object here — the TS contract is the source of truth for its fields.",
+  "type": "object",
+  "required": ["targetId", "caseId", "parameters"],
+  "additionalProperties": false,
+  "properties": {
+    "targetId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Target identifier for the suite this case belongs to (matches the `target_id` field on the eval JSON file, e.g. `command:z-eval-update` or `agent:zoto-eval-comparer`)."
+    },
+    "caseId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Case identifier within the eval file. Stringified when the underlying JSON used an integer id."
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Free-form payload mirrored verbatim from `case.parameters`. The runner module is responsible for validating its own shape — schema-level only requires that it is an object."
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Harness context (SDK bridge, sandbox helper, model ids, reporter, expect, agent factory). Optional in the JSON Schema because callers may invoke a runner in isolation without the full harness context (e.g. unit-testing the runner itself). The runtime contract is owned by `RunnerContext` in `evals/llm/_shared/runner-params.ts`."
+    }
+  }
+}

@@ -1,0 +1,40 @@
+schema_version: 1
+subtask_id: "06"
+feature: Eval Adviser
+assigned_agent: crux-platform-architect
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "Eval system rule updated: `plugins/zoto-eval-system/rules/zoto-eval-system.mdc` — add `/zoto-eval-advise` to Available Commands"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "Plugin README updated: `plugins/zoto-eval-system/README.md` — add Adviser section"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "Plugin CHANGELOG updated: `plugins/zoto-eval-system/CHANGELOG.md` — add adviser entry"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "Validation: `node scripts/validate-template.mjs` passes"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "Validation: `node scripts/validate-skills.mjs` passes"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "Validation: `pnpm test` passes (existing tests not broken)"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: Quick start section in README updated to include `/zoto-eval-advise`
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

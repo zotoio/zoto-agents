@@ -2,11 +2,14 @@
 
 Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 
+**Plan and verify your specs. Generate and update your evals.** Two Cursor plugins shipped together as peers — independent, composable, free. Install one, install both; they cooperate but neither depends on the other.
+
 ## Plugins
 
 | Plugin | Description |
 |--------|-------------|
-| [zoto-spec-system](plugins/zoto-spec-system/) | Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification. |
+| [zoto-spec-system](plugins/zoto-spec-system/) | Decompose complex initiatives into reviewable specs, judge them independently, then execute with adversarial verification at every subtask. |
+| [zoto-eval-system](plugins/zoto-eval-system/) | Stamp static (pytest) and LLM (`@cursor/sdk`) eval suites side-by-side, detect drift when AI primitives change and update evals with user confirmation, and compare runs across models on a single `/canvas`. |
 
 ## Getting Started
 

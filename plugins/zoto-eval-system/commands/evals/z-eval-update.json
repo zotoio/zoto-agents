@@ -1,0 +1,466 @@
+{
+  "target_id": "command:z-eval-update",
+  "_meta": {
+    "generated": true,
+    "migrated_from": "plugins/zoto-eval-system/commands/evals/z-eval-update.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": "initialization-gate-aborts-before-discovery",
+      "prompt": "/z-eval-update --check",
+      "assertions": [
+        "The closing guidance echoes the refusal text `Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml.` verbatim.",
+        "Neither drift discovery nor the parity helper output appears because precondition handling ran first."
+      ],
+      "assertion_patterns": [
+        "Eval System is not initialised\\. Run "
+      ],
+      "expected_output": "The command stops immediately and prints the prerequisite guidance asking the operator to initialise the Eval System configuration first."
+    },
+    {
+      "id": "rediscovery-dry-run-without-mutating-approvals",
+      "prompt": "/z-eval-update",
+      "assertions": [
+        "Stdout or closing guidance identifies rediscovery preview semantics matching the documented no-args path.",
+        "User-authored eval JSON rows lacking `_meta.generated: true` and user-authored suites missing the opening generated marker stay untouched on disk throughout the dry pass."
+      ],
+      "assertion_patterns": [
+        "_meta\\.generated: true"
+      ],
+      "expected_output": "The command summarizes drift in rediscovery preview mode without writing regenerated eval artefacts until approvals exist."
+    },
+    {
+      "id": "parity-first-ci-drift-gate-exits-deterministically",
+      "prompt": "/z-eval-update --check",
+      "assertions": [
+        "After `/z-eval-update --check`, the manifest records `pnpm exec tsx scripts/check-analyser-payload-parity.ts` parity output under the documented `parity_drift` summary field prior to branching on drift severity.",
+        "The process exits with status `config.update.checkExitCodeOnCriticalDrift` when critical drift is surfaced, otherwise status zero matching the markdown contract."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update --check",
+        "config\\.update\\.checkExitCodeOnCriticalDrift"
+      ],
+      "expected_output": "The command emits a parity report object and then classifies evaluator drift severity before exiting using the configured drift exit semantics."
+    },
+    {
+      "id": "targeted-minimatch-restricts-reviewed-primitives",
+      "prompt": "/z-eval-update --target \"command:z-eval-help\"",
+      "assertions": [
+        "After `/z-eval-update --target`, only manifest entries matching `command:z-eval-help` by id or POSIX path contribute to the reported drift rollup.",
+        "The summary references targeted discovery sourcing from `.zoto/eval-system/config.yml` enumeration rather than widening to unrelated manifest rows."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update --target",
+        "\\.zoto/eval-system/config\\.yml"
+      ],
+      "expected_output": "Scoped drift review narrows enumerated targets whose ids or repository paths satisfy the minimatch glob."
+    },
+    {
+      "id": "interactive-apply-resumes-after-command-confirmations",
+      "prompt": "/z-eval-update --apply",
+      "follow_ups": [
+        "Confirm the first proposed regeneration bundle.",
+        "Defer the remaining prompts so the updater can finalize with partial writes plus preserved user artefacts."
+      ],
+      "assertions": [
+        "After `/z-eval-update --apply`, the command emits askQuestion for each queued drift acceptance before stamping files.",
+        "The updater subagent returns structured `needs_user_input` payloads that the command maps into those confirmations without emitting askQuestion from the subagent loop itself.",
+        "`.zoto/eval-system/manifest.yml` records a newer `updated_at`, revised `targets[]`, and `.zoto/eval-system/manifest.history.yml` receives an appended snapshot reflecting accepted writes."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update --apply",
+        "needs_user_input",
+        "\\.zoto/eval-system/manifest\\.yml"
+      ],
+      "expected_output": "Each surfaced drift prompts through the palette, consumed answers resume the updater skill loop, generated rows refresh while guarded content stays untouched, and manifests gain a refreshed snapshot appended to history."
+    },
+    {
+      "id": "scoped-apply-honours-minimatch-targeting",
+      "prompt": "/z-eval-update --target \"skill:*\" --apply",
+      "follow_ups": [
+        "Approve regenerations only for dex skill targets currently showing drift."
+      ],
+      "assertions": [
+        "Accepting dex targets inside the glob executes `runAnalyser({ invalidate: true })` equivalents per queued skill before dispatching framework or strategy helpers.",
+        "Out-of-scope manifest rows omit fresh `_meta.generated: true` rows because they never entered the regeneration queue for this invocation."
+      ],
+      "assertion_patterns": [
+        "runAnalyser\\(\\{ invalidate: true \\}\\)",
+        "_meta\\.generated: true"
+      ],
+      "expected_output": "Targeted apply processes drifts constrained toskill ids paths covered by glob while respecting preservation gates."
+    },
+    {
+      "id": "cached-analyser-payloads-skip-freshness",
+      "prompt": "/z-eval-update --check --no-analyser",
+      "assertions": [
+        "stderr includes the `[CI WARNING] skipping fresh primitive analysis in CI; reusing payloads from .zoto/eval-system/cache/analyser/` banner whenever cached analyser mode is engaged as documented for automation without `--with-analyser`.",
+        "Parity instrumentation still executes ahead of classify-every-target logic because `--check` mandates the prelude even when skipping fresh analysis."
+      ],
+      "assertion_patterns": [
+        "\\[CI WARNING\\] skipping fresh primitive analysis in CI; reusing payloads from \\.zoto/eval-system/cache/analyser/",
+        "--check"
+      ],
+      "expected_output": "CI-style drift review reuses payloads from `.zoto/eval-system/cache/analyser/` instead of spawning new analyser calls."
+    },
+    {
+      "id": "forces-fresh-primitive-analysis-overriding-cached-ci-defaults",
+      "prompt": "/z-eval-update --check --with-analyser",
+      "assertions": [
+        "Workload logs show refreshed `_meta.primitive_analysis` payloads rather than blindly re-reading `.zoto/eval-system/cache/analyser/` entries for drifted primitives.",
+        "Parity prelude output still precedes regenerated drift classifications per the `--check` sequencing contract."
+      ],
+      "assertion_patterns": [
+        "_meta\\.primitive_analysis",
+        "--check"
+      ],
+      "expected_output": "Even under automation profiles that ordinarily reuse analyser payloads, rerunning analysis invalidates caches before stamping helpers execute."
+    },
+    {
+      "id": "regeneration-honours-generated-versus-author-guardrails",
+      "prompt": "/z-eval-update --apply",
+      "follow_ups": [
+        "Reject overwriting the guarded user-authored case while accepting generated-only rows."
+      ],
+      "assertions": [
+        "Helpers consult `plugins/zoto-eval-system/engine/_user-case-guards.ts` so JSON rows lacking `_meta` or declaring `_meta.generated` false persist verbatim.",
+        "TypeScript,Jest,and Vitest artefacts without the mandated opening `// _meta.generated: true` comment remain untouched on disk despite apply requests."
+      ],
+      "assertion_patterns": [
+        "plugins/zoto-eval-system/engine/_user-case-guards\\.ts",
+        "// _meta\\.generated: true"
+      ],
+      "expected_output": "Writes touch only evaluator rows flagged generated and typescript or json tests whose first-line marker proves machine ownership."
+    },
+    {
+      "id": "precondition-abort-when-config-yml-is-absent",
+      "prompt": "/z-eval-update",
+      "assertions": [
+        "When `.zoto/eval-system/config.yml` is missing at the repository root, `/z-eval-update` aborts with the exact message: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+        "No `zoto-eval-updater` delegation runs and no drift regeneration output appears after the refusal."
+      ],
+      "assertion_patterns": [
+        "\\.zoto/eval-system/config\\.yml",
+        "zoto-eval-updater"
+      ],
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/uninitialised-repo/README.md",
+            "content": "# workspace without eval-system initialisation\n"
+          }
+        ]
+      },
+      "expected_output": "The command prints the initialisation refusal and stops before spawning the updater or touching manifests.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows.",
+          "fixture_justifications": [
+            "Provides a sandbox tree with no `.zoto/eval-system/config.yml` so the command must hit the documented precondition refuse before discovery or subagent work."
+          ]
+        }
+      }
+    },
+    {
+      "id": "rediscovery-dry-run-previews-drift-without-writes",
+      "prompt": "/z-eval-update",
+      "assertions": [
+        "After `/z-eval-update` with no flags, closing guidance describes rediscovery dry-run semantics and does not report accepted filesystem patches from regeneration helpers.",
+        "Full-catalog enumeration sources `manifest.discovery_config` rather than live `config.yml` discovery fields for this no-args path.",
+        "Dry-run mode performs no askQuestion prompts and does not append `.zoto/eval-system/manifest.history.yml` entries tied to apply step 6.",
+        "Eval JSON rows lacking `_meta.generated: true` and test files missing the opening `// _meta.generated: true` marker remain unchanged on disk."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update",
+        "manifest\\.discovery_config",
+        "\\.zoto/eval-system/manifest\\.history\\.yml",
+        "_meta\\.generated: true"
+      ],
+      "expected_output": "The command reports rediscovery preview drift using manifest snapshot discovery_config, classifies deltas, and leaves disk unchanged until an apply path is chosen.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows."
+        }
+      }
+    },
+    {
+      "id": "ci-check-runs-parity-prelude-then-exits-on-critical-drift",
+      "prompt": "/z-eval-update --check",
+      "assertions": [
+        "After `/z-eval-update --check`, `pnpm exec tsx scripts/check-analyser-payload-parity.ts` runs before drift classification so `parity_drift` reflects that prelude.",
+        "No askQuestion prompts occur in `--check` mode.",
+        "The process exits with status 0 when drift is non-critical and with `config.update.checkExitCodeOnCriticalDrift` (default 2) when critical drift is reported."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update --check",
+        "--check",
+        "config\\.update\\.checkExitCodeOnCriticalDrift"
+      ],
+      "expected_output": "The parity self-check completes first, parity_drift is surfaced in the summary, the run stays non-interactive, and the process exits 0 or with the configured critical-drift code.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows."
+        }
+      }
+    },
+    {
+      "id": "targeted-dry-run-narrows-drift-via-minimatch",
+      "prompt": "/z-eval-update --target \"command:z-eval-help\"",
+      "assertions": [
+        "After `/z-eval-update --target \"command:z-eval-help\"`, drift findings exclude manifest rows outside the minimatch on id or POSIX path.",
+        "Targeted enumeration reads discovery scope from `.zoto/eval-system/config.yml` rather than widening through unrelated manifest targets.",
+        "No askQuestion prompts fire and no regenerated eval artefacts are written during this dry pass."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update --target \"command:z-eval-help\"",
+        "\\.zoto/eval-system/config\\.yml"
+      ],
+      "expected_output": "Only primitives whose `target.id` or `target.path` matches the glob appear in the drift narrative, with no apply writes or confirmations.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows."
+        }
+      }
+    },
+    {
+      "id": "apply-loops-askquestion-and-resume-until-completion",
+      "prompt": "/z-eval-update --apply",
+      "follow_ups": [
+        "Accept the first proposed regeneration bundle.",
+        "Reject the next diff.",
+        "Choose skip-rest for all remaining suggestions."
+      ],
+      "assertions": [
+        "After `/z-eval-update --apply`, the command delegates to `zoto-eval-updater` using the `zoto-update-evals` skill before presenting per-change confirmations.",
+        "For each subagent `needs_user_input` payload, the command issues askQuestion and resumes with the operator choice until the loop completes.",
+        "Unless `--no-analyser` is set, each added or modified target triggers fresh primitive analysis with cache invalidation before framework or LLM regeneration helpers run.",
+        "Accepted writes refresh `.zoto/eval-system/manifest.yml` with a new `git_ref`, `updated_at`, and `targets[]`, and append `.zoto/eval-system/manifest.history.yml`.",
+        "Closing guidance includes `{ mode, regenerated_targets, files_written, files_preserved_user_authored, user_cases_preserved, reports[] }` summarising the run."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update --apply",
+        "needs_user_input",
+        "--no-analyser",
+        "\\.zoto/eval-system/manifest\\.yml",
+        "\\{ mode, regenerated_targets, files_written, files_preserved_user_authored, user_cases_preserved, reports\\[\\] \\}"
+      ],
+      "expected_output": "Each surfaced drift is confirmed through the palette, answers resume the updater loop, accepted generated rows refresh, and manifests gain updated metadata plus a history snapshot.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows."
+        }
+      }
+    },
+    {
+      "id": "targeted-apply-confines-regeneration-to-matched-glob",
+      "prompt": "/z-eval-update --target \"skill:zoto-update-evals\" --apply",
+      "follow_ups": [
+        "Approve regeneration for the matched skill target only."
+      ],
+      "assertions": [
+        "After `/z-eval-update --target \"skill:zoto-update-evals\" --apply`, askQuestion prompts and regeneration activity mention only targets matching the glob.",
+        "Manifest rows outside the glob do not receive fresh stamped eval rows during this invocation.",
+        "Helpers enforce `isGeneratedCase` and `isGeneratedFile` before mutating co-located eval assets."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update --target \"skill:zoto-update-evals\" --apply",
+        "isGeneratedCase"
+      ],
+      "expected_output": "Apply mode runs confirmations and stamping solely for targets satisfying the glob, leaving out-of-scope primitives untouched for this invocation.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows."
+        }
+      }
+    },
+    {
+      "id": "no-analyser-reuses-cached-payloads-with-ci-stderr-warning",
+      "prompt": "/z-eval-update --check --no-analyser",
+      "assertions": [
+        "After `/z-eval-update --check --no-analyser`, workload output shows cache reuse from `.zoto/eval-system/cache/analyser/` instead of fresh `runAnalyser` invalidations for drifted primitives.",
+        "When `CI=true` without `--with-analyser`, stderr includes `[CI WARNING] skipping fresh primitive analysis in CI; reusing payloads from .zoto/eval-system/cache/analyser/`.",
+        "The parity self-check still executes ahead of drift classification because `--check` mandates the prelude even in cached-analyser mode."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update --check --no-analyser",
+        "CI=true",
+        "--check"
+      ],
+      "expected_output": "Drift review reuses analyser JSON from `.zoto/eval-system/cache/analyser/`, emits the documented CI warning on stderr when cached mode applies, and still runs the parity prelude because `--check` is set.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows."
+        }
+      }
+    },
+    {
+      "id": "with-analyser-forces-fresh-analysis-under-automation",
+      "prompt": "/z-eval-update --check --with-analyser",
+      "assertions": [
+        "After `/z-eval-update --check --with-analyser`, drifted targets receive refreshed `_meta.primitive_analysis` payloads rather than only re-reading stale cache entries.",
+        "The parity self-check still precedes drift reporting per the `--check` contract."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update --check --with-analyser",
+        "--check"
+      ],
+      "expected_output": "Even when CI would default to cached analyser payloads, this invocation refreshes primitive analysis before classifying drift, while keeping the parity-first sequencing of `--check`.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows."
+        }
+      }
+    },
+    {
+      "id": "user-authored-eval-rows-and-tests-stay-untouched-on-apply",
+      "prompt": "/z-eval-update --apply",
+      "follow_ups": [
+        "Accept regeneration for generated-only rows.",
+        "Reject overwriting any manual eval case or unmarked test file."
+      ],
+      "assertions": [
+        "JSON eval rows without `_meta` or with `_meta.generated === false` are never mutated during apply.",
+        "TypeScript, Jest, and Vitest files lacking the mandated first-line `// _meta.generated: true` comment are not overwritten despite apply requests.",
+        "Closing guidance reports `user_cases_preserved` and `files_preserved_user_authored` counts reflecting guarded content left intact."
+      ],
+      "assertion_patterns": [
+        "_meta",
+        "// _meta\\.generated: true",
+        "user_cases_preserved"
+      ],
+      "expected_output": "Apply refreshes only machine-owned eval rows and generated test files while manual cases and unmarked suites persist verbatim.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows."
+        }
+      }
+    },
+    {
+      "id": "apply-aborts-when-manifest-yml-is-missing-after-config-loads",
+      "prompt": "/z-eval-update --apply",
+      "assertions": [
+        "After `/z-eval-update --apply` with config present but `.zoto/eval-system/manifest.yml` missing, the run aborts before rediscovery writes tests or eval JSON rows.",
+        "No regeneration helper overwrites co-located eval files when the manifest is absent."
+      ],
+      "assertion_patterns": [
+        "/z-eval-update --apply"
+      ],
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/missing-manifest/.zoto/eval-system/config.yml",
+            "content": "version: 1\nupdate:\n  checkExitCodeOnCriticalDrift: 2\n"
+          }
+        ]
+      },
+      "expected_output": "The command recognises config.yml, then stops because `.zoto/eval-system/manifest.yml` is absent before rediscovery mutates eval assets.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows.",
+          "fixture_justifications": [
+            "Supplies only `config.yml` so the config precondition passes but manifest loading fails at apply step 1 as documented."
+          ]
+        }
+      }
+    },
+    {
+      "id": "failonnoanalyserinci-escalates-cached-check-to-exit-5",
+      "prompt": "/z-eval-update --check --no-analyser",
+      "assertions": [
+        "When `CI=true` and cached analyser mode is active, stderr after `/z-eval-update --check --no-analyser` includes `[CI WARNING] skipping fresh primitive analysis in CI; reusing payloads from .zoto/eval-system/cache/analyser/`.",
+        "When `update.failOnNoAnalyserInCI` is enabled, the same invocation exits with code 5 immediately after that banner without stamping regenerated eval files."
+      ],
+      "assertion_patterns": [
+        "CI=true",
+        "update\\.failOnNoAnalyserInCI"
+      ],
+      "expected_output": "In CI with cached-analyser mode, stderr carries the documented warning and optional config can hard-fail with exit code 5 before rewriting eval assets.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+        "last_updated": "2026-05-29T11:51:48.715Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "d45073a7752f984da823cde0d5e90c193115a61adb1a8d72592fd96a45a083b2",
+          "analysed_at": "2026-05-29T11:51:48.715Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Diff-aware eval updater with rediscovery dry-run, targeted glob modes, CI `--check` parity gate, command-owned per-change confirmations on apply, cached-analyser CI paths, and hard guards that refuse silent overwrites of operator-owned eval rows."
+        }
+      }
+    }
+  ]
+}

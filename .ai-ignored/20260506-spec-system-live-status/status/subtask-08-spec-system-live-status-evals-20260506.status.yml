@@ -1,0 +1,147 @@
+schema_version: 1
+subtask_id: "08"
+feature: spec-system-live-status
+assigned_agent: crux-software-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`plugins/zoto-spec-system/tests/integration/no-restart-token-budget.test.ts`:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/tests/integration/no-restart-token-budget.test.ts
+  - id: D02
+    text: "`plugins/zoto-spec-system/tests/integration/status-pair-roundtrip.test.ts`:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/tests/integration/status-pair-roundtrip.test.ts
+  - id: D03
+    text: "`plugins/zoto-spec-system/tests/integration/aggregator-blocker-surfacing.test.ts`:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/tests/integration/aggregator-blocker-surfacing.test.ts
+  - id: D04
+    text: "`plugins/zoto-spec-system/tests/integration/schema-validation.test.ts`:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/tests/integration/schema-validation.test.ts
+  - id: D05
+    text: "`plugins/zoto-spec-system/tests/integration/heartbeat-completion-guard.test.ts`:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/tests/integration/heartbeat-completion-guard.test.ts
+  - id: D06
+    text: "`plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json` — append two cases (do not delete existing cases):"
+    done: true
+    evidence_path: plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+  - id: D07
+    text: "`plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json` — extend the new case from subtask 05 with an additional assertion: `Each scaffolded .status.yml validates against subtask-status.schema.json`. Do **not** add a separate case here — keep the existing one richer."
+    done: true
+    evidence_path: plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+  - id: D08
+    text: '`plugins/zoto-spec-system/package.json` — add a new script `"test:integration": "vitest run tests/integration"` so the integration tests can run in isolation from unit tests.'
+    done: true
+    evidence_path: plugins/zoto-spec-system/package.json
+  - id: D09
+    text: '`plugins/zoto-spec-system/package.json` — extend the existing `"test"` script (currently `vitest run`) to cover both unit suites under `src/`, `scripts/`, and `tests/` plus the new integration suite. Confirm the eval system still picks up the right test files.'
+    done: true
+    evidence_path: plugins/zoto-spec-system/package.json
+  - id: D10
+    text: No new runtime deps. Dev deps may be added if strictly required (e.g. `tmp` for temp-dir helpers); prefer Node's built-in `node:fs.mkdtempSync` first.
+    done: true
+    evidence_path: plugins/zoto-spec-system/package.json
+  - id: D11
+    text: If subtask 06 introduced a placeholder eval case under `plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json`, leave it alone — this subtask only **adds** to it. Removing existing cases is out of scope.
+    done: true
+    evidence_path: plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+artifacts:
+  - path: plugins/zoto-spec-system/tests/integration/no-restart-token-budget.test.ts
+    kind: created
+    note: integration-test-for-live-config-reload
+  - path: plugins/zoto-spec-system/tests/integration/status-pair-roundtrip.test.ts
+    kind: created
+    note: roundtrip-and-md-edit-back-to-yml
+  - path: plugins/zoto-spec-system/tests/integration/aggregator-blocker-surfacing.test.ts
+    kind: created
+    note: blocker-surfacing-via-aggregateOnce
+  - path: plugins/zoto-spec-system/tests/integration/schema-validation.test.ts
+    kind: created
+    note: schema-validation-and-empty-defaults
+  - path: plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+    kind: modified
+    note: appended-no-restart-budget-prompt-and-aggregator-surfaces-blocker-cases
+  - path: plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+    kind: modified
+    note: added-scaffolded-status-yml-schema-validation-assertion
+  - path: plugins/zoto-spec-system/tests/integration/heartbeat-completion-guard.test.ts
+    kind: created
+    note: heartbeat-completion-guard-integration
+  - path: plugins/zoto-spec-system/tests/integration/fixtures/status-pair-roundtrip.fixture.yml
+    kind: created
+    note: roundtrip-fixture-yml
+  - path: plugins/zoto-spec-system/src/spawn-prompt.ts
+    kind: modified
+    note: spawnPromptBudgetLead-helper
+  - path: plugins/zoto-spec-system/src/spawn-prompt.test.ts
+    kind: modified
+    note: budget-lead-assertions
+  - path: plugins/zoto-spec-system/package.json
+    kind: modified
+    note: test-and-integration-scripts
+  - path: plugins/zoto-spec-system/scripts/spec-aggregator.test.ts
+    kind: modified
+    note: watch-smoke-polling
+errors: []
+notes: |
+  All deliverables D01–D11 complete.
+
+  Test results (run from repo root):
+  - `pnpm --filter @zoto-agents/zoto-spec-system test`  → 12 files / 86 tests passed.
+  - `pnpm --filter @zoto-agents/zoto-spec-system test:integration` → 5 files / 17 tests passed.
+  - `pnpm --filter @zoto-agents/zoto-spec-system validate` → 52/52 passed.
+
+  D11: Verified `evals.json` for `zoto-execute-spec` retains all original cases
+  (ids 1, 2, 3) and has been **extended** with two new cases (ids 4 = `no-restart-budget-prompt`,
+  5 = `aggregator-surfaces-blocker`). Cases use `regex` / `contains` graders only —
+  no `llm-judge`. The `zoto-create-spec` evals retain all four cases; case 4 was
+  extended in-place with the new assertion `Each scaffolded .status.yml validates
+  against subtask-status.schema.json`.
+
+  Migration directive honoured: integration fixtures use `<tmpdir>/.zoto/spec-system/config.yml`
+  (YAML, parsed via the `yaml` package); `loadConfig` from `src/config-loader.ts` is
+  used for live-reload; D04 validates `docs/example-config.yml`. `docs/example-config.json`
+  was re-created in the working tree by another concurrent agent — its presence does not
+  affect the YAML coverage required by this subtask. Cleanup of the stale JSON file and
+  related doc references is the responsibility of subtask 09 (docs sweep).
+
+  Files created:
+  - `tests/integration/no-restart-token-budget.test.ts`
+  - `tests/integration/status-pair-roundtrip.test.ts`
+  - `tests/integration/aggregator-blocker-surfacing.test.ts`
+  - `tests/integration/schema-validation.test.ts`
+  - `tests/integration/heartbeat-completion-guard.test.ts`
+  - `tests/integration/fixtures/status-pair-roundtrip.fixture.yml`
+
+  Files modified:
+  - `skills/zoto-execute-spec/evals/evals.json` (appended two cases)
+  - `skills/zoto-create-spec/evals/evals.json` (extended case 4 with one assertion)
+  - `package.json` (`test`, `test:integration` scripts)
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-06T09:13:00.000Z
+    notes: |
+      All 11 deliverables (D01-D11) independently verified on disk.
+      Plugin tests: 12 files / 86 tests pass; integration: 5 files / 17 tests pass; validate: 52/52 pass.
+      All five integration tests exist with correct shape per spec (no-restart token budget,
+      status-pair round-trip incl. md-edits-driving-yml, aggregator blocker surfacing via
+      aggregateOnce, schema validation across templates/config/docs incl. empty-{} default
+      contract, and heartbeat completion guard). Spec asks for `templates/config.json` and
+      `docs/example-config.json` validation; both are tested PLUS the migrated YAML
+      `docs/example-config.yml` is also validated (extra coverage, not regression).
+      Eval JSON updates are correct: zoto-execute-spec gets cases 4 (no-restart-budget-prompt)
+      and 5 (aggregator-surfaces-blocker) using only regex/contains graders (no llm-judge);
+      original cases 1/2/3 preserved. zoto-create-spec case 4 extended in-place with the
+      schema-validates-against-subtask-status.schema.json assertion (no new case added).
+      package.json carries the `test:integration` script and the `test` script covers
+      `src scripts tests`; runtime deps unchanged (ajv, ajv-formats, yaml). md/yml status
+      pair round-trips cleanly (diff exit 0). No linter errors on touched files.
+last_heartbeat: 2026-05-06T09:11:45.309Z
+started_at: 2026-05-06T08:58:23.703Z
+completed_at: 2026-05-06T09:09:12.294Z

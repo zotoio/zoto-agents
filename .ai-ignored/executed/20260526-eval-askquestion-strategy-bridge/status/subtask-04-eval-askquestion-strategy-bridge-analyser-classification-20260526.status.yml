@@ -1,0 +1,74 @@
+schema_version: 1
+subtask_id: "04"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: '`plugins/zoto-eval-system/templates/schema/analyser-payload.schema.json` carries two new optional top-level fields: `requiresInteraction: boolean` and `interactionStyle: enum<"command-owned"|"subagent-escalated"|"none">`. Both are added with `additionalProperties: false` still in force; the `required` list is unchanged so old cached payloads still validate.'
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/schema/analyser-payload.schema.json
+  - id: D02
+    text: '`plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md` gains an explicit "Interaction classification" section explaining the heuristic (commands typically own `AskQuestion`, agents/skills return `needs_user_input`, hooks are non-interactive per existing analyser guidance). Add at least one worked example per `interactionStyle` value.'
+    done: true
+    evidence_path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
+  - id: D03
+    text: "`scripts/eval-analyse.ts` recognises the new fields in the parsed payload, propagates them into `_meta.primitive_analysis`, and exposes them through the in-memory `AnalyserPayload` shape consumed by the stamper."
+    done: true
+    evidence_path: scripts/eval-analyse.ts
+  - id: D04
+    text: "`plugins/zoto-eval-system/engine/analyser-payload.ts` (or wherever the canonical TypeScript type lives — discovered while implementing) gains the two optional fields with JSDoc."
+    done: true
+    evidence_path: plugins/zoto-eval-system/engine/analyser-payload.ts
+  - id: D05
+    text: "`analyser_version` is bumped exactly once (current value found in `scripts/eval-analyse.ts` constants); the new value is recorded in `audit/analyser-version-bump.md` with the prior value, the new value, and the trigger justification (this spec)."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/analyser-version-bump.md
+  - id: D06
+    text: "Targeted tests for the schema change: at least one test that asserts the schema rejects a non-boolean `requiresInteraction`, accepts `null`-equivalent omission, and round-trips a real payload."
+    done: true
+    evidence_path: scripts/__tests__/analyser-payload-schema.test.ts
+artifacts:
+  - path: plugins/zoto-eval-system/templates/schema/analyser-payload.schema.json
+    kind: modified
+    note: Optional requiresInteraction and interactionStyle top-level fields
+  - path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
+    kind: modified
+    note: Interaction classification section with heuristic and worked examples
+  - path: plugins/zoto-eval-system/engine/analyser-payload.ts
+    kind: modified
+    note: InteractionStyle type and optional payload fields with JSDoc
+  - path: scripts/eval-analyse.ts
+    kind: modified
+    note: ANALYSER_VERSION bump, buildPrimitiveAnalysisMeta export, parity manifest
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/analyser-version-bump.md
+    kind: created
+    note: Records 2026.05.03-1 to 2026.05.26-1 bump justification
+  - path: scripts/__tests__/analyser-payload-schema.test.ts
+    kind: created
+    note: Targeted vitest schema acceptance/rejection and meta projection tests
+errors: []
+notes: "analyser_version 2026.05.03-1 → 2026.05.26-1; vitest 3/3 passed; buildPrimitiveAnalysisMeta exported for stamper routing in subtask 06."
+extra:
+  analyser_version_old: "2026.05.03-1"
+  analyser_version_new: "2026.05.26-1"
+  git_sha: e49961ff5330e60d9adf4aa48727cf8247371d5e
+  judge:
+    verdict: verified
+    at: "2026-05-26T15:22:00.000Z"
+    notes: >-
+      Schema adds optional requiresInteraction (boolean) and interactionStyle enum with
+      additionalProperties:false unchanged and required list untouched. Analyser prompt
+      Interaction classification section follows Forbidden internal-mechanic vocabulary,
+      cites Subtask 02 eval-corpus-baseline.json, and includes command-owned /
+      subagent-escalated / none worked examples. ANALYSER_VERSION bumped once to
+      2026.05.26-1 (audit/analyser-version-bump.md records prior value). eval-analyse.ts
+      exports buildPrimitiveAnalysisMeta projecting interaction fields into
+      _meta.primitive_analysis; parity manifest lists both fields optional.
+      analyser-payload.ts carries JSDoc-annotated optional fields. Targeted vitest
+      scripts/__tests__/analyser-payload-schema.test.ts: 3/3 passed; node --check
+      scripts/eval-analyse.ts clean. No declarative-runner or eval-stamp changes in
+      artifact set.
+    fix_list: []

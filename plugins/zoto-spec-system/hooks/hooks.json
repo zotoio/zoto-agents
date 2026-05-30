@@ -1,12 +1,18 @@
 {
   "$schema": "https://cursor.sh/hooks-schema.json",
   "version": 1,
-  "description": "Spec System hooks — session start nudge for unprocessed specs",
+  "description": "Spec System hooks — session start nudge and on-stop consistency check",
   "hooks": {
     "sessionStart": [
       {
         "command": "node hooks/zoto-session-start.mjs",
         "description": "Spec System: Check for unprocessed specs and nudge user"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node hooks/zoto-onstop-check.mjs",
+        "description": "Spec System: Validate subtask status pairs (schema + checkbox + regex) and auto-fix md/yml drift; surface critical inconsistencies"
       }
     ]
   }

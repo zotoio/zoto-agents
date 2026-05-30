@@ -1,0 +1,132 @@
+{
+  "target_id": "command:z-spec-create",
+  "_meta": {
+    "generated": true,
+    "migrated_from": "plugins/zoto-spec-system/commands/evals/z-spec-create.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": "precondition-stop-when-spec-bootstrap-file-missing",
+      "prompt": "/z-spec-create",
+      "assertions": [
+        "When repository root lacks readable `.zoto/spec-system/config.yml`, the conversational reply echoes verbatim Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.",
+        "That refusal path skips spawning `zoto-spec-generator` and leaves `{specsDir}` without newly introduced dated subtree directories coordinating subtasks."
+      ],
+      "assertion_patterns": [
+        "\\.zoto/spec-system/config\\.yml",
+        "zoto-spec-generator"
+      ],
+      "expected_output": "The command stops immediately because Spec System bootstrap is unavailable, echoes the initialise guidance, and does not propose new dated spec directories."
+    },
+    {
+      "id": "guided-creation-with-quoted-scope-after-minimum-clarifiers",
+      "prompt": "/z-spec-create \"Harden webhook signing and replay defenses\"",
+      "follow_ups": [
+        "Priority is preventing replay within the SLA window.",
+        "We will accept breaking older clients that omit the rotated secret.",
+        "Ship behind a guarded feature flag gated to platform admins.",
+        "Approve drafting the phased spec artefacts as discussed."
+      ],
+      "assertions": [
+        "Before any `{specsDir}/` subdirectory appears, `/z-spec-create` drives at least three sequential clarifiers for the quoted description path.",
+        "The delegated briefing to `zoto-spec-generator` begins with REQUIREMENTS_GATE: satisfied and captured requirement bullets tying back to `/z-spec-create \\\"Harden webhook signing and replay defenses\\\"`.",
+        "The spawn selects a reasoning-class model slug respecting the preferred `claude-opus-4-7-thinking-xhigh`, then documented fallbacks (`claude-4.6-opus-high-thinking`, `claude-opus-4-6`) whenever earlier slugs lack availability.",
+        "After clarified requirements, authoring produces `{specsDir}/[yyyymmdd]-harden-webhook/` with `spec-*` coordination index Markdown and `subtask-NN-*` bodies whose deliverables map to Deliverables Checklists.",
+        "Shell coordination runs `pnpm run spec-status-roundtrip -- scaffold`, yielding paired `.status.md` plus `.status.yml` files beside each scaffolded subtask under `status/`.",
+        "Structured approval prompting precedes spawning `zoto-spec-judge` for adversarial QA.",
+        "Closing narration sets the sprint workflow state label to Ready for Review once judge feedback is surfaced."
+      ],
+      "assertion_patterns": [
+        "\\{specsDir\\}/",
+        "zoto-spec-generator",
+        "claude-opus-4-7-thinking-xhigh",
+        "\\{specsDir\\}/\\[yyyymmdd\\]-harden-webhook/",
+        "pnpm run spec-status-roundtrip -- scaffold",
+        "zoto-spec-judge"
+      ],
+      "expected_output": "The command sequences three clarifying exchanges, records them in REQUIREMENTS_GATE text, researches the codebase, drafts dated folders with coordination index plus subtasks, scaffolds status mates, obtains approval prompts, invokes the judge reviewer, then labels the bundle ready."
+    },
+    {
+      "id": "anchored-briefing-from-markdown-reference",
+      "prompt": "/z-spec-create @workspace/docs/feature-brief.md",
+      "follow_ups": [
+        "We only need parquet + registry references in scope for this sprint.",
+        "Approve moving forward once the clarified scope is echoed back."
+      ],
+      "assertions": [
+        "Immediately after ingestion, narration quotes the gist of `@workspace/docs/feature-brief.md` before issuing at least two focused clarifiers for the anchored-file path.",
+        "No dated `{specsDir}/` tree materialises prior to documenting REQUIREMENTS_GATE: satisfied atop the delegated transfer that still forwards the original `@workspace/docs/feature-brief.md` reference.",
+        "Exploration narration highlights codebase touchpoints impacting telemetry export before outlining decision forks awaiting confirmation.",
+        "Downstream artefacts mirror `{specsDir}/[yyyymmdd]-telemetry-export/` conventions with coordination index Markdown, enumerated subtasks, and paired status siblings produced through the scaffold command."
+      ],
+      "assertion_patterns": [
+        "@workspace/docs/feature-brief\\.md",
+        "\\{specsDir\\}/",
+        "\\{specsDir\\}/\\[yyyymmdd\\]-telemetry-export/"
+      ],
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/docs/feature-brief.md",
+            "content": "# Telemetry export\nOwners need parquet batches plus schema registry pins before GA.\nNon-goals this quarter: rewriting the ingestion SDK.\n"
+          }
+        ]
+      },
+      "expected_output": "Hosts summarise the anchored brief, pose two narrowly scoped prompts, enqueue investigation, then scaffold dated spec folders with artefacts and statuses before approvals and judging."
+    },
+    {
+      "id": "palette-guided-flow-with-lone-command-token",
+      "prompt": "/z-spec-create",
+      "follow_ups": [
+        "We lack a canonical product doc so lean on codebase discovery instead.",
+        "Primary risk is regressing cold-start latency budgets.",
+        "Accept small schema migrations if they unblock safer rollouts.",
+        "Green-light the scaffolding plan after acknowledging the surfaced tradeoffs.",
+        "Yes, run the reviewer once the artefacts look correct."
+      ],
+      "assertions": [
+        "`/z-spec-create` bare usage delivers at least three sequential clarifiers, keeps interrogation prompts one-at-a-time, and may continue toward but need not consume the capped total of ten unless the collaborator explicitly accelerates progression with assumptions recorded.",
+        "`{specsDir}/` remains absent until REQUIREMENTS_GATE: satisfied plus gathered bullets gate the delegated `zoto-spec-generator` briefing.",
+        "Mid-run guidance highlights architecture decisions awaiting confirmation before drafts lock deliverables.",
+        "Approval prompts precede spawning `zoto-spec-judge` and the concluding Ready for Review state."
+      ],
+      "assertion_patterns": [
+        "/z-spec-create",
+        "\\{specsDir\\}/",
+        "zoto-spec-judge"
+      ],
+      "expected_output": "Bare palette entry satisfies the minimum interrogation budget, optionally walks toward the ten-prompt ceiling when scope stays unsettled unless earlier advancement is authored with assumptions, then authoring, scaffolding, approvals, reviewer spawn, and Ready for Review tagging unfold."
+    },
+    {
+      "id": "generator-surfaced-structured-input-before-guarded-writes-resume",
+      "prompt": "/z-spec-create @workspace/docs/integration-outline.md",
+      "follow_ups": [
+        "Resume after USER_ANSWERS specify retry ceilings, backoff multipliers, and regional pairing expectations."
+      ],
+      "assertions": [
+        "If `zoto-spec-generator` activates before Requirement gate artefacts exist, narration terminates with fenced `needs_user_input` Markdown and withholds dated directories underneath `{specsDir}/`.",
+        "The subsequent replay forwards USER_ANSWERS tying retry ceilings and backoff multipliers without skipping REQUIREMENTS_GATE: satisfied preamble before writes resume.",
+        "Post-resume authoring follows `{specsDir}/[yyyymmdd]-*` layout patterns with coordination Markdown, enumerated subtasks, and paired status siblings via `pnpm run spec-status-roundtrip -- scaffold`.",
+        "Final orchestration loops through approval prompting, invokes `zoto-spec-judge`, and marks Ready for Review."
+      ],
+      "assertion_patterns": [
+        "zoto-spec-generator",
+        "\\{specsDir\\}/\\[yyyymmdd\\]-\\*",
+        "zoto-spec-judge"
+      ],
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/docs/integration-outline.md",
+            "content": "### Partner API uplift\nNeeds streaming callbacks, idempotent retries, and dual-region failover narrative.\n"
+          }
+        ]
+      },
+      "expected_output": "Delegation surfaces fenced structured input while `{specsDir}/` stays clean, resumes with USER_ANSWERS supplied, then continues the scaffold and approval cadence identical to gated happy paths."
+    }
+  ]
+}

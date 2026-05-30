@@ -1,0 +1,63 @@
+---
+description: Conventions and data sources for the cursor-top CLI - a live updating htop-style monitor for every Cursor agent on the current machine.
+alwaysApply: false
+---
+
+# zoto-cursor-top conventions
+
+The `cursor-top` CLI is a read-only observer. Agents that interact with it
+must respect the following conventions.
+
+## Data sources
+
+`cursor-top` discovers agents from three sources, in priority order:
+
+1. **OS process list** (`ps` on Linux/macOS, `Get-CimInstance` on Windows)
+   filtered for Cursor IDE, `cursor-agent`, and Cloud Agent VM exec daemons.
+2. **Session metadata** under the Cursor data directories:
+   - macOS: `~/Library/Application Support/Cursor/` and `~/.cursor/`
+   - Linux: `~/.config/Cursor/` and `~/.cursor/`
+   - Windows: `%APPDATA%/Cursor/` and `%USERPROFILE%/.cursor/`
+3. **Log files** referenced from each session's metadata (tailed, not
+   streamed - the CLI reads only the trailing window).
+
+Agents must never write into these locations on behalf of `cursor-top`.
+
+## Hierarchy
+
+The parent-to-subagent tree is reconstructed in this order:
+
+1. Explicit `parentId` from session metadata.
+2. PID -> PPID from the OS process table.
+3. Fallback to a root node.
+
+If the user reports subagents at root level, the most likely cause is that
+session metadata is missing `parentId`. The
+`zoto-cursor-top-troubleshooter` agent handles that diagnosis.
+
+## Interactive shortcuts
+
+| Key | Action |
+|-----|--------|
+| `↑` / `↓` | move selection |
+| `→` / `Enter` | expand selected |
+| `←` | collapse selected |
+| `e` / `c` | expand / collapse all |
+| `r` | force refresh (works even while paused) |
+| `p` / space | pause / resume auto-refresh |
+| `q` | quit |
+
+## Output modes
+
+- Default - live TUI.
+- `--once` - one frame to stdout, then exit (formatted output).
+- `--json` - one snapshot as JSON, then exit (use this for any
+  programmatic consumer).
+- `--demo` - synthetic fixture for screenshots and onboarding.
+
+## What not to do
+
+- Do not parse the formatted TUI output programmatically - use `--json`.
+- Do not lower `--interval` below 200ms; the CLI clamps to that.
+- Do not assume the on-disk session schema is stable across Cursor versions;
+  always go through the CLI's normalised view.

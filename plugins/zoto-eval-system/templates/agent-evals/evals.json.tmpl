@@ -1,0 +1,80 @@
+{
+  "_template_doc": [
+    "REFERENCE ONLY — authoring aid. Executable eval JSON is stamped by:",
+    "`pnpm exec tsx scripts/eval-analyse.ts agent:<name>` then",
+    "`pnpm exec tsx scripts/eval-stamp.ts agent:<name>`.",
+    "Each generated case SHOULD include fixtures and expected_filesystem blocks mirroring sandbox IO.",
+    "Runner case example (advanced TS escape hatch):",
+    "{ \"id\": \"adv-1\", \"runner\": \"./adv.test.ts\", \"parameters\": {} }",
+    "---"
+  ],
+  "target_id": "agent:{{AGENT_NAME}}",
+  "agent_name": "{{AGENT_NAME}}",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "{{PROMPT_A}}",
+      "expected_output": "{{EXPECTED_A}}",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "{ \"evalsDir\": \"evals\" }"
+          },
+          {
+            "path": "workspace/plugins/demo/agents/{{AGENT_NAME}}.md",
+            "from": "plugins/demo/agents/{{AGENT_NAME}}.md"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": [],
+        "modified": ["workspace/plugins/demo/evals/agents/{{AGENT_NAME}}.json"]
+      },
+      "files": [],
+      "assertions": [
+        "The {{AGENT_NAME}} agent never invoked askQuestion — user-visible prompts are owned by the invoking slash command only",
+        "Pre-collected answers from the command were consumed from the Task prompt without requesting interactive UI inside the subagent"
+      ],
+      "graders": [],
+      "_meta": {
+        "generated": true,
+        "source_hash": "{{SOURCE_HASH}}",
+        "primitive_analysis_hash": "{{PRIMITIVE_ANALYSIS_HASH}}",
+        "last_updated": "{{LAST_UPDATED}}",
+        "generated_by": "zoto-create-evals"
+      }
+    },
+    {
+      "id": 2,
+      "prompt": "{{PROMPT_B}}",
+      "expected_output": "{{EXPECTED_B}}",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/plugins/demo/agents/{{AGENT_NAME}}.md",
+            "from": "plugins/demo/agents/{{AGENT_NAME}}.md"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "modified": [],
+        "unchanged": ["user-authored eval rows"]
+      },
+      "files": [],
+      "assertions": [
+        "Any unresolved user choice was surfaced as a YAML needs_user_input block with reason and structured questions, not as inline chat prompts",
+        "After resume with answers, the agent continued without issuing askQuestion itself"
+      ],
+      "graders": [],
+      "_meta": {
+        "generated": true,
+        "source_hash": "{{SOURCE_HASH}}",
+        "primitive_analysis_hash": "{{PRIMITIVE_ANALYSIS_HASH}}",
+        "last_updated": "{{LAST_UPDATED}}",
+        "generated_by": "zoto-create-evals",
+        "partial": false
+      }
+    }
+  ]
+}

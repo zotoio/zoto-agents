@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2.5",
+  "target_id": "command:z-eval-init",
+  "kind": "command",
+  "source_path": "plugins/zoto-eval-system/commands/z-eval-init.md",
+  "source_hash": "8af3d03f8feef909c8852868fc196f536987e6e459b8c54922d05b23c61e2050",
+  "summary": "The init command materialises `.zoto/eval-system/config.yml` from the bundled YAML template with full defaults commented out, blocks accidental overwrites unless `--force` is supplied, and ends with one confirmation line that points maintainers at the JSON schema and `/z-eval-configure` while staying clear of every other eval workflow.",
+  "cases": [
+    {
+      "scenario": "Baseline init scaffolds config and confirmation line",
+      "prompt": "/z-eval-init",
+      "expected_output": "One confirmation line naming the absolute filesystem path of `.zoto/eval-system/config.yml`, clarifying that behaviour stays identical to internal defaults until specific keys are uncommented, naming `plugins/zoto-eval-system/templates/schema/config.schema.json`, and steering people toward `/z-eval-configure` for guided setup.",
+      "assertions": [
+        "After `/z-eval-init`, the repository contains `workspace/.zoto/eval-system/config.yml` with the same structure as `plugins/zoto-eval-system/templates/init-config.yml`, including the banner that every supported key is commented and the inline pointer to `plugins/zoto-eval-system/templates/schema/config.schema.json`.",
+        "The parent directory `workspace/.zoto/eval-system/` is created with mkdir-style semantics whenever it was missing before the run.",
+        "The visible completion output does not launch the configurer skill, does not open an `askQuestion` interview, and does not chain into `/z-eval-create`, `/z-eval-execute`, `/z-eval-judge`, `/z-eval-update`, `/z-eval-compare`, or `/z-eval-help`."
+      ]
+    },
+    {
+      "scenario": "Second init without --force stops with contract error",
+      "prompt": "/z-eval-init",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "# pinned for idempotency check\nruns:\n  retention: 3\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Pre-populates `.zoto/eval-system/config.yml` so the command must hit the existing-file guard instead of rewriting silently."
+      ],
+      "expected_output": "A non-success tool or shell result whose text repeats that `.zoto/eval-system/config.yml already exists` and tells the operator to pass `--force` to overwrite.",
+      "assertions": [
+        "The process or tool invocation ends with a non-zero status or an explicit Cursor failure state.",
+        "The error text contains the sentence `.zoto/eval-system/config.yml already exists; pass --force to overwrite`.",
+        "The on-disk contents of `workspace/.zoto/eval-system/config.yml` remain the pre-run version with the pinned `runs.retention` value."
+      ]
+    },
+    {
+      "scenario": "Init with --force replaces a customised config",
+      "prompt": "/z-eval-init --force",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/.zoto/eval-system/config.yml",
+            "content": "# stale settings that must be wiped\nmanualChecklists:\n  enabled: true\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Provides a divergent config so a successful `--force` run provably restores the canonical init template rather than merging edits."
+      ],
+      "expected_output": "The same single-line confirmation pattern as a first-time init: absolute path, reminder that defaults remain commented, pointer to `plugins/zoto-eval-system/templates/schema/config.schema.json`, and the `/z-eval-configure` hint.",
+      "assertions": [
+        "After `/z-eval-init --force`, `workspace/.zoto/eval-system/config.yml` no longer enables `manualChecklists` and instead mirrors the commented defaults from `plugins/zoto-eval-system/templates/init-config.yml`.",
+        "The command still refrains from spawning the configurer or running any secondary eval-system command during the same turn."
+      ]
+    },
+    {
+      "scenario": "Missing plugin template surfaces precise path error",
+      "prompt": "/z-eval-init",
+      "expected_output": "A hard failure message that names `templates/init-config.yml` and the plugin root path Cursor inspected, with no silent fallback file creation.",
+      "assertions": [
+        "If `plugins/zoto-eval-system/templates/init-config.yml` cannot be read from the active plugin tree, stderr or tool output includes the substring `templates/init-config.yml not found` plus the concrete path that was checked.",
+        "No new `config.yml` appears under `workspace/.zoto/eval-system/` when the template read fails."
+      ]
+    },
+    {
+      "scenario": "Filesystem permission denial propagates verbatim",
+      "prompt": "/z-eval-init",
+      "expected_output": "A failure message that preserves the operating-system permission error returned from mkdir or write, without substituting a generic success string.",
+      "assertions": [
+        "When directory creation or writing `workspace/.zoto/eval-system/config.yml` fails with permission denied, the surfaced text matches the underlying OS error payload instead of a hand-waved summary."
+      ]
+    }
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
+}

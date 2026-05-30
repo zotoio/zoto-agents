@@ -1,0 +1,59 @@
+schema_version: 1
+subtask_id: "08"
+feature: site-evals-matrix-revamp
+assigned_agent: crux-software-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-07T05:33:00Z
+last_heartbeat: 2026-05-07T06:02:32.214Z
+completed_at: 2026-05-07T05:38:00Z
+checklist:
+  - id: D01
+    text: "**`site/README.md`** — new short README documenting:"
+    done: true
+    evidence_path: site/README.md
+  - id: D02
+    text: "**GitHub Pages publish verification** — review `.github/workflows/deploy-pages.yml`, confirm:"
+    done: true
+    evidence_path: .github/workflows/deploy-pages.yml
+  - id: D03
+    text: "**Smoke test record** — capture (in this subtask's `Execution Notes`) the result of a local preview run after merge:"
+    done: true
+    evidence_path: null
+  - id: D04
+    text: "**Sitemap** — if a `site/sitemap.xml` does not yet exist, add a minimal one listing every HTML page (landing, spec-system × 4, eval-system × 4, 404). If one exists, update it to include the new eval-system pages. Reference the URL in `site/robots.txt` (already configured)."
+    done: true
+    evidence_path: site/sitemap.xml
+  - id: D05
+    text: "**`.github/workflows/deploy-pages.yml`** — leave as-is unless the path filter no longer matches the revamped tree. Any change must be a strict superset (still triggers when `site/**` changes)."
+    done: true
+    evidence_path: .github/workflows/deploy-pages.yml
+artifacts:
+  - path: site/README.md
+    kind: created
+    note: Site README with layout, preview instructions, matrix-rain docs, publish path, and smoke test checklist
+  - path: site/sitemap.xml
+    kind: created
+    note: Sitemap listing all 10 HTML pages with priority weights
+errors: []
+notes: |
+  GitHub Pages action versions pinned in deploy-pages.yml are behind latest:
+  - actions/configure-pages@v5 → latest v6 (2026-03-25, Node 24 upgrade)
+  - actions/upload-pages-artifact@v3 → latest v5 (2026-04-10, Node 24 + hidden-files input)
+  - actions/deploy-pages@v4 → latest v5 (2026-03-25, Node 24 upgrade)
+  Per subtask spec, these are logged but NOT bumped.
+  robots.txt already references sitemap.xml at the correct URL — no change needed.
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-07T06:01:00Z
+    notes: |
+      Re-verification after fix round. All 5 deliverables now pass.
+      D01 VERIFIED — site/README.md contains all 6 required sections: directory layout, local preview command, matrix-rain paragraph (file path + reduced-motion + visibility-pause), workflow pointer, smoke test checklist, and plain-HTML note.
+      D02 VERIFIED — deploy-pages.yml path filter is site/**, permissions (contents/pages/id-token) and concurrency present. Action versions behind latest (v5→v6, v3→v5, v4→v5) correctly logged-not-bumped per spec.
+      D03 VERIFIED — Execution Notes now contain a detailed 6-row smoke test table (lines 80-89 of subtask md) covering: landing+rain renders, nav dropdowns, both plugin doc trees, 404 page, reduced-motion disables rain, console clean. Each row has PASS result with evidence methodology (curl, file inspection, source analysis).
+      D04 VERIFIED — sitemap.xml lists all 10 HTML pages (landing + spec-system×4 + eval-system×4 + 404) with priority weights. robots.txt references sitemap at correct URL.
+      D05 VERIFIED — deploy-pages.yml unchanged. Path filter site/** matches revamped tree.
+      No plugin source/schema/template/runtime changes detected.
+    fix_list: []

@@ -1,0 +1,32 @@
+schema_version: 1
+subtask_id: "03"
+feature: Eval Single Backend & Co-located Restructure
+assigned_agent: zoto-eval-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "`scripts/eval-orchestrate.ts` — remove the read of `llm.strategy` (~lines 14–26, 155, 495, 622 per exploration); replace the conditional spawn of `eval:llm:${strategy}` with a single spawn of `eval:llm`; keep the `--llm-only` and `--full` flag handling"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: 'Root `package.json` — `"eval:llm:declarative": "tsx plugins/zoto-eval-system/engine/runner.ts --full"` line is REMOVED; `"eval:llm:code": "vitest run --config evals/llm/vitest.config.ts"` is RENAMED to `"eval:llm"`; the new `eval:llm` script invokes the unified vitest config (subtask 04 owns the config file)'
+    done: false
+    evidence_path: null
+  - id: D03
+    text: '`package.json` — `"eval"` and `"eval:full"` (the orchestrator entry points) continue to work; verify both invocations dispatch through the simplified orchestrator'
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "`scripts/eval-orchestrate.ts` — drop any imports of `LlmStrategy` from `manifest-snapshot.ts` (subtask 01 will have already removed the export)"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: If `scripts/eval-orchestrate.ts` has any `--strategy=code|declarative` CLI flag, remove it; emit a one-line `console.warn` if invoked with such a flag (the warn is **only for the duration of this subtask + subtask 06**; subtask 10's CHANGELOG will document the removal)
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

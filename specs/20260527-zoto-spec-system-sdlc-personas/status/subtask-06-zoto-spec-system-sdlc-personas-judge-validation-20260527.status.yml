@@ -1,0 +1,28 @@
+schema_version: 1
+subtask_id: "06"
+feature: zoto-spec-system-sdlc-personas
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "**D01** — Updated `plugins/zoto-spec-system/agents/zoto-spec-judge.md`:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "**D02** — Updated `plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md`:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "**D03** — Update or extend the `zoto-judge-spec` skill eval cases"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "**D04** — Confirm that the judge agent and skill cite the **same**"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

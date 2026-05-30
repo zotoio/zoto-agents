@@ -5,7 +5,7 @@
     "email": "plugins@zotoio.com"
   },
   "metadata": {
-    "description": "Cursor plugins for structured engineering workflows by zotoio",
+    "description": "Two peer Cursor plugins for structured engineering: plan and verify your specs, generate and update your evals.",
     "version": "0.5.0",
     "pluginRoot": "plugins"
   },
@@ -13,7 +13,17 @@
     {
       "name": "zoto-spec-system",
       "source": "plugins/zoto-spec-system",
-      "description": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification"
+      "description": "Decompose complex initiatives into reviewable specs, judge them independently, then execute with adversarial verification. Live execution status aggregation and no-restart token-budget configuration."
+    },
+    {
+      "name": "zoto-eval-system",
+      "source": "plugins/zoto-eval-system",
+      "description": "Stamp static (pytest) and LLM (@cursor/sdk) eval suites side-by-side, detect drift when AI primitives change and update evals with user confirmation, compare runs across models on /canvas. Surgical update on git diff, sovereign user-authored cases."
+    },
+    {
+      "name": "zoto-cursor-top",
+      "source": "plugins/zoto-cursor-top",
+      "description": "Live updating htop-style CLI that shows every Cursor agent on this machine, with expandable parent-to-subagent hierarchy and scrolling log tails"
     }
   ]
 }

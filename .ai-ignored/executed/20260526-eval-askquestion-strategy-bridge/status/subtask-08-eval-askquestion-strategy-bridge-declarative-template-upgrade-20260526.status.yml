@@ -1,0 +1,61 @@
+schema_version: 1
+subtask_id: "08"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`plugins/zoto-eval-system/templates/llm/agent-sdk/runner.ts.tmpl` validation step rejects any loaded case where `case.interactions` (or the field name pinned by the ADR) is non-empty, with a clear error pointing at the analyser-classification mismatch."
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/llm/agent-sdk/case.ts.tmpl
+  - id: D02
+    text: "`plugins/zoto-eval-system/templates/llm/agent-sdk/case.ts.tmpl` (the case-shape source for the declarative runner) updated to mark the `interactions` field as forbidden in declarative mode (a top-level type or runtime guard, depending on what makes the rejection reliable)."
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/llm/agent-sdk/case.ts.tmpl
+  - id: D03
+    text: "Per-target rollup in the runner (the path that writes `evals/_runs/<ts>/llm.yml`) annotates each row with `backend: declarative` (constant — this runner only handles declarative cases) and `requires_interaction: false` (constant — anything else is rejected upstream)."
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/llm/agent-sdk/writer.ts.tmpl
+  - id: D04
+    text: "Targeted unit tests for the new validation: a fixture case that declares `interactions` MUST cause `validateEnriched` (or the equivalent check) to throw with a specific error message that names the offending case id."
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/declarative-validate-enriched-interactions.test.ts
+artifacts:
+  - path: plugins/zoto-eval-system/templates/llm/agent-sdk/case.ts.tmpl
+    kind: modified
+    note: DeclarativeForbiddenInteractions type, caseDeclaresInteractions, validateEnriched rejection
+  - path: plugins/zoto-eval-system/templates/llm/agent-sdk/writer.ts.tmpl
+    kind: modified
+    note: per-row backend declarative and requires_interaction false
+  - path: plugins/zoto-eval-system/templates/llm/agent-sdk/runner.ts.tmpl
+    kind: modified
+    note: rejection stderr mentions scripted interactions
+  - path: plugins/zoto-eval-system/engine/case.ts
+    kind: modified
+    note: engine mirror for #eval-engine and evals/_llm/case.ts re-export
+  - path: plugins/zoto-eval-system/engine/writer.ts
+    kind: modified
+    note: engine mirror for per-row annotations
+  - path: plugins/zoto-eval-system/tests/declarative-validate-enriched-interactions.test.ts
+    kind: created
+    note: 3 vitest cases — accept, validateEnriched reject, assertNoDeclarativeInteractions throw
+errors: []
+notes: |
+  Targeted vitest: 3/3 passed (declarative-validate-enriched-interactions.test.ts).
+  tsc --noEmit clean on engine/case.ts, engine/writer.ts, and the new test file.
+  No edits to code-strategy templates or live plugins/*/evals/**/*.json files.
+extra:
+  vitest_command: pnpm exec vitest run plugins/zoto-eval-system/tests/declarative-validate-enriched-interactions.test.ts --config plugins/zoto-eval-system/vitest.config.ts
+  tsc_command: pnpm exec tsc --noEmit plugins/zoto-eval-system/engine/case.ts plugins/zoto-eval-system/engine/writer.ts plugins/zoto-eval-system/tests/declarative-validate-enriched-interactions.test.ts --module ESNext --moduleResolution bundler --target ES2022 --strict --skipLibCheck --types node
+  judge:
+    verdict: verified
+    at: "2026-05-26T01:30:00+10:00"
+    notes: |
+      case.ts.tmpl and engine/case.ts reject non-empty interactions via validateEnriched and
+      assertNoDeclarativeInteractions with case-id in the error. writer.ts.tmpl and engine/writer.ts emit
+      per-row backend declarative and requires_interaction false. runner.ts.tmpl stderr mentions scripted
+      interactions in rejection banner. Vitest declarative-validate-enriched-interactions.test.ts 3/3 passed;
+      scoped tsc on engine files clean. No code-strategy template or live plugins/*/evals JSON edits.
+    fix_list: []

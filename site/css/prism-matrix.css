@@ -1,0 +1,123 @@
+/* ==========================================================================
+ * site/css/prism-matrix.css — Charcoal-flavoured override for prism-tomorrow.
+ *
+ * Loads AFTER the CDN prism-tomorrow.min.css on every page. We retint the
+ * colour channels to warm neutrals and amber tones that sit comfortably on
+ * top of the charcoal palette (`#d4d4d4` body text on `#0d0d0d` background).
+ *
+ * Tested against: bash, json, ts, javascript, markdown, yaml.
+ *
+ * Contrast targets:
+ *   - keywords / functions / operators >= 7:1 against the code-block bg
+ *     (`var(--matrix-surface)` ~ `#141414`).
+ *   - comments dimmed at #737373 (~ 4.5:1) — muted gray that meets
+ *     WCAG AA for normal text against `#141414`.
+ * ========================================================================== */
+
+pre[class*="language-"],
+code[class*="language-"] {
+  color: var(--matrix-text);
+  background: var(--matrix-surface);
+  text-shadow: none;
+  font-family: var(--font-mono);
+}
+
+:not(pre) > code[class*="language-"] {
+  background: var(--matrix-surface);
+  color: var(--matrix-text);
+}
+
+.token.namespace {
+  opacity: 0.7;
+}
+
+/* Comments */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #737373;
+  font-style: italic;
+}
+
+/* Punctuation */
+.token.punctuation,
+.token.delimiter {
+  color: #8a8a8a;
+}
+
+/* Booleans / numbers / constants / properties */
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted,
+.token.property {
+  color: #d4a574;
+}
+
+/* Strings / attribute values */
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.url,
+.token.inserted {
+  color: #e8c07a;
+}
+
+/* Operators / entities */
+.token.operator,
+.token.entity,
+.token.variable {
+  color: #b0b0b0;
+  background: transparent;
+}
+
+/* Keywords */
+.token.atrule,
+.token.attr-value,
+.token.keyword,
+.token.important,
+.token.class-name {
+  color: #e0e0e0;
+  font-weight: 600;
+}
+
+/* Functions / regex */
+.token.function,
+.token.regex {
+  color: #d4a574;
+}
+
+/* Tag names */
+.token.tag {
+  color: #d4a574;
+}
+
+/* Diff / deleted */
+.token.deleted {
+  color: #e07070;
+}
+
+/* Diff / inserted */
+.token.inserted {
+  color: #a0c8a0;
+}
+
+/* Bold / italic */
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+/* Selection */
+pre[class*="language-"] ::selection,
+code[class*="language-"] ::selection {
+  background: rgba(232, 192, 122, 0.2);
+  color: #e0e0e0;
+}

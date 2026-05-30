@@ -1,0 +1,62 @@
+schema_version: 1
+subtask_id: "04"
+feature: Eval Single Backend & Co-located Restructure
+assigned_agent: zoto-eval-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-26T11:06:18Z"
+completed_at: "2026-05-26T11:23:00Z"
+checklist:
+  - id: D01
+    text: '`evals/vitest.config.ts` — `root: path.resolve(__dirname, "..")` (the repo root); `include: ["**/evals/*.test.ts", "evals/*.test.ts", "evals/smoke-static-eval.test.ts"]`; `exclude: ["**/node_modules/**", "**/_runs/**", "**/fixtures/**", "**/_llm/**", "evals/llm/_shared/**", "evals/llm/test_*.test.ts"]` (the last exclude prevents the migration window — when both old `evals/llm/test_*.test.ts` and new co-located files exist — from running tests twice; subtask 08 removes those old files and the exclude becomes a no-op)'
+    done: true
+    evidence_path: evals/vitest.config.ts
+  - id: D02
+    text: '`evals/vitest.config.ts` — keep the `setupFiles: ["./setup.ts"]` and the existing reporter wiring (both `default` and `./reporters/zoto-eval-reporter.ts`)'
+    done: true
+    evidence_path: evals/vitest.config.ts
+  - id: D03
+    text: "`evals/vitest.config.ts` — add the `#eval-engine` alias currently in `evals/llm/vitest.config.ts` (`resolve.alias` mapping to `plugins/zoto-eval-system/engine`) so co-located tests can import the engine without long relative paths"
+    done: true
+    evidence_path: evals/vitest.config.ts
+  - id: D04
+    text: "`evals/vitest.config.ts` — add the LLM reporter (`evals/llm/_shared/zoto-llm-reporter.ts`) to the `reporters` array; the LLM reporter MUST partition files by path (writing `llm.yml` for `<kind>/evals/<name>.test.ts` matches, skipping `evals/smoke-static-eval.test.ts`)"
+    done: true
+    evidence_path: evals/llm/_shared/zoto-llm-reporter.ts
+  - id: D05
+    text: "`evals/llm/vitest.config.ts` — DELETED (since the unified config takes over). If you'd rather keep it as a thin re-export for backwards compatibility, the file must `export { default } from \"../vitest.config.js\"` and add no new keys; the cleaner option is deletion"
+    done: true
+    evidence_path: null
+  - id: D06
+    text: Verify `evals/reporters/zoto-eval-reporter.ts` still writes `evals/_runs/<runId>/static.yml` (no path change needed in this subtask) and `evals/llm/_shared/zoto-llm-reporter.ts` still writes `evals/_runs/<ts>/llm.yml` + `logs/` (no path change needed)
+    done: true
+    evidence_path: evals/reporters/zoto-eval-reporter.ts
+  - id: D07
+    text: "Verify the reporter partitioning rule: a file matching `**/evals/*.test.ts` (co-located) is treated as LLM; `evals/smoke-static-eval.test.ts` is treated as static. The reporters MUST implement this partitioning explicitly — either by filename glob or by a marker frontmatter line `// _meta.eval_kind: llm | static` (defaulting to LLM when matching a `<kind>/evals/` path)"
+    done: true
+    evidence_path: evals/reporters/zoto-eval-reporter.ts
+  - id: D08
+    text: "Smoke run: `pnpm vitest run --config evals/vitest.config.ts` against the CURRENT layout (no co-located files yet) MUST exit 0 and only execute `evals/smoke-static-eval.test.ts`. (The existing `evals/llm/test_*.test.ts` files are excluded by the new include/exclude rules above.)"
+    done: true
+    evidence_path: null
+artifacts:
+  - path: evals/vitest.config.ts
+    kind: modified
+    notes: Unified vitest config rooted at repo root; reporters array contains static + LLM shims; #eval-engine alias migrated from the deleted evals/llm/vitest.config.ts.
+  - path: evals/reporters/zoto-eval-reporter.ts
+    kind: modified
+    notes: Added isStaticEvalPath partition filter in onTestCaseResult and a cases.length === 0 short-circuit in onTestRunEnd.
+  - path: evals/llm/_shared/zoto-llm-reporter.ts
+    kind: modified
+    notes: Added isLlmCoLocatedPath, deferred logs/ mkdirSync behind ensureLogsDir, refreshed docstring, and appended default-exported ZotoLlmVitestReporter shim that flushes on onTestRunEnd when buffered cases exist.
+  - path: evals/llm/vitest.config.ts
+    kind: deleted
+    notes: Cleaner-option deletion per the spec; subtask 03/06 re-wires the eval:llm:code package.json script.
+errors: []
+notes: |
+  - Smoke run: `pnpm vitest run --config evals/vitest.config.ts` exits 0; 5 test files (smoke + 4 stamped pilots), 224 tests passing, ~700ms wall time.
+  - Glob/partitioning probe confirmed co-located files are discovered AND filtered out of `static.yml`; no `llm.yml` or empty `logs/` directory is created when LLM tests don't call `reportCase`.
+  - `tsconfig.json` referenced by DoD02 does not exist at the repo root. Equivalent type-check via a temporary config produced only the pre-existing `evals/llm/_shared/sandbox-helpers.ts` → `CaseFixtures` error, verified to be present in HEAD by stashing my changes.
+  - Deliverable D08 text ("only execute smoke") contradicts DoD01/DoD03 (which expect the 4 legacy stamped pilots). Resolved per DoD intent: the include glob admits both `evals/smoke-*.test.ts` and `evals/test_*.test.ts`.
+extra: {}

@@ -1,0 +1,82 @@
+{
+  "_template_doc": [
+    "REFERENCE ONLY — authoring aid. Executable hook eval JSON is stamped by:",
+    "`pnpm exec tsx scripts/eval-analyse.ts hook:<plugin|cursor>` then",
+    "`pnpm exec tsx scripts/eval-stamp.ts hook:<plugin|cursor>` (cursor → `.cursor/evals/hooks/hooks.json`).",
+    "`hook:cursor` expands to one eval case per handler entry enumerated in `.cursor/hooks.json`",
+    "(or `.cursor/hooks/hooks.json` when present).",
+    "Runner case example (advanced TS escape hatch):",
+    "{ \"id\": \"adv-1\", \"runner\": \"./adv.test.ts\", \"parameters\": {} }",
+    "---"
+  ],
+  "target_id": "hook:{{HOOK_PLUGIN}}",
+  "hook_plugin": "{{HOOK_PLUGIN}}",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "{{PROMPT_A}}",
+      "expected_output": "{{EXPECTED_A}}",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/plugins/{{HOOK_PLUGIN}}/hooks/hooks.json",
+            "from": "plugins/{{HOOK_PLUGIN}}/hooks/hooks.json"
+          },
+          {
+            "path": "workspace/plugins/{{HOOK_PLUGIN}}/hooks/session-hook.mjs",
+            "from": "plugins/{{HOOK_PLUGIN}}/hooks/session-hook.mjs"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": ["hook-events/{{HOOK_PLUGIN}}/sessionStart/1/stdout.json"],
+        "modified": ["workspace/plugins/{{HOOK_PLUGIN}}/hooks/session-hook.mjs"],
+        "unchanged": []
+      },
+      "files": [],
+      "assertions": [
+        "On sessionStart (per hooks.json), the configured hook command executed without skipping documented drift/eval nudge behaviour",
+        "Hook output respected hooks.json description for plugin {{HOOK_PLUGIN}}"
+      ],
+      "graders": [],
+      "_meta": {
+        "generated": true,
+        "source_hash": "{{SOURCE_HASH}}",
+        "primitive_analysis_hash": "{{PRIMITIVE_ANALYSIS_HASH}}",
+        "last_updated": "{{LAST_UPDATED}}",
+        "generated_by": "zoto-create-evals"
+      }
+    },
+    {
+      "id": 2,
+      "prompt": "{{PROMPT_B}}",
+      "expected_output": "{{EXPECTED_B}}",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/plugins/{{HOOK_PLUGIN}}/hooks/hooks.json",
+            "from": "plugins/{{HOOK_PLUGIN}}/hooks/hooks.json"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": [],
+        "modified": ["workspace/tmp/hooks-sandbox/trace.log"]
+      },
+      "files": [],
+      "assertions": [
+        "The hook script referenced in hooks.json exited cleanly under normal repo conditions",
+        "No askQuestion usage — hooks are non-interactive event handlers"
+      ],
+      "graders": [],
+      "_meta": {
+        "generated": true,
+        "source_hash": "{{SOURCE_HASH}}",
+        "primitive_analysis_hash": "{{PRIMITIVE_ANALYSIS_HASH}}",
+        "last_updated": "{{LAST_UPDATED}}",
+        "generated_by": "zoto-create-evals",
+        "partial": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+schema_version: 1
+subtask_id: "02"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: explore
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-26T00:00:00.000Z
+last_heartbeat: 2026-05-25T15:18:20.477Z
+completed_at: 2026-05-26T00:16:00.000Z
+git_sha: e49961f
+checklist:
+  - id: D01
+    text: "`specs/20260526-eval-askquestion-strategy-bridge/audit/eval-corpus-inventory.md` — human-readable table listing every target id (from `.zoto/eval-system/manifest.yml#targets[]`), the source path, the present `eval_files[]`, the stamped `evals/llm/test_<kind>_<name>.test.ts` (if any), and the heuristic classification (`interaction_evidence` field citing the source line that contains `AskQuestion` / `askQuestion`, or `none`)."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/eval-corpus-inventory.md
+  - id: D02
+    text: '`specs/20260526-eval-askquestion-strategy-bridge/audit/eval-corpus-baseline.json` — machine-readable mirror keyed by `target_id` → `{ kind, source_path, eval_files: [...], llm_test_path: string | null, requires_interaction: boolean, interaction_style: "command-owned" | "subagent-escalated" | "none", interaction_evidence: string[], generated_case_count: number, user_authored_case_count: number, migration_class: "migrate-to-declarative" | "keep-code-bridge-only" | "user-authored-byte-preserve" | "no-eval-yet" }`.'
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/eval-corpus-baseline.json
+  - id: D03
+    text: "Migration-class summary appended to `eval-corpus-inventory.md` (rows: kind; columns: each migration_class; cells: count)."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/eval-corpus-inventory.md#migration-class-by-kind
+  - id: D04
+    text: "Reconciliation note: every `evals/llm/test_*.test.ts` file is accounted for in the baseline JSON; every manifest target either has a stamped LLM test or is documented as `no-eval-yet`."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/eval-corpus-inventory.md#reconciliation
+artifacts:
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/eval-corpus-inventory.md
+    kind: created
+    note: Human-readable inventory table plus migration summary for 52 manifest targets
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/eval-corpus-baseline.json
+    kind: created
+    note: Machine-readable baseline keyed by target_id (43 LLM tests reconciled)
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/build-eval-corpus-baseline.py
+    kind: created
+    note: Regenerates inventory and baseline from manifest plus static source scan
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/build-eval-corpus-baseline.py
+    kind: modified
+    note: Emit eval_files[] column in inventory table
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/eval-corpus-inventory.md
+    kind: modified
+    note: Regenerated with eval_files[] column per target
+errors: []
+notes: "Manifest lists 52 targets (not 56). Cross-checked pnpm run eval:list total=299. Migration totals: keep-code-bridge-only=32, migrate-to-declarative=11, no-eval-yet=9, user-authored-byte-preserve=0."
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-26T16:30:00.000Z
+    notes: "Re-verified after fix: eval-corpus-inventory.md target table now includes eval_files[] column (header line 41; paths populated or em-dash). All four deliverables confirmed: 52 manifest targets, 43 LLM tests (0 orphans), migration totals sum to 52, no null requires_interaction/interaction_style, eval:list total=299."
+    fix_list: []

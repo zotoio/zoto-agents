@@ -1,0 +1,75 @@
+schema_version: 1
+subtask_id: "05"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: '`evals/llm/_shared/askquestion-bridge.ts` — new module exporting the surface pinned by the ADR. At minimum: a "create agent with scripted answers" entry point, an "advance run with answer injection" helper, and a `CodeStrategyCaseDefinition`-compatible accessor that downstream cases use to declare their scripted answers.'
+    done: true
+    evidence_path: evals/llm/_shared/askquestion-bridge.ts
+  - id: D02
+    text: "`evals/llm/_shared/askquestion-bridge.test.ts` — vitest unit tests covering: (a) creating an agent with scripted answers; (b) advancing through a happy-path interaction sequence; (c) the fallback path when the SDK lacks native interception; (d) the error case when the runner exhausts scripted answers before the run finishes; (e) the round-trip with `runCase` from `run-code-strategy-suite.ts` — driven by stubbed agent/run mocks."
+    done: true
+    evidence_path: evals/llm/_shared/askquestion-bridge.test.ts
+  - id: D03
+    text: "`evals/llm/_shared/code-strategy-case.ts` extended with an optional `interactions?: { questions: string[]; answers: string[] }` field (or whatever shape the ADR pins). The existing `follow_ups[]` shape stays — both fields can coexist for the migration window. Add JSDoc that explains the ordering precedence."
+    done: true
+    evidence_path: evals/llm/_shared/code-strategy-case.ts
+  - id: D04
+    text: Re-export entry in any `_shared/` package barrel (if one exists; create the barrel `evals/llm/_shared/index.ts` if not).
+    done: true
+    evidence_path: evals/llm/_shared/index.ts
+  - id: D05
+    text: Brief module README comment block at the top of `askquestion-bridge.ts` mirroring the discipline in `sdk-bridge.ts` (cite consumers, document the fallback, pin the SDK version this was last verified against).
+    done: true
+    evidence_path: evals/llm/_shared/askquestion-bridge.ts
+artifacts:
+  - path: evals/llm/_shared/askquestion-bridge.ts
+    kind: created
+    note: ADR-pinned askquestion bridge module with synthetic fallback
+  - path: evals/llm/_shared/askquestion-bridge.test.ts
+    kind: created
+    note: Vitest unit tests (10 cases) with stubbed agent/run mocks
+  - path: evals/llm/_shared/code-strategy-case.ts
+    kind: modified
+    note: CaseInteractions interface and interactions field with precedence JSDoc
+  - path: evals/llm/_shared/index.ts
+    kind: created
+    note: Barrel re-export for _shared helpers
+  - path: evals/llm/_shared/vitest.config.ts
+    kind: created
+    note: Local vitest config for _shared unit tests
+  - path: evals/llm/_shared/tsconfig.json
+    kind: created
+    note: Scoped tsc --noEmit for touched _shared files
+errors: []
+notes: |
+  Implemented ADR-pinned synthetic fallback (SDK 1.0.12). Exported resolveInteractionPlanFromCase,
+  beginScriptedInteractionCase, runCaseWithScriptedAnswers, observeToolCallsFromRun,
+  formatSyntheticAnswer, ScriptedAnswersExhaustedError, ASKQUESTION_BRIDGE_SURFACE.
+  Tests: 10/10 pass via `pnpm exec vitest run evals/llm/_shared/askquestion-bridge.test.ts`.
+  tsc: `pnpm exec tsc --noEmit -p evals/llm/_shared/tsconfig.json` clean.
+  No edits to sdk-bridge.ts, run-code-strategy-suite.ts, or test_*.test.ts.
+extra:
+  git_sha: e49961f
+  tests_passed: 10
+  tests_total: 10
+  judge:
+    verdict: verified
+    at: "2026-05-26T01:22:00+10:00"
+    notes: |
+      Independently confirmed all five deliverables on disk against ADR sdk-askquestion-adr.md.
+      Module exports resolveInteractionPlanFromCase, beginScriptedInteractionCase,
+      runCaseWithScriptedAnswers, and the full ADR-pinned surface; synthetic fallback and
+      interaction_style tagging are documented in the module header. code-strategy-case.ts
+      adds CaseInteractions with precedence JSDoc only. Barrel index.ts re-exports bridge,
+      case types, and sdk-bridge. Re-ran vitest (10/10 pass) and tsc --noEmit -p
+      evals/llm/_shared/tsconfig.json (clean). git diff shows zero changes to
+      sdk-bridge.ts and run-code-strategy-suite.ts; no askquestion-bridge references in
+      stamped test_*.test.ts. Advisory: askquestion-bridge.ts imports Run/RunResult/SDKAgent
+      types from @cursor/sdk directly rather than via sdk-bridge re-exports (implementation
+      note preference; non-blocking).
+    fix_list: []

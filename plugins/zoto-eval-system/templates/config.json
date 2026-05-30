@@ -1,0 +1,43 @@
+{
+  "evalsDir": "evals",
+  "skillsRoots": [".cursor/skills", "skills", "plugins/*/skills"],
+  "discoveryTargets": ["skill", "command", "agent", "hook"],
+  "static": {
+    "framework": "pytest"
+  },
+  "llm": {
+    "runtime": "tsx",
+    "model": {
+      "id": "composer-2.5"
+    }
+  },
+  "judgeModel": "opus-4.6",
+  "manualChecklists": {
+    "enabled": false
+  },
+  "additionalAutomation": [],
+  "ignore": [],
+  "analyser": {
+    "concurrency": 4,
+    "maxCallsPerInvocation": 50
+  },
+  "runs": {
+    "retention": 30
+  },
+  "update": {
+    "criticalChangeRules": {
+      "addedTargetWithoutCoverage": true,
+      "removedTargetWithActiveCases": true,
+      "skillFrontmatterChange": true,
+      "publicSurfaceChange": true,
+      "promptTemplateChange": true
+    },
+    "preserveUserAuthoredCases": true,
+    "writeMetaMarker": true,
+    "manifestPath": "manifest.yml",
+    "historyPath": "manifest.history.yml",
+    "rediscoverWithSameDefaults": true,
+    "checkExitCodeOnCriticalDrift": 2,
+    "failOnNoAnalyserInCI": false
+  }
+}

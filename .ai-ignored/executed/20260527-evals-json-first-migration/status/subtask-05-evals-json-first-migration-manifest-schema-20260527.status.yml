@@ -1,0 +1,72 @@
+schema_version: 1
+subtask_id: "05"
+feature: evals-json-first-migration
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-29T19:10:00.000Z"
+last_heartbeat: "2026-05-29T19:14:00.000Z"
+completed_at: "2026-05-29T19:14:00.000Z"
+git_sha: 1fa87d469166c5a78ba836ca4bebb8667fcdc6fb
+checklist:
+  - id: D01
+    text: "Update `plugins/zoto-eval-system/templates/schema/manifest.schema.json`:"
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/schema/manifest.schema.json
+  - id: D02
+    text: "Update `plugins/zoto-eval-system/tests/plugin.test.ts` (or the schema compile test): add an Ajv compile test that:"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/plugin.test.ts
+  - id: D03
+    text: Update any TypeScript types for the manifest snapshot (`engine/manifest-snapshot.ts`) so the documented contract matches the new constraint. If the type currently allows any string, narrow the JSDoc to reference the schema and note `.json` requirement. No runtime change beyond the JSDoc.
+    done: true
+    evidence_path: plugins/zoto-eval-system/engine/manifest-snapshot.ts
+  - id: D04
+    text: Update `templates/manifest.yml.tmpl` (if it exists; check `plugins/zoto-eval-system/templates/` and `baseline-fixtures/`) so the bootstrap manifest emits `.json` eval files for examples.
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/llm/agent-sdk/update.ts.tmpl
+  - id: D05
+    text: Update `scripts/validate-template.mjs` or add a new lightweight validator step that warns when a co-located `<kind>/evals/<name>.test.ts` LLM eval file exists alongside a manifest entry pointing to `.json` — this is a transitional check to surface drift during the migration window (subtask 10 will tighten it to an error).
+    done: true
+    evidence_path: scripts/validate-template.mjs
+  - id: D06
+    text: Update `evals/fixtures/baseline/.zoto/eval-system/config.yml` and any other baseline fixtures only if they currently contain references to `.test.ts` LLM eval files; otherwise leave them alone.
+    done: true
+    evidence_path: null
+  - id: D07
+    text: "Add a JSDoc / Markdown note (top of schema file or `plugins/zoto-eval-system/docs/manifest.md` if present) explaining: scenarios under `evals/scenarios/<name>.test.ts` are **intentionally not tracked in the manifest** and the schema does not need to allow them."
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/schema/manifest.schema.json
+artifacts:
+  - path: plugins/zoto-eval-system/templates/schema/manifest.schema.json
+    kind: modified
+    note: kind-conditioned eval_files patterns (.json non-skill, evals.json skill) + scenario exclusion description
+  - path: plugins/zoto-eval-system/tests/plugin.test.ts
+    kind: modified
+    note: four fixture-manifest Ajv tests for eval_files constraints
+  - path: plugins/zoto-eval-system/engine/manifest-snapshot.ts
+    kind: modified
+    note: JSDoc documents JSON-first eval_files contract
+  - path: scripts/validate-template.mjs
+    kind: modified
+    note: warnJsonFirstMigrationDrift transitional warning (warn-only)
+errors: []
+notes: |
+  D04: no `manifest.yml.tmpl` exists; `templates/llm/agent-sdk/update.ts.tmpl` already emits skill `evals/evals.json` only. D06: baseline fixtures contain comment prose about `.test.ts` harness paths but no manifest `eval_files` references — left unchanged per spec. Verified `engine/update.ts` discovery uses `.json` co-located paths and `findCoLocatedTsEvals`/`loadAndValidateEvalFile` helpers from ST04; no runtime changes required in this subtask. Production `.zoto/eval-system/manifest.yml` not rewritten here (ST07).
+extra:
+  judge:
+    verdict: verified
+    at: "2026-05-29T19:16:30.000Z"
+    notes: >-
+      Independently confirmed manifest.schema.json kind-conditioned eval_files patterns
+      (.json$ non-skill, evals.json$ skill), scenario-exclusion description, and
+      eval-file.schema.json inclusion via the compile-all-schemas loop. Four fixture-manifest
+      Ajv tests pass; manifest-snapshot JSDoc documents the JSON-first contract; no
+      manifest.yml.tmpl exists and update.ts.tmpl already emits evals/evals.json; baseline
+      fixtures unchanged (comment-only .test.ts prose); warnJsonFirstMigrationDrift is
+      warn-only in validate-template.mjs. HEAD commit manifest.yml still lists .test.ts
+      eval_files (ST07 scope); uncommitted manifest rewrites are out of ST05 artifacts.
+      Modified files have no linter errors; schema-specific tests pass (full plugin.test
+      has one unrelated zoto-eval-tooling skill-eval failure).
+    fix_list: []

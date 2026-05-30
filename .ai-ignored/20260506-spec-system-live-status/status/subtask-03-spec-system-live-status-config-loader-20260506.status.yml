@@ -1,0 +1,72 @@
+schema_version: 1
+subtask_id: "03"
+feature: spec-system-live-status
+assigned_agent: crux-software-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`plugins/zoto-spec-system/src/config-loader.ts` — public surface:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/src/config-loader.ts
+  - id: D02
+    text: "`plugins/zoto-spec-system/src/config-loader.test.ts` — vitest unit tests:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/src/config-loader.test.ts
+  - id: D03
+    text: '`plugins/zoto-spec-system/src/index.ts` (new or extended) — re-exports the loader so other plugin code can `import { loadConfig } from "@zoto-agents/zoto-spec-system"`'
+    done: true
+    evidence_path: plugins/zoto-spec-system/src/index.ts
+  - id: D04
+    text: "`plugins/zoto-spec-system/templates/config.json` — extend with the new defaults (preserving existing keys):"
+    done: true
+    evidence_path: plugins/zoto-spec-system/templates/config.json
+  - id: D05
+    text: "`plugins/zoto-spec-system/docs/example-config.json` — extend with a more complete example showing per-role overrides (left for subtask 09 to refine if needed; create a minimal copy here so the loader's \"fully populated\" test fixture stays close to docs)"
+    done: true
+    evidence_path: plugins/zoto-spec-system/docs/example-config.json
+  - id: D06
+    text: "`plugins/zoto-spec-system/package.json` — add the runtime deps (`ajv@^8`, `ajv-formats@^3`, `yaml@^2`) and the dev dep (`@types/node`); use the latest minor / patch versions and run via `pnpm` (the repo's package manager). Use the `yaml` package (matches `plugins/zoto-eval-system`'s existing usage of `import YAML from \"yaml\"`); do **not** introduce `js-yaml`. The user's preference is `yarn`, but this plugin already uses `pnpm` per the repo's `pnpm-workspace.yaml` — keep `pnpm` here for consistency and call that out in the work log."
+    done: true
+    evidence_path: plugins/zoto-spec-system/package.json
+  - id: D07
+    text: '`plugins/zoto-spec-system/tsconfig.json` — extend `include` to add `"src/**/*.ts"` so the new loader, integration tests, and downstream subtask 07 modules are typechecked. Current include is `["scripts/**/*.ts", "tests/**/*.ts", "hooks/**/*.ts"]`.'
+    done: true
+    evidence_path: plugins/zoto-spec-system/tsconfig.json
+  - id: D08
+    text: Re-export `SpecSystemConfig`, `loadConfig`, `resolveSubagentBudget` from the plugin package's main entry so external scripts can import them.
+    done: true
+    evidence_path: plugins/zoto-spec-system/src/index.ts
+artifacts:
+  - path: plugins/zoto-spec-system/src/config-loader.ts
+    kind: created
+    note: schema-validated synchronous loader
+  - path: plugins/zoto-spec-system/src/config-loader.test.ts
+    kind: created
+    note: vitest coverage for loadConfig and resolveSubagentBudget
+  - path: plugins/zoto-spec-system/src/index.ts
+    kind: created
+    note: public package entry re-exports
+  - path: plugins/zoto-spec-system/templates/config.json
+    kind: modified
+    note: defaults for aggregator and subagents
+  - path: plugins/zoto-spec-system/docs/example-config.json
+    kind: created
+    note: example with per-role overrides
+  - path: plugins/zoto-spec-system/package.json
+    kind: modified
+    note: ajv, ajv-formats, yaml, @types/node
+  - path: plugins/zoto-spec-system/tsconfig.json
+    kind: modified
+    note: include src/**/*.ts
+errors: []
+notes: ""
+extra:
+  judge:
+    verdict: verified
+    at: 2026-05-06T08:09:00.000Z
+    notes: "All 8 deliverables confirmed on disk; targeted vitest (6/6) green; spec-status-roundtrip validate exit 0; md/yml in sync; no linter errors."
+last_heartbeat: 2026-05-06T08:03:20.945Z
+started_at: 2026-05-06T08:02:52.956Z
+completed_at: 2026-05-06T08:03:20.945Z

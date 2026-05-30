@@ -1,0 +1,16 @@
+export {
+  ConfigValidationError,
+  analyserAgentPath,
+  analyserSchemaPath,
+  configPathForRepo,
+  loadEvalConfig,
+  loadEvalPaths,
+  migrateFromLegacy,
+  resolveEvalPaths,
+  resultSchemaPath,
+  type EvalLayoutMode,
+  type EvalPaths,
+  type EvalSystemConfig,
+  type LoadResult,
+  type MigrationResult,
+} from "./config-loader.js";

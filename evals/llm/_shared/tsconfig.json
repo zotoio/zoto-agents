@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"],
+    "lib": ["ES2022"],
+    "baseUrl": "../../..",
+    "paths": {
+      "#eval-engine/*": ["plugins/zoto-eval-system/engine/*"]
+    }
+  },
+  "include": [
+    "./askquestion-bridge.ts",
+    "./askquestion-bridge.test.ts",
+    "./index.ts",
+    "./llm-case.ts",
+    "./run-llm-suite.ts",
+    "./run-llm-suite.test.ts",
+    "./sdk-bridge.ts",
+    "./_user-case-guards.ts",
+    "./zoto-create-plugin-suite.ts",
+    "./zoto-create-plugin-suite.test.ts"
+  ]
+}

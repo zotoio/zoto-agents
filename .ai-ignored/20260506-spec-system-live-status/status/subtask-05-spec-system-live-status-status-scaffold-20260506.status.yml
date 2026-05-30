@@ -1,0 +1,60 @@
+schema_version: 1
+subtask_id: "05"
+feature: spec-system-live-status
+assigned_agent: crux-software-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: 2026-05-06T08:03:30.917Z
+last_heartbeat: 2026-05-06T08:05:12.606Z
+checklist:
+  - id: D01
+    text: "`plugins/zoto-spec-system/scripts/spec-status-roundtrip.ts` — `tsx` CLI with sub-commands:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/scripts/spec-status-roundtrip.ts
+  - id: D02
+    text: "`plugins/zoto-spec-system/scripts/spec-status-roundtrip.test.ts` — vitest unit tests:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/scripts/spec-status-roundtrip.test.ts
+  - id: D03
+    text: "`plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md` — extend Step 6 (Create Spec Files) to add a sub-step:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md
+  - id: D04
+    text: "`plugins/zoto-spec-system/agents/zoto-spec-generator.md` — update the Spec Directory Structure block to show the new layout:"
+    done: true
+    evidence_path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
+  - id: D05
+    text: "`plugins/zoto-spec-system/commands/zoto-spec-create.md` — append the row about scaffolding `status/`."
+    done: true
+    evidence_path: plugins/zoto-spec-system/commands/zoto-spec-create.md
+  - id: D06
+    text: "`plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json` — add **one new eval case** (do not delete existing cases):"
+    done: true
+    evidence_path: plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+artifacts:
+  - path: plugins/zoto-spec-system/scripts/spec-status-roundtrip.ts
+    kind: created
+    note: tsx CLI md-from-yml yml-from-md scaffold validate heartbeat
+  - path: plugins/zoto-spec-system/scripts/spec-status-roundtrip.test.ts
+    kind: created
+    note: vitest coverage for round-trip and scaffold
+  - path: plugins/zoto-spec-system/package.json
+    kind: modified
+    note: yaml ajv deps and spec-status-roundtrip script
+  - path: plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md
+    kind: modified
+    note: Step 6.4 scaffold status pairs
+  - path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
+    kind: modified
+    note: spec dir layout status/ and aggregator callout
+  - path: plugins/zoto-spec-system/commands/zoto-spec-create.md
+    kind: modified
+    note: document status/ scaffolding in command
+  - path: plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+    kind: modified
+    note: new eval case for status scaffolding
+errors: []
+notes: ""
+extra: {}
+completed_at: 2026-05-06T08:05:12.606Z

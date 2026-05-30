@@ -1,0 +1,363 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-25T06:57:21.999Z",
+  "summary": {
+    "file_count": 48,
+    "case_count_total": 299,
+    "case_count_generated": 258,
+    "case_count_user_authored": 41,
+    "container_shapes": {
+      "cases[]": 30,
+      "evals[]": 8,
+      "mixed": 10
+    },
+    "manifest_eval_files_count": 47,
+    "missing_from_manifest_count": 1,
+    "broken_pointer_count": 0
+  },
+  "manifest_reconciliation": {
+    "missing_from_manifest": [
+      {
+        "path": "plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json",
+        "explanation": "Discovered by eval:list and in-scope enumeration; not listed in manifest.yml eval_files[] (byte-preserve per Subtask 09)."
+      }
+    ],
+    "broken_pointers": []
+  },
+  "files": {
+    "plugins/zoto-eval-system/evals/commands/z-eval-advise.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-advise",
+      "case_count_generated": 9,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-compare.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-compare",
+      "case_count_generated": 4,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-configure.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-configure",
+      "case_count_generated": 9,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-create.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-create",
+      "case_count_generated": 3,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-execute.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-execute",
+      "case_count_generated": 6,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-help.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-help",
+      "case_count_generated": 7,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-init.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-init",
+      "case_count_generated": 5,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-judge.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-judge",
+      "case_count_generated": 3,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-jump.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-jump",
+      "case_count_generated": 2,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-operator.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-operator",
+      "case_count_generated": 2,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-start.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-start",
+      "case_count_generated": 4,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-update.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-update",
+      "case_count_generated": 9,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/commands/z-eval-workflow.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-eval-workflow",
+      "case_count_generated": 11,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/agents/zoto-eval-adviser.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-eval-adviser",
+      "case_count_generated": 6,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/agents/zoto-eval-analyser-subagent.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-eval-analyser-subagent",
+      "case_count_generated": 6,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/agents/zoto-eval-comparer.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-eval-comparer",
+      "case_count_generated": 3,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/agents/zoto-eval-configurer.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-eval-configurer",
+      "case_count_generated": 10,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/agents/zoto-eval-executor.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-eval-executor",
+      "case_count_generated": 4,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/agents/zoto-eval-generator.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-eval-generator",
+      "case_count_generated": 5,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/agents/zoto-eval-judge.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-eval-judge",
+      "case_count_generated": 3,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/agents/zoto-eval-updater.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-eval-updater",
+      "case_count_generated": 10,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/evals/hooks/zoto-eval-system.json": {
+      "container_shape": "cases[]",
+      "target_id": "hook:zoto-eval-system",
+      "case_count_generated": 4,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/skills/zoto-advise-evals/evals/evals.json": {
+      "container_shape": "evals[]",
+      "target_id": "zoto-advise-evals",
+      "case_count_generated": 0,
+      "case_count_user_authored": 4,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/skills/zoto-compare-evals/evals/evals.json": {
+      "container_shape": "mixed",
+      "target_id": "zoto-compare-evals",
+      "case_count_generated": 2,
+      "case_count_user_authored": 2,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/skills/zoto-configure-evals/evals/evals.json": {
+      "container_shape": "mixed",
+      "target_id": "zoto-configure-evals",
+      "case_count_generated": 7,
+      "case_count_user_authored": 2,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json": {
+      "container_shape": "mixed",
+      "target_id": "zoto-create-evals",
+      "case_count_generated": 5,
+      "case_count_user_authored": 3,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json": {
+      "container_shape": "evals[]",
+      "target_id": "zoto-eval-tooling",
+      "case_count_generated": 8,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/skills/zoto-execute-evals/evals/evals.json": {
+      "container_shape": "mixed",
+      "target_id": "zoto-execute-evals",
+      "case_count_generated": 7,
+      "case_count_user_authored": 3,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json": {
+      "container_shape": "mixed",
+      "target_id": "zoto-help-evals",
+      "case_count_generated": 13,
+      "case_count_user_authored": 3,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/skills/zoto-judge-evals/evals/evals.json": {
+      "container_shape": "mixed",
+      "target_id": "zoto-judge-evals",
+      "case_count_generated": 5,
+      "case_count_user_authored": 3,
+      "manifest_listed": true
+    },
+    "plugins/zoto-eval-system/skills/zoto-update-evals/evals/evals.json": {
+      "container_shape": "mixed",
+      "target_id": "zoto-update-evals",
+      "case_count_generated": 9,
+      "case_count_user_authored": 3,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/evals/commands/z-spec-create.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-spec-create",
+      "case_count_generated": 5,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/evals/commands/z-spec-execute.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-spec-execute",
+      "case_count_generated": 9,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/evals/commands/z-spec-init.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-spec-init",
+      "case_count_generated": 4,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/evals/commands/z-spec-judge.json": {
+      "container_shape": "cases[]",
+      "target_id": "command:z-spec-judge",
+      "case_count_generated": 5,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/evals/agents/zoto-spec-executor.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-spec-executor",
+      "case_count_generated": 9,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/evals/agents/zoto-spec-generator.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-spec-generator",
+      "case_count_generated": 6,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/evals/agents/zoto-spec-judge.json": {
+      "container_shape": "cases[]",
+      "target_id": "agent:zoto-spec-judge",
+      "case_count_generated": 4,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/evals/hooks/zoto-spec-system.json": {
+      "container_shape": "cases[]",
+      "target_id": "hook:zoto-spec-system",
+      "case_count_generated": 2,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json": {
+      "container_shape": "mixed",
+      "target_id": "zoto-create-spec",
+      "case_count_generated": 5,
+      "case_count_user_authored": 4,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json": {
+      "container_shape": "mixed",
+      "target_id": "zoto-execute-spec",
+      "case_count_generated": 10,
+      "case_count_user_authored": 5,
+      "manifest_listed": true
+    },
+    "plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json": {
+      "container_shape": "mixed",
+      "target_id": "zoto-judge-spec",
+      "case_count_generated": 4,
+      "case_count_user_authored": 3,
+      "manifest_listed": true
+    },
+    "plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json": {
+      "container_shape": "evals[]",
+      "target_id": "zoto-cursor-top-monitor",
+      "case_count_generated": 0,
+      "case_count_user_authored": 3,
+      "manifest_listed": false
+    },
+    ".cursor/evals/commands/sync-plugins.json": {
+      "container_shape": "evals[]",
+      "target_id": "sync-plugins",
+      "case_count_generated": 2,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    ".cursor/evals/commands/zoto-create-plugin.json": {
+      "container_shape": "evals[]",
+      "target_id": "zoto-create-plugin",
+      "case_count_generated": 3,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    ".cursor/evals/agents/zoto-plugin-manager.json": {
+      "container_shape": "evals[]",
+      "case_count_generated": 6,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    ".cursor/evals/hooks/hooks.json": {
+      "container_shape": "evals[]",
+      "case_count_generated": 3,
+      "case_count_user_authored": 0,
+      "manifest_listed": true
+    },
+    ".cursor/skills/zoto-create-plugin/evals/evals.json": {
+      "container_shape": "evals[]",
+      "target_id": "zoto-create-plugin",
+      "case_count_generated": 0,
+      "case_count_user_authored": 3,
+      "manifest_listed": true
+    }
+  }
+}

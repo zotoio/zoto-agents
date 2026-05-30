@@ -28,17 +28,13 @@ Command names and behaviour are defined by the memory plugin; this guide describ
 ## How to enable
 
 1. Install the **memory plugin** separately (it is not shipped inside the Spec System plugin package).
-2. In `.zoto-spec-system/config.json`, set:
+2. In `.zoto/spec-system/config.yml`, set:
 
-```json
-{
-  "extensions": {
-    "memory": {
-      "enabled": true,
-      "plugin": "crux-memories"
-    }
-  }
-}
+```yaml
+extensions:
+  memory:
+    enabled: true
+    plugin: crux-memories
 ```
 
 - **`extensions.memory.enabled`** — Turn memory integration on or off.
@@ -50,8 +46,8 @@ See [`config-schema.md`](config-schema.md) for defaults and related settings.
 
 A typical flow with memory enabled:
 
-1. **`/zoto-spec-create`** → **`/zoto-spec-judge`** → **`/zoto-spec-execute`** as usual.
-2. After **`/zoto-spec-execute`** completes successfully, the system (or integration rule) **suggests running `/crux-dream`** so learnings from the execution report and outcomes are captured.
+1. **`/z-spec-create`** → **`/z-spec-judge`** → **`/z-spec-execute`** as usual.
+2. After **`/z-spec-execute`** completes successfully, the system (or integration rule) **suggests running `/crux-dream`** so learnings from the execution report and outcomes are captured.
 3. **REM sleep** runs on a schedule or when you trigger a maintenance command, depending on the memory plugin — it keeps the memory corpus tidy over time.
 4. **`/crux-mindreader`** (or automatic recall hooks, if provided) runs when starting new work so relevant memories appear in context.
 

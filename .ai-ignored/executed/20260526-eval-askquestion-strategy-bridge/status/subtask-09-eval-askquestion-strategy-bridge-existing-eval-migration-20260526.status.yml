@@ -1,0 +1,77 @@
+schema_version: 1
+subtask_id: "09"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`pnpm run eval:update --apply --with-analyser` invocation log captured under `audit/migration-update-log.txt`. The flag `--with-analyser` forces re-analyse of every cached payload (Subtask 04's version bump invalidated them all anyway)."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/migration-update-log.txt
+  - id: D02
+    text: "Migration matrix at `audit/migration-matrix.md`: rows = each of the 43 stamped LLM tests + every manifest target without a stamped test; columns = pre-migration backend, post-migration backend, migration_class, file path before, file path after, diff-empty proof for user-authored rows."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/migration-matrix.md
+  - id: D03
+    text: "Eligible non-interactive primitives migrated: their `evals/llm/test_<kind>_<name>.test.ts` is removed (with `_user-case-guards.isGeneratedFile(path, { strict: true })` enforced first), and their case rows land in `plugins/<plugin>/evals/<kind>/<name>.json` with identical case payloads. Existing `_meta.generated: true` markers are preserved."
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/migration-matrix.md
+  - id: D04
+    text: Interactive primitives keep their `test_*.test.ts` file but switch to the new bridge import; existing case data is preserved verbatim except for the import line(s) added by Subtask 07's template change.
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/stamp-code-bridge-result.json
+  - id: D05
+    text: User-authored cases (no `_meta` or `_meta.generated !== true`, OR mixed-shape files) byte-identical pre-/post-migration; the matrix records a `git diff --stat` line per file proving zero byte change.
+    done: true
+    evidence_path: plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+  - id: D06
+    text: Mutual-exclusion guard from Subtask 06 not tripped by any production write (because the migration explicitly removes the opposite-backend artefact first).
+    done: true
+    evidence_path: specs/20260526-eval-askquestion-strategy-bridge/audit/complete-routing-migration-result.json
+artifacts:
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/migration-matrix.md
+    kind: created
+    note: 52-row migration matrix with counts and diff proofs
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/migration-git-status.txt
+    kind: created
+    note: git status porcelain capped to eval-related paths
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/migration-update-log.txt
+    kind: created
+    note: eval:update --apply --with-analyser stdout and stderr log
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/complete-routing-migration.ts
+    kind: created
+    note: baseline-driven declarative routing script
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/stamp-code-bridge.ts
+    kind: created
+    note: code-strategy bridge import stamper
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/complete-routing-migration-result.json
+    kind: created
+    note: per-target declarative migration results
+  - path: specs/20260526-eval-askquestion-strategy-bridge/audit/stamp-code-bridge-result.json
+    kind: created
+    note: 32 keep-code-bridge stamp results
+errors: []
+notes: "Judge fix-list applied. D05 accepted: four user-authored skill evals.json restored via git checkout (compare-evals, create-spec, judge-spec byte-identical to HEAD). execute-spec has one accepted pre-existing JSON typo fix (`,]`→`]`, 1 insertion/1 deletion) because HEAD already carried invalid JSON; matrix row documents this exception. D06: removed dual declarative JSON for agent:zoto-spec-executor and command:z-eval-start. config.yml model IDs set to composer-2.5/opus-4.6. zoto-llm-reporter now emits per-case backend: code. eval:update --check still exit 2 for skill:zoto-create-plugin public-surface drift (deferred to subtask 13)."
+extra:
+  heartbeat_at: 2026-05-25T17:46:11Z
+  migration_counts:
+    migrate_to_declarative: 11
+    keep_code_bridge: 32
+    no_eval_yet: 9
+    test_files_remaining: 32
+    bridge_imports: 32
+  gate_exit_codes:
+    eval_list: 0
+    collect_only: 0
+    eval_update_check: 2
+    smoke_llm_backend: 0
+  json_fixes: 9
+  judge:
+    verdict: verified
+    at: 2026-05-25T17:46:11Z
+    fix_list_applied_at: 2026-05-26T03:10:00Z
+    notes: "D01–D06 verified. D05 accepted: compare-evals, create-spec, judge-spec byte-identical to HEAD; execute-spec has one accepted pre-existing JSON typo fix (`,]`→`]`, 1 insertion/1 deletion) documented in migration-matrix.md row and notes. D06: no dual TS+declarative JSON for agent:zoto-spec-executor or command:z-eval-start. Gates: eval:list exit 0 (174 cases); collect-only exit 0; eval:update --check exit 2 (skill:zoto-create-plugin public-surface drift, deferred subtask 13); smoke evals/_runs/20260526-smoke-backend/llm.yml has per-case backend: code. Manifest unchanged vs audit/manifest-pre-migration.yml confirmed."
+    fix_list: []
+last_heartbeat: 2026-05-25T17:46:29.228Z

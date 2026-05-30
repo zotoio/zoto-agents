@@ -2,12 +2,49 @@
 
 All notable changes to the Spec System plugin will be documented in this file.
 
+## [unreleased] — 2026-05-26
+
+### Changed
+
+- **Eval restructure cross-impact.** Three Spec System eval artefacts were relocated to the co-located layout introduced by the eval-system single-backend migration: `plugins/zoto-spec-system/commands/evals/z-spec-*.test.ts` and `plugins/zoto-spec-system/agents/evals/zoto-spec-*.test.ts`. The Spec System plugin's source MD files are unchanged; only the eval test paths moved. See the repo-root [`CHANGELOG.md`](../../CHANGELOG.md) for the canonical BREAKING entry.
+
+## [Unreleased]
+
+### Fixed
+- Local Spec System installs now copy the runtime `scripts/` and `src/` directories so live-status CLIs referenced by the installed plugin are present.
+
+### Changed
+- **`/z-spec-create`** — Enforces the `zoto-create-spec` requirement gate before `{specsDir}/` writes (host-led minimum clarifiers or generator `needs_user_input` + resume); mandates spawning **`zoto-spec-generator`** with a reasoning-class model ladder (Opus/thinking slugs).
+- **`zoto-spec-generator`** — Default model moved to **`claude-opus-4-7-thinking-xhigh`**; judge spawn aligned with skill (**after** user approval, not before).
+- Renamed slash commands from `/zoto-spec-*` to `/z-spec-*`. The old `/zoto-spec-*` names have been removed.
+
+### Documentation
+- Voice / positioning pass for the equal-billing site revamp — README opening voice aligned with the landing-page hero (peer billing alongside the eval-system, no single-plugin-highlight wording).
+
+## [0.7.0] - 2026-05-06
+
+### Added
+
+- Per-subtask **`status/*.status.{md,yml}`** pairs with schema-backed HTML markers and the **`spec-status-roundtrip`** helper (`heartbeat`, `md-from-yml`, `yml-from-md`, `validate`).
+- **`spec-aggregator`** CLI with **`--once`**, **`--watch`**, and **`--validate-only`** modes rolling subtask YAML into spec-root **`status.{md,yml}`**.
+- **`spec-spawn-prefix`** CLI so executor prompts resolve **`subagents.*`** budgets without importing loader internals.
+- **`subagents.*`** and **`aggregator.*`** blocks in **`templates/schema/config.schema.json`** plus companion **`spec-status`** / **`subtask-status`** schemas.
+
+### Changed
+
+- Config loader is **mtime-aware** so **`/z-spec-execute`** can reload **`aggregator.*`**, **`spec.parallelLimit`**, **`subagents.*`** keys during a run while **`hooks.*`**, **`extensions.*`**, paths, and **`unitOfWork`** stay fresh-invocation-only.
+- **`/z-spec-execute`** backgrounds **`spec-aggregator --watch`** for the lifetime of a spec that ships **`status/`** (legacy specs without that folder skip aggregation wiring).
+
+### Documentation
+
+- README **Live Status & No-Restart Configuration**, refreshed **`docs/config-schema.md`**, extended **`docs/status-schema.md`**, **`docs/aggregator.md`** cross-links, **`docs/example-config.yml`**, integration rule (`plugins/zoto-spec-system/rules/zoto-spec-system.mdc`), repo **`AGENTS.md`** guidance, and **`.cursor/rules/zoto-plugin-conventions.mdc`** workspace-local config convention.
+
 ## [0.6.0] - 2026-04-05
 
 ### Changed
 - Renamed all "plan" identifiers to "spec" terminology throughout the plugin
   - Skills: `zoto-create-plan` → `zoto-create-spec`, `zoto-execute-plan` → `zoto-execute-spec`, `zoto-judge-plan` → `zoto-judge-spec`
-  - Commands: `/zoto-plan` → `/zoto-spec-create`, `/zoto-execute` → `/zoto-spec-execute`, `/zoto-judge` → `/zoto-spec-judge`
+  - Commands: `/zoto-plan` → `/z-spec-create`, `/zoto-execute` → `/z-spec-execute`, `/zoto-judge` → `/z-spec-judge`
   - Agent: `zoto-spec-planner` → `zoto-spec-generator`
   - Config: `plansDir` → `specsDir`, default directory `plans` → `specs`
   - Artifact pattern: `plan-[feature]-[date].md` → `spec-[feature]-[date].md`

@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900" font-family="system-ui, -apple-system, sans-serif">
+  <title>Cursor IDE  /z-eval-judge</title>
+  <desc>Cursor IDE mockup showing /z-eval-judge running over a recent run. The chat panel summarises weak graders, verbosity spikes, and accuracy regressions; the editor pane shows the judge: block being appended to llm.yml.</desc>
+  <defs>
+    <style>
+      .ide-bg { fill: #000000; }
+      .ide-titlebar { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-sidebar { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-editor { fill: #000000; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-chat { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .file-row { fill: #0a0f0a; }
+      .file-row-active { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 1.25; }
+      .chat-msg-user { fill: #0f1a0f; stroke: #5cffaf; stroke-width: 1.25; }
+      .chat-msg-agent { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 1.25; }
+      .chat-msg-warn { fill: #0f1a0f; stroke: #ff8c8c; stroke-width: 1.25; }
+      .label-title { fill: #c8ffc8; font-size: 14px; font-weight: 700; }
+      .label-mono { fill: #c8ffc8; font-size: 12px; font-family: ui-monospace, monospace; }
+      .label-mono-accent { fill: #00ff7f; font-size: 12px; font-family: ui-monospace, monospace; font-weight: 700; }
+      .label-mono-warn { fill: #ff8c8c; font-size: 12px; font-family: ui-monospace, monospace; font-weight: 700; }
+      .label-sub { fill: #6a8a6a; font-size: 11px; }
+      .label-sub-mono { fill: #6a8a6a; font-size: 11px; font-family: ui-monospace, monospace; }
+      .header { fill: #c8ffc8; font-size: 14px; font-weight: 700; }
+      .footer { fill: #6a8a6a; font-size: 11px; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="900" class="ide-bg" rx="8"/>
+
+  <!-- Title bar -->
+  <rect x="0" y="0" width="1400" height="36" class="ide-titlebar"/>
+  <circle cx="20" cy="18" r="6" fill="#ff6464"/>
+  <circle cx="40" cy="18" r="6" fill="#ffd166"/>
+  <circle cx="60" cy="18" r="6" fill="#00ff7f"/>
+  <text x="700" y="22" text-anchor="middle" class="label-sub">cursor  host-repo &#8212; /z-eval-judge</text>
+
+  <!-- Sidebar -->
+  <rect x="0" y="36" width="240" height="864" class="ide-sidebar"/>
+  <text x="20" y="68" class="header">Explorer</text>
+
+  <rect x="10" y="92" width="220" height="22" class="file-row"/>
+  <text x="24" y="108" class="label-mono"> evals/_runs/</text>
+
+  <rect x="10" y="120" width="220" height="22" class="file-row-active"/>
+  <text x="24" y="136" class="label-mono-accent"> 20260506T080011Z</text>
+
+  <rect x="10" y="148" width="220" height="20" class="file-row"/>
+  <text x="42" y="162" class="label-sub-mono">static.yml</text>
+
+  <rect x="10" y="174" width="220" height="20" class="file-row-active"/>
+  <text x="42" y="188" class="label-mono-accent">llm.yml </text>
+
+  <rect x="10" y="200" width="220" height="20" class="file-row"/>
+  <text x="42" y="214" class="label-sub-mono">report.yml</text>
+
+  <rect x="10" y="226" width="220" height="20" class="file-row"/>
+  <text x="42" y="240" class="label-sub-mono">.run-meta.json</text>
+
+  <rect x="10" y="252" width="220" height="22" class="file-row"/>
+  <text x="42" y="268" class="label-sub-mono"> logs/</text>
+
+  <text x="20" y="320" class="label-sub"> judge: block appended</text>
+
+  <!-- Editor pane (centre) -->
+  <rect x="240" y="36" width="700" height="864" class="ide-editor"/>
+  <text x="260" y="64" class="header">evals/_runs/20260506T080011Z/llm.yml</text>
+  <text x="260" y="84" class="label-sub">judge: block appended by /z-eval-judge</text>
+
+  <rect x="260" y="100" width="660" height="600" rx="6" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1"/>
+
+  <text x="276" y="128" class="label-mono-accent">schema_version: 1</text>
+  <text x="276" y="148" class="label-mono-accent">cases:</text>
+  <text x="292" y="166" class="label-mono">  - id: zoto-create-evals/case-001</text>
+  <text x="292" y="184" class="label-mono">    accuracy: 0.96</text>
+  <text x="292" y="202" class="label-mono">    tokens: 1240</text>
+  <text x="292" y="220" class="label-mono">    grader: contains</text>
+  <text x="292" y="238" class="label-mono">  - id: zoto-create-evals/case-002</text>
+  <text x="292" y="256" class="label-mono-warn">    accuracy: 0.71  #  regression</text>
+  <text x="292" y="274" class="label-mono">    tokens: 2186</text>
+
+  <text x="276" y="306" class="label-mono-accent">judge:</text>
+  <text x="292" y="324" class="label-mono">  reviewer: gpt-5.2-codex-high-fast</text>
+  <text x="292" y="342" class="label-mono">  reviewed_at: 2026-05-06T08:14:33Z</text>
+  <text x="292" y="360" class="label-mono-accent">  weak_graders:</text>
+  <text x="308" y="378" class="label-mono">    - case_id: zoto-create-evals/case-002</text>
+  <text x="308" y="396" class="label-mono">      grader: contains</text>
+  <text x="308" y="414" class="label-mono-warn">      severity: high</text>
+  <text x="308" y="432" class="label-sub-mono">      reason: substring match too lenient  passes for "ok"</text>
+  <text x="292" y="456" class="label-mono-accent">  verbosity_spikes:</text>
+  <text x="308" y="474" class="label-mono">    - case_id: zoto-eval-create/case-004</text>
+  <text x="308" y="492" class="label-mono-warn">      tokens: 4128 (+62% vs baseline)</text>
+  <text x="292" y="514" class="label-mono-accent">  accuracy_regressions:</text>
+  <text x="308" y="532" class="label-mono">    - case_id: zoto-create-evals/case-002</text>
+  <text x="308" y="550" class="label-mono-warn">      delta: -0.21</text>
+  <text x="292" y="574" class="label-mono-accent">  recommended_handoff:</text>
+  <text x="308" y="592" class="label-mono">    command: /z-eval-update</text>
+  <text x="308" y="610" class="label-sub-mono">    rationale: regenerate case-002 grader; tighten substring</text>
+  <text x="292" y="640" class="label-mono">  needs_user_input: true   # command will askQuestion</text>
+
+  <!-- Chat panel (right) -->
+  <rect x="940" y="36" width="460" height="864" class="ide-chat"/>
+  <text x="960" y="64" class="header">Cursor Chat</text>
+
+  <rect x="952" y="84" width="436" height="60" rx="6" class="chat-msg-user"/>
+  <text x="966" y="108" class="label-title">You</text>
+  <text x="966" y="130" class="label-sub-mono">/z-eval-judge</text>
+
+  <rect x="952" y="160" width="436" height="180" rx="6" class="chat-msg-agent"/>
+  <text x="966" y="184" class="label-title">Eval Judge</text>
+  <text x="966" y="206" class="label-sub">Reviewed evals/_runs/20260506T080011Z.</text>
+  <text x="966" y="228" class="label-mono-accent">Verdict: 1 weak grader . 1 spike</text>
+  <text x="966" y="248" class="label-sub">Findings:</text>
+  <text x="966" y="268" class="label-mono">" case-002 grader=contains (high)</text>
+  <text x="966" y="288" class="label-mono">" case-004 verbosity +62%</text>
+  <text x="966" y="308" class="label-mono">" case-002 accuracy 0.21</text>
+  <text x="966" y="328" class="label-sub-mono">judge: block appended  llm.yml</text>
+
+  <rect x="952" y="356" width="436" height="120" rx="6" class="chat-msg-warn"/>
+  <text x="966" y="380" class="label-title">Hand-off</text>
+  <text x="966" y="402" class="label-sub">Recommend: /z-eval-update for case-002.</text>
+  <text x="966" y="422" class="label-mono-warn">needs_user_input: confirm hand-off?</text>
+  <text x="966" y="446" class="label-sub">[Yes  start /z-eval-update]</text>
+  <text x="966" y="464" class="label-sub">[No  keep judge: block only]</text>
+
+  <text x="700" y="888" text-anchor="middle" class="footer">Judge writes only to llm.yml `judge:` block. The command (not the skill) owns askQuestion + resume.</text>
+</svg>

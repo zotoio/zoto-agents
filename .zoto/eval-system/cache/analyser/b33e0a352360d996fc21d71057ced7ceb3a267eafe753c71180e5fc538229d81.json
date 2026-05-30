@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2.5",
+  "target_id": "agent:zoto-eval-adviser",
+  "kind": "agent",
+  "source_path": "plugins/zoto-eval-system/agents/zoto-eval-adviser.md",
+  "source_hash": "b33e0a352360d996fc21d71057ced7ceb3a267eafe753c71180e5fc538229d81",
+  "summary": "These cases exercise the advise-mode gates, the five coverage dimensions, both needs_user_input breakpoints, the accepted handoff report, scoped manifest filtering, and the read-only restrictions without askQuestion or run-artefact access.",
+  "cases": [
+    {
+      "scenario": "manifest-absent-gate-before-scoring",
+      "prompt": "You are running as the zoto-eval-adviser agent. The host just finished `/z-eval-advise` with a full-repository scope in a workspace where `.zoto/eval-system/manifest.yml` was never generated. Perform the opening sequence the adviser defines before reading any targets.",
+      "expected_output": "A structured needs_user_input payload tells the operator to run `/z-eval-create` first, with no target-level scores and no attempt to invent a manifest from memory.",
+      "assertions": [
+        "The response returns needs_user_input whose explanation names `/z-eval-create` as the prerequisite before analysis continues.",
+        "No assistant-authored askQuestion call appears; the command layer is expected to surface questions later.",
+        "The agent does not claim to have opened or parsed historical run folders, `llm.yml`, `static.yml`, or `report.yml` under any eval run tree.",
+        "The agent does not instruct direct edits to `.zoto/eval-system/config.yml`, `manifest.yml`, or any `evals.json` file.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
+      ]
+    },
+    {
+      "scenario": "unreadable-config-requests-configure-first",
+      "prompt": "You are the zoto-eval-adviser agent invoked from `/z-eval-advise` with full scope. The workspace disk shows `.zoto/eval-system/config.yml` exists but its bytes are not parseable discovery YAML. Stop at the documented configuration gate and respond.",
+      "fixtures": {
+        "files": [
+          {
+            "path": ".zoto/eval-system/config.yml",
+            "content": "{{{ not valid yaml for discovery\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Overwrites the stamped baseline config with syntactically invalid YAML so the adviser must hit the configure-first gate instead of silently continuing."
+      ],
+      "expected_output": "needs_user_input directing the operator through `/z-eval-configure` (or an equivalent explicit repair path) before manifest or target loads are attempted.",
+      "assertions": [
+        "needs_user_input text tells the operator to fix configuration via `/z-eval-configure` before scoring targets.",
+        "The agent does not emit askQuestion tool calls from its own turn.",
+        "No `adviser_report` per-target scoring block is asserted as authoritative while configuration is still broken.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
+      ]
+    },
+    {
+      "scenario": "balanced-advise-pass-breakpoint-one",
+      "prompt": "Act as zoto-eval-adviser immediately after `/z-eval-advise` completed with full scan scope against the refreshed manifest in this sandbox. Load `.zoto/eval-system/config.yml`, load the manifest, walk every listed target, score all five gap dimensions from the zoto-advise-evals methodology, and stop at breakpoint one with drill-down options.",
+      "fixtures": {
+        "files": [
+          {
+            "path": ".zoto/eval-system/manifest.yml",
+            "content": "schema_version: 1\ncreated_at: 2026-05-03T07:47:43+00:00\nupdated_at: 2026-05-03T08:38:56.255Z\ngit_ref: 36e26f7e7b8d557f0dd414ca6d63e82b657fe818\ngenerated_by: zoto-create-evals\ndiscovery_config:\n  discoveryTargets:\n    - skill\n    - command\n    - agent\n    - hook\n  skillsRoots:\n    - plugins/*/skills\n  evalsDir: evals\ntargets:\n  - id: skill:demo-widget-skill\n    kind: skill\n    path: plugins/demo-pack/skills/widget/SKILL.md\n    content_hash: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n    eval_files:\n      - plugins/demo-pack/skills/widget/evals/evals.json\n  - id: command:demo-publish-cmd\n    kind: command\n    path: plugins/demo-pack/commands/publish.md\n    content_hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n    eval_files:\n      - plugins/demo-pack/commands/evals/evals.json\n  - id: agent:demo-review-agent\n    kind: agent\n    path: plugins/demo-pack/agents/review.md\n    content_hash: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\n    eval_files:\n      - plugins/demo-pack/agents/evals/evals.json\n  - id: hook:demo-save-hook\n    kind: hook\n    path: plugins/demo-pack/hooks/after-save.md\n    content_hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\n    eval_files: []\n"
+          },
+          {
+            "path": "plugins/demo-pack/skills/widget/SKILL.md",
+            "content": "---\nname: demo-widget-skill\ndescription: Bundles widget assets for release.\n---\n\n## Triggers\n\nPrimary operator phrase: \"bundle the widget for release\".\nSecondary invocation: `/pack-widget`.\n\n## Release checklist\n\n- [ ] Verify checksum manifest\n- [ ] Confirm semver tag\n"
+          },
+          {
+            "path": "plugins/demo-pack/skills/widget/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"wid-readme-tweak\",\n      \"prompt\": \"Tidy the README wording only.\",\n      \"assertions\": [\n        \"Reply stays under 400 words\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/commands/publish.md",
+            "content": "---\nname: demo-publish-cmd\ndescription: Publishes an artefact tarball.\n---\n\n## Output contract\n\nFinal assistant message MUST be a JSON object with keys `ok`, `sha256`, and `bytes`.\n"
+          },
+          {
+            "path": "plugins/demo-pack/commands/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"pub-happy\",\n      \"prompt\": \"/demo-publish-cmd --channel stable\",\n      \"assertions\": [\n        \"Exit status was 0\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/agents/review.md",
+            "content": "---\nname: demo-review-agent\ndescription: Reviews diffs and cites file paths.\n---\n\n## Citations\n\nEvery finding MUST include a backtick-wrapped repository path.\n"
+          },
+          {
+            "path": "plugins/demo-pack/agents/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"rev-basic\",\n      \"prompt\": \"Review the latest commit for risky imports.\",\n      \"assertions\": [\n        \"Mentions at least one concrete path\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/hooks/after-save.md",
+            "content": "---\nname: demo-save-hook\n---\n\nHook runs `afterFileEdit` on documentation paths and MUST print a single JSON line `{\"status\":\"ok\"}` to stdout.\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Manifest enumerates mixed kinds with each target's eval_files list so scanning can reach every declared primitive.",
+        "Skill Markdown supplies trigger phrases and checklist lines that collide with benign eval prompts.",
+        "Skill eval JSON stores the weak prompts and assertions counted under trigger phrase and checklist coverage.",
+        "Command Markdown documents deterministic JSON outputs that schema coverage must compare against eval assertions.",
+        "Command eval JSON records assertions that omit those JSON keys, highlighting schema gaps.",
+        "Agent Markdown mandates backtick citations that citation gaps should reference.",
+        "Agent eval JSON loosens citation checks compared with the authoring contract.",
+        "Hook Markdown exists while manifest lists empty hook eval_files paths so greenfield scaffolding gaps appear."
+      ],
+      "expected_output": "A structured `adviser_report` covering trigger phrases, schema validation, regression baselines, citation checks, and checklist completeness, plus needs_user_input for breakpoint-one drill-down choices.",
+      "assertions": [
+        "The visible report names all five gap dimensions and gives each a score or explicit not-applicable rationale tied to the manifest rows.",
+        "Findings reference both the skill trigger lines and the eval prompts that miss them (for instance the README-only prompt versus the bundle-the-widget trigger).",
+        "Schema validation commentary contrasts the command markdown contract keys with the shallow exit-code-only assertion in `plugins/demo-pack/commands/evals/evals.json`.",
+        "Citation coverage calls out that the agent spec demands backtick paths while the bundled eval merely checks for any path mention.",
+        "Checklist coverage notes whether eval cases assert the SKILL.md release checklist items.",
+        "Hook target `hook:demo-save-hook` is flagged for missing eval coverage because `eval_files` is empty.",
+        "The turn ends with needs_user_input suitable for breakpoint one rather than askQuestion tool usage by this agent.",
+        "Narration never points the reader to open `evals/_runs` trees, `llm.yml`, `static.yml`, or `report.yml`.",
+        "No instructions appear that rewrite `manifest.yml`, `config.yml`, or any `evals.json` artefact.",
+        "Each emitted recommendation cleanly maps either to `/z-eval-create` for greenfield gaps or `/z-eval-update --target … --apply` for strengthened coverage, without contradictory dual commands.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
+      ]
+    },
+    {
+      "scenario": "resume-drill-down-breakpoint-two",
+      "prompt": "You are zoto-eval-adviser servicing `/z-eval-advise` on the same sandbox manifest and sources as the full-scan pass.",
+      "follow_ups": [
+        "Operator resumed with drill-down focused strictly on trigger-phrase coverage and schema validation coverage. Expand the per-target findings for only those dimensions, map every gap to a single deterministic command (`/z-eval-create` versus `/z-eval-update --target <glob> --apply`), then pause at breakpoint two for accept or reject prompts that the outer command will show."
+      ],
+      "fixtures": {
+        "files": [
+          {
+            "path": ".zoto/eval-system/manifest.yml",
+            "content": "schema_version: 1\ncreated_at: 2026-05-03T07:47:43+00:00\nupdated_at: 2026-05-03T08:38:56.255Z\ngit_ref: 36e26f7e7b8d557f0dd414ca6d63e82b657fe818\ngenerated_by: zoto-create-evals\ndiscovery_config:\n  discoveryTargets:\n    - skill\n    - command\n    - agent\n    - hook\n  skillsRoots:\n    - plugins/*/skills\n  evalsDir: evals\ntargets:\n  - id: skill:demo-widget-skill\n    kind: skill\n    path: plugins/demo-pack/skills/widget/SKILL.md\n    content_hash: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n    eval_files:\n      - plugins/demo-pack/skills/widget/evals/evals.json\n  - id: command:demo-publish-cmd\n    kind: command\n    path: plugins/demo-pack/commands/publish.md\n    content_hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n    eval_files:\n      - plugins/demo-pack/commands/evals/evals.json\n  - id: agent:demo-review-agent\n    kind: agent\n    path: plugins/demo-pack/agents/review.md\n    content_hash: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\n    eval_files:\n      - plugins/demo-pack/agents/evals/evals.json\n  - id: hook:demo-save-hook\n    kind: hook\n    path: plugins/demo-pack/hooks/after-save.md\n    content_hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\n    eval_files: []\n"
+          },
+          {
+            "path": "plugins/demo-pack/skills/widget/SKILL.md",
+            "content": "---\nname: demo-widget-skill\ndescription: Bundles widget assets for release.\n---\n\n## Triggers\n\nPrimary operator phrase: \"bundle the widget for release\".\nSecondary invocation: `/pack-widget`.\n\n## Release checklist\n\n- [ ] Verify checksum manifest\n- [ ] Confirm semver tag\n"
+          },
+          {
+            "path": "plugins/demo-pack/skills/widget/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"wid-readme-tweak\",\n      \"prompt\": \"Tidy the README wording only.\",\n      \"assertions\": [\n        \"Reply stays under 400 words\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/commands/publish.md",
+            "content": "---\nname: demo-publish-cmd\ndescription: Publishes an artefact tarball.\n---\n\n## Output contract\n\nFinal assistant message MUST be a JSON object with keys `ok`, `sha256`, and `bytes`.\n"
+          },
+          {
+            "path": "plugins/demo-pack/commands/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"pub-happy\",\n      \"prompt\": \"/demo-publish-cmd --channel stable\",\n      \"assertions\": [\n        \"Exit status was 0\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/agents/review.md",
+            "content": "---\nname: demo-review-agent\ndescription: Reviews diffs and cites file paths.\n---\n\n## Citations\n\nEvery finding MUST include a backtick-wrapped repository path.\n"
+          },
+          {
+            "path": "plugins/demo-pack/agents/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"rev-basic\",\n      \"prompt\": \"Review the latest commit for risky imports.\",\n      \"assertions\": [\n        \"Mentions at least one concrete path\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/hooks/after-save.md",
+            "content": "---\nname: demo-save-hook\n---\n\nHook runs `afterFileEdit` on documentation paths and MUST print a single JSON line `{\"status\":\"ok\"}` to stdout.\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Manifest reproduces identical targets before and after resumes so breakpoints stay repeatable.",
+        "Skill Markdown anchors trigger phrases that drill-down summaries must revisit.",
+        "Skill eval JSON shows misaligned prompts the drill-down must cite verbatim.",
+        "Command Markdown anchors JSON contract headings for schema-deepening bullets.",
+        "Command eval JSON carries minimal assertions illustrating missing schema graders.",
+        "Agent Markdown cites citation mandates even though this turn focuses elsewhere.",
+        "Agent eval JSON shows loose citation tooling for later acceptance steps.",
+        "Hook Markdown with empty hook eval_files paths keeps `/z-eval-create` mappings available while drill-down restricts topics."
+      ],
+      "expected_output": "Deepened paragraphs for trigger phrases and schemas only, each gap tied once to `/z-eval-create` or `/z-eval-update … --apply`, ending with breakpoint-two needs_user_input.",
+      "assertions": [
+        "Detailed findings cite specific trigger phrases versus actual eval prompts for `skill:demo-widget-skill`.",
+        "Schema discussion enumerates missing JSON-key assertions against `demo-publish-cmd` output contract headings.",
+        "Every recommendation bullet names exactly one of `/z-eval-create` or `/z-eval-update --target … --apply`, never both for the same gap.",
+        "The agent returns needs_user_input consistent with breakpoint two while still avoiding askQuestion calls.",
+        "The response states that `/z-eval-create`, `/z-eval-update`, and downstream handoffs are owned by the command shell, matching the advisers read-only stance.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
+      ]
+    },
+    {
+      "scenario": "resume-accepted-recommendations-final-handoff",
+      "prompt": "You are zoto-eval-adviser servicing `/z-eval-advise` on the sandbox manifest bundled with demo-pack targets.",
+      "follow_ups": [
+        "Operator resumed after drill-down, accepting every previously listed recommendation verbatim with no edits.",
+        "Emit the final `adviser_report` summarizing accepted actions for `/z-eval-create` and `/z-eval-update`, explicitly listing globs already supplied so the supervising command can queue work without rerunning discovery."
+      ],
+      "fixtures": {
+        "files": [
+          {
+            "path": ".zoto/eval-system/manifest.yml",
+            "content": "schema_version: 1\ncreated_at: 2026-05-03T07:47:43+00:00\nupdated_at: 2026-05-03T08:38:56.255Z\ngit_ref: 36e26f7e7b8d557f0dd414ca6d63e82b657fe818\ngenerated_by: zoto-create-evals\ndiscovery_config:\n  discoveryTargets:\n    - skill\n    - command\n    - agent\n    - hook\n  skillsRoots:\n    - plugins/*/skills\n  evalsDir: evals\ntargets:\n  - id: skill:demo-widget-skill\n    kind: skill\n    path: plugins/demo-pack/skills/widget/SKILL.md\n    content_hash: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n    eval_files:\n      - plugins/demo-pack/skills/widget/evals/evals.json\n  - id: command:demo-publish-cmd\n    kind: command\n    path: plugins/demo-pack/commands/publish.md\n    content_hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n    eval_files:\n      - plugins/demo-pack/commands/evals/evals.json\n  - id: agent:demo-review-agent\n    kind: agent\n    path: plugins/demo-pack/agents/review.md\n    content_hash: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\n    eval_files:\n      - plugins/demo-pack/agents/evals/evals.json\n  - id: hook:demo-save-hook\n    kind: hook\n    path: plugins/demo-pack/hooks/after-save.md\n    content_hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\n    eval_files: []\n"
+          },
+          {
+            "path": "plugins/demo-pack/skills/widget/SKILL.md",
+            "content": "---\nname: demo-widget-skill\ndescription: Bundles widget assets for release.\n---\n\n## Triggers\n\nPrimary operator phrase: \"bundle the widget for release\".\nSecondary invocation: `/pack-widget`.\n\n## Release checklist\n\n- [ ] Verify checksum manifest\n- [ ] Confirm semver tag\n"
+          },
+          {
+            "path": "plugins/demo-pack/skills/widget/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"wid-readme-tweak\",\n      \"prompt\": \"Tidy the README wording only.\",\n      \"assertions\": [\n        \"Reply stays under 400 words\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/commands/publish.md",
+            "content": "---\nname: demo-publish-cmd\ndescription: Publishes an artefact tarball.\n---\n\n## Output contract\n\nFinal assistant message MUST be a JSON object with keys `ok`, `sha256`, and `bytes`.\n"
+          },
+          {
+            "path": "plugins/demo-pack/commands/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"pub-happy\",\n      \"prompt\": \"/demo-publish-cmd --channel stable\",\n      \"assertions\": [\n        \"Exit status was 0\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/agents/review.md",
+            "content": "---\nname: demo-review-agent\ndescription: Reviews diffs and cites file paths.\n---\n\n## Citations\n\nEvery finding MUST include a backtick-wrapped repository path.\n"
+          },
+          {
+            "path": "plugins/demo-pack/agents/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"rev-basic\",\n      \"prompt\": \"Review the latest commit for risky imports.\",\n      \"assertions\": [\n        \"Mentions at least one concrete path\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/hooks/after-save.md",
+            "content": "---\nname: demo-save-hook\n---\n\nHook runs `afterFileEdit` on documentation paths and MUST print a single JSON line `{\"status\":\"ok\"}` to stdout.\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Manifest stays byte-stable so accepted drills match earlier scoring runs.",
+        "Skill Markdown anchors remaining trigger gaps mentioned in acceptance notes.",
+        "Skill eval JSON lists prompts that tightened plans promise to revise.",
+        "Command Markdown cites JSON fields that acceptance narration pairs with `/z-eval-update`.",
+        "Command eval JSON shows shallow assertions earmarked for stronger graders.",
+        "Agent Markdown plus eval JSON pair citation gaps with future `/z-eval-update` work.",
+        "Hook Markdown while the manifest lists zero hook eval_files paths forces `/z-eval-create` lines in the accepted backlog.",
+        "Extra hook body text proves the manifest row is real when summarizing greenfield tasks."
+      ],
+      "expected_output": "Closing `adviser_report` duplicates the accepted plan, enumerating `/z-eval-create` jobs for untouched hooks and `/z-eval-update --target … --apply` entries for primitives needing tightened assertions.",
+      "assertions": [
+        "Accepted items explicitly include `/z-eval-create` whenever a target lacked `eval_files` entries.",
+        "Accepted tightening work references `/z-eval-update --target plugins/demo-pack/commands/** --apply` (or an equivalent single glob per gap) rather than handing commands directly to hooks inside the adviser.",
+        "The summary names zoto-create-evals as the scaffolding destination and zoto-update-evals as the augmentation destination without reversing their roles.",
+        "No filesystem write instructions originate from this agent aside from handing control back upward.",
+        "There is still zero askQuestion usage inside the advisers own tool stream.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
+      ]
+    },
+    {
+      "scenario": "scoped-glob-filters-manifest-targets",
+      "prompt": "You are zoto-eval-adviser servicing `/z-eval-advise --target plugins/demo-pack/skills/widget/**`. Only consider manifest rows matching that glob; ignore other primitives even though they remain listed upstream.",
+      "fixtures": {
+        "files": [
+          {
+            "path": ".zoto/eval-system/manifest.yml",
+            "content": "schema_version: 1\ncreated_at: 2026-05-03T07:47:43+00:00\nupdated_at: 2026-05-03T08:38:56.255Z\ngit_ref: 36e26f7e7b8d557f0dd414ca6d63e82b657fe818\ngenerated_by: zoto-create-evals\ndiscovery_config:\n  discoveryTargets:\n    - skill\n    - command\n    - agent\n    - hook\n  skillsRoots:\n    - plugins/*/skills\n  evalsDir: evals\ntargets:\n  - id: skill:demo-widget-skill\n    kind: skill\n    path: plugins/demo-pack/skills/widget/SKILL.md\n    content_hash: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n    eval_files:\n      - plugins/demo-pack/skills/widget/evals/evals.json\n  - id: command:demo-publish-cmd\n    kind: command\n    path: plugins/demo-pack/commands/publish.md\n    content_hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n    eval_files:\n      - plugins/demo-pack/commands/evals/evals.json\n  - id: agent:demo-review-agent\n    kind: agent\n    path: plugins/demo-pack/agents/review.md\n    content_hash: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\n    eval_files:\n      - plugins/demo-pack/agents/evals/evals.json\n  - id: hook:demo-save-hook\n    kind: hook\n    path: plugins/demo-pack/hooks/after-save.md\n    content_hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\n    eval_files: []\n"
+          },
+          {
+            "path": "plugins/demo-pack/skills/widget/SKILL.md",
+            "content": "---\nname: demo-widget-skill\ndescription: Bundles widget assets for release.\n---\n\n## Triggers\n\nPrimary operator phrase: \"bundle the widget for release\".\nSecondary invocation: `/pack-widget`.\n\n## Release checklist\n\n- [ ] Verify checksum manifest\n- [ ] Confirm semver tag\n"
+          },
+          {
+            "path": "plugins/demo-pack/skills/widget/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"wid-readme-tweak\",\n      \"prompt\": \"Tidy the README wording only.\",\n      \"assertions\": [\n        \"Reply stays under 400 words\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/commands/publish.md",
+            "content": "---\nname: demo-publish-cmd\ndescription: Publishes an artefact tarball.\n---\n\n## Output contract\n\nFinal assistant message MUST be a JSON object with keys `ok`, `sha256`, and `bytes`.\n"
+          },
+          {
+            "path": "plugins/demo-pack/commands/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"pub-happy\",\n      \"prompt\": \"/demo-publish-cmd --channel stable\",\n      \"assertions\": [\n        \"Exit status was 0\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/agents/review.md",
+            "content": "---\nname: demo-review-agent\ndescription: Reviews diffs and cites file paths.\n---\n\n## Citations\n\nEvery finding MUST include a backtick-wrapped repository path.\n"
+          },
+          {
+            "path": "plugins/demo-pack/agents/evals/evals.json",
+            "content": "{\n  \"cases\": [\n    {\n      \"id\": \"rev-basic\",\n      \"prompt\": \"Review the latest commit for risky imports.\",\n      \"assertions\": [\n        \"Mentions at least one concrete path\"\n      ]\n    }\n  ]\n}\n"
+          },
+          {
+            "path": "plugins/demo-pack/hooks/after-save.md",
+            "content": "---\nname: demo-save-hook\n---\n\nHook runs `afterFileEdit` on documentation paths and MUST print a single JSON line `{\"status\":\"ok\"}` to stdout.\n"
+          }
+        ]
+      },
+      "fixture_justifications": [
+        "Manifest lists multiple kinds so narrowing logic can be exercised honestly.",
+        "Skill Markdown stays the only analysed primitive under the scoped glob.",
+        "Skill eval JSON proves which prompts fall inside the narrowed analysis window.",
+        "Command Markdown lurks off-scope so accidental chatter can be graded.",
+        "Command eval JSON provides off-scope assertions that must stay unmentioned.",
+        "Agent Markdown is another off-scope source that should disappear from narratives.",
+        "Agent eval JSON offers additional off-scope text for leakage detection.",
+        "Hook Markdown contrasts empty hook eval_files paths targets that ought to stay omitted from scoped scoring."
+      ],
+      "expected_output": "`adviser_report` paragraphs only discuss `skill:demo-widget-skill`, yet acknowledge the mandate came from `--target plugins/demo-pack/skills/widget/**` before returning breakpoint-one needs_user_input.",
+      "assertions": [
+        "Narrative findings reference only `skill:demo-widget-skill` and omit scoring sentences for command, agent, or hook identifiers.",
+        "The response still cites all five dimension headings but marks off-scope primitives as intentionally skipped owing to `/z-eval-advise --target …`.",
+        "needs_user_input for breakpoint one remains present despite the narrowed scope.",
+        "No attempt is made to read run artefacts located under `_runs/` or YAML summaries named `llm.yml`, `static.yml`, or `report.yml`.",
+        "When the agent emits a structured report, it includes a top-level `adviser_report:` YAML key carrying the per-target findings.",
+        "Each dimension's score uses the documented `severity:` enum — one of `ok`, `warn`, or `critical` — per the adviser rubric.",
+        "Breakpoint hand-offs surface a `needs_user_input:` block instead of `askQuestion`, so the owning command can mediate the prompt."
+      ]
+    }
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
+}

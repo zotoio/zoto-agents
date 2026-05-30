@@ -1,0 +1,83 @@
+schema_version: 1
+subtask_id: "06"
+feature: Eval Prompt Realism Audit
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: All 8 files under `plugins/zoto-eval-system/evals/agents/*.json` updated per `audit/eval-rewrites.json`.
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/agents/
+  - id: D02
+    text: Each rewritten generated case carries a refreshed `_meta.last_updated`; `_meta.generated_by` remains the existing stable string `"zoto-update-evals"` (per user decision 2026-05-25 — see spec KD-7); `_meta.source_hash` and `_meta.primitive_analysis` are preserved verbatim (per Subtask 05's "Source-hash recomputation rule").
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/agents/zoto-eval-generator.json
+  - id: D03
+    text: "Each rewritten generated case retains `_meta.generated: true`."
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/agents/
+  - id: D04
+    text: Top-level `target_id` preserved per file.
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/agents/
+  - id: D05
+    text: Per-file byte-preservation proof for user-authored cases written to the status report.
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/status/subtask-06-eval-prompt-realism-audit-rewrite-eval-system-agents-20260525.status.md
+  - id: D06
+    text: Summary table in the status report mirrors Subtask 05's shape.
+    done: true
+    evidence_path: specs/20260525-eval-prompt-realism-audit/status/subtask-06-eval-prompt-realism-audit-rewrite-eval-system-agents-20260525.status.md
+  - id: D07
+    text: "Agent prompt style across rewrites obeys the analyser contract's `kind: agent` row: natural-English delegation, no leading `/`, ideally mirroring how a parent command would hand off (e.g. `From /z-eval-create, please continue stamping the approved skill bundle once the configurer's needs_user_input is satisfied; …`)."
+    done: true
+    evidence_path: plugins/zoto-eval-system/evals/agents/zoto-eval-generator.json
+artifacts:
+  - path: plugins/zoto-eval-system/evals/agents/zoto-eval-adviser.json
+    kind: modified
+    note: null
+  - path: plugins/zoto-eval-system/evals/agents/zoto-eval-analyser-subagent.json
+    kind: modified
+    note: null
+  - path: plugins/zoto-eval-system/evals/agents/zoto-eval-comparer.json
+    kind: modified
+    note: null
+  - path: plugins/zoto-eval-system/evals/agents/zoto-eval-configurer.json
+    kind: modified
+    note: null
+  - path: plugins/zoto-eval-system/evals/agents/zoto-eval-executor.json
+    kind: modified
+    note: null
+  - path: plugins/zoto-eval-system/evals/agents/zoto-eval-generator.json
+    kind: modified
+    note: null
+  - path: plugins/zoto-eval-system/evals/agents/zoto-eval-judge.json
+    kind: modified
+    note: null
+  - path: plugins/zoto-eval-system/evals/agents/zoto-eval-updater.json
+    kind: modified
+    note: null
+errors: []
+notes: >-
+  Applied audit/eval-rewrites.json to all 8 agent eval files (47 generated cases).
+  Judge fix pass (2026-05-25): zoto-eval-generator.json — all 5 cases now carry
+  generated_by zoto-update-evals; primitive_analysis restored from git HEAD
+  (analysed_at 2026-05-17T13:36:46.889Z); cases 1 and 4 prompts reframed with
+  "From …" / "After …" so no prompt starts with `/`. zoto-eval-analyser-subagent.json
+  generated_by left to Subtasks 10/12 (S10 guard assertions + S12 cache/restamp
+  own that file). Zero user-authored cases across all 8 files.
+extra:
+  last_updated_stamp: "2026-05-25T14:30:00.000Z"
+  generated_cases_rewritten: 47
+  user_authored_preserved: 0
+  judge:
+    verdict: verified
+    at: "2026-05-25T16:00:00.000Z"
+    notes: >-
+      D06 remediated: status md now includes per-file summary table (file, target_id,
+      generated rewritten, user-authored preserved, byte-proof) matching Subtask 05 shape.
+      Prior generator.json fix_list items remain resolved; analyser generated_by still
+      correctly deferred to S10.
+    fix_list: []

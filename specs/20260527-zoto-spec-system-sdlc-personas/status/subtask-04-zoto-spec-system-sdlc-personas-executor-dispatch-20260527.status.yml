@@ -1,0 +1,36 @@
+schema_version: 1
+subtask_id: "04"
+feature: zoto-spec-system-sdlc-personas
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "**D01** — Updated `plugins/zoto-spec-system/agents/zoto-spec-executor.md`:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "**D02** — Updated `plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md`:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "**D03** — If the executor spawn logic lives in TypeScript anywhere"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "**D04** — Add a regression check to"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "**D05** — Update or extend any unit/integration tests that hardcoded"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "**D06** — Confirm that when a subtask has `persona: zoto-backend-engineer`"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

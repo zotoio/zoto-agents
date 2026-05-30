@@ -1,0 +1,84 @@
+{
+  "_template_doc": [
+    "REFERENCE ONLY — authoring aid. Executable eval JSON is stamped by:",
+    "`pnpm exec tsx scripts/eval-analyse.ts <target-id>` then",
+    "`pnpm exec tsx scripts/eval-stamp.ts <target-id>` (or `pnpm run eval:stamp -- <target-id>` once wired).",
+    "Each generated case SHOULD include fixtures (sandbox files) plus expected_filesystem deltas.",
+    "Do not ship hand-edited placeholders for production stamped files — run the stamper per target.",
+    "Runner case example (advanced TS escape hatch):",
+    "{ \"id\": \"adv-1\", \"runner\": \"./adv.test.ts\", \"parameters\": {} }",
+    "---"
+  ],
+  "target_id": "command:{{COMMAND_NAME}}",
+  "command_name": "{{COMMAND_NAME}}",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "{{PROMPT_A}}",
+      "expected_output": "{{EXPECTED_A}}",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/example-path/config.json",
+            "content": "{ \"minimal\": true }"
+          },
+          {
+            "path": "workspace/plugins/demo/commands/{{COMMAND_NAME}}.md",
+            "from": "plugins/demo/commands/{{COMMAND_NAME}}.md"
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": ["workspace/evals/README.md"],
+        "modified": ["workspace/package.json"],
+        "removed": [],
+        "unchanged": ["cases with _meta.generated === false"]
+      },
+      "files": [],
+      "assertions": [
+        "The /{{COMMAND_NAME}} command ran askQuestion for every documented pre-collect step before spawning any Task subagent",
+        "Orchestration delegated to the documented agent/skill with answers embedded in the Task prompt (hybrid askQuestion contract)"
+      ],
+      "graders": [],
+      "_meta": {
+        "generated": true,
+        "source_hash": "{{SOURCE_HASH}}",
+        "primitive_analysis_hash": "{{PRIMITIVE_ANALYSIS_HASH}}",
+        "last_updated": "{{LAST_UPDATED}}",
+        "generated_by": "zoto-create-evals"
+      }
+    },
+    {
+      "id": 2,
+      "prompt": "{{PROMPT_B}}",
+      "expected_output": "{{EXPECTED_B}}",
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/example-path/",
+            "content": ""
+          }
+        ]
+      },
+      "expected_filesystem": {
+        "created": [],
+        "modified": ["workspace/tmp/.staging"],
+        "unchanged": ["existing user-authored eval cases"]
+      },
+      "files": [],
+      "assertions": [
+        "When the subagent returned needs_user_input, the command issued askQuestion and resumed the same Task with answers",
+        "No silent defaults substituted for checklist approvals that the command is responsible for pre-collecting"
+      ],
+      "graders": [],
+      "_meta": {
+        "generated": true,
+        "source_hash": "{{SOURCE_HASH}}",
+        "primitive_analysis_hash": "{{PRIMITIVE_ANALYSIS_HASH}}",
+        "last_updated": "{{LAST_UPDATED}}",
+        "generated_by": "zoto-create-evals",
+        "partial": false
+      }
+    }
+  ]
+}

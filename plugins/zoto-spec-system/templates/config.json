@@ -1,5 +1,15 @@
 {
   "unitOfWork": "spec",
   "specsDir": "specs",
-  "workDir": "specs/current"
+  "workDir": "specs/current",
+  "spec": { "maxSubtasks": 99, "parallelLimit": 4, "adversarialVerification": true },
+  "subagents": {
+    "default": { "tokenBudget": 200000 }
+  },
+  "aggregator": {
+    "enabled": true,
+    "pollIntervalMs": 1500,
+    "debounceMs": 250,
+    "outputs": { "specStatusMd": "status.md", "specStatusYml": "status.yml" }
+  }
 }

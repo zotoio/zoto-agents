@@ -1,0 +1,57 @@
+schema_version: 1
+subtask_id: "03"
+feature: Eval Prompt Realism Audit
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`specs/20260525-eval-prompt-realism-audit/audit/redaction-rules.md` — one section per rule with the literal regex, the rationale, and a worked input → output example."
+    done: true
+    evidence_path: null
+  - id: D02
+    text: "`specs/20260525-eval-prompt-realism-audit/audit/redact.ts` — exports `redact(text: string): string` and `redactPath(p: string): string`; the helper is pure (no I/O, no globals), runs under `tsx` with no extra dependencies, and is < 200 lines."
+    done: true
+    evidence_path: null
+  - id: D03
+    text: "`specs/20260525-eval-prompt-realism-audit/audit/redact.test.ts` — Vitest-compatible self-test (or a tiny `tsx` `assert`-based script) that exercises each rule against the worked examples from the rules document. Runs in < 5 seconds."
+    done: true
+    evidence_path: null
+  - id: D04
+    text: Self-test command line and exit code captured in this subtask's execution notes.
+    done: true
+    evidence_path: null
+artifacts:
+  - path: specs/20260525-eval-prompt-realism-audit/audit/redaction-rules.md
+    kind: modified
+    note: gh_pat_ suffix minimum lowered to 5 chars
+  - path: specs/20260525-eval-prompt-realism-audit/audit/redact.ts
+    kind: modified
+    note: gh_pat_ regex {20,} → {5,}
+  - path: specs/20260525-eval-prompt-realism-audit/audit/redact.test.ts
+    kind: modified
+    note: DoD email+token assertion with gh_pat_AAAAA
+errors: []
+notes: >-
+  Judge fix applied: rule 4 gh_pat_ suffix minimum reduced from 20 to 5 characters so
+  DoD string redact("Email me at andrew@example.com with token gh_pat_AAAAA") yields
+  "Email me at <email> with token <token>".
+  Self-test: npx vitest run specs/20260525-eval-prompt-realism-audit/audit/redact.test.ts --run
+  → exit 0, 12/12 passed in 290ms.
+extra:
+  judge:
+    verdict: verified
+    at: "2026-05-25T16:59:30.000Z"
+    notes: >-
+      Re-verification after fix: all Deliverables Checklist (D01–D04) and Definition of Done
+      items confirmed. redaction-rules.md documents all 9 rules with regex, rationale, and
+      worked examples (rule 4 gh_pat_ suffix {5,}). redact.ts (126 lines) is pure, exports
+      redact/redactPath/redactThirdPartyNames, no external dependencies. DoD string
+      redact("Email me at andrew@example.com with token gh_pat_AAAAA") →
+      "Email me at <email> with token <token>". redact("/home/andrewv/git/cursor/zoto-agents/plugins/zoto-eval-system")
+      → "plugins/zoto-eval-system". Null-safe input verified. Vitest 12/12 passed in 508ms.
+    fix_list: []
+last_heartbeat: 2026-05-25T16:59:30.000Z
+started_at: 2026-05-25T06:55:05.134Z
+completed_at: 2026-05-25T16:58:29.000Z

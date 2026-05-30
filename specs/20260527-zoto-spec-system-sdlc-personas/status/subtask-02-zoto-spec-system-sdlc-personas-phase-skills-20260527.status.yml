@@ -1,0 +1,52 @@
+schema_version: 1
+subtask_id: "02"
+feature: zoto-spec-system-sdlc-personas
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "**D01** — Created `plugins/zoto-spec-system/skills/zoto-skill-sdlc-discovery/SKILL.md`"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "**D02** — Created `plugins/zoto-spec-system/skills/zoto-skill-sdlc-discovery/evals/evals.json`"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "**D03** — Created `plugins/zoto-spec-system/skills/zoto-skill-sdlc-design/SKILL.md`"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "**D04** — Created `plugins/zoto-spec-system/skills/zoto-skill-sdlc-design/evals/evals.json`"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "**D05** — Created `plugins/zoto-spec-system/skills/zoto-skill-sdlc-implementation/SKILL.md`"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "**D06** — Created `plugins/zoto-spec-system/skills/zoto-skill-sdlc-implementation/evals/evals.json`"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "**D07** — Created `plugins/zoto-spec-system/skills/zoto-skill-sdlc-quality/SKILL.md`"
+    done: false
+    evidence_path: null
+  - id: D08
+    text: "**D08** — Created `plugins/zoto-spec-system/skills/zoto-skill-sdlc-quality/evals/evals.json`"
+    done: false
+    evidence_path: null
+  - id: D09
+    text: "**D09** — Created `plugins/zoto-spec-system/skills/zoto-skill-sdlc-operations/SKILL.md`"
+    done: false
+    evidence_path: null
+  - id: D10
+    text: "**D10** — Created `plugins/zoto-spec-system/skills/zoto-skill-sdlc-operations/evals/evals.json`"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900" font-family="system-ui, -apple-system, sans-serif">
+  <title>Cursor IDE  /z-eval-create</title>
+  <desc>Cursor IDE mockup showing /z-eval-create running. Left sidebar is the file tree highlighting evals/, evals/_llm/, and .zoto/eval-system/manifest.yml. The right pane is the chat panel showing the create skill output: scaffolded backends, generated cases, and the manifest stamp.</desc>
+  <defs>
+    <style>
+      .ide-bg { fill: #000000; }
+      .ide-titlebar { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-sidebar { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-editor { fill: #000000; stroke: #1a3a1a; stroke-width: 1; }
+      .ide-chat { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .file-row { fill: #0a0f0a; }
+      .file-row-active { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 1.25; }
+      .chat-msg-user { fill: #0f1a0f; stroke: #5cffaf; stroke-width: 1.25; }
+      .chat-msg-agent { fill: #0f1a0f; stroke: #00ff7f; stroke-width: 1.25; }
+      .chat-msg-tool { fill: #0a0f0a; stroke: #1a3a1a; stroke-width: 1; }
+      .label-title { fill: #c8ffc8; font-size: 14px; font-weight: 700; }
+      .label-mono { fill: #c8ffc8; font-size: 12px; font-family: ui-monospace, monospace; }
+      .label-mono-accent { fill: #00ff7f; font-size: 12px; font-family: ui-monospace, monospace; font-weight: 700; }
+      .label-sub { fill: #6a8a6a; font-size: 11px; }
+      .label-sub-mono { fill: #6a8a6a; font-size: 11px; font-family: ui-monospace, monospace; }
+      .header { fill: #c8ffc8; font-size: 14px; font-weight: 700; }
+      .footer { fill: #6a8a6a; font-size: 11px; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="900" class="ide-bg" rx="8"/>
+
+  <!-- Title bar -->
+  <rect x="0" y="0" width="1400" height="36" class="ide-titlebar"/>
+  <circle cx="20" cy="18" r="6" fill="#ff6464"/>
+  <circle cx="40" cy="18" r="6" fill="#ffd166"/>
+  <circle cx="60" cy="18" r="6" fill="#00ff7f"/>
+  <text x="700" y="22" text-anchor="middle" class="label-sub">cursor  host-repo &#8212; /z-eval-create</text>
+
+  <!-- Sidebar (file tree) -->
+  <rect x="0" y="36" width="280" height="864" class="ide-sidebar"/>
+  <text x="20" y="68" class="header">Explorer</text>
+  <text x="20" y="92" class="label-sub">host-repo</text>
+
+  <rect x="10" y="110" width="260" height="22" class="file-row"/>
+  <text x="24" y="126" class="label-mono"> host-repo/</text>
+
+  <rect x="10" y="138" width="260" height="22" class="file-row-active"/>
+  <text x="38" y="154" class="label-mono-accent"> evals/</text>
+
+  <rect x="10" y="166" width="260" height="20" class="file-row"/>
+  <text x="58" y="180" class="label-sub-mono">conftest.py</text>
+
+  <rect x="10" y="192" width="260" height="20" class="file-row"/>
+  <text x="58" y="206" class="label-sub-mono">test_meta_invariants.py</text>
+
+  <rect x="10" y="218" width="260" height="20" class="file-row-active"/>
+  <text x="58" y="232" class="label-mono-accent"> _llm/</text>
+
+  <rect x="10" y="244" width="260" height="20" class="file-row"/>
+  <text x="76" y="258" class="label-sub-mono">runner.ts</text>
+
+  <rect x="10" y="270" width="260" height="20" class="file-row"/>
+  <text x="76" y="284" class="label-sub-mono">case.ts</text>
+
+  <rect x="10" y="296" width="260" height="20" class="file-row"/>
+  <text x="76" y="310" class="label-sub-mono">graders/</text>
+
+  <rect x="10" y="322" width="260" height="20" class="file-row"/>
+  <text x="76" y="336" class="label-sub-mono">writer.ts</text>
+
+  <rect x="10" y="348" width="260" height="20" class="file-row"/>
+  <text x="76" y="362" class="label-sub-mono">update.ts</text>
+
+  <rect x="10" y="378" width="260" height="22" class="file-row-active"/>
+  <text x="38" y="394" class="label-mono-accent"> .zoto/eval-system/</text>
+
+  <rect x="10" y="406" width="260" height="20" class="file-row-active"/>
+  <text x="58" y="420" class="label-mono-accent">manifest.yml </text>
+
+  <rect x="10" y="432" width="260" height="20" class="file-row"/>
+  <text x="58" y="446" class="label-sub-mono">manifest.history.yml</text>
+
+  <rect x="10" y="458" width="260" height="20" class="file-row"/>
+  <text x="58" y="472" class="label-sub-mono">config.yml</text>
+
+  <rect x="10" y="488" width="260" height="22" class="file-row"/>
+  <text x="24" y="504" class="label-mono"> plugins/</text>
+
+  <rect x="10" y="516" width="260" height="22" class="file-row"/>
+  <text x="24" y="532" class="label-mono"> specs/</text>
+
+  <text x="20" y="600" class="label-sub"> stamped by zoto-create-evals</text>
+
+  <!-- Editor area (centre, showing manifest preview) -->
+  <rect x="280" y="36" width="640" height="864" class="ide-editor"/>
+  <text x="300" y="64" class="header">.zoto/eval-system/manifest.yml</text>
+  <text x="300" y="84" class="label-sub">stamped after /z-eval-create completes</text>
+
+  <rect x="300" y="100" width="600" height="500" rx="6" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1"/>
+  <text x="316" y="128" class="label-mono-accent">schema_version: 1</text>
+  <text x="316" y="148" class="label-mono-accent">discovery_config:</text>
+  <text x="332" y="166" class="label-mono">  static:</text>
+  <text x="332" y="184" class="label-mono">    framework: pytest</text>
+  <text x="332" y="206" class="label-mono">  llm:</text>
+  <text x="332" y="224" class="label-mono">    strategy: code</text>
+  <text x="332" y="242" class="label-mono">    codeFramework: jest</text>
+  <text x="316" y="266" class="label-mono-accent">covered_targets:</text>
+  <text x="332" y="284" class="label-mono">  - kind: skill</text>
+  <text x="332" y="302" class="label-mono">    id: zoto-create-evals</text>
+  <text x="332" y="320" class="label-mono">    cases: 6</text>
+  <text x="332" y="342" class="label-mono">  - kind: command</text>
+  <text x="332" y="360" class="label-mono">    id: zoto-eval-create</text>
+  <text x="332" y="378" class="label-mono">    cases: 4</text>
+  <text x="332" y="400" class="label-mono">  - kind: agent</text>
+  <text x="332" y="418" class="label-mono">    id: zoto-eval-generator</text>
+  <text x="332" y="436" class="label-mono">    cases: 3</text>
+  <text x="316" y="460" class="label-mono-accent">_meta:</text>
+  <text x="332" y="478" class="label-mono">  generated: true</text>
+  <text x="332" y="496" class="label-mono">  generator: zoto-create-evals</text>
+  <text x="332" y="514" class="label-mono">  primitive_analysis:</text>
+  <text x="332" y="532" class="label-mono">    invalidate: false</text>
+
+  <!-- Chat panel (right) -->
+  <rect x="920" y="36" width="480" height="864" class="ide-chat"/>
+  <text x="940" y="64" class="header">Cursor Chat</text>
+  <text x="940" y="84" class="label-sub">/z-eval-create</text>
+
+  <rect x="930" y="104" width="460" height="60" rx="6" class="chat-msg-user"/>
+  <text x="944" y="128" class="label-title">You</text>
+  <text x="944" y="150" class="label-sub">/z-eval-create</text>
+
+  <rect x="930" y="180" width="460" height="180" rx="6" class="chat-msg-agent"/>
+  <text x="944" y="204" class="label-title">Eval Generator</text>
+  <text x="944" y="226" class="label-sub">Scaffolded the eval suite for this repo:</text>
+  <text x="944" y="248" class="label-mono">" evals/ pytest backend</text>
+  <text x="944" y="268" class="label-mono">" evals/_llm/ @cursor/sdk runner</text>
+  <text x="944" y="288" class="label-mono">" 13 generated cases stamped</text>
+  <text x="944" y="308" class="label-mono">" manifest.yml updated</text>
+  <text x="944" y="332" class="label-sub">User-authored cases preserved verbatim.</text>
+  <text x="944" y="350" class="label-sub">Run /z-eval-execute to capture a baseline.</text>
+
+  <rect x="930" y="376" width="460" height="60" rx="6" class="chat-msg-tool"/>
+  <text x="944" y="400" class="label-mono">tool: writeFile</text>
+  <text x="944" y="420" class="label-sub-mono">.zoto/eval-system/manifest.yml (+148 lines)</text>
+
+  <rect x="930" y="452" width="460" height="60" rx="6" class="chat-msg-tool"/>
+  <text x="944" y="476" class="label-mono">tool: writeFile</text>
+  <text x="944" y="496" class="label-sub-mono">evals/_llm/runner.ts (+312 lines)</text>
+
+  <rect x="930" y="528" width="460" height="60" rx="6" class="chat-msg-tool"/>
+  <text x="944" y="552" class="label-mono">tool: appendFile</text>
+  <text x="944" y="572" class="label-sub-mono">.zoto/eval-system/manifest.history.yml</text>
+
+  <rect x="930" y="604" width="460" height="80" rx="6" class="chat-msg-agent"/>
+  <text x="944" y="628" class="label-title">Next</text>
+  <text x="944" y="650" class="label-sub">Run /z-eval-configure to confirm framework</text>
+  <text x="944" y="668" class="label-sub">choices, then /z-eval-execute for a baseline.</text>
+
+  <!-- Footer -->
+  <text x="700" y="888" text-anchor="middle" class="footer">Mockup  structural fidelity, not pixel-perfect Cursor rendering.</text>
+</svg>

@@ -1,0 +1,49 @@
+schema_version: 1
+subtask_id: "10"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`.cursor/skills/zoto-create-plugin/SKILL.md` Step 6 (\"Generate Components\") gains a sub-step \"6e — Classify and stamp evals\" that calls `pnpm run eval:analyse --target <path>` for each generated component, reads back `requiresInteraction`, and stamps the appropriate backend into the new plugin's `evals/` tree using the same paths as Subtask 06's stamper."
+    done: true
+    evidence_path: .cursor/skills/zoto-create-plugin/SKILL.md
+  - id: D02
+    text: 'Fallback behaviour documented: when `CURSOR_API_KEY` is missing or `pnpm run eval:analyse` fails, the skill stamps a declarative-JSON eval with `_meta.classification_source: "fallback-default"` and clearly tells the operator a later `pnpm run eval:update --with-analyser` will re-classify.'
+    done: true
+    evidence_path: .cursor/skills/zoto-create-plugin/SKILL.md
+  - id: D03
+    text: Smoke test under `evals/llm/_shared/zoto-create-plugin-strategy.test.ts` (or wherever scope-isolated tests live; do NOT add it under `evals/llm/test_*.test.ts` — that path is reserved for stamped tests). The test scaffolds a temporary plugin tree (interactive command + non-interactive skill) and asserts the eval tree contains a code-strategy `evals/llm/test_command_*.test.ts` for the command and a declarative `plugins/<temp>/skills/<name>/evals/evals.json` for the skill.
+    done: true
+    evidence_path: evals/llm/_shared/zoto-create-plugin-strategy.test.ts
+  - id: D04
+    text: Cross-link the new sub-step in `plugins/zoto-eval-system/README.md` "Plugin scaffolding" section (a one-line forward reference; the full doc update lives in Subtask 12).
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D05
+    text: If `.cursor/agents/zoto-plugin-manager.md` (the agent that drives `/zoto-create-plugin`) is the one that consumes the skill, refresh its instructions to mention the new sub-step.
+    done: true
+    evidence_path: .cursor/agents/zoto-plugin-manager.md
+artifacts:
+  - path: .cursor/skills/zoto-create-plugin/SKILL.md
+    kind: modified
+    note: Step 6e classify and stamp evals
+  - path: evals/llm/_shared/zoto-create-plugin-strategy.ts
+    kind: created
+    note: Plugin creation strategy helper
+  - path: evals/llm/_shared/zoto-create-plugin-strategy.test.ts
+    kind: created
+    note: Smoke test for backend split
+  - path: plugins/zoto-eval-system/README.md
+    kind: modified
+    note: Plugin scaffolding forward reference
+  - path: .cursor/agents/zoto-plugin-manager.md
+    kind: modified
+    note: Mentions Step 6e sub-step
+errors: []
+notes: "Scoped vitest 2/2 passed without CURSOR_API_KEY (stubbed analyser). Helper normalises absolute paths to repo-relative before resolveAnalyserTarget."
+extra:
+  vitest_command: pnpm exec vitest run evals/llm/_shared/zoto-create-plugin-strategy.test.ts --config evals/llm/_shared/vitest.config.ts
+  vitest_result: "2 passed"

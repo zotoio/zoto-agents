@@ -1,0 +1,79 @@
+schema_version: 1
+subtask_id: "07"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+last_heartbeat: "2026-05-25T15:28:50Z"
+checklist:
+  - id: D01
+    text: "`plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl` imports the new `askquestion-bridge` re-export (path matches the per-repo copy under `evals/llm/_shared/`); preserves the leading `// _meta.generated: true` line; preserves the existing `defineLlmCodeEval` call shape (additive only)."
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl
+  - id: D02
+    text: "`evals/llm/_shared/run-code-strategy-suite.ts` `runCase` flow is updated so that when a case carries `interactions` (or whatever shape the ADR pins), the bridge is used instead of the bare follow-up loop. Cases without `interactions` keep the existing follow-up behaviour byte-for-byte."
+    done: true
+    evidence_path: evals/llm/_shared/run-code-strategy-suite.ts
+  - id: D03
+    text: "Per-case `interactions` data flows into the per-case report under a new `interactions` field next to `expected_output`; the reporter (`_shared/zoto-llm-reporter.ts`) MAY tag the row `interaction_style: scripted | synthetic | none` so the comparer can flatten it."
+    done: true
+    evidence_path: evals/llm/_shared/zoto-llm-reporter.ts
+  - id: D04
+    text: Targeted unit tests covering the new branch in `runCase` (vitest scoped to `_shared/`).
+    done: true
+    evidence_path: evals/llm/_shared/run-code-strategy-suite.test.ts
+  - id: D05
+    text: "Compile-time guard rule documented at the top of `run-code-strategy-suite.ts`: cases declaring `interactions` MUST have `_meta.primitive_analysis.requiresInteraction === true` (or be unstamped, like manually written test fixtures). Mismatches throw at suite-load time."
+    done: true
+    evidence_path: evals/llm/_shared/run-code-strategy-suite.ts
+artifacts:
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl
+    kind: modified
+    note: Added {{ASKQUESTION_BRIDGE_IMPORT}} placeholder after FRAMEWORK_IMPORTS
+  - path: evals/llm/_shared/run-code-strategy-suite.ts
+    kind: modified
+    note: Bridge branch, suite-load guard, resolveReportInteractionStyle, reporter fields
+  - path: evals/llm/_shared/zoto-llm-reporter.ts
+    kind: modified
+    note: interactions + interaction_style in ReportedCase, logs, llm.yml
+  - path: evals/llm/_shared/code-strategy-case.ts
+    kind: modified
+    note: Optional _meta.primitive_analysis.requiresInteraction on case type
+  - path: evals/llm/_shared/run-code-strategy-suite.test.ts
+    kind: modified
+    note: 8 tests — guard, style mapping, scripted + legacy runCase paths
+  - path: scripts/eval-stamp.ts
+    kind: modified
+    note: renderLlmCodePerPrimitiveTest replaces {{ASKQUESTION_BRIDGE_IMPORT}} when requiresInteraction is true
+  - path: scripts/__tests__/eval-stamp-routing.test.ts
+    kind: modified
+    note: Asserts askquestion-bridge import in code-strategy stamp output
+errors: []
+notes: |
+  Vitest: `pnpm exec vitest run evals/llm/_shared/run-code-strategy-suite.test.ts --config evals/llm/_shared/vitest.config.ts` — 8/8 passed.
+  tsc: `pnpm exec tsc --noEmit -p evals/llm/_shared/tsconfig.json` — clean (run-code-strategy-suite.ts not in tsconfig include; pulls pre-existing sandbox-helpers CaseFixtures re-export gap).
+  Fix round: renderLlmCodePerPrimitiveTest now substitutes {{ASKQUESTION_BRIDGE_IMPORT}} with the askquestion-bridge import when requiresInteraction is true, empty string otherwise. eval-stamp-routing.test.ts 9/9 passed.
+extra:
+  vitest_passed: 8
+  vitest_failed: 0
+  routing_tests_passed: 9
+  fix_applied:
+    at: "2026-05-25T15:28:50Z"
+    item: ASKQUESTION_BRIDGE_IMPORT stamper wiring
+    path: scripts/eval-stamp.ts
+  judge:
+    verdict: verified
+    at: "2026-05-26T01:52:00+10:00"
+    notes: |
+      Independent re-verification after ASKQUESTION_BRIDGE_IMPORT fix. D01–D05 confirmed on disk: template keeps
+      `// _meta.generated: true`, `{{ASKQUESTION_BRIDGE_IMPORT}}` placeholder, and unchanged `defineLlmCodeEval` shape;
+      renderLlmCodePerPrimitiveTest (scripts/eval-stamp.ts:2314-2321) substitutes the askquestion-bridge import when
+      requiresInteraction is true and empty string otherwise; eval-stamp-routing.test.ts asserts import presence and no
+      literal placeholder. runCase uses runCaseWithScriptedAnswers when interactions.answers is non-empty and preserves
+      the legacy follow_ups loop otherwise; validateCasesAtSuiteLoad guard documented and enforced; reporter emits
+      interactions + interaction_style. Vitest: run-code-strategy-suite.test.ts 8/8, eval-stamp-routing.test.ts 9/9
+      (independent run). DoD: scripted + legacy paths covered; no declarative-template or stamped test_*.test.ts edits
+      in artifact list. Note: tsc -p evals/llm/_shared/tsconfig.json reports pre-existing errors in
+      zoto-create-plugin-strategy* (not subtask-07 scope); touched harness files compile via vitest.
+    fix_list: []

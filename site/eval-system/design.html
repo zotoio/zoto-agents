@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design — Eval System — Zoto Agents</title>
+  <meta name="description" content="zoto-eval-system design deep-dive — architecture, user-confirmation flow, static + LLM backends, run output schema, the _meta.generated contract, judge vs adviser.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Eval System — Design — Zoto Agents">
+  <meta property="og:description" content="Architecture, the static + LLM split, the user-confirmation contract, and the _meta.generated guarantee.">
+  <meta property="og:url" content="https://zotoio.github.io/zoto-agents/eval-system/design.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Eval System — Design — Zoto Agents">
+  <meta name="twitter:description" content="Architecture, the static + LLM split, the user-confirmation contract, and the _meta.generated guarantee.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
+</head>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <nav class="top-nav" aria-label="Main navigation">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="../spec-system/index.html" class="nav-dropdown-toggle">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../spec-system/index.html">Overview</a></li>
+            <li><a href="../spec-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../spec-system/design.html">Design</a></li>
+            <li><a href="../spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="index.html" class="nav-dropdown-toggle active">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="quickstart.html">Quickstart</a></li>
+            <li><a href="design.html">Design</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" aria-label="Eval System pages">
+        <h3 class="sidebar-heading">Eval System</h3>
+        <ul class="sidebar-list">
+          <li><a href="index.html" class="sidebar-link">Overview</a></li>
+          <li><a href="quickstart.html" class="sidebar-link">Quickstart</a></li>
+          <li><a href="design.html" class="sidebar-link active">Design</a></li>
+          <li><a href="configuration.html" class="sidebar-link">Configuration</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="index.html">Eval System</a></li>
+          <li>Design</li>
+        </ul>
+
+        <h1>Design</h1>
+        <p>
+          A short tour of the architecture. The lifecycle is six commands wrapped around a
+          user-confirmed updater. Two backends — static (pytest / vitest / jest) and LLM
+          (<code>@cursor/sdk</code>) — share the same suite, the same manifest, and the same
+          <code>_meta.generated</code> contract. Drift in AI primitive behaviour is surfaced
+          explicitly — every eval change requires your approval before it is written.
+        </p>
+
+        <h2 id="lifecycle">Lifecycle architecture</h2>
+        <figure>
+          <img src="../images/diagrams/eval-lifecycle.svg" alt="Eval system lifecycle: init, configure, create, execute, judge, compare across the spine, with update sitting below as a continuous sync loop into create and execute.">
+          <figcaption><code>update</code> detects drift after code changes and presents each proposed eval change for your approval before writing.</figcaption>
+        </figure>
+
+        <h2 id="user-confirmation">User confirmation for every change</h2>
+        <p>
+          No generated eval is rewritten without explicit user consent. When the updater
+          detects drift or the configurer proposes a change, every modification is presented
+          for approval before anything is written to disk. In CI, <code>--check</code> mode
+          detects drift without writing — it is a gate, not an auto-fixer.
+        </p>
+        <h3 id="askquestion-plumbing">Implementation: the askQuestion / needs_user_input contract</h3>
+        <p>
+          Under the hood, Cursor subagents cannot prompt the user directly. The plumbing works
+          like this: slash <strong>commands</strong> own <code>askQuestion</code> calls; they
+          pre-collect answers before spawning Task subagents and pass them in the Task prompt.
+          <strong>Agents</strong> and <strong>skills</strong> never call <code>askQuestion</code>;
+          they consume pre-collected answers, or return a structured <code>needs_user_input</code>
+          block so the command can prompt the user and resume the subagent with the answer.
+          This is standard Cursor subagent plumbing — the important guarantee is that the user
+          sees and approves every change. This <strong>operator</strong> flow is distinct from
+          <strong>eval-runner</strong> scripted <code>AskQuestion</code> simulation on code-strategy
+          cases — see <a href="#strategy-bridge">Strategy bridge</a> below. Code-strategy evals
+          simulate the same contract via
+          <code>evals/llm/_shared/askquestion-bridge.ts</code> (scripted answers, no human).
+        </p>
+
+        <h2 id="static-backend">Static backend</h2>
+        <p>The default static layout is stamped from <code>templates/static/pytest/</code> when <code>static.framework</code> is <code>pytest</code>. Vitest and jest variants follow their respective template trees.</p>
+        <ul>
+          <li><code>conftest.py</code> — shared fixtures.</li>
+          <li><code>requirements.txt</code> — pytest, pyyaml, and friends.</li>
+          <li><code>per-primitive-test.py</code> — pattern for generated tests.</li>
+          <li><code>fixtures/</code> — keepalive directory.</li>
+        </ul>
+        <p>Run it with <code>pnpm run eval</code> (host wiring typically invokes <code>python3 scripts/test.py</code>).</p>
+
+        <h2 id="llm-backend">LLM backend (<code>@cursor/sdk</code>)</h2>
+        <p>
+          Why <code>@cursor/sdk</code>: <code>@cursor/sdk ^1.0.12</code> is the supported, typed
+          API for building agents and evaluations against Cursor's agent infrastructure. The older
+          <code>february</code> SDK package is not used anywhere in this plugin.
+        </p>
+        <p>
+          LLM eval shape is chosen <strong>per target</strong> by analyser classification — not by a
+          single repo-wide <code>llm.strategy</code> knob. The
+          <code>zoto-eval-analyser-subagent</code> emits <code>requiresInteraction</code> (and optional
+          <code>interactionStyle</code>) into cached analyser payloads; the stamper routes each target
+          to either declarative JSON or code-strategy TypeScript. Global
+          <code>llm.strategy</code> in <code>.zoto/eval-system/config.yml</code> is the
+          <strong>fallback default</strong> when classification is unavailable; <code>llm.codeFramework</code>
+          applies to all code-strategy targets.
+        </p>
+
+        <h3 id="strategy-bridge">Strategy bridge</h3>
+        <p>
+          Full pipeline: <strong>source primitive</strong> → <strong>analyser</strong> →
+          <code>{requiresInteraction, interactionStyle}</code> → <strong>stamper</strong> →
+          declarative JSON <em>or</em> code-strategy TS →
+          <code>evals/llm/_shared/askquestion-bridge.ts</code> (interactive code path only) →
+          <code>@cursor/sdk</code> <code>Agent.run</code> → <code>zoto-llm-reporter</code> /
+          writer → <code>report.yml</code> row with <code>backend: declarative|code</code>.
+        </p>
+        <figure>
+          <img src="../images/diagrams/eval-askquestion-flow.svg" alt="Eval strategy bridge pipeline from source primitive through analyser, classification, stamper, declarative or code-strategy branches, askquestion-bridge on the interactive path, @cursor/sdk, and report.yml with backend annotation.">
+          <figcaption>Per-target routing at stamp time. Code-strategy interactive cases simulate operator <code>AskQuestion</code> turns via <code>askquestion-bridge.ts</code>; each turn is tagged <code>interaction_style: synthetic</code> on SDK 1.0.12.</figcaption>
+        </figure>
+        <p>
+          <code>askquestion-bridge.ts</code> wraps <code>sdk-bridge.ts</code> and replays scripted
+          answers from case <code>interactions.answers</code> (legacy fallback: <code>follow_ups[]</code>).
+          Stamped <code>test_*.test.ts</code> files import the bridge through
+          <code>evals/llm/_shared/</code>; the suite harness in
+          <code>run-code-strategy-suite.ts</code> wires interactive cases automatically.
+        </p>
+        <table>
+          <thead><tr><th>Branch</th><th>Stamped artefact</th><th>Runner script</th></tr></thead>
+          <tbody>
+            <tr><td><code>requiresInteraction: false</code></td><td><code>plugins/*/evals/**/evals.json</code></td><td><code>pnpm run eval:llm:declarative</code></td></tr>
+            <tr><td><code>requiresInteraction: true</code></td><td><code>evals/llm/test_*.test.ts</code></td><td><code>pnpm run eval:llm:code</code></td></tr>
+          </tbody>
+        </table>
+        <p>
+          Both runners may execute in one <code>pnpm run eval:full</code> pass. Apply-mode update with
+          reclassification may migrate a target between JSON and TS; <code>eval:cleanup-stale</code>
+          removes wrong-backend artefacts per target.
+        </p>
+        <p>The declarative scaffold is stamped at <code>{evalsDir}/_llm/</code>; code-strategy tests live under <code>{evalsDir}/llm/</code>:</p>
+        <table>
+          <thead><tr><th>File</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td><code>runner.ts</code></td><td>Discovers cases, gates on <code>--full</code> + <code>CURSOR_API_KEY</code>, runs per-case, writes canonical <code>llm.yml</code> + <code>logs/&lt;case&gt;.log</code>.</td></tr>
+            <tr><td><code>case.ts</code></td><td>Typed case loader; understands <code>_meta.generated</code>.</td></tr>
+            <tr><td><code>graders/</code></td><td><code>contains</code>, <code>regex</code>, <code>tool-called</code>, <code>llm-judge</code>.</td></tr>
+            <tr><td><code>metrics.ts</code></td><td>Tokens, duration, verbosity, accuracy, confidence.</td></tr>
+            <tr><td><code>writer.ts</code></td><td>Schema-valid YAML + per-case logs.</td></tr>
+            <tr><td><code>update.ts</code></td><td>Surgical diff engine (mirror of <code>scripts/eval-update.ts</code>).</td></tr>
+            <tr><td><code>compare.ts</code></td><td>Emits the <code>/canvas</code> hand-off dataset.</td></tr>
+          </tbody>
+        </table>
+        <p>Model precedence at runtime:</p>
+        <ol>
+          <li><code>--model &lt;id&gt;</code> on the CLI.</li>
+          <li><code>ZOTO_EVAL_MODEL</code> env var.</li>
+          <li><code>config.llm.model.id</code> from <code>.zoto/eval-system/config.yml</code>.</li>
+        </ol>
+
+        <h2 id="run-outputs">Run output layout</h2>
+        <p>Each <code>/z-eval-execute</code> writes a single timestamped folder. Per-case rows in
+          <code>llm.yml</code> and merged <code>report.yml</code> include
+          <code>backend: declarative</code> or <code>backend: code</code> so comparers and CI can
+          group hybrid runs.</p>
+        <pre><code class="language-bash">{evalsDir}/_runs/&lt;ts&gt;/
+  static.yml          # static-backend totals + per-case rows
+  llm.yml             # LLM-backend totals + soft metrics + per-case rows
+  report.yml          # merged rollup — primary input for compare + CI
+  .run-meta.json      # run id, started_at, model id, git_ref
+  logs/
+    &lt;case-id&gt;.log     # per-case verbose logs</code></pre>
+        <figure>
+          <img src="../images/diagrams/eval-run-report.svg" alt="Three-panel run report layout: timestamped run directory on the left, three output files in the centre, /canvas hand-off on the right.">
+          <figcaption><code>report.yml</code> is the authoritative aggregate; the comparer reads only <code>report.yml</code>.</figcaption>
+        </figure>
+
+        <h3 id="result-schema">Result schema (<code>llm.yml</code> example)</h3>
+        <pre><code class="language-yaml">schema_version: 1
+run_id: 20260503-051900
+started_at: 2026-05-03T05:19:00Z
+ended_at: 2026-05-03T05:19:42Z
+totals:
+  cases: 14
+  passed: 12
+  failed: 2
+aggregates:
+  tokens_total: 48231
+  duration_ms_total: 42017
+  verbosity_avg: 0.41
+  accuracy_avg: 0.86
+  confidence_avg: 0.72
+cases:
+  - id: zoto-create-spec/1
+    status: passed
+    backend: declarative
+    tokens: 3182
+    duration_ms: 2710
+    verbosity: 0.38
+    accuracy: 0.92
+    confidence: 0.81
+  - id: z-eval-configure/2
+    status: passed
+    backend: code
+    interaction_style: synthetic
+    tokens: 4521
+    duration_ms: 3890
+    verbosity: 0.44
+    accuracy: 0.88
+    confidence: 0.79</code></pre>
+
+        <h2 id="meta-generated">The <code>_meta.generated</code> contract</h2>
+        <p>Every generated eval case carries a <code>_meta</code> block. Cases without <code>_meta</code>, or with <code>_meta.generated === false</code>, are user-authored and are preserved verbatim.</p>
+        <figure>
+          <img src="../images/diagrams/eval-update-contract.svg" alt="Two-column diagram. Generated cases on the left receive update arrows; user-authored cases on the right are blocked from any updater write.">
+          <figcaption>Single-owner provenance per case. Drift detection triggers a user-confirmed review, never a silent overwrite.</figcaption>
+        </figure>
+        <pre><code class="language-yaml">_meta:
+  generated: true
+  source_hash: &lt;sha256 of the target's normalised content at generation time&gt;
+  last_updated: &lt;ISO 8601 timestamp&gt;
+  generated_by: "zoto-create-evals" | "zoto-update-evals"
+  primitive_analysis:
+    requiresInteraction: true
+    interactionStyle: synthetic</code></pre>
+        <ul>
+          <li>The updater <strong>never</strong> modifies user-authored cases.</li>
+          <li>It flags them for "may need review" and moves on.</li>
+          <li>Classification fields in <code>_meta.primitive_analysis</code> drive stamper routing on apply-mode update.</li>
+          <li>The validator rejects any <code>update.ts</code> source that does not enforce this guard at compile time (literal-string check for <code>_meta?.generated === true</code>).</li>
+        </ul>
+
+        <h3 id="critical-rubric">Critical-change rubric</h3>
+        <table>
+          <thead><tr><th>Change</th><th>Classification</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>Added target with no eval coverage</td><td>critical</td><td>New surface area is untested.</td></tr>
+            <tr><td>Removed target with active generated cases</td><td>critical</td><td>Dangling cases would pass vacuously.</td></tr>
+            <tr><td>Skill frontmatter <code>name</code> or <code>description</code> changed</td><td>critical</td><td>Triggering and retrieval depend on these.</td></tr>
+            <tr><td>Public-surface change on a covered target</td><td>critical</td><td>The thing being tested behaves differently.</td></tr>
+            <tr><td>Prompt template change</td><td>critical</td><td>Generated prompts cite the template.</td></tr>
+            <tr><td>Comment-only / whitespace-only change</td><td>non-critical</td><td>No behaviour change.</td></tr>
+            <tr><td>Internal symbol change (not in public surface)</td><td>non-critical</td><td>Out of scope for covered behaviour.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="manifest">Manifest example</h2>
+        <pre><code class="language-yaml">schema_version: 1
+created_at: 2026-05-03T05:19:00Z
+updated_at: 2026-05-03T05:19:00Z
+git_ref: abc1234...def
+generated_by: zoto-create-evals
+discovery_config:
+  evalsDir: evals
+  skillsRoots: [.cursor/skills, skills]
+  discoveryTargets: [skill, command, agent, hook]
+  additionalAutomation: []
+targets:
+  - id: skill:zoto-create-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md
+    content_hash: 9f8e...a12
+    public_surface:
+      frontmatter: { name: zoto-create-spec, description: "Guided..." }
+      tools: []
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+  - id: command:z-eval-configure
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-configure.md
+    content_hash: 3a2b...c91
+    public_surface:
+      frontmatter: { name: z-eval-configure, description: "Interactive config..." }
+      tools: []
+    eval_files:
+      - evals/llm/test_command_z-eval-configure.test.ts</code></pre>
+
+        <h2 id="judge-vs-advise">Judge vs Adviser</h2>
+        <p>
+          The two reviewers complement each other. <strong>Judge</strong> reads run artefacts after
+          a run; <strong>Adviser</strong> reads source definitions and eval files before any run.
+        </p>
+        <table>
+          <thead><tr><th></th><th>Adviser (<code>/z-eval-advise</code>)</th><th>Judge (<code>/z-eval-judge</code>)</th></tr></thead>
+          <tbody>
+            <tr><td><strong>When</strong></td><td>Before running</td><td>After a completed run</td></tr>
+            <tr><td><strong>Reads</strong></td><td>Source definitions + eval files</td><td>Run artefacts (<code>llm.yml</code>, logs)</td></tr>
+            <tr><td><strong>Answers</strong></td><td>"What tests are missing?"</td><td>"How did the tests perform?"</td></tr>
+            <tr><td><strong>Output</strong></td><td>Gap report + create/update recommendations</td><td>Soft-metric annotations in <code>llm.yml</code></td></tr>
+          </tbody>
+        </table>
+
+        <figure>
+          <img src="../images/mockups/eval-judge-output.svg" alt="Cursor IDE mockup of /z-eval-judge. The chat panel summarises a weak grader, a verbosity spike, and an accuracy regression; the editor pane shows the judge: block being appended to llm.yml.">
+          <figcaption><code>/z-eval-judge</code> — adversarial review of the latest run. Output lands in <code>llm.yml</code> as an append-only block.</figcaption>
+        </figure>
+
+        <figure>
+          <img src="../images/mockups/eval-advise-flow.svg" alt="Cursor IDE mockup of /z-eval-advise. The right pane shows a five-dimension severity scoreboard (trigger-phrase, schema, regression, citation, checklist) and a hand-off banner recommending /z-eval-update.">
+          <figcaption><code>/z-eval-advise</code> — five-dimension scoreboard plus a deterministic hand-off recommendation.</figcaption>
+        </figure>
+
+        <h2 id="canvas-compare">Cross-run comparison</h2>
+        <p>
+          <code>/z-eval-compare &lt;run-1&gt; &lt;run-2&gt; [&lt;run-N&gt;]</code> locates each
+          run's <code>report.yml</code>, emits a flat dataset (<code>runs × cases × dimensions</code>),
+          and hands a <code>templates/canvas/compare-prompt.md.tmpl</code> instruction to the host
+          agent — which invokes Cursor's built-in <code>/canvas</code> tool. The skill never
+          renders charts itself. The canvas tool decides layout; drilldown opens
+          <code>{evalsDir}/_runs/&lt;run&gt;/logs/&lt;case&gt;.log</code>.
+        </p>
+        <figure>
+          <img src="../images/mockups/eval-canvas-compare.svg" alt="Cursor IDE mockup of /z-eval-compare run-A run-B with a /canvas chart of runs × cases × tokens for two run series.">
+          <figcaption>Click any bar to open the per-case log in the editor.</figcaption>
+        </figure>
+
+        <h2 id="references">References</h2>
+        <ul>
+          <li>Source-of-truth: <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-eval-system/README.md" target="_blank" rel="noopener noreferrer"><code>plugins/zoto-eval-system/README.md</code></a>.</li>
+          <li>Schema: <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-eval-system/templates/schema/config.schema.json" target="_blank" rel="noopener noreferrer"><code>templates/schema/config.schema.json</code></a>.</li>
+          <li>Result schema: <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-eval-system/templates/schema/result.schema.json" target="_blank" rel="noopener noreferrer"><code>templates/schema/result.schema.json</code></a>.</li>
+        </ul>
+
+        <nav class="page-nav" aria-label="Page navigation">
+          <a class="page-nav-link" href="quickstart.html">
+            <span class="page-nav-label">Previous</span>
+            <span class="page-nav-title">← Quickstart</span>
+          </a>
+          <a class="page-nav-link page-nav-next" href="configuration.html">
+            <span class="page-nav-label">Next</span>
+            <span class="page-nav-title">Configuration →</span>
+          </a>
+        </nav>
+
+      </div>
+      <footer class="site-footer">
+        <p>Eval System v0.2.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

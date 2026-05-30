@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2.5",
+  "target_id": "command:z-spec-execute",
+  "kind": "command",
+  "source_path": "plugins/zoto-spec-system/commands/z-spec-execute.md",
+  "source_hash": "2de92f447983f48f01ea278cb0d3223dff9d7f842e275fa4562cc175d6be09c8",
+  "summary": "The command gates on `.zoto/spec-system/config.yml`, spawns `zoto-spec-executor` with arguments passed through, runs manifest-driven phased execution with up to four parallel subagents, mandatory `zoto-spec-judge` checks, final tests and lint, a durable execution report, user approvals, and supports `--resume` plus documented config reload semantics.",
+  "cases": [
+    {
+      "scenario": "default-invocation-selects-the-newest-spec-directory-under-specsdir",
+      "prompt": "/z-spec-execute",
+      "expected_output": "A refusal that quotes the required initialisation message and does not start an executor run.",
+      "assertions": [
+        "The assistant output contains the exact text: Spec System is not initialised. Run `/z-spec-init` first to create `.zoto/spec-system/config.yml`.",
+        "After `/z-spec-execute`, no execution-report markdown is created under any spec directory and no zoto-spec-executor delegation is described as running."
+      ]
+    },
+    {
+      "scenario": "Default invocation selects the newest spec directory under specsDir",
+      "prompt": "/z-spec-execute @specs/20260525-eval-prompt-realism-audit/spec-eval-prompt-realism-audit-20260525.md",
+      "expected_output": "The run targets the most recently modified spec tree, validates its manifest, and proceeds toward confirmation only if `.zoto/spec-system/config.yml` is present.",
+      "assertions": [
+        "After `/z-spec-execute` with no extra tokens, the plan identifies a single spec directory under the configured specsDir by latest modification time.",
+        "The assistant states it will spawn `zoto-spec-executor` and rely on the `zoto-execute-spec` skill, passing through an empty argument tail."
+      ]
+    },
+    {
+      "scenario": "aggregator-watches-digest-live-reload-keys-apply-on-next-spawn",
+      "prompt": "/z-spec-execute specs/20260403-network-retries",
+      "expected_output": "The executor resolves `spec-*.md` inside that directory, validates the manifest structure, and prepares a phase and subtask summary for approval.",
+      "assertions": [
+        "After `/z-spec-execute specs/20260403-network-retries`, the assistant loads the spec index under that directory and validates manifest entries (files exist, agent names match metadata, dependencies are ordered).",
+        "The assistant presents phases, subtask counts, and per-subtask agent assignments from the manifest, then pauses for operator approval before any execution subagents run."
+      ]
+    },
+    {
+      "scenario": "index-file-path-is-executed-directly-when-provided",
+      "prompt": "/z-spec-execute specs/20260403-network-retries/spec-network-retries-20260403.md",
+      "expected_output": "Execution uses that markdown file as the spec index and follows the same validation and approval pattern as directory-based runs.",
+      "assertions": [
+        "After `/z-spec-execute` with a path ending in `.md` under the spec directory, the assistant treats that file as the spec index rather than searching for another `spec-*.md` name.",
+        "The manifest validation and pre-flight execution summary still occur before subagents begin work."
+      ]
+    },
+    {
+      "scenario": "resume-flag-continues-from-the-first-incomplete-subtask",
+      "prompt": "/z-spec-execute --resume",
+      "expected_output": "The executor reads persisted progress from the spec index manifest, skips finished subtasks, and schedules only remaining work.",
+      "assertions": [
+        "After `/z-spec-execute --resume`, the assistant explains it will read checklist and manifest state to find completed subtasks.",
+        "The plan does not reorder dependencies and avoids restarting subtasks already marked complete in the stored manifest."
+      ]
+    },
+    {
+      "scenario": "Phased dispatch honours manifest agents parallel cap and judge gate",
+      "prompt": "/z-spec-execute specs/20260403-network-retries",
+      "follow_ups": [
+        "Approve the execution summary — run the manifest as listed."
+      ],
+      "expected_output": "Phases run serially while up to four subagents from the manifest run in parallel inside a phase; each finished subtask gets an independent zoto-spec-judge verification pass before the phase closes.",
+      "assertions": [
+        "After approval, subagents spawned per subtask match the manifest agent field with no alternate agent substitution.",
+        "The assistant states that no more than four subagents run concurrently within a batch and that the next phase waits until the prior phase fully finishes.",
+        "After each subtask finishes, the assistant schedules or describes a fresh `zoto-spec-judge` pass that audits Deliverables Checklist and Definition of Done items separately from the executor agent."
+      ]
+    },
+    {
+      "scenario": "Final checks write execution report then require approval to mark Completed",
+      "prompt": "/z-spec-execute specs/20260403-network-retries",
+      "follow_ups": [
+        "All subtasks and judge results are green — run the final test suite and lint pass now.",
+        "I approve the execution report — mark the spec Completed."
+      ],
+      "expected_output": "After judges succeed, tests and lint run once globally; an `execution-report-*-*.md` file lands beside the spec index; the assistant shows it and only then updates status to Completed when the operator agrees.",
+      "assertions": [
+        "After all subtasks verify, the assistant runs the project test suite and linter checks focused on touched files before declaring the run done.",
+        "A durable `execution-report-` markdown file appears under the same spec directory as the index and records per-subtask outcomes, verification results, test status, lint status, and changed files.",
+        "The assistant surfaces that report for review and only marks the spec Completed after explicit user approval of the final summary."
+      ]
+    },
+    {
+      "scenario": "Failure or Failed judge outcome stops with retry skip abort choice",
+      "prompt": "/z-spec-execute specs/20260403-network-retries",
+      "follow_ups": [
+        "A subtask failed verification with judge outcome Failed — how should we proceed?"
+      ],
+      "expected_output": "The run halts escalation until the operator picks retry, skip, or abort; no silent continuation past a Failed gate.",
+      "assertions": [
+        "When a subtask or `zoto-spec-judge` result is Failed, the assistant stops forward progress and asks the operator to choose retry, skip, or abort.",
+        "The assistant does not mark the spec Completed or write a final success-only report while that Failed branch remains unresolved."
+      ]
+    },
+    {
+      "scenario": "Aggregator watches digest live reload keys apply on next spawn",
+      "prompt": "/z-spec-execute specs/20260403-network-retries",
+      "follow_ups": [
+        "During the run, keep spec-root `status.md` and `status.yml` updated from subagent status digests."
+      ],
+      "expected_output": "A long-running aggregator command keeps spec-root status files synchronized, and config edits for token budgets apply on subsequent spawns while specsDir edits still need a brand-new command invocation.",
+      "assertions": [
+        "For an active execution, the assistant describes running `pnpm --filter @zoto-agents/zoto-spec-system exec tsx scripts/spec-aggregator.ts --watch` (or the documented watch mode) for the spec lifetime so spec-root `status.md` and `status.yml` rebuild when digests change.",
+        "The assistant notes that `subagents.*.tokenBudget`, `subagents.*.model`, `aggregator.pollIntervalMs`, `aggregator.debounceMs`, `aggregator.enabled`, and `spec.parallelLimit` reload after the next spawn or aggregator tick without restarting the whole executor.",
+        "The assistant states that `specsDir`, `unitOfWork`, `workDir`, `hooks.*`, and `extensions.*` changes only apply after a fresh `/z-spec-execute` invocation, not mid-run."
+      ]
+    }
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
+}

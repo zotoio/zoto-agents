@@ -1,0 +1,52 @@
+schema_version: 1
+subtask_id: "12"
+feature: Eval AskQuestion Strategy Bridge
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`plugins/zoto-eval-system/README.md` gains a `## Strategy bridge` section (or whichever heading reads naturally given the existing TOC) that covers: declarative vs code; analyser-driven classification; the `_shared/askquestion-bridge.ts` helper; the per-row `backend:` annotation in `report.yml`; the migration story for existing repos. Cite Subtask 09's migration matrix as the example diff readers can review."
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D02
+    text: "`plugins/zoto-eval-system/README.md` `## Configuration` section refreshed: `llm.strategy:` is now the fallback default (used only when classification is unavailable), not the per-target choice. Cross-reference `site/eval-system/configuration.html`."
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D03
+    text: "`plugins/zoto-eval-system/README.md` `## Plugin scaffolding` (or equivalent) section forward-references the new `/zoto-create-plugin` integration from Subtask 10."
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D04
+    text: "`evals/llm/_shared/README.md` (new file) describes every helper currently in `evals/llm/_shared/` (`sdk-bridge`, `code-strategy-case`, `run-code-strategy-suite`, `sandbox-helpers`, `zoto-llm-reporter`, `setup`, `_user-case-guards`, the new `askquestion-bridge`, `graders/*`). Each entry includes: purpose, exported surface table, intended consumers, link back to `plugins/zoto-eval-system/README.md` for the user-facing version."
+    done: true
+    evidence_path: evals/llm/_shared/README.md
+  - id: D05
+    text: "`plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md` Step 2/Step 3 anchor tables updated so the README's new section is on the help-section menu. Verify the section header matches the README exactly (the skill loads README sections by `## header` literal)."
+    done: true
+    evidence_path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+  - id: D06
+    text: "Cross-link audit performed: every `start:end:plugins/zoto-eval-system/README.md` reference in the broader codebase still resolves (the section line numbers will shift; update the citing files)."
+    done: true
+    evidence_path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+artifacts:
+  - path: plugins/zoto-eval-system/README.md
+    kind: modified
+    note: Strategy bridge section and Configuration/Plugin scaffolding refresh
+  - path: evals/llm/_shared/README.md
+    kind: created
+    note: Module catalogue for code-strategy shared helpers
+  - path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+    kind: modified
+    note: Step 3 Strategy bridge anchor and citation example update
+errors: []
+notes: "Cross-link audit: only SKILL.md carried hard-coded README line citations (20:30 → 34:50 Quick start). No site/eval-system/*.html edits (subtask 11)."
+extra:
+  git_sha: e49961ff5330e60d9adf4aa48727cf8247371d5e
+  strategy_bridge_header_line: 208
+  judge:
+    verdict: verified
+    at: "2026-05-26T12:00:00Z"
+    notes: "All six deliverables and five DoD gates confirmed. README ## Strategy bridge at line 208 covers hybrid model, bridge helper, report.yml backend annotation, and migration-matrix link; Configuration and Plugin scaffolding refreshed; evals/llm/_shared/README.md catalogues all production helpers and graders (three colocated *.test.ts files omitted — acceptable for a helper catalogue); zoto-help-evals Step 3 includes Strategy bridge with verbatim header match; citation example 34:52 resolves to Quick start; no site/eval-system HTML edits in subtask 12 scope."
+    fix_list: []

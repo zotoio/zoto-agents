@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "analyser_version": "2026.05.03-1",
+  "model_id": "composer-2.5",
+  "target_id": "agent:zoto-eval-comparer",
+  "kind": "agent",
+  "source_path": "plugins/zoto-eval-system/agents/zoto-eval-comparer.md",
+  "source_hash": "eb959882f19a53bc26b86566643f50928acedc44fd11450e1e775dbdaab9237e",
+  "summary": "The comparer merges completed eval runs from each folder’s report.yml and rollup fields, emits a flat per-case table without downsampling together with verbatim compare-canvas instructions for /canvas routing, and must return needs_user_input when run paths stay ambiguous instead of calling askQuestion.",
+  "cases": [
+    {
+      "scenario": "Multi-run compare prepares full canvas routing payload",
+      "prompt": "Use the eval-system comparer to compare two finished harness runs: pass run directory names 20260503051900 and 20260503052015, flatten every case into rows, pull the compare canvas template without edits, then give me the structured payload so the host can open /canvas.",
+      "expected_output": "The agent returns a structured hand-off that names /canvas, carries the unmodified compare canvas template text as instructions, includes a flat array of per-case rows from both runs, tells the host agent to route that object to /canvas, and keeps prose free of charts or plots.",
+      "assertions": [
+        "Every dataset row includes run_id, model, case_id, status, tokens, duration_ms, verbosity, accuracy, confidence, and log_path as defined for compare mode.",
+        "The hand-off payload lists tool /canvas and includes instructions whose text matches plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl byte-for-byte.",
+        "The agent explicitly directs the host agent to forward the payload to /canvas and does not render charts or legends in markdown or ASCII graphics.",
+        "No askQuestion calls appear anywhere in the agent transcript.",
+        "log_path values are present so drill-down can resolve logs relative to the configured evals directory.",
+        "The structured hand-off payload sets `\"tool\": \"/canvas\"` so the host agent forwards it to Cursor's `/canvas` tool.",
+        "The payload includes a `\"dataset\":` array carrying flattened per-case rows from each input run.",
+        "The instructions block forwarded to `/canvas` is byte-equal to `plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl`, joined verbatim by the agent without edits."
+      ]
+    },
+    {
+      "scenario": "Ambiguous run selection returns needs_user_input roster",
+      "prompt": "Run an eval comparison between nightly and stable using the comparer agent; I only wrote nightly for the first run handle.",
+      "expected_output": "First turn returns needs_user_input naming competing results.yml targets without charts; after the follow-up, the agent emits the same /canvas JSON shape as a clean comparison.",
+      "assertions": [
+        "When the first run token matches more than one results.yml and the initial task lacks a choice, the agent returns needs_user_input enumerating those candidates and never calls askQuestion.",
+        "After the follow-up narrows the token, the agent emits the flattened dataset and /canvas instructions without omitting rows for aggregation.",
+        "Across both turns, no askQuestion calls appear in the transcript.",
+        "The structured hand-off payload sets `\"tool\": \"/canvas\"` so the host agent forwards it to Cursor's `/canvas` tool.",
+        "The payload includes a `\"dataset\":` array carrying flattened per-case rows from each input run.",
+        "The instructions block forwarded to `/canvas` is byte-equal to `plugins/zoto-eval-system/templates/canvas/compare-prompt.md.tmpl`, joined verbatim by the agent without edits."
+      ],
+      "follow_ups": [
+        "For the first handle, use the candidate whose run folder sorts lexically before the other nightly match; keep stable as-is and produce the canvas hand-off."
+      ]
+    }
+  ],
+  "_meta": {
+    "primitive_analysis": {
+      "invalidate": true
+    }
+  }
+}
