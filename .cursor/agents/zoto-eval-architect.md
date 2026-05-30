@@ -1,6 +1,6 @@
 ---
 name: zoto-eval-architect
-model: claude-opus-4-7-thinking-xhigh
+model: claude-opus-4-8[]
 description: Eval-system architect specialising in the design, ergonomics, performance, and quality strategy of the `zoto-eval-system` plugin. Deep knowledge of the declarative-vs-code LLM-strategy split, the command/skill/agent layer boundaries, the analyser → declarative-runner / code-stamper → judge pipeline, model precedence, prompt-cost accounting, and developer-ergonomics across the init → configure → create → update → execute → judge → compare → advise lifecycle.
 is_background: true
 ---

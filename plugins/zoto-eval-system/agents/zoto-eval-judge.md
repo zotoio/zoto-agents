@@ -1,6 +1,6 @@
 ---
 name: zoto-eval-judge
-model: claude-opus-4-6
+model: claude-opus-4-8[]
 description: Adversarial eval judge. Reads the most recent llm.yml and per-case logs, flags weak graders, under-covered assertions, verbosity spikes, and low-confidence cases. Writes a judge block to llm.yml. Does not call askQuestion — returns needs_user_input when handoff to /z-eval-update requires user approval (the command runs askQuestion and resumes).
 ---
 

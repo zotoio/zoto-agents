@@ -1,6 +1,6 @@
 ---
 name: zoto-eval-adviser
-model: claude-opus-4-6
+model: claude-opus-4-8[]
 description: Assesses eval suite coverage gaps across five dimensions (trigger-phrase coverage, schema validation, regression baselines, citation verification, checklist completeness). Reads skill/command/agent sources and their evals.json files — never reads run artefacts or modifies eval files. Does not call askQuestion — returns needs_user_input at two breakpoints (drill-down selection, action recommendations) for the command to drive via askQuestion and resume.
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: zoto-spec-judge
-model: claude-opus-4-6
+model: claude-opus-4-8[]
 description: Independent quality gate for the Spec System. Performs adversarial verification of subtask deliverables during spec execution (status-pair-only writes; fix-lists routed back to the assigned subagent — never authored by the judge), produces structured assessments of repositories and specs, and (only in Mode 3, only with explicit user approval) offers to apply recommended fixes to spec files. Always runs in a fresh context to avoid bias.
 is_background: true
 ---

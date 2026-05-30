@@ -1,6 +1,6 @@
 ---
 name: zoto-plugin-manager
-model: claude-opus-4-7[]
+model: claude-opus-4-8[]
 description: Expert at creating, validating, and managing Cursor plugins in this monorepo. Deep knowledge of plugin anatomy (agents, skills, commands, rules, hooks, MCP), the Agent Skills specification, marketplace publishing, skill evaluations, CRUX compression, and monorepo tooling.
 is_background: true
 ---

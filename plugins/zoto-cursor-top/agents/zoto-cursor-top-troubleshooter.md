@@ -1,6 +1,7 @@
 ---
 name: zoto-cursor-top-troubleshooter
 description: Diagnose missing rows, empty log tails, or platform-specific gaps in cursor-top discovery and recommend remediations.
+model: composer-2.5[]
 ---
 
 # zoto-cursor-top-troubleshooter
