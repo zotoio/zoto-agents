@@ -1,0 +1,28 @@
+schema_version: 1
+subtask_id: "07"
+feature: zoto-spec-system-sdlc-personas
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "**D01** — Updated `plugins/zoto-spec-system/README.md`:"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "**D02** — Updated `plugins/zoto-spec-system/docs/config-schema.md`:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "**D03** — Updated `plugins/zoto-spec-system/rules/zoto-spec-system.mdc`:"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "**D04** — Update `plugins/zoto-spec-system/CHANGELOG.md` —"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

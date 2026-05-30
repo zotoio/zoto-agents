@@ -1,0 +1,64 @@
+schema_version: 1
+subtask_id: "09"
+feature: zoto-spec-system-sdlc-personas
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "**D01** — `plugins/zoto-spec-system/agents/evals/zoto-product-analyst.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "**D02** — `plugins/zoto-spec-system/agents/evals/zoto-software-architect.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "**D03** — `plugins/zoto-spec-system/agents/evals/zoto-backend-engineer.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "**D04** — `plugins/zoto-spec-system/agents/evals/zoto-frontend-engineer.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "**D05** — `plugins/zoto-spec-system/agents/evals/zoto-test-engineer.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "**D06** — `plugins/zoto-spec-system/agents/evals/zoto-devops-engineer.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D07
+    text: "**D07** — `plugins/zoto-spec-system/agents/evals/zoto-technical-writer.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D08
+    text: "**D08** — `plugins/zoto-spec-system/agents/evals/zoto-security-engineer.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D09
+    text: "**D09** — `plugins/zoto-spec-system/agents/evals/zoto-sre.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D10
+    text: "**D10** — `plugins/zoto-spec-system/agents/evals/zoto-code-reviewer.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D11
+    text: "**D11** — `plugins/zoto-spec-system/tests/integration/persona-dispatch.test.ts`"
+    done: false
+    evidence_path: null
+  - id: D12
+    text: "**D12** — Verify each phase skill's `evals/evals.json` (shipped in"
+    done: false
+    evidence_path: null
+  - id: D13
+    text: "**D13** — Optionally extend the existing"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}

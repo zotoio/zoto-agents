@@ -1,0 +1,36 @@
+schema_version: 1
+subtask_id: "08"
+feature: zoto-spec-system-sdlc-personas
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: pending
+checklist:
+  - id: D01
+    text: "**D01** — README cross-link verification. For each persona named in"
+    done: false
+    evidence_path: null
+  - id: D02
+    text: "**D02** — `docs/config-schema.md` cross-link verification. Confirm:"
+    done: false
+    evidence_path: null
+  - id: D03
+    text: "**D03** — `rules/zoto-spec-system.mdc` cross-link verification."
+    done: false
+    evidence_path: null
+  - id: D04
+    text: "**D04** — Tier 2 leakage `rg` sweep. Run:"
+    done: false
+    evidence_path: null
+  - id: D05
+    text: "**D05** — Run `node scripts/validate-template.mjs` and"
+    done: false
+    evidence_path: null
+  - id: D06
+    text: "**D06** — Capture findings in the work log. If any cross-link"
+    done: false
+    evidence_path: null
+artifacts: []
+errors: []
+notes: ""
+extra: {}
