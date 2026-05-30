@@ -3,20 +3,12 @@
  * Idempotent host-repo bootstrapper for `.env.example` + `.gitignore`.
  *
  * Stamped into the host repo by `zoto-create-evals` and surfaced as
- * `pnpm run eval:ensure-host`. Two responsibilities:
+ * `pnpm run eval:ensure-host`. Responsibilities:
  *
- *   1. Stamp `.env.example` at the repo root if missing. Existing
- *      files are NEVER overwritten — operators may have other env
- *      vars in there.
- *   2. Ensure `.gitignore` excludes `.env` (and `.env.*`) so secrets
- *      cannot be committed by accident. Creates `.gitignore` if
- *      missing; appends missing rule lines under a labelled header
- *      otherwise. Existing operator-authored entries are never
- *      touched, so this is safe to re-run.
- *
- * Standalone by design: the host repo carries the `.env.example`
- * body inline so this script does not need to look up the
- * eval-system plugin install path at runtime.
+ *   1. Stamp `.env.example` under the eval home (`.zoto/eval-system/`) if missing.
+ *   2. Stamp `.env.example` at the repo root if missing (legacy / shared hosts).
+ *   3. Ensure repo-root `.gitignore` excludes `.env` secrets.
+ *   4. Copy the skipped multi-primitive scenario example when missing.
  *
  * Usage:
  *   pnpm run eval:ensure-host                  # write changes
@@ -24,6 +16,16 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const EVAL_HOME = resolve(SCRIPT_DIR, "..");
+const REPO_ROOT = resolve(EVAL_HOME, "../..");
+const SCENARIO_REL_PATH = join(EVAL_HOME, "evals/scenarios/_example-multi-primitive.test.ts");
+const SCENARIO_TEMPLATE_PATH = resolve(
+  SCRIPT_DIR,
+  "../templates/scenarios/_example-multi-primitive.test.ts.tmpl",
+);
 
 const ENV_EXAMPLE_BODY = `# Eval system — environment variables.
 #
@@ -59,7 +61,7 @@ interface CliOptions {
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const opts: CliOptions = { repoRoot: process.cwd(), dryRun: false };
+  const opts: CliOptions = { repoRoot: REPO_ROOT, dryRun: false };
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i]!;
     if (a === "--repo-root") {
@@ -112,7 +114,23 @@ function ensureGitignore(repoRoot: string, dryRun: boolean): string {
   return `${exists ? "appended" : "created"} ${path} (added ${missing.length} line${missing.length === 1 ? "" : "s"})`;
 }
 
+function ensureScenarioExample(dryRun: boolean): string {
+  const path = SCENARIO_REL_PATH;
+  if (existsSync(path)) return `skipped-existing ${path}`;
+  if (!existsSync(SCENARIO_TEMPLATE_PATH)) {
+    return `skipped-missing-template ${SCENARIO_TEMPLATE_PATH}`;
+  }
+  const body = readFileSync(SCENARIO_TEMPLATE_PATH, "utf-8");
+  if (!dryRun) {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, body, "utf-8");
+  }
+  return `created ${path}`;
+}
+
 const opts = parseArgs(process.argv.slice(2));
 console.log(`eval-ensure-host ${opts.dryRun ? "(dry-run) " : ""}in ${opts.repoRoot}`);
-console.log(`  ${ensureEnvExample(opts.repoRoot, opts.dryRun)}`);
+console.log(`  eval-home ${ensureEnvExample(EVAL_HOME, opts.dryRun)}`);
+console.log(`  repo-root ${ensureEnvExample(opts.repoRoot, opts.dryRun)}`);
 console.log(`  ${ensureGitignore(opts.repoRoot, opts.dryRun)}`);
+console.log(`  ${ensureScenarioExample(opts.dryRun)}`);

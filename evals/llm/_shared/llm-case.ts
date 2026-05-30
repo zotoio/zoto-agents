@@ -56,11 +56,34 @@ export interface CaseInteractions {
 
 /**
  * The case shape embedded in each stamped co-located `<name>.test.ts` file's
- * CASES array.
+ * CASES array (declarative cases) or loaded from a JSON eval file (declarative
+ * or runner cases).
+ *
+ * ## Runner cases
+ *
+ * When `runner` is set, the case is a *runner case*: execution is delegated
+ * to the typed `.test.ts` file at that path (relative to the JSON file's
+ * directory — resolved via `DefineLlmEvalOptions.__sourcePath`). Runner cases
+ * MUST NOT carry `assertions`, `graders`, `fixtures`, `expected_filesystem`,
+ * `expected_output`, `prompt`, `follow_ups`, or `interactions`. They require
+ * `parameters` (object, may be empty).
  */
 export interface LlmCaseDefinition {
   id: string;
-  prompt: string;
+  /**
+   * Realistic user/agent turn for declarative cases. Omit on runner cases.
+   */
+  prompt?: string;
+  /**
+   * Relative path to a `.test.ts` runner from the JSON file's directory.
+   * When present, the harness skips declarative grading entirely.
+   */
+  runner?: string;
+  /**
+   * Free-form payload passed to the runner as `RunnerParams.parameters`.
+   * Required when `runner` is set.
+   */
+  parameters?: Record<string, unknown>;
   /**
    * Legacy synthetic follow-up turns (`agent.send` per entry). Kept for
    * backwards compatibility during the AskQuestion bridge migration.
@@ -76,7 +99,8 @@ export interface LlmCaseDefinition {
    * it wins over `follow_ups[]` (see precedence note on `follow_ups`).
    */
   interactions?: CaseInteractions;
-  assertions: string[];
+  /** Declarative cases require ≥1 assertion; omit on runner cases. */
+  assertions?: string[];
   assertion_patterns?: string[];
   /**
    * Grader configs dispatched at runtime by `.type`. Kept as a loose

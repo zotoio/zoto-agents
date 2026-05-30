@@ -147,8 +147,14 @@ describe("Content Integrity", () => {
   ]);
   const SCANNABLE_EXTS = new Set([".md", ".mdc", ".ts", ".json"]);
 
+  /** CRUX notation / compressed-file markers — not bare "crux" in fixture strings. */
+  const CRUX_NOTATION_PATTERNS = [/⟦CRUX/, /\.crux\.md(?:c)?/i];
+
+  function containsCruxNotation(text: string): boolean {
+    return CRUX_NOTATION_PATTERNS.some((pattern) => pattern.test(text));
+  }
+
   it("no crux references in content files", () => {
-    const pattern = /crux/i;
     const hits: string[] = [];
 
     const allFiles = [
@@ -165,7 +171,7 @@ describe("Content Integrity", () => {
 
       try {
         const text = readText(path);
-        if (pattern.test(text)) {
+        if (containsCruxNotation(text)) {
           hits.push(relative(PLUGIN_DIR, path));
         }
       } catch {

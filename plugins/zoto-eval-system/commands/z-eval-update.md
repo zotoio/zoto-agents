@@ -68,7 +68,7 @@ When the subagent returns `needs_user_input` for an apply decision, run `askQues
 3. Classify each delta against `config.update.criticalChangeRules`.
 4. For each `added` / `modified` target:
    - Refresh analyser payload via `runAnalyser({ target, invalidate: true })` (skipped under `--no-analyser` or `CI=true` without `--with-analyser`).
-   - Dispatch to the per-framework static helper (`regeneratePytest` / `regenerateVitest` / `regenerateJest`) and/or the single unified LLM helper `regenerateLlm` (re-stamps the co-located `<kind>/evals/<name>.test.ts` for the target, importing `defineLlmEval` from the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts`).
+   - Dispatch to the per-framework static helper (`regeneratePytest` / `regenerateVitest` / `regenerateJest`) and/or the single unified LLM helper `regenerateLlm` (re-stamps the co-located `<kind>/evals/<name>.json` for the target).
    - Each helper enforces the file-level guard (`isGeneratedFile`) before overwriting any test file and the case-level guard (`isGeneratedCase`) before mutating any `evals.json` row.
 5. Command presents each change via `askQuestion` (accept / reject / edit / skip-rest), feeding answers back through resume.
 6. Write accepted patches, refresh `.zoto/eval-system/manifest.yml` (new `git_ref`, `updated_at`, `targets[]`), append `.zoto/eval-system/manifest.history.yml`.

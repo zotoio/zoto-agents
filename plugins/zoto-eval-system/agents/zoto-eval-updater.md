@@ -1,6 +1,6 @@
 ---
 name: zoto-eval-updater
-model: claude-opus-4-6
+model: claude-opus-4-8[]
 description: "Diff-aware eval updater. Uses zoto-update-evals to detect drift between covered targets and generated eval cases, re-invokes the LLM analyser per drifted primitive, and dispatches per-framework static regeneration plus the single unified LLM eval regeneration (`regenerateLlm`) through hard-coded user-case preservation gates. Never mutates user-authored cases or user-authored test files — the `_meta.generated === true` (case) and `// _meta.generated\\: true` (file) contracts are enforced at runtime AND compile time. On palette-driven flows or any unexpected apply branch, returns structured `needs_user_input` for the owning command — never `askQuestion` from the subagent."
 ---
 
@@ -33,7 +33,7 @@ For each `added` or `modified` target:
    - `static.framework === "pytest"` → `regeneratePytest()` → `stampPytestPerPrimitive()`.
    - `static.framework === "vitest"` → `regenerateVitest()` → `stampVitestPerPrimitive()`.
    - `static.framework === "jest"` → `regenerateJest()` → `stampJestPerPrimitive()`.
-   - LLM (every target) → `regenerateLlm()` → re-stamps the co-located `<kind>/evals/<name>.test.ts` file that imports `defineLlmEval` from the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts`. The harness reads each case's `requiresInteraction` flag and branches at runtime between scripted-answer and single-prompt flows — there is no strategy-aware dispatch at update time.
+   - LLM (every target) → `regenerateLlm()` → re-stamps the co-located `<kind>/evals/<name>.json` file. The harness reads each case's `requiresInteraction` flag and branches at runtime between scripted-answer and single-prompt flows; `runner` cases dispatch to sibling `.test.ts` files.
 4. **Update manifest** — refresh `targets[]` (each carries its current `content_hash`), bump `git_ref` + `updated_at`, append the new snapshot to `manifest.history.yml`.
 
 ### Targeted — `/z-eval-update --target <glob> [--apply]`
@@ -47,7 +47,7 @@ Reuses payloads from `.zoto/eval-system/cache/analyser/` instead of calling the 
 ## Critical Rules
 
 - **Case-level guard**: only modify cases where `case._meta?.generated === true`. Cases without `_meta`, or with `_meta.generated === false`, are immutable — handled by `isGeneratedCase(c)` in `plugins/zoto-eval-system/engine/_user-case-guards.ts`. Throw if asked to mutate a non-generated case.
-- **File-level guard**: only overwrite `*.test.ts` / `*.test.js` / `*.test.py` files whose first line carries the literal `// _meta.generated: true` (TS) or `# _meta.generated: True` (Python) marker. Files lacking the marker are user-authored — skip with a `manual_merge_required` warning. Handled by `isGeneratedFile(path)` in the same module.
+- **File-level guard**: only overwrite generated `*.json` LLM evals (top-level `_meta.generated: true` envelope) or static `*.test.js` / `*.test.py` files with the literal first-line marker. User-authored JSON evals, runner `.test.ts` files, and scenario files lacking the marker are skipped with a `manual_merge_required` warning. Handled by `isGeneratedFile(path)` and JSON envelope checks in the same module.
 - **Mixed `evals.json` surgical edits**: always go through `surgicallyReplaceGeneratedCases()` (uses `json-source-map`). Never re-serialise the whole file.
 - **Full-catalog rediscovery uses `manifest.discovery_config`** — a snapshot from the last create/update — not the current `config.yml` discovery fields. **`--target`** modes use the live `config.yml` for discovery enumeration.
 - **Preserve the order of unchanged cases**.

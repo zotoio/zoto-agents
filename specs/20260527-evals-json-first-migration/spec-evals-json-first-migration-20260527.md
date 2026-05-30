@@ -1,7 +1,7 @@
 # Spec: Evals JSON-First Migration with `runner` Discriminator
 
 ## Status
-Draft
+Completed
 
 ## Overview
 
@@ -46,16 +46,16 @@ The migration is destructive: every existing co-located `.test.ts` LLM eval (all
 
 | ID | File | Subagent | Dependencies | Phase | Status |
 |----|------|----------|--------------|-------|--------|
-| 01 | `subtask-01-evals-json-first-migration-schema-contract-20260527.md` | generalPurpose | — | 1 | Pending |
-| 02 | `subtask-02-evals-json-first-migration-vitest-json-loader-20260527.md` | generalPurpose | 01 | 2 | Pending |
-| 03 | `subtask-03-evals-json-first-migration-harness-runner-dispatch-20260527.md` | generalPurpose | 01 | 2 | Pending |
-| 04 | `subtask-04-evals-json-first-migration-engine-runner-update-20260527.md` | generalPurpose | 01 | 2 | Pending |
-| 05 | `subtask-05-evals-json-first-migration-manifest-schema-20260527.md` | generalPurpose | 01 | 2 | Pending |
-| 06 | `subtask-06-evals-json-first-migration-vitest-config-orchestrator-20260527.md` | generalPurpose | 02, 03, 04 | 3 | Pending |
-| 07 | `subtask-07-evals-json-first-migration-migration-script-execute-20260527.md` | generalPurpose | 05, 06 | 4 | Pending |
-| 08 | `subtask-08-evals-json-first-migration-stamper-template-cleanup-20260527.md` | generalPurpose | 07 | 5 | Pending |
-| 09 | `subtask-09-evals-json-first-migration-scenarios-docs-20260527.md` | generalPurpose | 07 | 5 | Pending |
-| 10 | `subtask-10-evals-json-first-migration-validation-ci-20260527.md` | generalPurpose | 08, 09 | 6 | Pending |
+| 01 | `subtask-01-evals-json-first-migration-schema-contract-20260527.md` | generalPurpose | — | 1 | Completed |
+| 02 | `subtask-02-evals-json-first-migration-vitest-json-loader-20260527.md` | generalPurpose | 01 | 2 | Completed |
+| 03 | `subtask-03-evals-json-first-migration-harness-runner-dispatch-20260527.md` | generalPurpose | 01 | 2 | Completed |
+| 04 | `subtask-04-evals-json-first-migration-engine-runner-update-20260527.md` | generalPurpose | 01 | 2 | Completed |
+| 05 | `subtask-05-evals-json-first-migration-manifest-schema-20260527.md` | generalPurpose | 01 | 2 | Completed |
+| 06 | `subtask-06-evals-json-first-migration-vitest-config-orchestrator-20260527.md` | generalPurpose | 02, 03, 04 | 3 | Completed |
+| 07 | `subtask-07-evals-json-first-migration-migration-script-execute-20260527.md` | generalPurpose | 05, 06 | 4 | Completed |
+| 08 | `subtask-08-evals-json-first-migration-stamper-template-cleanup-20260527.md` | generalPurpose | 07 | 5 | Completed |
+| 09 | `subtask-09-evals-json-first-migration-scenarios-docs-20260527.md` | generalPurpose | 07 | 5 | Completed |
+| 10 | `subtask-10-evals-json-first-migration-validation-ci-20260527.md` | generalPurpose | 08, 09 | 6 | Completed |
 
 ## Subtask Dependency Graph
 
@@ -74,6 +74,11 @@ graph TD
     S07 --> S09[09: scenarios-docs]
     S08 --> S10[10: validation-ci]
     S09 --> S10
+
+%% spec-system:classes:begin
+classDef specDone fill:#86efac,stroke:#15803d,color:#052e16
+class S01,S02,S03,S04,S05,S06,S07,S08,S09,S10 specDone
+%% spec-system:classes:end
 ```
 
 ## Execution Order
@@ -124,18 +129,25 @@ The migration audit (`migration-audit-20260527.md`) captures every file's status
 
 ## Definition of Done
 
-- [ ] All 10 subtasks completed with paired `.status.md` + `.status.yml` marked `state: completed`
-- [ ] No co-located `*.test.ts` LLM eval files remain anywhere under `plugins/*/{commands,agents,hooks}/evals/`, `.cursor/{commands,agents,hooks}/evals/`
-- [ ] Every non-skill primitive has a co-located `<name>.json` (or `hooks.json` for hooks) with `_meta.generated: true` where appropriate
-- [ ] Migration audit shows 0 skipped files (all discovered `.test.ts` files successfully migrated)
-- [ ] `pnpm eval` and `pnpm eval:full` succeed (or skip gracefully without `CURSOR_API_KEY`) using only the unified `evals/vitest.config.ts`
-- [ ] `pnpm eval:update:check` reports zero critical drift
-- [ ] `pnpm eval:list` enumerates every migrated `.json` file
-- [ ] `scripts/validate-template.mjs`, `scripts/validate-skills.mjs`, and `pnpm test` all pass
-- [ ] Eval-system README has an "Advanced TS escape hatch" section with a working `runner` example
-- [ ] `evals/scenarios/_example-multi-primitive.test.ts` exists in the host repo template AND is copied by `/z-eval-create` on init
-- [ ] CHANGELOG.md records the breaking change
-- [ ] `manifest.schema.json` rejects non-`.json` entries for non-skill primitives (smoke-tested with an invalid fixture)
+- [x] All 10 subtasks completed with paired `.status.md` + `.status.yml` marked `state: completed`
+- [x] No co-located `*.test.ts` LLM eval files remain anywhere under `plugins/*/{commands,agents,hooks}/evals/`, `.cursor/{commands,agents,hooks}/evals/`
+- [x] Every non-skill primitive has a co-located `<name>.json` (or `hooks.json` for hooks) with `_meta.generated: true` where appropriate
+- [x] Migration audit shows 0 skipped files (all discovered `.test.ts` files successfully migrated)
+- [x] `pnpm eval` and `pnpm eval:full` succeed (or skip gracefully without `CURSOR_API_KEY`) using only the unified `evals/vitest.config.ts`
+- [x] `pnpm eval:update:check` reports zero critical drift
+- [x] `pnpm eval:list` enumerates every migrated `.json` file
+- [x] `scripts/validate-template.mjs`, `scripts/validate-skills.mjs`, and `pnpm test` all pass
+- [x] Eval-system README has an "Advanced TS escape hatch" section with a working `runner` example
+- [x] `evals/scenarios/_example-multi-primitive.test.ts` exists in the host repo template AND is copied by `/z-eval-create` on init
+- [x] CHANGELOG.md records the breaking change
+- [x] `manifest.schema.json` rejects non-`.json` entries for non-skill primitives (smoke-tested with an invalid fixture)
 
 ## Execution Notes
-*(Filled in during/after execution.)*
+
+**Completed 2026-05-29 12:18 UTC.** All 10 subtasks executed and independently verified by fresh `zoto-spec-judge` agents. See `execution-report-evals-json-first-migration-20260527.md` for full detail.
+
+- 38/38 co-located `.test.ts` LLM evals migrated to `.json` (0 failed, 0 skipped per `migration-audit-20260527.md`).
+- Final validation green: `pnpm test` (cursor-top 86/86, eval-system 128/128, spec-system 132/132), validate-template/skills 0, `eval:update:check` 0 (zero critical drift), `eval:list` 0, Vitest CI run 951 passed / 270 skipped.
+- All 12 Definition-of-Done items confirmed and ticked; spec-root onStop consistency gate clean for this spec.
+- Subtask 10 required two fix-list rounds (open D06/D08 + status consistency; then a DOD06 skill-frontmatter drift from this spec's own subtask-09 doc edits), each routed back to the assigned `generalPurpose` subagent and re-verified.
+- Follow-ups (non-blocking, cross-subtask engine/stamper territory): (1) `eval:update --apply` UA+generated merge should emit valid JSON; (2) the static stamper (`writeVitestIfChanged`) should not clobber a present unified config; (3) `eval:update --apply` with the analyser needs network reachability — `--no-analyser` is the offline/CI fallback.

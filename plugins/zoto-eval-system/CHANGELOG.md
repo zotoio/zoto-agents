@@ -2,7 +2,54 @@
 
 All notable changes to the Eval System plugin will be documented in this file.
 
+## [unreleased] — eval-system v3 (self-contained host layout)
+
+### Added
+
+- **`src/paths.ts`** — central path resolver for eval-system host installs. Exports `resolveEvalPaths`, `loadEvalPaths`, `resultSchemaPath`, `analyserSchemaPath`, and `analyserAgentPath`.
+- **Layout detection** — `legacy-root` (repo-root `evals/` + `scripts/`) vs `self-contained` (everything under `.zoto/eval-system/`). Greenfield installs default to self-contained.
+- **Dogfood wiring** — `scripts/eval-orchestrate.ts`, `eval-discover.ts`, and `eval-analyse.ts` now resolve templates, cache, schema, and evalsDir via `loadEvalPaths()` instead of hard-coded `plugins/zoto-eval-system/…` strings.
+
+### Changed
+
+- `discovery_config` from `eval:discover` now emits resolved `evalsDir` (repo-relative) and `layout` for manifest snapshots.
+
+### Added (Phase 2)
+
+- **`scripts/stamp-host-layout.ts`** — copies self-contained runtime (`src/`, `templates/`, `engine/`, vendored CLI scripts, analyser agent) into `.zoto/eval-system/` and writes nested `package.json`.
+- **`scripts/migrate-host-layout-v3.ts`** — moves legacy root `evals/` + `scripts/eval-*` into `.zoto/eval-system/`, strips eval pollution from root `package.json`, optional root aliases.
+- **`templates/host-package/package.json`** — eval-only scripts and devDependencies for nested install.
+
+### Changed (Phase 2)
+
+- **`eval-stamp.ts`** — template/engine/evals paths resolved via `loadEvalPaths()`.
+- **`zoto-create-evals` skill** — stamps self-contained layout instead of merging root `package.json`.
+- **`templates/config.json`** — `manifestPath` / `historyPath` relative to eval home (`manifest.yml`).
+- **`eval-ensure-host.ts.tmpl`** — self-contained paths under `.zoto/eval-system/`.
+
+### Removed from Phase 2 plan
+
+- Root `package-json-merger.ts` merge on greenfield hosts (legacy migration still strips old keys).
+
+## [unreleased] — 2026-05-27
+
+### BREAKING
+
+- **All non-skill primitive evals are now stored as `.json` instead of co-located `.test.ts` files.** The Vitest JSON loader plugin (`evals/llm/_shared/vitest-json-loader.ts`) synthesises in-memory test suites from `<kind>/evals/<name>.json` at discovery time. Skills retain `skills/<name>/evals/evals.json` per the Cursor Agent Skills spec.
+- **New `runner` + `parameters` case shape documented.** JSON cases may opt into TypeScript via a `runner` field pointing at a sibling `.test.ts` file whose default export implements `RunnerFn` from `evals/llm/_shared/runner-params.ts`. See the README "Eval formats" / "Advanced TS escape hatch" sections.
+- **Multi-primitive scenarios convention.** Advanced flows spanning multiple primitives live under `evals/scenarios/<name>.test.ts`. `/z-eval-create` copies an underscore-excluded example via `scripts/eval-ensure-host.ts`.
+- **`eval:llm` script removed.** The unified `evals/vitest.config.ts` handles static smoke, JSON evals, and scenarios in a single Vitest invocation.
+- **Manifest schema enforces JSON eval paths.** `manifest.yml` `eval_files[]` entries now reference `.json` paths for non-skill primitives.
+- **Migration script `scripts/eval-migrate-ts-to-json.ts`** runs idempotently for any latecomers still on the old `.test.ts` layout.
+
+### Added
+
+- `plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl` — canonical multi-primitive scenario walkthrough.
+- `zoto-help-evals` skill: new Q&A surface covering the runner escape hatch and the underscore-excluded scenarios convention; a new user-authored eval case (`id: 4`) asserts the help skill answers correctly when users ask "How do I write a TS eval?".
+
 ## [unreleased] — 2026-05-26
+
+> **Superseded by the 2026-05-27 BREAKING entry above.** The statements below describe the intermediate co-located `.test.ts` layout that preceded the JSON-first migration.
 
 ### BREAKING
 

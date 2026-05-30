@@ -7,6 +7,17 @@ here. Per-plugin changes live in each plugin's own `CHANGELOG.md`:
 - [`plugins/zoto-spec-system/CHANGELOG.md`](plugins/zoto-spec-system/CHANGELOG.md)
 - [`plugins/zoto-cursor-top/CHANGELOG.md`](plugins/zoto-cursor-top/CHANGELOG.md)
 
+## [unreleased] — 2026-05-27
+
+### BREAKING — Evals JSON-first migration
+
+See [`plugins/zoto-eval-system/CHANGELOG.md`](plugins/zoto-eval-system/CHANGELOG.md) for the full entry. Summary:
+
+- All non-skill primitive evals migrate from co-located `.test.ts` to `.json` files discovered by the Vitest JSON loader plugin.
+- New `runner` + `parameters` case shape for advanced TypeScript flows; multi-primitive scenarios live under `evals/scenarios/`.
+- The standalone `eval:llm` script is removed; the unified `evals/vitest.config.ts` handles everything.
+- Idempotent migration via `scripts/eval-migrate-ts-to-json.ts`.
+
 ## [unreleased] — 2026-05-26
 
 ### BREAKING

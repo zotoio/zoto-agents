@@ -1,6 +1,6 @@
 ---
 name: z-eval-configure
-description: Writes .zoto/eval-system/config.yml using command-owned askQuestion for every field, then spawns zoto-eval-configurer with pre-collected answers. Diffs the chosen config against the manifest snapshot (discovery_config.static), renders the resulting cleanup_plan via askQuestion, and — only on explicit confirmation — shells out to `pnpm run eval:cleanup-stale` (subtask 03) to delete stale static-framework assets. The LLM backend is single-shape (unified LLM eval harness, co-located `<kind>/evals/<name>.test.ts`) so no strategy-switch prompts are issued. Supports resume when the subagent returns needs_user_input.
+description: Writes .zoto/eval-system/config.yml using command-owned askQuestion for every field, then spawns zoto-eval-configurer with pre-collected answers. Diffs the chosen config against the manifest snapshot (discovery_config.static), renders the resulting cleanup_plan via askQuestion, and — only on explicit confirmation — shells out to `pnpm run eval:cleanup-stale` (subtask 03) to delete stale static-framework assets. The LLM backend is JSON-first (co-located `<kind>/evals/<name>.json` with optional `runner` escape hatch) so no strategy-switch prompts are issued. Supports resume when the subagent returns needs_user_input.
 ---
 
 # z-eval-configure
@@ -39,7 +39,7 @@ Run `askQuestion` for each field in this order. Use enum-backed options (no free
 10. **additionalAutomation** — none / vitest / jest / bats (multi-select).
 11. **update.criticalChangeRules.*** — five yes/no toggles (defaults on).
 
-Do **not** prompt for any per-repo LLM-backend selector or per-target TS-framework choice — the unified LLM eval harness is single-shape. Every host repo emits co-located `<kind>/evals/<name>.test.ts` files that import `defineLlmEval` from `evals/llm/_shared/run-llm-suite.ts`; the harness picks the scripted-answer or single-prompt runtime branch from each case's `requiresInteraction` flag.
+Do **not** prompt for any per-repo LLM-backend selector or per-target TS-framework choice — the LLM backend is JSON-first. Every host repo emits co-located `<kind>/evals/<name>.json` files discovered by the Vitest JSON loader plugin; advanced flows may add `runner` cases or scenarios under `evals/scenarios/`.
 
 Do **not** prompt for `preserveUserAuthoredCases` or `writeMetaMarker` — always `true`.
 

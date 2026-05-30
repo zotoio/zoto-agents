@@ -1,54 +1,75 @@
 // _meta.generated: true
 /**
- * Vitest configuration for the zoto-eval-system static backend.
+ * Unified Vitest configuration for the zoto-eval-system eval suite.
  *
- * Stamped at `<host-repo>/evals/vitest.config.ts` by
- * `scripts/eval-stamp.ts#stampVitestPerPrimitive` (subtask 07) when
- * `static.framework === "vitest"`.
+ * One config discovers and runs every eval category in a single Vitest
+ * invocation:
  *
- * Wires:
- *   - the bundled custom reporter at `<host-repo>/evals/reporters/zoto-eval-reporter.ts`
- *     which writes the per-run `evals/_runs/<ts>/static.yml` document
- *     validated against `templates/schema/result.schema.json` (subtask 01).
- *   - `<host-repo>/evals/setup.ts` for `dotenv/config` + per-case sandbox
- *     preparation.
+ *   • Static smoke tests at `<repo>/evals/*.test.ts` (static reporter →
+ *     `evals/_runs/<ts>/static.yml`).
+ *   • Non-skill JSON evals (the recursive `evals/*.json` glob, any
+ *     directory depth), synthesised at runtime by `evalJsonLoader`
+ *     (LLM harness → `llm.yml` via `reportCase`).
+ *   • Multi-primitive scenario suites at `evals/scenarios/*.test.ts`
+ *     (LLM harness, static reporter excluded).
+ *   • Legacy co-located LLM `.test.ts` files at `<kind>/evals/*.test.ts`
+ *     until subtask 07 migrates them to JSON.
  *
- * Path-resolution note: `root` is pinned to the directory containing this
- * config so `include` / `setupFiles` / `reporters` are unambiguous regardless
- * of which working directory the user invokes vitest from. The reporter's
- * default output path (`evals/_runs/<ts>/static.yml`) stays relative to
- * `process.cwd()` (the host repo root), which is where pnpm scripts run.
+ * Reporters partition by module id (`path-classifiers.ts`) so LLM cases
+ * never land in `static.yml` and static smoke never pollutes `llm.yml`.
  *
- * Switching the static framework is a destructive operation: re-running
- * `/z-eval-configure` invokes the cleanup engine (subtask 03) which
- * removes vitest assets when the user picks jest, and vice versa.
+ * Orchestrator entry points: `pnpm run eval:vitest` (preferred) or the
+ * backwards-compatible alias `pnpm run eval:static:vitest`. Both invoke
+ * this file. `scripts/eval-orchestrate.ts` spawns exactly one Vitest run
+ * when `static.framework === "vitest"`; pytest/jest hosts still call
+ * Vitest separately for the LLM/JSON path.
  */
-import { dirname } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { defineConfig } from "vitest/config";
 
+import { evalJsonLoader } from "./llm/_shared/vitest-json-loader.js";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(__dirname, "..");
+const EVAL_ENGINE_ROOT = resolve(REPO_ROOT, "plugins/zoto-eval-system/engine");
 
 export default defineConfig({
-  root: __dirname,
+  root: REPO_ROOT,
+  plugins: [evalJsonLoader()],
+  resolve: {
+    alias: {
+      "#eval-engine": EVAL_ENGINE_ROOT,
+    },
+  },
   test: {
     globals: false,
-    include: ["**/*.test.ts"],
+    include: [
+      "**/evals/*.test.ts",
+      "**/evals/*.json",
+      "evals/scenarios/*.test.ts",
+    ],
     exclude: [
       "**/node_modules/**",
-      "_runs/**",
-      "fixtures/**",
-      "_llm/**",
+      "**/skills/*/evals/evals.json",
+      "**/fixtures/**",
+      "**/__fixtures__/**",
+      "**/_runs/**",
+      "**/.zoto/**",
+      "**/cache/**",
+      "evals/llm/_shared/**",
+      "evals/scenarios/_*",
+      "**/_llm/**",
     ],
-    setupFiles: ["./setup.ts"],
+    setupFiles: ["./evals/setup.ts", "./evals/llm/_shared/setup.ts"],
     reporters: [
       "default",
-      ["./reporters/zoto-eval-reporter.ts", {}],
+      ["./evals/reporters/zoto-eval-reporter.ts", {}],
+      ["./evals/llm/_shared/zoto-llm-reporter.ts", {}],
     ],
-    testTimeout: 30_000,
-    hookTimeout: 30_000,
-    /* Static evals are I/O bound + read-only; threads pool keeps wall time low. */
-    pool: "threads",
+    testTimeout: 300_000,
+    hookTimeout: 300_000,
+    pool: "forks",
   },
 });

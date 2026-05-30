@@ -1,0 +1,102 @@
+{
+  "target_id": "command:zoto-create-plugin",
+  "_meta": {
+    "generated": true,
+    "migrated_from": ".cursor/commands/evals/zoto-create-plugin.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/zoto-create-plugin",
+      "assertions": [
+        "Bare `/zoto-create-plugin` forwarded every turn through `$ARGUMENTS` reaches `zoto-plugin-manager` wired to load the `zoto-create-plugin` skill before mutating filesystem assets.",
+        "The assistant pauses once the Markdown proposal matches the numbering in “What happens” so `plugins/acme/proto-lint/` emerges only after the operator confirms naming plus component coverage.",
+        "`plugins/acme/proto-lint/.cursor-plugin/plugin.json`, bundled agents/commands/rules directories, README, CHANGELOG, and LICENSE occupy the subtree spelled out under “Plugin output structure”.",
+        "Each `plugins/acme/proto-lint/skills/*/SKILL.md` neighbour includes `evals/evals.json` mirroring step six of the documented pipeline.",
+        "`.cursor-plugin/marketplace.json` contains a refreshed entry tying the marketplace slug back to `plugins/acme/proto-lint/` per step eight without hand-editing stray paths outside the scaffold."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "fb36b17313888ad4234d9dfb42889cb058985f00719c50d4d6eb0465818c8ae6",
+        "last_updated": "2026-05-26T03:26:49.367Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "fb36b17313888ad4234d9dfb42889cb058985f00719c50d4d6eb0465818c8ae6",
+          "analysed_at": "2026-05-26T03:26:49.367Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Delegates plugin scaffolding to zoto-plugin-manager via the zoto-create-plugin skill while forwarding $ARGUMENTS for bare guided runs, prose scope text, or @ file references—then persists the markdown tree under plugins/<plugin-name>/, attaches skill eval stubs, refreshes `.cursor-plugin/marketplace.json`, and finishes with validation recap plus next-step guidance matching the staged workflow checklist.",
+          "requiresInteraction": false,
+          "interactionStyle": "none"
+        }
+      },
+      "expected_output": "The thread finishes plugin scaffolding beneath `plugins/acme/proto-lint/` after confirmation, cites validation results, `.cursor-plugin/marketplace.json` references the slug, README covers install plus `/sync-plugins` follow-through, LICENSE and CHANGELOG persist, `.cursor-plugin/plugin.json` summarizes components, skill folders expose `evals/evals.json` rows, hooks stay absent unless the operator picked them earlier.",
+      "follow_ups": [
+        "Approve the proposed layout named acme/proto-lint with agents, commands, plus one SKILL-backed skill packaged under `skills/proto-lint/`. Default to MIT licensing."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/zoto-create-plugin \"protobuf lint toolkit for Cursor service catalogs\"",
+      "assertions": [
+        "The quoted prose flows through untouched so later confirmation screens keep citing “protobuf lint toolkit for Cursor service catalogs” verbatim when summarizing rationale.",
+        "The assistant still honours the caveat that clarification turns may emerge for ancillary components despite the seeded description.",
+        "`plugins/<chosen-name>/package.json`, `.cursor-plugin/plugin.json`, Markdown agents/commands/rules/skills bundles, README, CHANGELOG, and LICENSE reconcile with section “Generate supporting files …”.",
+        "The closing rundown references both “Run validation pipeline and fix errors” behaviour and actionable `/sync-plugins` guidance called out beside Related bullets."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "fb36b17313888ad4234d9dfb42889cb058985f00719c50d4d6eb0465818c8ae6",
+        "last_updated": "2026-05-26T03:26:49.367Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "fb36b17313888ad4234d9dfb42889cb058985f00719c50d4d6eb0465818c8ae6",
+          "analysed_at": "2026-05-26T03:26:49.367Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Delegates plugin scaffolding to zoto-plugin-manager via the zoto-create-plugin skill while forwarding $ARGUMENTS for bare guided runs, prose scope text, or @ file references—then persists the markdown tree under plugins/<plugin-name>/, attaches skill eval stubs, refreshes `.cursor-plugin/marketplace.json`, and finishes with validation recap plus next-step guidance matching the staged workflow checklist.",
+          "requiresInteraction": false,
+          "interactionStyle": "none"
+        }
+      },
+      "expected_output": "Quoted argument focuses requirements gathering on protobuf lint ergonomics across service catalogs—README preamble plus skill blurbs echo that wording, scaffolding lands under plugins/<chosen-name>/, marketplace registration updates, CHANGELOG cites the motivating scope phrase, validators pass with zero outstanding errors surfaced in recap."
+    },
+    {
+      "id": 3,
+      "prompt": "/zoto-create-plugin @workspace/docs/acme-tooling-rfc.md",
+      "assertions": [
+        "The `@workspace/docs/acme-tooling-rfc.md` token threads through `$ARGUMENTS` so the Markdown body is read before layout confirmation, satisfying the file-reference branch.",
+        "Scaffold honours RFC directives: dual commands, lone `skills/synthetic-views/SKILL.md`, one rules entry, deliberate absence of hooks, Apache-2.0 license artefact adjacent to CHANGELOG/README.",
+        "`plugins/acme-synthetic-views/commands/*.md`, `skills/synthetic-views/evals/evals.json`, and `.cursor-plugin/plugin.json` line up with the documented output tree conventions."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "fb36b17313888ad4234d9dfb42889cb058985f00719c50d4d6eb0465818c8ae6",
+        "last_updated": "2026-05-26T03:26:49.367Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "fb36b17313888ad4234d9dfb42889cb058985f00719c50d4d6eb0465818c8ae6",
+          "analysed_at": "2026-05-26T03:26:49.367Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "Delegates plugin scaffolding to zoto-plugin-manager via the zoto-create-plugin skill while forwarding $ARGUMENTS for bare guided runs, prose scope text, or @ file references—then persists the markdown tree under plugins/<plugin-name>/, attaches skill eval stubs, refreshes `.cursor-plugin/marketplace.json`, and finishes with validation recap plus next-step guidance matching the staged workflow checklist.",
+          "requiresInteraction": false,
+          "interactionStyle": "none",
+          "fixture_justifications": [
+            "Provides neutral RFC text on disk so the file-reference argument branch can be asserted without depending on undocumented tree shapes outside the sandbox."
+          ]
+        }
+      },
+      "fixtures": {
+        "files": [
+          {
+            "path": "workspace/docs/acme-tooling-rfc.md",
+            "content": "# Acme Tooling RFC\n\n## Plugin identity\nacme-synthetic-views\n\n## Components\n- commands: two slash commands for chart refresh\n- skills: one skill named synthetic-views\n- rules: one `.mdc` constraint for SQL formatting\n- hooks: skip for this iteration\n\n## Notes\nShip Apache-2.0 licensing and include per-skill eval rows before marketplace registration.\n"
+          }
+        ]
+      },
+      "expected_output": "The assistant ingests the RFC headings, mirrors the named components when proposing structure, creates `plugins/acme-synthetic-views/` with matching commands/skills/rules, omits hooks per the RFC, drops Apache-2.0 into LICENSE, wires eval folders, updates marketplace metadata, and reports validation success with recap bullets."
+    }
+  ]
+}

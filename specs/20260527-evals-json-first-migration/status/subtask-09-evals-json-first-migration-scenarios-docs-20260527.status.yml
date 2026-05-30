@@ -4,45 +4,188 @@ feature: evals-json-first-migration
 assigned_agent: generalPurpose
 model: composer-2.5-fast
 token_budget: 200000
-state: pending
+state: completed
+started_at: '2026-05-27T15:57:54Z'
+last_heartbeat: '2026-05-29T12:00:00Z'
+completed_at: '2026-05-28T02:50:00Z'
 checklist:
-  - id: D01
-    text: "Create the example scenario as a **template** (not a live file in this repo) at `plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl`:"
-    done: false
-    evidence_path: null
-  - id: D02
-    text: "Add a host-repo install hook so `/z-eval-create` copies the template:"
-    done: false
-    evidence_path: null
-  - id: D03
-    text: "Update `plugins/zoto-eval-system/README.md`:"
-    done: false
-    evidence_path: null
-  - id: D04
-    text: "Update `plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md`:"
-    done: false
-    evidence_path: null
-  - id: D05
-    text: "Update `plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json`:"
-    done: false
-    evidence_path: null
-  - id: D06
-    text: "Update `plugins/zoto-eval-system/CHANGELOG.md`:"
-    done: false
-    evidence_path: null
-  - id: D07
-    text: Update the repo-root `CHANGELOG.md` with a brief pointer to the eval-system plugin entry.
-    done: false
-    evidence_path: null
-  - id: D08
-    text: Update `AGENTS.md` only if it currently describes the TS-eval convention; otherwise leave untouched. Grep for `\.test\.ts` mentions related to evals.
-    done: false
-    evidence_path: null
-  - id: D09
-    text: "Update any other plugin README / skill doc that references the TS LLM eval convention:"
-    done: false
-    evidence_path: null
-artifacts: []
+- id: D01
+  text: 'Create the example scenario as a **template** (not a live file in this repo) at `plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl`:'
+  done: true
+  evidence_path: plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl
+- id: D02
+  text: 'Add a host-repo install hook so `/z-eval-create` copies the template:'
+  done: true
+  evidence_path: scripts/eval-ensure-host.ts
+- id: D03
+  text: 'Update `plugins/zoto-eval-system/README.md`:'
+  done: true
+  evidence_path: plugins/zoto-eval-system/README.md
+- id: D04
+  text: 'Update `plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md`:'
+  done: true
+  evidence_path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+- id: D05
+  text: 'Update `plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json`:'
+  done: true
+  evidence_path: plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json
+- id: D06
+  text: 'Update `plugins/zoto-eval-system/CHANGELOG.md`:'
+  done: true
+  evidence_path: plugins/zoto-eval-system/CHANGELOG.md
+- id: D07
+  text: Update the repo-root `CHANGELOG.md` with a brief pointer to the eval-system plugin entry.
+  done: true
+  evidence_path: CHANGELOG.md
+- id: D08
+  text: Update `AGENTS.md` only if it currently describes the TS-eval convention; otherwise leave untouched. Grep for `\.test\.ts` mentions related to evals.
+  done: true
+  evidence_path: null
+- id: D09
+  text: 'Update any other plugin README / skill doc that references the TS LLM eval convention:'
+  done: true
+  evidence_path: null
+artifacts:
+- path: plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl
+  kind: created
+  note: D01 - canonical multi-primitive scenario template (pre-existing; verified intact).
+- path: scripts/eval-ensure-host.ts
+  kind: modified
+  note: D02 - ensureScenarioExample() idempotently stamps evals/scenarios/_example-multi-primitive.test.ts (pre-existing; verified via pnpm exec tsx run).
+- path: plugins/zoto-eval-system/README.md
+  kind: modified
+  note: D03 - added Eval formats, Advanced TS escape hatch, Multi-primitive scenarios, Migration notes; rewrote co-located layout and lifecycle sections to JSON-first.
+- path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+  kind: modified
+  note: D04 - JSON-first signal rows + Q&A quick reference for runner/scenarios.
+- path: plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json
+  kind: modified
+  note: D05 - added user-authored case id=4 (runner Q&A, 7 assertions).
+- path: plugins/zoto-eval-system/CHANGELOG.md
+  kind: modified
+  note: D06 - [unreleased] 2026-05-27 BREAKING entry; superseded note on 2026-05-26 entry.
+- path: CHANGELOG.md
+  kind: modified
+  note: D07 - cross-plugin 2026-05-27 BREAKING pointer.
+- path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+  kind: modified
+  note: D02 + D09 - JSON-first LLM backend + scenario-copy step.
+- path: plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md
+  kind: modified
+  note: D09 - regenerateLlm targets .json; updated file-level guard prose.
+- path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
+  kind: modified
+  note: D09 - JSON-first cleanup description.
+- path: plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md
+  kind: modified
+  note: D09 - JSON-first LLM backend descriptions.
+- path: plugins/zoto-eval-system/commands/z-eval-update.md
+  kind: modified
+  note: D09 - regenerateLlm targets .json.
+- path: plugins/zoto-eval-system/commands/z-eval-execute.md
+  kind: modified
+  note: D09 - eval:full + JSON loader; removed eval:llm reference.
+- path: plugins/zoto-eval-system/commands/z-eval-configure.md
+  kind: modified
+  note: D09 - JSON-first + runner escape hatch description.
+- path: plugins/zoto-eval-system/agents/zoto-eval-updater.md
+  kind: modified
+  note: D09 - regenerateLlm targets .json; updated file-level guard.
+- path: plugins/zoto-eval-system/agents/zoto-eval-generator.md
+  kind: modified
+  note: D09 - JSON-first stamping description.
+- path: plugins/zoto-eval-system/agents/zoto-eval-executor.md
+  kind: modified
+  note: D09 - eval:full + JSON loader description.
+- path: plugins/zoto-eval-system/agents/zoto-eval-configurer.md
+  kind: modified
+  note: D09 - JSON-first discovery + removed-target cleanup.
+- path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
+  kind: modified
+  note: D09 - misclassification consequence references .json shape.
 errors: []
-notes: ""
-extra: {}
+notes: |
+  Fix pass 2 (2026-05-29): Prior status claimed completed but disk was missing
+  all documentation deliverables. This pass implemented them on disk:
+
+  - README: Eval formats (line 287), Advanced TS escape hatch (298), Multi-primitive
+    scenarios (342), Migration notes (350); co-located layout tree uses .json;
+    lifecycle/create/update/execute/troubleshooting sections updated.
+  - Plugin CHANGELOG: [unreleased] 2026-05-27 BREAKING entry at top; 2026-05-26
+    entry marked superseded.
+  - Repo-root CHANGELOG: 2026-05-27 cross-plugin BREAKING pointer.
+  - zoto-help-evals: user-authored case id=4 added (17 total cases); SKILL.md
+    Q&A + signal rows updated.
+  - D09: 10 skill/command/agent docs updated from .test.ts LLM convention to
+    JSON-first (runner/scenario .test.ts references retained where legitimate).
+
+  Verification:
+  - rg "\.test\.ts" plugins/zoto-eval-system -g '*.md' → 44 matches (all
+    legitimate: runner escape hatch, scenarios, migration/historical CHANGELOG,
+    static-framework templates, subtask-08-scoped templates/llm/code-cursor-sdk/README.md).
+  - No remaining evals/<name>.test.ts as primary LLM eval convention outside
+    historical CHANGELOG + subtask-08 scope.
+  - evals.json parses; 17 cases (4 user-authored ids 1..4 + 13 generated).
+  - pnpm eval:list | grep zoto-help-evals → 17 lines.
+  - ensureScenarioExample: skipped-existing (file already present).
+  - ReadLints on modified files: clean.
+  - AGENTS.md: zero .test.ts matches (D08 no-op).
+  - Token budget 200000 — within budget.
+
+extra:
+  judge:
+    verdict: verified
+    at: '2026-05-29T12:18:00Z'
+    notes: |
+      Independent adversarial verification (fresh context). All Deliverables
+      Checklist (D01–D09) and Definition of Done items confirmed against disk:
+      - D01 template plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl
+        exists; first line `// _meta.generated: false`; describe.skip + xit;
+        imports RunnerParams/RunnerResult/defineLlmEval; multi-primitive walkthrough;
+        trailing README link block. Host-repo copy evals/scenarios/_example-multi-primitive.test.ts
+        present, byte-identical, skipped. Vitest config carries the explicit
+        `evals/scenarios/_*` exclude entry (evals/vitest.config.ts:62).
+      - D02 scripts/eval-ensure-host.ts has ensureScenarioExample() — idempotent
+        (skip-if-exists), copies the .tmpl, guards on missing template.
+      - D03 README has Eval formats (287), Advanced TS escape hatch with the runner
+        JSON case + RunnerParams signature + matching TS outline (298–340),
+        Multi-primitive scenarios (342), Migration notes dated 2026-05-27 (350).
+      - D04 zoto-help-evals/SKILL.md Q&A "How do I write a TS eval?" (137) + runner
+        signal row (55).
+      - D05 help evals.json parses; 17 cases; user-authored case id=4 with 7
+        assertions referencing the runner escape hatch / README sections.
+      - D06 plugin CHANGELOG [unreleased] 2026-05-27 BREAKING entry; prior entry
+        marked superseded.
+      - D07 repo-root CHANGELOG 2026-05-27 cross-plugin BREAKING pointer.
+      - D08 AGENTS.md: zero `.test.ts` matches (no-op, as claimed).
+      - D09 doc refresh present across skill/command/agent MDs.
+      No CRUX twin of the README exists (README.crux.md absent) so no sync gap.
+      onStop check (spec-onstop-check.ts --human) exits 2 on THREE pre-existing
+      criticals in UNRELATED specs (20260506-spec-system-live-status,
+      20260526-eval-askquestion-strategy-bridge, 20260526-eval-single-backend-
+      colocated-restructure subtask-04 `notes`-vs-`note`). Subtask 09 of
+      20260527-evals-json-first-migration has ZERO mentions. This subtask's own
+      artifacts[] already use `note` (singular). fix_list empty.
+  lints_clean: true
+  fix_pass:
+    pass_id: 2
+    applied_at: '2026-05-29T12:30:00Z'
+    applied_by: generalPurpose
+    summary: |
+      Executor re-verification found status claimed completed but README,
+      CHANGELOGs, help-skill eval case id=4, and D09 doc updates were absent
+      on disk. This pass wrote all missing deliverables.
+    verification_gates:
+      readme_eval_formats_section: true
+      readme_runner_escape_hatch: true
+      readme_multi_primitive_scenarios: true
+      readme_migration_notes: true
+      plugin_changelog_20260527_breaking: true
+      repo_changelog_cross_pointer: true
+      help_evals_user_authored_id_4: true
+      help_evals_total_cases: 17
+      pnpm_eval_list_zoto_help_evals: 17
+      json_parse_check: passed
+      ensure_scenario_example: skipped-existing
+      readlints: clean
+      stale_primary_test_ts_convention: 0

@@ -44,7 +44,10 @@
  * - Grader dispatch, `parseJudgeScore`, and the assertion rubric are
  *   shared (no forked logic).
  */
+import { pathToFileURL } from "node:url";
+
 import type { LlmCaseDefinition } from "./llm-case.js";
+import type { RunnerFn, RunnerParams, RunnerResult } from "./runner-params.js";
 import {
   resolveInteractionPlanFromCase,
   runCaseWithScriptedAnswers,
@@ -56,6 +59,8 @@ import {
   awaitRun,
   closeAgent,
   resolveTokens,
+  PINNED_SDK_VERSION,
+  TOKEN_RESULT_FIELD,
 } from "#eval-engine/sdk-bridge.js";
 import {
   buildSandbox,
@@ -98,12 +103,70 @@ function caseDeclaresInteractions(c: LlmCaseDefinition): boolean {
   );
 }
 
+/** Declarative fields forbidden on runner cases (hybrid rejection). */
+const RUNNER_FORBIDDEN_DECLARATIVE_FIELDS = [
+  "prompt",
+  "assertions",
+  "graders",
+  "fixtures",
+  "expected_filesystem",
+  "expected_output",
+  "follow_ups",
+  "assertion_patterns",
+] as const;
+
+/**
+ * Returns true when `c` is a runner case — carries a non-empty `runner`
+ * string. Runner cases bypass declarative grading entirely.
+ */
+export function isRunnerCase(c: LlmCaseDefinition): boolean {
+  return typeof c.runner === "string" && c.runner.length > 0;
+}
+
+/**
+ * Throws when a case carries both `runner` and any declarative field.
+ * Mirrors the engine `validateEnriched` hybrid check at suite-load time.
+ */
+export function assertNoHybridCase(c: LlmCaseDefinition): void {
+  if (!isRunnerCase(c)) return;
+  for (const field of RUNNER_FORBIDDEN_DECLARATIVE_FIELDS) {
+    const val = c[field as keyof LlmCaseDefinition];
+    if (val === undefined || val === null) continue;
+    if (field === "assertions" && Array.isArray(val) && val.length === 0) {
+      continue;
+    }
+    if (typeof val === "string" && val.trim().length === 0) continue;
+    if (Array.isArray(val) && val.length === 0) continue;
+    throw new Error(
+      `run-llm-suite: runner case "${c.id}" must not carry declarative field "${field}"`,
+    );
+  }
+  if (caseDeclaresInteractions(c)) {
+    throw new Error(
+      `run-llm-suite: runner case "${c.id}" must not carry declarative field "interactions"`,
+    );
+  }
+}
+
+export interface ValidateCasesAtSuiteLoadOptions {
+  /** JSON eval file path or `file://` URL — required when any case is a runner case. */
+  __sourcePath?: string;
+}
+
 /**
  * Suite-load guard: stamped cases with `interactions` must declare
- * `requiresInteraction: true` in `_meta.primitive_analysis`.
+ * `requiresInteraction: true` in `_meta.primitive_analysis`. Runner
+ * cases must not be hybrid and require `__sourcePath` for path resolution.
  */
-export function validateCasesAtSuiteLoad(cases: LlmCaseDefinition[]): void {
+export function validateCasesAtSuiteLoad(
+  cases: LlmCaseDefinition[],
+  opts?: ValidateCasesAtSuiteLoadOptions,
+): void {
   for (const c of cases) {
+    if (isRunnerCase(c)) {
+      assertNoHybridCase(c);
+      continue;
+    }
     if (!caseDeclaresInteractions(c)) continue;
     if (!isGeneratedCase(c)) continue;
     if (c._meta?.primitive_analysis?.requiresInteraction !== true) {
@@ -114,6 +177,26 @@ export function validateCasesAtSuiteLoad(cases: LlmCaseDefinition[]): void {
       );
     }
   }
+
+  const hasRunnerCase = cases.some(isRunnerCase);
+  const sourcePath = opts?.__sourcePath?.trim();
+  if (hasRunnerCase && !sourcePath) {
+    throw new Error(
+      "run-llm-suite: runner cases require `__sourcePath` on defineLlmEval options " +
+        "(set by the JSON loader to the eval JSON file URL, or `import.meta.url` for hand-authored suites)",
+    );
+  }
+}
+
+/** Normalise `__sourcePath` to a `file://` URL for `new URL(runner, base)`. */
+function normaliseSourcePath(sourcePath: string): string {
+  if (sourcePath.startsWith("file:")) return sourcePath;
+  return pathToFileURL(sourcePath).href;
+}
+
+/** Resolve a runner module URL relative to the JSON eval file location. */
+function resolveRunnerImportUrl(sourcePath: string, runner: string): string {
+  return new URL(runner, normaliseSourcePath(sourcePath)).href;
 }
 
 /**
@@ -126,14 +209,28 @@ export interface TestFramework {
     skip: (name: string, fn: () => void) => void;
   };
   afterAll: (fn: () => void) => void;
-  expect: (val: unknown) => { toMatch: (re: RegExp) => void };
+  expect: (val: unknown, message?: string) => {
+    toMatch: (re: RegExp) => void;
+    toBe: (expected: unknown) => void;
+  };
 }
+
+/** Options accepted by {@link defineLlmEval}. */
+export type DefineLlmEvalOptions = LlmEvalConfig;
 
 export interface LlmEvalConfig {
   /** Suite target identifier, e.g. `"agent:zoto-eval-comparer"`. */
   targetId: string;
   /** Array of case definitions (the CASES blob from the stamped file). */
   cases: LlmCaseDefinition[];
+  /**
+   * Absolute path (or `file://` URL) to the JSON eval file that sourced
+   * this test suite. **Set by the JSON loader** (`vitest-json-loader.ts`);
+   * hand-authored callers may set it to `import.meta.url`. The harness
+   * runner dispatch (subtask 03) resolves relative `runner` paths via
+   * `new URL(runner, __sourcePath)`.
+   */
+  __sourcePath?: string;
   /** Model to use for the agent under test. Defaults to `ZOTO_EVAL_MODEL` or `"composer-2.5"`. */
   modelId?: string;
   /** Model to use for the LLM judge. Defaults to `ZOTO_EVAL_JUDGE_MODEL` or `"opus-4.6"`. */
@@ -209,7 +306,7 @@ export function defineLlmEval(config: LlmEvalConfig): void {
   const SUITE_START = Date.now();
   const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
 
-  validateCasesAtSuiteLoad(cases);
+  validateCasesAtSuiteLoad(cases, { __sourcePath: config.__sourcePath });
 
   desc(targetId, () => {
     after(() => {
@@ -222,6 +319,27 @@ export function defineLlmEval(config: LlmEvalConfig): void {
     });
 
     for (const c of cases) {
+      const heavy = isHeavyCase(c, HEAVY_THRESHOLD);
+      const perCaseTimeout = heavy
+        ? Math.round(CASE_TIMEOUT * HEAVY_MULTIPLIER)
+        : CASE_TIMEOUT;
+      const label = heavy ? `${c.id} [heavy]` : c.id;
+
+      if (isRunnerCase(c)) {
+        const testFn = async (): Promise<void> => {
+          await runRunnerCase(c, {
+            targetId,
+            sourcePath: config.__sourcePath!,
+            modelId: MODEL_ID,
+            judgeModel: JUDGE_MODEL,
+            repoRoot: REPO_ROOT,
+            expect: assertExpect,
+          });
+        };
+        testIt(label, testFn, perCaseTimeout);
+        continue;
+      }
+
       const testFn = async (): Promise<void> => {
         await runCase(c, {
           targetId,
@@ -232,15 +350,9 @@ export function defineLlmEval(config: LlmEvalConfig): void {
         });
       };
 
-      const heavy = isHeavyCase(c, HEAVY_THRESHOLD);
-      const perCaseTimeout = heavy
-        ? Math.round(CASE_TIMEOUT * HEAVY_MULTIPLIER)
-        : CASE_TIMEOUT;
-
       if (!API_KEY_PRESENT) {
         testIt.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
       } else {
-        const label = heavy ? `${c.id} [heavy]` : c.id;
         testIt(label, testFn, perCaseTimeout);
       }
     }
@@ -262,7 +374,131 @@ function parseFloatEnv(name: string, fallback: number): number {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Internal: single-case runner                                            */
+/* Internal: runner-case dispatch                                          */
+/* ---------------------------------------------------------------------- */
+
+interface RunRunnerCaseOpts {
+  targetId: string;
+  sourcePath: string;
+  modelId: string;
+  judgeModel: string;
+  repoRoot: string;
+  expect: TestFramework["expect"];
+}
+
+function buildRunnerContext(opts: RunRunnerCaseOpts): RunnerParams["context"] {
+  return {
+    sdk: {
+      PINNED_SDK_VERSION,
+      TOKEN_RESULT_FIELD,
+      createAgent,
+      sendPrompt,
+      awaitRun,
+      closeAgent,
+      resolveTokens,
+    },
+    sandbox: {
+      buildSandbox,
+      preSnapshot,
+      postSnapshot,
+      diffSandbox,
+    },
+    modelId: opts.modelId,
+    judgeModel: opts.judgeModel,
+    report: reportCase as RunnerParams["context"]["report"],
+    expect: opts.expect as RunnerParams["context"]["expect"],
+    agentFactory: ({ cwd, modelId }) =>
+      createAgent({ modelId: modelId ?? opts.modelId, cwd }),
+  };
+}
+
+/**
+ * Dispatch a runner case to its external `.test.ts` module. Bypasses all
+ * declarative grading — the runner owns assertion logic.
+ *
+ * @internal Exported for unit tests only.
+ */
+export async function runRunnerCase(
+  c: LlmCaseDefinition,
+  opts: RunRunnerCaseOpts,
+): Promise<void> {
+  const caseStart = Date.now();
+  const sandbox = buildSandbox({
+    runId: opts.targetId,
+    caseId: c.id,
+    repoRoot: opts.repoRoot,
+  });
+  const before = preSnapshot(sandbox.rootDir);
+
+  let status: "passed" | "failed" | "errored" = "passed";
+  let result: RunnerResult = { passed: false, reason: "runner did not execute" };
+  const runnerRel = c.runner!;
+
+  try {
+    const runnerUrl = resolveRunnerImportUrl(opts.sourcePath, runnerRel);
+    let mod: { default?: unknown };
+    try {
+      mod = await import(/* @vite-ignore */ runnerUrl);
+    } catch (err) {
+      throw new Error(
+        `Runner case '${c.id}' could not load runner file '${runnerRel}': ${(err as Error).message}`,
+      );
+    }
+
+    if (typeof mod.default !== "function") {
+      throw new Error(
+        `Runner case '${c.id}' runner file '${runnerRel}' does not default-export a function`,
+      );
+    }
+
+    const params: RunnerParams = {
+      targetId: opts.targetId,
+      caseId: c.id,
+      parameters: c.parameters ?? {},
+      context: buildRunnerContext(opts),
+    };
+
+    result = await (mod.default as RunnerFn)(params);
+    status = result.passed ? "passed" : "failed";
+
+    opts.expect(result.passed, result.reason ?? "runner case failed").toBe(true);
+  } catch (err) {
+    if (status !== "failed") {
+      status = "errored";
+    }
+    throw err;
+  } finally {
+    const after = postSnapshot(sandbox.rootDir);
+    const mutations = diffSandbox(before, after);
+    const caseEnd = Date.now();
+    const graderReports: GraderReport[] = [
+      {
+        grader: "runner",
+        verdict: status === "passed" ? "pass" : status === "failed" ? "fail" : "fail",
+        detail: result.reason ?? (status === "errored" ? "runner errored" : ""),
+      },
+    ];
+    reportCase({
+      target_id: opts.targetId,
+      case: {
+        id: c.id,
+        status,
+        tokens: 0,
+        duration_ms: caseEnd - caseStart,
+        verbosity: 0,
+        accuracy: result.passed ? 1 : 0,
+        confidence: result.passed ? 1 : 0,
+        grader_reports: graderReports,
+        repo_mutations: mutations,
+        token_source: "runner",
+        ...(result.diagnostics ? { runner_diagnostics: result.diagnostics } : {}),
+      },
+    });
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Internal: single-case runner (declarative)                              */
 /* ---------------------------------------------------------------------- */
 
 interface RunCaseOpts {

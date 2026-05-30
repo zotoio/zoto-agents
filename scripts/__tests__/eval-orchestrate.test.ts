@@ -270,7 +270,7 @@ async function run(): Promise<void> {
         }),
         "utf-8",
       );
-      let llmScriptSpawned: string | null = null;
+      let vitestScriptSpawned: string | null = null;
       const result = await orchestrate({
         argv: ["--full"],
         now: new Date(Date.UTC(2026, 4, 4, 1, 2, 3)),
@@ -294,14 +294,13 @@ async function run(): Promise<void> {
             env.ZOTO_EVAL_RUN_TS as string,
           );
           mkdirSync(runDir, { recursive: true });
-          if (script.startsWith("eval:static:")) {
+          if (script === "eval:vitest") {
+            vitestScriptSpawned = script;
             writeFileSync(
               join(runDir, "static.yml"),
               YAML.stringify(makeStaticDoc(env.ZOTO_EVAL_RUN_ID as string)),
               "utf-8",
             );
-          } else if (script === "eval:llm") {
-            llmScriptSpawned = script;
             writeFileSync(
               join(runDir, "llm.yml"),
               YAML.stringify(makeLlmDoc(env.ZOTO_EVAL_RUN_ID as string)),
@@ -315,8 +314,8 @@ async function run(): Promise<void> {
         spawnDrift: () => ({ exitCode: 0, stdout: "drift hook stub: clean" }),
       });
       assert(
-        llmScriptSpawned === "eval:llm",
-        "subtask 03: LLM dispatch must be the single 'eval:llm' script",
+        vitestScriptSpawned === "eval:vitest",
+        "subtask 06: unified vitest dispatch must be the single 'eval:vitest' script",
       );
       assert(existsSync(result.reportPath), "report.yml exists");
       assert(
@@ -372,8 +371,7 @@ async function run(): Promise<void> {
         }),
         "utf-8",
       );
-      let staticModelCli: string | undefined;
-      let llmModelCli: string | undefined;
+      let vitestModelCli: string | undefined;
       const result = await orchestrate({
         argv: ["--full", "--model", "opus-4-6"],
         now: new Date(Date.UTC(2026, 4, 4, 4, 0, 0)),
@@ -393,15 +391,13 @@ async function run(): Promise<void> {
               `expected ZOTO_EVAL_MODEL opus-4-6, got ${String(env.ZOTO_EVAL_MODEL)}`,
             );
           }
-          if (script.startsWith("eval:static:")) {
-            staticModelCli = modelCli;
+          if (script === "eval:vitest") {
+            vitestModelCli = modelCli;
             writeFileSync(
               join(runDir, "static.yml"),
               YAML.stringify(makeStaticDoc(env.ZOTO_EVAL_RUN_ID as string)),
               "utf-8",
             );
-          } else if (script === "eval:llm") {
-            llmModelCli = modelCli;
             writeFileSync(
               join(runDir, "llm.yml"),
               YAML.stringify(makeLlmDoc(env.ZOTO_EVAL_RUN_ID as string)),
@@ -414,8 +410,7 @@ async function run(): Promise<void> {
         },
         spawnDrift: () => ({ exitCode: 0, stdout: "drift hook stub: clean" }),
       });
-      assert(staticModelCli === undefined, "static spawn must not pass model CLI");
-      assert(llmModelCli === "opus-4-6", "LLM spawn must forward --model");
+      assert(vitestModelCli === "opus-4-6", "unified vitest spawn must forward --model");
       assert(result.exitCode === 0, `exitCode 0, got ${result.exitCode}`);
     } finally {
       rmSync(tmpRoot, { recursive: true, force: true });

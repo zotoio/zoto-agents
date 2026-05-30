@@ -22,15 +22,19 @@
  * NOTE: prior versions of this module also surfaced `llm.strategy` /
  * `llm.codeFramework` from the manifest. The single-backend co-located
  * restructure dropped those knobs — there is no LLM strategy split any
- * more; the unified harness emits `<kind>/evals/<name>.test.ts` for every
- * non-skill primitive and decides the runtime branch per case from the
- * analyser's `requiresInteraction` flag.
+ * more. After the JSON-first migration, non-skill primitives stamp
+ * co-located `<kind>/evals/<name>.json` files (validated by
+ * `templates/schema/manifest.schema.json` — every non-skill
+ * `eval_files[]` entry MUST end in `.json`; skills retain
+ * `evals/evals.json`). Scenario `.test.ts` files under
+ * `evals/scenarios/` are intentionally absent from the manifest.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import YAML from "yaml";
 
+import { loadEvalPaths } from "../src/config-loader.js";
 import { toolingPhantomEvalCataloguePath } from "./discovery-filters.js";
 
 export type StaticFramework = "pytest" | "vitest" | "jest";
@@ -54,6 +58,8 @@ export interface ManifestSnapshot {
    * Flat list of every `eval_files[]` path referenced by manifest targets,
    * minus tooling-only catalogue noise (`*.eval.json`, stale plugin `evals/*.json`
    * rows). Used by cleanup / configure to enumerate real stamped assets.
+   * Contract: non-skill paths end in `.json`; skill paths end in
+   * `evals/evals.json` — see `templates/schema/manifest.schema.json`.
    */
   evalFiles: string[];
   /**
@@ -84,7 +90,11 @@ function normalizedDiscoveryTargets(
 }
 
 function manifestPath(repoRoot: string): string {
-  return join(repoRoot, ".zoto", "eval-system", "manifest.yml");
+  try {
+    return loadEvalPaths(repoRoot).paths.manifestPathAbs;
+  } catch {
+    return join(repoRoot, ".zoto", "eval-system", "manifest.yml");
+  }
 }
 
 const CONFIG_PATH_SEGMENTS = [".zoto", "eval-system", "config.yml"] as const;

@@ -9,7 +9,7 @@ Runs the configured eval suites.
 
 ## Configuration honoured
 
-The host `.zoto/eval-system/config.yml` selects how the static backend runs: **`static.framework`** (`pytest` | `vitest` | `jest`) chooses the static stamper/runner shape. The LLM side is single-shape — `pnpm run eval:llm` runs the unified LLM eval suite, which discovers every co-located `<kind>/evals/<name>.test.ts` file driven by the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts` (exported as `defineLlmEval`). Switching `static.framework` is cleanup territory — use `/z-eval-configure`.
+The host `.zoto/eval-system/config.yml` selects how the static backend runs: **`static.framework`** (`pytest` | `vitest` | `jest`) chooses the static stamper/runner shape. The LLM side is JSON-first — `pnpm run eval:full` runs the unified Vitest config (`evals/vitest.config.ts`), which discovers co-located `<kind>/evals/*.json` via the JSON loader plugin and scenarios under `evals/scenarios/*.test.ts`. Switching `static.framework` is cleanup territory — use `/z-eval-configure`.
 
 ## File layout / writes
 

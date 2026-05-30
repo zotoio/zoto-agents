@@ -71,16 +71,20 @@ import {
 import { execSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
+
+import Ajv, { type ValidateFunction } from "ajv";
+import addFormats from "ajv-formats";
 
 import YAML from "yaml";
 import { minimatch } from "minimatch";
 import jsonMap from "json-source-map";
 
 import type { EvalCase, EvalFile } from "./case.js";
-import { casesOf, loadEvalFile } from "./case.js";
+import { casesOf, isRunnerCase, loadEvalFile } from "./case.js";
 import { isGeneratedCase, isGeneratedFile } from "./_user-case-guards.js";
-import { loadEvalConfig } from "../src/config-loader.js";
+import { loadEvalConfig, loadEvalPaths, resolveHostRepoRoot } from "../src/config-loader.js";
 import {
   filterTargetsByDiscoveryIgnores,
   filterTargetsByDiscoveryKinds,
@@ -99,15 +103,17 @@ import {
   type AnalyserPayload,
 } from "../../../scripts/eval-analyse.ts";
 import {
+  buildStampedLlmCaseRow,
+  renderLlmJsonTemplate,
+  resolveLlmJsonTemplateRel,
   resolveLlmTargetPath,
   stampJestPerPrimitive,
   stampPytestPerPrimitive,
-  stampTarget,
   stampVitestPerPrimitive,
   type PrimitiveMeta,
 } from "../../../scripts/eval-stamp.ts";
 
-const REPO_ROOT = resolve(process.cwd());
+const REPO_ROOT = resolveHostRepoRoot();
 const ANALYSER_CACHE_DIR_REL = ".zoto/eval-system/cache/analyser";
 
 export type Mode =
@@ -204,10 +210,10 @@ function normaliseContent(s: string): string {
 
 function resolveUpdatePaths(repoRoot: string): { manifestPath: string; historyPath: string } {
   try {
-    const { config: typed } = loadEvalConfig(repoRoot);
+    const { paths } = loadEvalPaths(repoRoot);
     return {
-      manifestPath: join(repoRoot, typed.update.manifestPath),
-      historyPath: join(repoRoot, typed.update.historyPath),
+      manifestPath: paths.manifestPathAbs,
+      historyPath: paths.historyPathAbs,
     };
   } catch {
     return {
@@ -969,11 +975,10 @@ export function regenerateJest(opts: RegenerationCommonOpts): RegenerationReport
  * Single co-located emitter (KD-2 / KD-3 of the single-backend
  * restructure):
  *
- *   - **command / agent / hook** → stamp the co-located
- *     `<kind-dir>/evals/<name>.test.ts` via `stampTarget(...)` from
- *     `scripts/eval-stamp.ts`. The stamper produces vitest-shaped tests
- *     with the literal `// _meta.generated: true` first-line marker so
- *     the file-level guard recognises subsequent regenerations.
+ *   - **command / agent / hook** → stamp or surgically merge the
+ *     co-located `<kind-dir>/evals/<name>.json` using analyser payload
+ *     rows tagged `_meta.generated: true`. User-authored rows (including
+ *     runner cases) are preserved byte-identically via `json-source-map`.
  *   - **skill** (KD-1 — skills retain `evals.json`) → surgically merge
  *     generated rows into the existing `evals/evals.json`, preserving
  *     user-authored rows byte-identical via `json-source-map`. Rows
@@ -982,8 +987,8 @@ export function regenerateJest(opts: RegenerationCommonOpts): RegenerationReport
  *   - **rule** → not eval-stamped; skipped with a note.
  *
  * Both paths gate writes through the canonical case- and file-level
- * guards (`isGeneratedCase` / `isGeneratedFile`) so a user-authored case
- * row or test file is preserved verbatim. The generated-case partition
+ * guards (`isGeneratedCase` / JSON `_meta.generated`) so a user-authored
+ * case row or eval file is preserved verbatim. The generated-case partition
  * is enforced by `_user-case-guards.ts`.
  */
 export async function regenerateLlm(
@@ -1003,52 +1008,95 @@ export async function regenerateLlm(
     return report;
   }
 
-  // Non-skill primitives stamp the co-located test file at
-  // `<kind-dir>/evals/<name>.test.ts`. Resolve the new path so the
-  // file-level guard fires before `stampTarget` touches disk.
   const resolved = resolveTarget(opts.target.id, opts.hostRepoRoot);
   if (!resolved) {
     report.notes.push(`unresolved_target: ${opts.target.id}`);
     return report;
   }
-  const newPath = resolveLlmTargetPath(resolved);
-  if (!newPath) {
+  const jsonPath = resolveLlmTargetPath(resolved);
+  if (!jsonPath) {
     report.notes.push(`no_co_located_path: ${opts.target.id}`);
     return report;
   }
 
-  // File-level guard: refuse to overwrite a user-authored test file
-  // that lacks the `// _meta.generated: true` marker.
-  if (existsSync(newPath) && !opts.overwrite && !isGeneratedFile(newPath)) {
-    report.files_preserved.push(newPath);
+  if (
+    existsSync(jsonPath) &&
+    !opts.overwrite &&
+    !isGeneratedEvalJsonFile(jsonPath)
+  ) {
+    report.files_preserved.push(jsonPath);
     report.notes.push(
-      `manual_merge_required: regenerateLlm would overwrite user-authored ${relative(opts.hostRepoRoot, newPath)} (no _meta.generated marker)`,
+      `manual_merge_required: regenerateLlm would overwrite user-authored ${relative(opts.hostRepoRoot, jsonPath)} (no _meta.generated marker)`,
     );
     return report;
   }
 
-  const stampResult = await stampTarget(
-    opts.hostRepoRoot,
-    opts.target.id,
-    opts.payload,
-    {
-      dryRun: opts.dryRun,
-      sourcePath: opts.target.path,
-    },
+  const { modelId, judgeModel, caseTimeoutMs } =
+    llmModelIdsFromConfig(opts.config);
+  const nowIso = new Date().toISOString();
+  const stampedRows = opts.payload.cases.map((_, i) =>
+    buildStampedLlmCaseRow(opts.payload, i, nowIso),
   );
 
-  if (stampResult.skipped === "skill" || stampResult.skipped === "rule") {
-    report.notes.push(`skipped_${stampResult.skipped}: ${stampResult.note ?? ""}`);
+  if (!existsSync(jsonPath)) {
+    const templateRel = resolveLlmJsonTemplateRel(resolved.kind);
+    const template = readFileSync(
+      join(REPO_ROOT, templateRel),
+      "utf-8",
+    );
+    const body = renderLlmJsonTemplate(
+      template,
+      opts.payload,
+      stampedRows,
+      modelId,
+      judgeModel,
+      caseTimeoutMs,
+    );
+    if (opts.dryRun) {
+      report.cases_added = stampedRows.length;
+      report.notes.push(
+        `dry-run: would create ${relative(opts.hostRepoRoot, jsonPath)}`,
+      );
+      return report;
+    }
+    mkdirSync(dirname(jsonPath), { recursive: true });
+    writeFileSync(jsonPath, body, "utf-8");
+    report.files_written.push(jsonPath);
+    report.cases_added = stampedRows.length;
     return report;
   }
 
-  if (stampResult.written) {
-    const absPath = resolve(opts.hostRepoRoot, stampResult.path);
-    report.files_written.push(absPath);
-  } else if (opts.dryRun) {
+  const raw = readFileSync(jsonPath, "utf-8");
+  if (opts.noAnalyser) {
+    mergePrimitiveAnalysisInvalidateFromExisting(raw, stampedRows);
+  }
+  const result = surgicallyReplaceGeneratedCases(raw, stampedRows);
+  report.cases_replaced = result.replaced;
+  report.cases_added = result.added;
+  report.cases_removed = result.removed;
+  report.user_cases_preserved = result.userPreserved;
+  if (result.casesGuarded > 0) {
     report.notes.push(
-      `dry-run: would update ${stampResult.path}`,
+      `case-level guard skipped ${result.casesGuarded} non-generated case(s) — preserved verbatim`,
     );
+  }
+
+  const mergedText = mergeEvalFileLevelMeta(result.text, {
+    model_id: modelId,
+    judge_model: judgeModel,
+    case_timeout_ms: caseTimeoutMs,
+  });
+
+  if (mergedText !== raw) {
+    if (opts.dryRun) {
+      report.notes.push(
+        `dry-run: would update ${relative(opts.hostRepoRoot, jsonPath)}`,
+      );
+      report.files_written.push(jsonPath);
+    } else {
+      writeFileSync(jsonPath, mergedText, "utf-8");
+      report.files_written.push(jsonPath);
+    }
   }
 
   return report;
@@ -1301,6 +1349,178 @@ function serialiseFreshEvalFile(
   return JSON.stringify(wrapper, null, 2) + "\n";
 }
 
+/** File-level guard for co-located non-skill JSON eval files. */
+function isGeneratedEvalJsonFile(path: string): boolean {
+  try {
+    if (!existsSync(path) || !statSync(path).isFile()) return false;
+    const parsed = JSON.parse(readFileSync(path, "utf-8")) as {
+      _meta?: { generated?: boolean };
+    };
+    return parsed._meta?.generated === true;
+  } catch {
+    return false;
+  }
+}
+
+function llmModelIdsFromConfig(config: Record<string, unknown>): {
+  modelId: string;
+  judgeModel: string;
+  caseTimeoutMs: number;
+} {
+  const llm = (config.llm as Record<string, unknown> | undefined) ?? {};
+  const model = (llm.model as Record<string, unknown> | undefined) ?? {};
+  const modelId = typeof model.id === "string" ? model.id : "composer-2.5";
+  const judgeModel =
+    typeof config.judgeModel === "string" ? config.judgeModel : "opus-4.6";
+  const caseTimeoutMs =
+    typeof llm.caseTimeoutMs === "number" ? llm.caseTimeoutMs : 180000;
+  return { modelId, judgeModel, caseTimeoutMs };
+}
+
+function mergeEvalFileLevelMeta(
+  rawText: string,
+  meta: { model_id: string; judge_model: string; case_timeout_ms: number },
+): string {
+  const parsed = JSON.parse(rawText) as Record<string, unknown>;
+  const prev = (parsed._meta as Record<string, unknown> | undefined) ?? {};
+  parsed._meta = {
+    ...prev,
+    generated: true,
+    model_id: meta.model_id,
+    judge_model: meta.judge_model,
+    case_timeout_ms: meta.case_timeout_ms,
+  };
+  return JSON.stringify(parsed, null, 2) + "\n";
+}
+
+/* ----------------------------------------------------------------------- */
+/* Subtask 04 — JSON-first migration helpers (runner cases + layout drift) */
+/* ----------------------------------------------------------------------- */
+
+const COLOCATED_TS_KINDS = ["commands", "agents", "hooks"] as const;
+const COLOCATED_TS_EXCLUDE_FRAGMENTS = [
+  "/evals/scenarios/",
+  "/evals/llm/_shared/",
+  "/node_modules/",
+] as const;
+
+const PLUGIN_ROOT = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
+const EVAL_SCHEMA_DIR = join(PLUGIN_ROOT, "templates", "schema");
+
+let evalFileValidator: ValidateFunction | null = null;
+
+function getEvalFileValidator(): ValidateFunction {
+  if (evalFileValidator) return evalFileValidator;
+  const ajv = addFormats(new Ajv({ allErrors: true, strict: false }));
+  for (const name of readdirSync(EVAL_SCHEMA_DIR).sort()) {
+    if (!name.endsWith(".json")) continue;
+    ajv.compile(
+      JSON.parse(readFileSync(join(EVAL_SCHEMA_DIR, name), "utf-8")) as object,
+    );
+  }
+  const compiled = ajv.getSchema(
+    "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/eval-file.schema.json",
+  );
+  if (!compiled) {
+    throw new Error("eval-file.schema.json failed to compile");
+  }
+  evalFileValidator = compiled;
+  return compiled;
+}
+
+/**
+ * Walk the host repo for co-located TS LLM evals under
+ * plugins star-slash commands|agents|hooks slash evals, and the
+ * matching .cursor tree. Excludes scenarios, harness internals, and
+ * node_modules.
+ */
+export function findCoLocatedTsEvals(hostRepoRoot: string): string[] {
+  const out: string[] = [];
+
+  function pushFromKindDir(kindDir: string): void {
+    if (!existsSync(kindDir) || !statSync(kindDir).isDirectory()) return;
+    const evalsDir = join(kindDir, "evals");
+    if (!existsSync(evalsDir) || !statSync(evalsDir).isDirectory()) return;
+    for (const entry of readdirSync(evalsDir).sort()) {
+      if (!entry.endsWith(".test.ts")) continue;
+      const full = join(evalsDir, entry);
+      const normalized = full.replace(/\\/g, "/");
+      if (
+        COLOCATED_TS_EXCLUDE_FRAGMENTS.some((frag) => normalized.includes(frag))
+      ) {
+        continue;
+      }
+      try {
+        if (statSync(full).isFile()) out.push(full);
+      } catch {
+        /* skip unreadable */
+      }
+    }
+  }
+
+  const pluginsRoot = join(hostRepoRoot, "plugins");
+  if (existsSync(pluginsRoot) && statSync(pluginsRoot).isDirectory()) {
+    for (const plugin of readdirSync(pluginsRoot).sort()) {
+      const pluginDir = join(pluginsRoot, plugin);
+      let st;
+      try {
+        st = statSync(pluginDir);
+      } catch {
+        continue;
+      }
+      if (!st.isDirectory()) continue;
+      for (const kind of COLOCATED_TS_KINDS) {
+        pushFromKindDir(join(pluginDir, kind));
+      }
+    }
+  }
+
+  const cursorRoot = join(hostRepoRoot, ".cursor");
+  if (existsSync(cursorRoot) && statSync(cursorRoot).isDirectory()) {
+    for (const kind of COLOCATED_TS_KINDS) {
+      pushFromKindDir(join(cursorRoot, kind));
+    }
+  }
+
+  return Array.from(new Set(out)).sort();
+}
+
+/** Deprecation warning for residual co-located TS evals (non-fatal until subtask 10). */
+export function warnCoLocatedTsEvals(
+  hostRepoRoot: string,
+  log: (line: string) => void,
+): string[] {
+  const matches = findCoLocatedTsEvals(hostRepoRoot);
+  for (const abs of matches) {
+    log(
+      `[layout-drift] Co-located TS LLM eval found at ${abs}; this file should be migrated to JSON (see spec evals-json-first-migration-20260527).`,
+    );
+  }
+  return matches;
+}
+
+/**
+ * Parse and optionally Ajv-validate a non-skill JSON eval file.
+ * Skill files (`skill_name` without `target_id`) bypass schema validation.
+ */
+export function loadAndValidateEvalFile(
+  path: string,
+): Record<string, unknown> {
+  const raw = readFileSync(path, "utf-8");
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  if (parsed.target_id === undefined && parsed.skill_name !== undefined) {
+    return parsed;
+  }
+  const validate = getEvalFileValidator();
+  if (!validate(parsed)) {
+    throw new Error(`${path}: failed eval-file.schema.json validation`);
+  }
+  return parsed;
+}
+
 interface SurgicalReplaceResult {
   text: string;
   replaced: number;
@@ -1342,11 +1562,12 @@ export function surgicallyReplaceGeneratedCases(
   let userPreserved = 0;
   let casesGuarded = 0;
   for (let i = 0; i < arr.length; i++) {
-    if (isGeneratedCase(arr[i] as Parameters<typeof isGeneratedCase>[0])) {
-      generatedIdxs.push(i);
-    } else {
+    const row = arr[i] as EvalCase;
+    if (isRunnerCase(row) || !isGeneratedCase(row)) {
       userPreserved++;
       casesGuarded++;
+    } else {
+      generatedIdxs.push(i);
     }
   }
 
@@ -1880,33 +2101,47 @@ async function main(): Promise<number> {
     canon.discoveryTargets,
   );
 
+  const targetMatchesGlob = (t: TargetSnapshot, pat: string): boolean =>
+    minimatch(t.path, pat, { dot: true }) ||
+    minimatch(t.id, pat, { dot: true });
+
   let current = discoverTargets(discoveryForEnumerate);
   current = filterTargetsByDiscoveryIgnores(current, ignorePatterns);
 
-  // Apply --target / positional glob
+  // Apply --target / positional glob — narrow both discovery and manifest
+  // baseline so drift rollup only covers primitives matching id or path.
   if (args.glob) {
     const pat = args.glob;
-    current = current.filter(
-      (t) =>
-        minimatch(t.path, pat, { dot: true }) ||
-        minimatch(t.id, pat, { dot: true }),
-    );
+    current = current.filter((t) => targetMatchesGlob(t, pat));
+    manifestBaseline = manifestBaseline.filter((t) => targetMatchesGlob(t, pat));
   }
 
   const manifestForDelta = { ...manifest, targets: manifestBaseline };
   const deltas = computeDeltas(manifestForDelta, current, config);
   const critical = deltas.filter((d) => d.critical);
   const layoutDrift = detectLayoutDrift(REPO_ROOT, current);
+  const colocatedTsEvals =
+    args.mode === "check" ||
+    args.mode === "rediscovery-apply" ||
+    args.mode === "targeted-apply"
+      ? warnCoLocatedTsEvals(REPO_ROOT, console.error)
+      : findCoLocatedTsEvals(REPO_ROOT);
+  const colocatedTsEvalCount = colocatedTsEvals.length;
 
   if (args.mode === "check") {
     const driftBlock = critical.map((d) => d);
-    if (critical.length === 0 && layoutDrift.length === 0) {
+    if (
+      critical.length === 0 &&
+      layoutDrift.length === 0 &&
+      colocatedTsEvalCount === 0
+    ) {
       console.log(
         JSON.stringify({
           status: "clean",
           checked: current.length,
           critical_count: 0,
           layout_drift_count: 0,
+          colocated_ts_eval_count: 0,
           parity_drift: null,
         }),
       );
@@ -1924,6 +2159,11 @@ async function main(): Promise<number> {
         `layout_drift: ${layoutDrift.length} legacy file(s) need migration`,
       );
     }
+    if (colocatedTsEvalCount > 0) {
+      summaryLineParts.push(
+        `colocated_ts: ${colocatedTsEvalCount} residual .test.ts LLM eval(s)`,
+      );
+    }
     if (summaryLineParts.length > 0) {
       console.log(summaryLineParts.join(", "));
     }
@@ -1933,6 +2173,7 @@ async function main(): Promise<number> {
         checked: current.length,
         critical_count: critical.length,
         layout_drift_count: layoutDrift.length,
+        colocated_ts_eval_count: colocatedTsEvalCount,
         parity_drift: null,
         deltas: driftBlock,
         layout_drift: layoutDrift,
@@ -1945,7 +2186,11 @@ async function main(): Promise<number> {
       console.error(ld.message);
       console.error(JSON.stringify(ld));
     }
-    if (critical.length > 0 || layoutDrift.length > 0) {
+    if (
+      critical.length > 0 ||
+      layoutDrift.length > 0 ||
+      colocatedTsEvalCount > 0
+    ) {
       return exitCodeOnCriticalDrift;
     }
     return 0;

@@ -5,6 +5,8 @@
     "`pnpm exec tsx scripts/eval-stamp.ts <target-id>` (or `pnpm run eval:stamp -- <target-id>` once wired).",
     "Each generated case SHOULD include fixtures (sandbox files) plus expected_filesystem deltas.",
     "Do not ship hand-edited placeholders for production stamped files — run the stamper per target.",
+    "Runner case example (advanced TS escape hatch):",
+    "{ \"id\": \"adv-1\", \"runner\": \"./adv.test.ts\", \"parameters\": {} }",
     "---"
   ],
   "target_id": "command:{{COMMAND_NAME}}",

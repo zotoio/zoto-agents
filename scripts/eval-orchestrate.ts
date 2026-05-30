@@ -8,12 +8,13 @@
  *   pnpm run eval                    → static-only
  *   pnpm run eval:full               → static + LLM (gated on CURSOR_API_KEY)
  *
- * After the single-backend collapse (spec
- * `20260526-eval-single-backend-colocated-restructure`, subtask 03) the
- * orchestrator no longer dispatches between two LLM strategy variants
- * (the legacy `code` / `declarative` split). There is one LLM backend,
- * invoked via `pnpm run eval:llm`, which itself is a vitest run against
- * the unified (co-located) LLM suite.
+ * After the JSON-first migration (spec `20260527-evals-json-first-migration`,
+ * subtask 06) the orchestrator invokes a single unified Vitest config
+ * (`eval:vitest` → `evals/vitest.config.ts`) when `static.framework` is
+ * `vitest`. That one run discovers static smoke tests, JSON eval files, and
+ * legacy co-located LLM `.test.ts` files; reporters partition cases into
+ * `static.yml` and `llm.yml`. Host repos on pytest/jest still spawn the
+ * static backend separately and call `eval:vitest` for the LLM/JSON path.
  *
  * Responsibilities:
  *
@@ -28,10 +29,11 @@
  *      child so per-backend reporters honour the shared id/timestamp.
  *      Per-backend reporters that pre-date this contract still default
  *      to their own values when the env vars are unset.
- *   4. Spawn the active static runner (`pnpm run eval:static:<framework>`)
- *      and — when `--full` is passed and `CURSOR_API_KEY` is available
- *      (shell env or repo-root `.env` loaded via `dotenv/config` here) — the
- *      unified LLM runner (`pnpm run eval:llm`).
+ *   4. When `static.framework === "vitest"`, spawn the unified Vitest
+ *      runner (`pnpm run eval:vitest`) once — it emits both `static.yml`
+ *      and `llm.yml`. Otherwise spawn `eval:static:<framework>` for the
+ *      static backend and, when `--full` is passed with `CURSOR_API_KEY`
+ *      available, `eval:vitest` for the LLM/JSON path.
  *   5. Read `static.yml` and `llm.yml` from the run folder, merge totals
  *      and aggregates into `report.yml` with `backend: "mixed"` (or
  *      `"static"` when LLM was skipped). The merged report references
@@ -69,18 +71,10 @@ import { join, relative, resolve } from "node:path";
 
 import Ajv from "ajv";
 import YAML from "yaml";
-import { loadEvalConfig } from "../plugins/zoto-eval-system/src/config-loader.js";
+import { loadEvalConfig, loadEvalPaths, resultSchemaPath } from "../plugins/zoto-eval-system/src/config-loader.js";
 
 const REPO_ROOT = resolve(process.cwd());
-const CONFIG_PATH = join(REPO_ROOT, ".zoto", "eval-system", "config.yml");
-const SCHEMA_PATH = join(
-  REPO_ROOT,
-  "plugins",
-  "zoto-eval-system",
-  "templates",
-  "schema",
-  "result.schema.json",
-);
+const VITEST_SCRIPT = "eval:vitest";
 
 export interface OrchestrateArgs {
   full: boolean;
@@ -176,8 +170,9 @@ function printHelp(): void {
 
 export function loadResolvedConfig(hostRepoRoot: string = REPO_ROOT): ResolvedConfig {
   const { config } = loadEvalConfig(hostRepoRoot);
+  const paths = loadEvalPaths(hostRepoRoot);
   return {
-    evalsDir: config.evalsDir,
+    evalsDir: paths.evalsDirRel,
     staticFramework: config.static.framework,
     modelId: config.llm.model.id,
     retention: config.runs.retention,
@@ -215,15 +210,17 @@ function headSha(): string {
 
 let cachedValidator: ((doc: unknown) => boolean) | null = null;
 let cachedValidatorErrors: unknown = null;
+let cachedSchemaPath: string | null = null;
 
-function getValidator(): (doc: unknown) => boolean {
-  if (cachedValidator) return cachedValidator;
-  if (!existsSync(SCHEMA_PATH)) {
-    throw new Error(`result.schema.json missing at ${SCHEMA_PATH}`);
+function getValidator(schemaPath: string): (doc: unknown) => boolean {
+  if (cachedValidator && cachedSchemaPath === schemaPath) return cachedValidator;
+  if (!existsSync(schemaPath)) {
+    throw new Error(`result.schema.json missing at ${schemaPath}`);
   }
   const ajv = new Ajv({ allErrors: true, strict: false });
-  const schema = JSON.parse(readFileSync(SCHEMA_PATH, "utf-8"));
+  const schema = JSON.parse(readFileSync(schemaPath, "utf-8"));
   const compiled = ajv.compile(schema);
+  cachedSchemaPath = schemaPath;
   cachedValidator = (doc: unknown): boolean => {
     const ok = compiled(doc);
     cachedValidatorErrors = compiled.errors;
@@ -235,8 +232,10 @@ function getValidator(): (doc: unknown) => boolean {
 export function validateAgainstResultSchema(
   doc: unknown,
   label: string,
+  hostRepoRoot: string = REPO_ROOT,
 ): void {
-  const validate = getValidator();
+  const schemaPath = resultSchemaPath(loadEvalPaths(hostRepoRoot));
+  const validate = getValidator(schemaPath);
   if (!validate(doc)) {
     throw new Error(
       `${label} failed schema validation: ${JSON.stringify(
@@ -506,34 +505,64 @@ export async function orchestrate(
 
   const spawnFn = opts.spawnRunner ?? spawnRunnerScript;
 
-  if (runStatic) {
-    const script = `eval:static:${cfg.staticFramework}`;
-    const result = spawnFn(script, childEnv);
-    staticOutcome = {
-      ranScript: script,
-      exitCode: result.exitCode,
-      skipped: false,
-    };
-  }
+  if (cfg.staticFramework === "vitest") {
+    const vitestModel = llmEnabled ? args.model : undefined;
+    const result = spawnFn(VITEST_SCRIPT, childEnv, vitestModel);
 
-  const LLM_SCRIPT = "eval:llm";
-  if (llmEnabled) {
-    const result = spawnFn(LLM_SCRIPT, { ...childEnv }, args.model);
-    llmOutcome = {
-      ranScript: LLM_SCRIPT,
-      exitCode: result.exitCode,
-      skipped: false,
-    };
-  } else if (runLlm) {
-    notes.push(`llm_skip: ${skipLlmReason}`);
-    llmOutcome = {
-      ranScript: LLM_SCRIPT,
-      exitCode: 0,
-      skipped: true,
-      skipReason: skipLlmReason ?? "skipped",
-    };
+    if (runStatic) {
+      staticOutcome = {
+        ranScript: VITEST_SCRIPT,
+        exitCode: result.exitCode,
+        skipped: false,
+      };
+    }
+
+    if (llmEnabled) {
+      llmOutcome = {
+        ranScript: VITEST_SCRIPT,
+        exitCode: result.exitCode,
+        skipped: false,
+      };
+    } else if (runLlm) {
+      notes.push(`llm_skip: ${skipLlmReason}`);
+      llmOutcome = {
+        ranScript: VITEST_SCRIPT,
+        exitCode: 0,
+        skipped: true,
+        skipReason: skipLlmReason ?? "skipped",
+      };
+    } else if (!args.llmOnly) {
+      notes.push("llm_skip: --full not passed; static-only run");
+    }
   } else {
-    notes.push("llm_skip: --full not passed; static-only run");
+    if (runStatic) {
+      const script = `eval:static:${cfg.staticFramework}`;
+      const result = spawnFn(script, childEnv);
+      staticOutcome = {
+        ranScript: script,
+        exitCode: result.exitCode,
+        skipped: false,
+      };
+    }
+
+    if (llmEnabled) {
+      const result = spawnFn(VITEST_SCRIPT, { ...childEnv }, args.model);
+      llmOutcome = {
+        ranScript: VITEST_SCRIPT,
+        exitCode: result.exitCode,
+        skipped: false,
+      };
+    } else if (runLlm) {
+      notes.push(`llm_skip: ${skipLlmReason}`);
+      llmOutcome = {
+        ranScript: VITEST_SCRIPT,
+        exitCode: 0,
+        skipped: true,
+        skipReason: skipLlmReason ?? "skipped",
+      };
+    } else {
+      notes.push("llm_skip: --full not passed; static-only run");
+    }
   }
 
   /* --------- Read per-backend reports + validate ---------- */

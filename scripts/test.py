@@ -2,14 +2,11 @@
 """Run the static eval suite (pytest).
 
 Usage:
-    python3 scripts/test.py [--verbose] [--mode manual] [<pytest args>]
+    python3 scripts/test.py [--verbose] [--mode manual]
 
 The LLM backend is invoked separately via `tsx evals/_llm/runner.ts --full`
 and is gated on `--full` + CURSOR_API_KEY. This runner intentionally
 stays static-only so it can run in any CI without secrets.
-
-Unrecognised args (e.g. `--collect-only`, `-k pattern`) are forwarded to
-pytest verbatim.
 """
 
 from __future__ import annotations
@@ -31,17 +28,13 @@ EVALS_DIR = PROJECT_ROOT / "evals"
 def main() -> int:
     verbose = False
     mode = "auto"
-    extra_args: list[str] = []
 
     args = sys.argv[1:]
     i = 0
     while i < len(args):
         a = args[i]
         if a in ("--help", "-h"):
-            print(
-                "Usage: python3 scripts/test.py [--verbose] [--mode manual] "
-                "[<pytest passthrough args>]"
-            )
+            print("Usage: python3 scripts/test.py [--verbose] [--mode manual]")
             return 0
         if a == "--verbose":
             verbose = True
@@ -51,11 +44,9 @@ def main() -> int:
                 print(f"{RED}--mode requires a value{NC}")
                 return 1
             mode = args[i]
-        elif a == "--":
-            # Skip pnpm/yarn passthrough separator; subsequent args are pytest args.
-            pass
         else:
-            extra_args.append(a)
+            print(f"{RED}Unknown option: {a}{NC}")
+            return 1
         i += 1
 
     if mode == "manual":
@@ -68,20 +59,16 @@ def main() -> int:
 
     pytest_bin = shutil.which("pytest")
     if not EVALS_DIR.is_dir():
-        print(f"{YELLOW}No evals/ directory - run /z-eval-create first.{NC}")
+        print(f"{YELLOW}No evals/ directory — run /z-eval-create first.{NC}")
         return 0
 
     if not pytest_bin:
-        print(
-            f"{YELLOW}pytest not found; install with: "
-            f"pip install -r evals/requirements.txt{NC}"
-        )
+        print(f"{YELLOW}pytest not found; install with: pip install -r evals/requirements.txt{NC}")
         return 0
 
     cmd = [pytest_bin, str(EVALS_DIR)]
     if verbose:
         cmd.append("-v")
-    cmd.extend(extra_args)
 
     print(f"=== Running pytest in {EVALS_DIR} ===")
     result = subprocess.run(cmd, cwd=PROJECT_ROOT, check=False)

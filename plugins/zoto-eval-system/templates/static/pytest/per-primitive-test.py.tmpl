@@ -46,7 +46,17 @@ from typing import Any, Iterable
 
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+
+def _resolve_repo_root() -> Path:
+    """Workspace root — legacy ``<repo>/evals/`` or v3 ``.zoto/eval-system/evals/``."""
+    evals_dir = Path(__file__).resolve().parent
+    eval_home = evals_dir.parent
+    if (eval_home / "config.yml").is_file() and (eval_home / "engine" / "runner.ts").is_file():
+        return eval_home.parent.parent
+    return eval_home
+
+
+REPO_ROOT = _resolve_repo_root()
 
 # Make ``evals/_llm/types.py`` importable without a package marker.
 _EVALS_DIR = Path(__file__).resolve().parent

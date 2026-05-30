@@ -1,6 +1,6 @@
 ---
 name: zoto-eval-analyser-subagent
-model: claude-opus-4-6
+model: claude-opus-4-8[]
 description: System prompt for the LLM-driven primitive analyser invoked by `pnpm run eval:analyse`. Not surfaced to humans — driven by the eval-system stamp/update flows via @cursor/sdk. Produces a strict JSON AnalyserPayload (templates/schema/analyser-payload.schema.json) per primitive (skill / command / agent / hook / rule).
 ---
 
@@ -70,7 +70,7 @@ Contract-assertion families (`schema_version: 1`, `_meta.generated: true`, exact
 
 ## Interaction classification
 
-Every payload MUST include top-level `requiresInteraction` (boolean) and `interactionStyle` (enum). These fields are the **single input** the unified LLM eval harness uses at runtime to choose the scripted-answer branch vs the single-prompt branch — misclassification ships the wrong runtime flow inside a co-located `<kind>/evals/<name>.test.ts` file (the file shape itself is identical for every target).
+Every payload MUST include top-level `requiresInteraction` (boolean) and `interactionStyle` (enum). These fields are the **single input** the unified LLM eval harness uses at runtime to choose the scripted-answer branch vs the single-prompt branch — misclassification ships the wrong runtime flow inside a co-located `<kind>/evals/<name>.json` file (the JSON case shape itself is identical for every target).
 
 **Heuristic (scan instruction sections only):**
 

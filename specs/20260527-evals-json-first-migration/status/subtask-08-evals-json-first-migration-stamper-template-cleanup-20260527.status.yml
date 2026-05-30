@@ -4,37 +4,83 @@ feature: evals-json-first-migration
 assigned_agent: generalPurpose
 model: composer-2.5-fast
 token_budget: 200000
-state: pending
+state: completed
 checklist:
   - id: D01
     text: Delete `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`.
-    done: false
+    done: true
     evidence_path: null
   - id: D02
     text: Delete any sibling files under `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/` that only existed to support the TS template (e.g. a per-target setup file if present). Audit the directory and confirm — do not delete shared assets (vitest.config.tmpl, setup.tmpl, etc.) without verifying nothing else consumes them.
-    done: false
+    done: true
     evidence_path: null
   - id: D03
     text: "Update `scripts/eval-stamp.ts`:"
-    done: false
+    done: true
     evidence_path: null
   - id: D04
     text: "Update `plugins/zoto-eval-system/engine/update.ts`:"
-    done: false
+    done: true
     evidence_path: null
   - id: D05
     text: "Update the JSON templates (`templates/{command,agent,hook}-evals/evals.json.tmpl`) so each one:"
-    done: false
+    done: true
     evidence_path: null
   - id: D06
     text: Update `scripts/eval-stamp.ts` baseline-only mode (`--baseline-only`) to write the new JSON baseline fixtures into `plugins/zoto-eval-system/templates/baseline-fixtures/` if the current fixtures still reference TS.
-    done: false
+    done: true
     evidence_path: null
   - id: D07
     text: "Add focused tests:"
-    done: false
+    done: true
     evidence_path: null
-artifacts: []
+artifacts:
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl
+    kind: deleted
+    note: Removed obsolete TS per-primitive LLM template
+  - path: scripts/eval-stamp.ts
+    kind: modified
+    note: JSON-first stampLlmTarget + buildStampedLlmCaseRow + renderLlmJsonTemplate
+  - path: plugins/zoto-eval-system/engine/update.ts
+    kind: modified
+    note: regenerateLlm surgical JSON merge + colocated_ts_eval_count check gate
+  - path: plugins/zoto-eval-system/engine/runner.ts
+    kind: modified
+    note: Added discoverCoLocatedEvalJson helper
+  - path: plugins/zoto-eval-system/templates/command-evals/evals.json.tmpl
+    kind: modified
+    note: Runner case _template_doc example
+  - path: plugins/zoto-eval-system/templates/agent-evals/evals.json.tmpl
+    kind: modified
+    note: Runner case _template_doc example
+  - path: plugins/zoto-eval-system/templates/hook-evals/evals.json.tmpl
+    kind: modified
+    note: Runner case _template_doc example
+  - path: scripts/__tests__/eval-stamp-json-first.test.ts
+    kind: created
+    note: Subtask 08 focused unit tests (9/9 pass)
 errors: []
 notes: ""
-extra: {}
+extra:
+  judge:
+    verdict: verified
+    at: "2026-05-29T19:23:30.000Z"
+    notes: >-
+      Independently confirmed `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/per-primitive-test.ts.tmpl`
+      is deleted (only static vitest/jest per-primitive templates remain under
+      `templates/static/`). `llm/code-cursor-sdk/` retains shared harness assets
+      (graders, setup, vitest.config, etc.) with no orphaned TS-only siblings.
+      `resolveLlmTargetPath` / `stampLlmTarget` / `renderLlmJsonTemplate` write
+      co-located `.json` with file- and case-level `_meta.generated: true` and strip
+      `_template_doc`. `stampVitestPerPrimitive` correctly kept for static vitest.
+      `regenerateLlm` + `surgicallyReplaceGeneratedCases` preserve user-authored and
+      runner cases via json-source-map. `--check` exits 2 on residual co-located
+      `.test.ts` (test + `colocated_ts_eval_count: 0` on migrated repo). Command,
+      agent, and hook JSON templates carry runner-case examples in `_template_doc`.
+      Focused tests 9/9 pass (`eval-stamp-json-first.test.ts`); engine spec04 24/24
+      pass; no linter errors on modified files. Stamped output validates against
+      `eval-file.schema.json`.
+    fix_list: []
+last_heartbeat: 2026-05-29T09:21:13.903Z
+started_at: 2026-05-29T09:21:12.482Z
+completed_at: 2026-05-29T09:21:13.903Z

@@ -31,6 +31,24 @@ import YAML from "yaml";
 import type { GraderReport } from "#eval-engine/graders/common.js";
 import type { SnapshotDiff } from "./sandbox-helpers.js";
 
+import type { Reporter, TestModule } from "vitest/node";
+
+import {
+  decodeVirtualEvalJsonId,
+  isLlmCoLocatedPath,
+  isLlmEvalPath,
+  isLlmJsonSourcePath,
+  isLlmScenarioPath,
+} from "./path-classifiers.js";
+
+export {
+  decodeVirtualEvalJsonId,
+  isLlmCoLocatedPath,
+  isLlmEvalPath,
+  isLlmJsonSourcePath,
+  isLlmScenarioPath,
+};
+
 export interface ReportedCase {
   id: string;
   status: "passed" | "failed" | "skipped" | "errored";
@@ -68,8 +86,13 @@ let suiteStart = new Date().toISOString();
 const suites: SuiteMeta[] = [];
 const cases: BufferedEntry[] = [];
 let registered = false;
+let logsDirReady = false;
 
-mkdirSync(LOGS_DIR, { recursive: true });
+function ensureLogsDir(): void {
+  if (logsDirReady) return;
+  mkdirSync(LOGS_DIR, { recursive: true });
+  logsDirReady = true;
+}
 
 function registerFlush(): void {
   if (registered) return;
@@ -87,6 +110,7 @@ function registerFlush(): void {
 
 export function reportCase(entry: BufferedEntry): void {
   registerFlush();
+  ensureLogsDir();
   cases.push(entry);
 
   const logPath = join(LOGS_DIR, `${sanitize(entry.target_id)}_${sanitize(entry.case.id)}.log`);
@@ -258,4 +282,19 @@ function nowStamp(): string {
     `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}-` +
     `${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`
   );
+}
+
+/**
+ * Vitest reporter shim — the LLM harness records cases via `reportCase`;
+ * this class only flushes buffered cases when the unified Vitest run ends.
+ */
+export default class ZotoLlmVitestReporter implements Reporter {
+  onTestRunEnd(
+    _testModules: ReadonlyArray<TestModule>,
+    _unhandledErrors: ReadonlyArray<unknown>,
+    _reason: unknown,
+  ): void | Promise<void> {
+    if (cases.length === 0 && suites.length === 0) return;
+    flush();
+  }
 }

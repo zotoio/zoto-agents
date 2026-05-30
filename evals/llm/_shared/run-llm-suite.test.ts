@@ -1,6 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import type { Run, RunResult, SDKAgent } from "@cursor/sdk";
 import type { LlmCaseDefinition } from "./llm-case.js";
+import { getLastParams } from "./__fixtures__/sample-runner.test.js";
 
 const {
   sendPrompt,
@@ -57,8 +60,15 @@ vi.mock("./sdk-bridge.js", () => sdkBridgeMock);
 import {
   resolveReportInteractionStyle,
   runCase,
+  runRunnerCase,
   validateCasesAtSuiteLoad,
+  assertNoHybridCase,
+  isRunnerCase,
 } from "./run-llm-suite.js";
+
+const FIXTURE_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "__fixtures__");
+const SAMPLE_EVAL_PATH = resolve(FIXTURE_DIR, "sample-eval.json");
+const SOURCE_PATH = pathToFileURL(SAMPLE_EVAL_PATH).href;
 
 function stubRunResult(text: string, id = "run-1"): RunResult {
   return { id, status: "finished", result: text };
@@ -93,11 +103,19 @@ const runCaseOpts = {
   modelId: "composer-2.5",
   judgeModel: "opus-4.6",
   repoRoot: "/tmp/repo",
-  expect: (val: unknown) => ({
+  expect: (val: unknown, message?: string) => ({
     toMatch: (re: RegExp) => {
       expect(String(val)).toMatch(re);
     },
+    toBe: (expected: unknown) => {
+      expect(val, message).toBe(expected);
+    },
   }),
+};
+
+const runRunnerCaseOpts = {
+  ...runCaseOpts,
+  sourcePath: SOURCE_PATH,
 };
 
 beforeEach(() => {
@@ -168,6 +186,88 @@ describe("validateCasesAtSuiteLoad", () => {
       },
     ];
     expect(() => validateCasesAtSuiteLoad(cases)).not.toThrow();
+  });
+
+  it("rejects hybrid runner cases at suite load", () => {
+    const cases: LlmCaseDefinition[] = [
+      {
+        id: "hybrid",
+        runner: "./sample-runner.test.ts",
+        parameters: { ok: true },
+        prompt: "forbidden",
+      },
+    ];
+    expect(() => validateCasesAtSuiteLoad(cases, { __sourcePath: SOURCE_PATH })).toThrow(
+      /must not carry declarative field "prompt"/,
+    );
+  });
+
+  it("requires __sourcePath when any case is a runner case", () => {
+    const cases: LlmCaseDefinition[] = [
+      {
+        id: "runner-noop",
+        runner: "./sample-runner.test.ts",
+        parameters: {},
+      },
+    ];
+    expect(() => validateCasesAtSuiteLoad(cases)).toThrow(/require `__sourcePath`/);
+  });
+});
+
+describe("isRunnerCase / assertNoHybridCase", () => {
+  it("detects runner cases by non-empty runner string", () => {
+    expect(isRunnerCase({ id: "r", runner: "./foo.test.ts", parameters: {} })).toBe(true);
+    expect(isRunnerCase({ id: "d", prompt: "hi", assertions: ["ok"] })).toBe(false);
+    expect(isRunnerCase({ id: "empty", runner: "" })).toBe(false);
+  });
+
+  it("throws on hybrid cases via assertNoHybridCase", () => {
+    expect(() =>
+      assertNoHybridCase({
+        id: "hybrid",
+        runner: "./sample-runner.test.ts",
+        parameters: {},
+        assertions: ["nope"],
+      }),
+    ).toThrow(/must not carry declarative field "assertions"/);
+  });
+});
+
+describe("runRunnerCase dispatch", () => {
+  it("invokes the runner default export and reports pass", async () => {
+    const c: LlmCaseDefinition = {
+      id: "runner-noop",
+      runner: "./sample-runner.test.ts",
+      parameters: { expected: "noop" },
+    };
+
+    await runRunnerCase(c, runRunnerCaseOpts);
+
+    const params = getLastParams();
+    expect(params?.targetId).toBe("agent:test-target");
+    expect(params?.caseId).toBe("runner-noop");
+    expect(params?.parameters).toEqual({ expected: "noop" });
+    expect(params?.context.modelId).toBe("composer-2.5");
+    expect(params?.context.judgeModel).toBe("opus-4.6");
+    expect(typeof params?.context.sdk.createAgent).toBe("function");
+    expect(typeof params?.context.sandbox.buildSandbox).toBe("function");
+
+    expect(reportCase).toHaveBeenCalledOnce();
+    const reported = reportCase.mock.calls[0]?.[0];
+    expect(reported?.case.status).toBe("passed");
+    expect(reported?.case.grader_reports?.[0]?.detail).toBe("ok");
+  });
+
+  it("fails with a clear message when the runner lacks a default export", async () => {
+    const c: LlmCaseDefinition = {
+      id: "runner-bad-export",
+      runner: "./no-default-export.test.ts",
+      parameters: {},
+    };
+
+    await expect(runRunnerCase(c, runRunnerCaseOpts)).rejects.toThrow(
+      /runner file '\.\/no-default-export\.test\.ts' does not default-export a function/,
+    );
   });
 });
 

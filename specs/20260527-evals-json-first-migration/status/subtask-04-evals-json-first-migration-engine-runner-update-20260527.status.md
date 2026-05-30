@@ -9,24 +9,26 @@
 | assigned_agent | generalPurpose |
 | model | composer-2.5-fast |
 | token_budget | 200000 |
-| state | pending |
+| state | completed |
 | started_at |  |
-| last_heartbeat |  |
-| completed_at |  |
+| last_heartbeat | 2026-05-29T09:11:29.182Z |
+| completed_at | 2026-05-29T09:11:29.182Z |
 | git_sha |  |
 | agent_session_id |  |
 <!-- status:metadata:end -->
 
 <!-- status:checklist:start -->
-- [ ] **D01** — `engine/case.ts`:
-- [ ] **D02** — `engine/runner.ts`:
-- [ ] **D03** — `engine/update.ts`:
-- [ ] **D04** — `engine/_user-case-guards.ts`: confirm `isUserAuthoredCase` already returns `true` for any case without `_meta.generated === true`. No change expected, but add a focused test that a runner case with `_meta.generated: false` is treated as user-authored.
-- [ ] **D05** — Unit tests:
+- [x] **D01** — `engine/case.ts`:
+- [x] **D02** — `engine/runner.ts`:
+- [x] **D03** — `engine/update.ts`: (`plugins/zoto-eval-system/engine/update.ts`)
+- [x] **D04** — `engine/_user-case-guards.ts`: confirm `isUserAuthoredCase` already returns `true` for any case without `_meta.generated === true`. No change expected, but add a focused test that a runner case with `_meta.generated: false` is treated as user-authored.
+- [x] **D05** — Unit tests:
 <!-- status:checklist:end -->
 
 <!-- status:artifacts:start -->
-_None._
+- **modified** `plugins/zoto-eval-system/engine/runner.ts` — partition runner cases; --list/--full deferral helpers
+- **modified** `plugins/zoto-eval-system/engine/update.ts` — findCoLocatedTsEvals, loadAndValidateEvalFile, runner-case surgical merge
+- **created** `plugins/zoto-eval-system/tests/engine-runner-update-spec04.test.ts` — subtask 04 engine unit tests
 <!-- status:artifacts:end -->
 
 <!-- status:errors:start -->

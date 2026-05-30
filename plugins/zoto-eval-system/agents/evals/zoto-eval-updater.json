@@ -1,0 +1,329 @@
+{
+  "target_id": "agent:zoto-eval-updater",
+  "_meta": {
+    "generated": true,
+    "migrated_from": "plugins/zoto-eval-system/agents/evals/zoto-eval-updater.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": "check-mode-runs-parity-gate-before-drift-and-rolls-up-parity-drift",
+      "prompt": "`/z-eval-update --check` just finished non-interactively. As the eval-system updater agent, summarise what ran first, where parity anomalies land in the report, and how a clean versus dirty bill of health influences the exit behaviour the operator sees.",
+      "assertions": [
+        "Explanation states the parity script runs ahead of drift computation so downstream automation can rely on that ordering before Subtask 12 callers trust the outcome.",
+        "Narrative points operators at parity_drift in the surfaced report together with ordinary drift deltas.",
+        "Closing guidance distinguishes exit 0 only when parity and drift are both clean versus using the configured check exit path when critical drift persists."
+      ],
+      "assertion_patterns": [],
+      "expected_output": "A concise walkthrough naming the parity probe ahead of drift math, locating parity_drift in the report artefact the operator inspects, and tying non-zero exits to configured critical-drift thresholds on failure."
+    },
+    {
+      "id": "dry-run-reports-deltas-via-zoto-update-evals-without-writing",
+      "prompt": "Assume we only want insight: rerun rediscovery exactly like `/z-eval-update` dry-run semantics. Explain what artefacts you read versus never touch when nothing is persisted.",
+      "assertions": [
+        "Instructions stay aligned with delta reporting from the primary skill without issuing apply-phase writes anywhere in the sandbox.",
+        "Narrative calls out observable delta categories operators compare before approving later apply turns."
+      ],
+      "assertion_patterns": [],
+      "expected_output": "Directions that classify added versus modified versus untouched targets purely from deltas while explicitly stating disk writes stayed off."
+    },
+    {
+      "id": "apply-path-refreshes-analysis-dispatches-stamping-and-manifests",
+      "prompt": "The host already ran `/z-eval-update --apply`, my accept or reject votes arrived through resume text, and you must carry each accepted addition or change forward. Outline how analyser payloads are refreshed when allowed, then how `static.framework` and `llm.strategy` steer regeneration, and confirm manifest bookkeeping.",
+      "follow_ups": [
+        "Pytest is the active static framework alongside declarative llm.strategy—tell me precisely which stamping path runs and why.",
+        "Assume static.framework flips to vitest with llm.strategy set to code; restate how your dispatch changes versus the declarative pytest mix."
+      ],
+      "assertions": [
+        "When fresh analysis is mandated, narration ties each accepted target to rerun `pnpm run eval:analyse` style refresh before regeneration; narration names cache reuse behaviour when disabling flags imply cached payloads under `.zoto/eval-system/cache/analyser/`.",
+        "Assertions map pytest, vitest, and jest manifests to their respective regenerate-and-stamp paths and pair `llm.strategy` code versus declaratory modes with stamping versus guarded `evals.json` surgery without whole-file reshaping.",
+        "Post-apply narration documents refreshed `targets[]` hashes alongside updated `git_ref` and `updated_at` markers inside `.zoto/eval-system/manifest.yml`.",
+        "Instruction stresses append-only additions to `.zoto/eval-system/manifest.history.yml`, never truncation or rewriting prior snapshots.",
+        "Plan emphasises untouched generated scenarios stay earlier in-place while newly stamped rows slot without reordering unaffected neighbours."
+      ],
+      "assertion_patterns": [
+        "pnpm run eval:analyse",
+        "llm\\.strategy",
+        "targets\\[\\]",
+        "\\.zoto/eval-system/manifest\\.history\\.yml"
+      ],
+      "expected_output": "A sequenced rundown covering conditional analyser reruns tied to caching flags, per-framework stamping branches, declarative surgical JSON handling versus declarative skips, regenerated targets carrying fresh hashes, bumped git metadata plus timestamps, untouched generated cases retaining their ordering, and a new snapshot appended append-only onto manifest history rather than rewriting earlier records."
+    },
+    {
+      "id": "targeted-glob-scopes-discovery-unlike-full-catalog-baseline",
+      "prompt": "We narrowed work to `/z-eval-update --target 'agent:*glob*'` (dry-run is fine unless I say apply). Contrast how you enumerate primitives now versus during a catalogue-wide drift pass so I know whether today’s `config.yml` discovery knobs mattered.",
+      "assertions": [
+        "Narrative states glob resolution aligns with matching `target.id` or `target.path` tuples only inside the narrowed set.",
+        "Differentiation cites full-catalog reliance on `manifest.discovery_config` against targeted reliance on fresh `config.yml` discovery directives."
+      ],
+      "assertion_patterns": [
+        "target\\.id",
+        "manifest\\.discovery_config"
+      ],
+      "expected_output": "A comparison arguing targeted passes pull discovery through live `config.yml` fields while catalogue runs honour the frozen `discovery_config` snapshot pinned on the manifest."
+    },
+    {
+      "id": "cached-analyser-skips-and-ci-safeguards",
+      "prompt": "Treat this like CI with `CI=true` unless I add `--with-analyser`: compare `--no-analyser` flows against relying on warmed cache analyzers without extra flags, cite the `[CI WARNING] skipping fresh primitive analysis …` line on stderr whenever both cached semantics and CI hold, and tell me how `update.failOnNoAnalyserInCI: true` should terminate.",
+      "assertions": [
+        "Directions mention bypassing interactive analyser calls while still respecting cached JSON under `.zoto/eval-system/cache/analyser/` when safeguards apply.",
+        "Explanation orders stderr to emit the documented CI WARNING line pairing cached analysis with CI.",
+        "Advice records that `--with-analyser` re-enables live analyser calls on builders when operators opt in during CI.",
+        "Narrative states fail-fast configs stop the run after that warning prints and return exit 5 specifically."
+      ],
+      "assertion_patterns": [
+        "\\.zoto/eval-system/cache/analyser/",
+        "--with-analyser"
+      ],
+      "expected_output": "Operator-facing rundown flagging suppressed fresh analyser invocations with cache-only payloads, audible stderr warnings tied to concurrent CI semantics, deliberate override via `--with-analyser`, and exit code 5 exiting immediately once fail-fast policy trips after emitting the CI warning row."
+    },
+    {
+      "id": "immutability-of-user-authored-rows-and-guarded-test-files",
+      "prompt": "I need an ironclad plan before editing anything: cite how `_meta.generated` gates individual cases inside mixed `evals.json`, how first-line stamp markers vet whole Vitest suites, mixed JSON surgery stays partial, and what happens when someone insists on overwriting a handwritten case anyway.",
+      "assertions": [
+        "Response refuses mutating evaluator rows lacking `_meta.generated === true` and states an error path if coercion is demanded.",
+        "Response explains only stamped `*.test.ts`, `*.test.js`, or `*.test.py` files whose initial line declares the mandated marker qualify for regeneration, otherwise surfacing manual merge warnings rather than overwriting.",
+        "Response commits to swapping generated slices through guarded merge helpers so untouched sections of nested JSON remain verbatim."
+      ],
+      "assertion_patterns": [
+        "_meta\\.generated === true",
+        "\\*\\.test\\.ts"
+      ],
+      "expected_output": "Messaging that refuses non-generated edits, skips unmarked tests with documented manual merge warnings while still surgically patching generated stubs, citing `schema_version` and `_meta.generated: true` contracts only where they explain stamping eligibility."
+    },
+    {
+      "id": "delegate-creation-when-primitives-still-lack-evaluator-coverage",
+      "prompt": "One manifest entry still lacks any backing evaluator file though rediscovery surfaced it—walk me through when you escalate to creation via `zoto-create-evals` after `/z-eval-update --apply`, including what you wait for before touching creation flows.",
+      "assertions": [
+        "Explanation defers spawning creation work until the command records acceptance for unresolved targets lacking coverage.",
+        "Directions reference looping back through `zoto-create-evals` once approval exists so new evaluator rows bootstrapped from scratch obey the guarded stamping contracts."
+      ],
+      "assertion_patterns": [
+        "zoto-create-evals"
+      ],
+      "expected_output": "Messaging that distinguishes pending operator approval carried by the owning command versus jumping straight into create routines, signalling when the delegated creation skill engages only after affirmative Task instructions."
+    },
+    {
+      "id": "ambiguous-apply-branch-escalation-without-subagent-prompting",
+      "prompt": "Palette-driven branching left you unsure whether the next regenerate pass should chase pytest-only targets or widen to every llm.strategy mode—tell the owning command exactly how you unblock instead of probing me yourself inside this Task chat.",
+      "assertions": [
+        "Agent returns structured `needs_user_input` carrying the branching uncertainty so `/z-eval-update --apply` can resume after command-side questioning.",
+        "Narrative affirms no direct `AskQuestion` call originates inside the updater loop, matching documented command palette escalation."
+      ],
+      "assertion_patterns": [
+        "needs_user_input",
+        "AskQuestion"
+      ],
+      "expected_output": "Advice that emits structured escalation payloads for upstream command bridging while keeping the updater response free of conversational tool prompts authored by this subagent."
+    },
+    {
+      "id": "check-mode-runs-parity-gate-before-drift-and-rolls-up-parity-drift",
+      "prompt": "`/z-eval-update --check` just finished non-interactively. As the eval-system updater agent, summarise what ran first, where parity anomalies land in the report, and how a clean versus dirty bill of health influences the exit behaviour the operator sees.",
+      "assertions": [
+        "Explanation states the parity script runs ahead of drift computation so downstream automation can rely on that ordering before Subtask 12 callers trust the outcome.",
+        "Narrative points operators at parity_drift in the surfaced report together with ordinary drift deltas.",
+        "Closing guidance distinguishes exit 0 only when parity and drift are both clean versus using the configured check exit path when critical drift persists."
+      ],
+      "assertion_patterns": [],
+      "expected_output": "A concise walkthrough naming the parity probe ahead of drift math, locating parity_drift in the report artefact the operator inspects, and tying non-zero exits to configured critical-drift thresholds on failure.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+        "last_updated": "2026-05-29T11:52:41.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
+        }
+      }
+    },
+    {
+      "id": "dry-run-reports-deltas-via-zoto-update-evals-without-writing",
+      "prompt": "Assume we only want insight: rerun rediscovery exactly like `/z-eval-update` dry-run semantics. Explain what artefacts you read versus never touch when nothing is persisted.",
+      "assertions": [
+        "Instructions stay aligned with delta reporting from the primary skill without issuing apply-phase writes anywhere in the sandbox.",
+        "Narrative calls out observable delta categories operators compare before approving later apply turns."
+      ],
+      "assertion_patterns": [],
+      "expected_output": "Directions that classify added versus modified versus untouched targets purely from deltas while explicitly stating disk writes stayed off.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+        "last_updated": "2026-05-29T11:52:41.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
+        }
+      }
+    },
+    {
+      "id": "apply-path-refreshes-analysis-dispatches-stamping-and-manifests",
+      "prompt": "The host already ran `/z-eval-update --apply`, my accept or reject votes arrived through resume text, and you must carry each accepted addition or change forward. Outline how analyser payloads are refreshed when allowed, then how `static.framework` and `llm.strategy` steer regeneration, and confirm manifest bookkeeping.",
+      "follow_ups": [
+        "Pytest is the active static framework alongside declarative llm.strategy—tell me precisely which stamping path runs and why.",
+        "Assume static.framework flips to vitest with llm.strategy set to code; restate how your dispatch changes versus the declarative pytest mix."
+      ],
+      "assertions": [
+        "When fresh analysis is mandated, narration ties each accepted target to rerun `pnpm run eval:analyse` style refresh before regeneration; narration names cache reuse behaviour when disabling flags imply cached payloads under `.zoto/eval-system/cache/analyser/`.",
+        "Assertions map pytest, vitest, and jest manifests to their respective regenerate-and-stamp paths and pair `llm.strategy` code versus declaratory modes with stamping versus guarded `evals.json` surgery without whole-file reshaping.",
+        "Post-apply narration documents refreshed `targets[]` hashes alongside updated `git_ref` and `updated_at` markers inside `.zoto/eval-system/manifest.yml`.",
+        "Instruction stresses append-only additions to `.zoto/eval-system/manifest.history.yml`, never truncation or rewriting prior snapshots.",
+        "Plan emphasises untouched generated scenarios stay earlier in-place while newly stamped rows slot without reordering unaffected neighbours."
+      ],
+      "assertion_patterns": [
+        "pnpm run eval:analyse",
+        "llm\\.strategy",
+        "targets\\[\\]",
+        "\\.zoto/eval-system/manifest\\.history\\.yml"
+      ],
+      "expected_output": "A sequenced rundown covering conditional analyser reruns tied to caching flags, per-framework stamping branches, declarative surgical JSON handling versus declarative skips, regenerated targets carrying fresh hashes, bumped git metadata plus timestamps, untouched generated cases retaining their ordering, and a new snapshot appended append-only onto manifest history rather than rewriting earlier records.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+        "last_updated": "2026-05-29T11:52:41.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
+        }
+      }
+    },
+    {
+      "id": "targeted-glob-scopes-discovery-unlike-full-catalog-baseline",
+      "prompt": "We narrowed work to `/z-eval-update --target 'agent:*glob*'` (dry-run is fine unless I say apply). Contrast how you enumerate primitives now versus during a catalogue-wide drift pass so I know whether today’s `config.yml` discovery knobs mattered.",
+      "assertions": [
+        "Narrative states glob resolution aligns with matching `target.id` or `target.path` tuples only inside the narrowed set.",
+        "Differentiation cites full-catalog reliance on `manifest.discovery_config` against targeted reliance on fresh `config.yml` discovery directives."
+      ],
+      "assertion_patterns": [
+        "target\\.id",
+        "manifest\\.discovery_config"
+      ],
+      "expected_output": "A comparison arguing targeted passes pull discovery through live `config.yml` fields while catalogue runs honour the frozen `discovery_config` snapshot pinned on the manifest.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+        "last_updated": "2026-05-29T11:52:41.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
+        }
+      }
+    },
+    {
+      "id": "cached-analyser-skips-and-ci-safeguards",
+      "prompt": "Treat this like CI with `CI=true` unless I add `--with-analyser`: compare `--no-analyser` flows against relying on warmed cache analyzers without extra flags, cite the `[CI WARNING] skipping fresh primitive analysis …` line on stderr whenever both cached semantics and CI hold, and tell me how `update.failOnNoAnalyserInCI: true` should terminate.",
+      "assertions": [
+        "Directions mention bypassing interactive analyser calls while still respecting cached JSON under `.zoto/eval-system/cache/analyser/` when safeguards apply.",
+        "Explanation orders stderr to emit the documented CI WARNING line pairing cached analysis with CI.",
+        "Advice records that `--with-analyser` re-enables live analyser calls on builders when operators opt in during CI.",
+        "Narrative states fail-fast configs stop the run after that warning prints and return exit 5 specifically."
+      ],
+      "assertion_patterns": [
+        "\\.zoto/eval-system/cache/analyser/",
+        "--with-analyser"
+      ],
+      "expected_output": "Operator-facing rundown flagging suppressed fresh analyser invocations with cache-only payloads, audible stderr warnings tied to concurrent CI semantics, deliberate override via `--with-analyser`, and exit code 5 exiting immediately once fail-fast policy trips after emitting the CI warning row.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+        "last_updated": "2026-05-29T11:52:41.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
+        }
+      }
+    },
+    {
+      "id": "immutability-of-user-authored-rows-and-guarded-test-files",
+      "prompt": "I need an ironclad plan before editing anything: cite how `_meta.generated` gates individual cases inside mixed `evals.json`, how first-line stamp markers vet whole Vitest suites, mixed JSON surgery stays partial, and what happens when someone insists on overwriting a handwritten case anyway.",
+      "assertions": [
+        "Response refuses mutating evaluator rows lacking `_meta.generated === true` and states an error path if coercion is demanded.",
+        "Response explains only stamped `*.test.ts`, `*.test.js`, or `*.test.py` files whose initial line declares the mandated marker qualify for regeneration, otherwise surfacing manual merge warnings rather than overwriting.",
+        "Response commits to swapping generated slices through guarded merge helpers so untouched sections of nested JSON remain verbatim."
+      ],
+      "assertion_patterns": [
+        "_meta\\.generated === true",
+        "\\*\\.test\\.ts"
+      ],
+      "expected_output": "Messaging that refuses non-generated edits, skips unmarked tests with documented manual merge warnings while still surgically patching generated stubs, citing `schema_version` and `_meta.generated: true` contracts only where they explain stamping eligibility.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+        "last_updated": "2026-05-29T11:52:41.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
+        }
+      }
+    },
+    {
+      "id": "delegate-creation-when-primitives-still-lack-evaluator-coverage",
+      "prompt": "One manifest entry still lacks any backing evaluator file though rediscovery surfaced it—walk me through when you escalate to creation via `zoto-create-evals` after `/z-eval-update --apply`, including what you wait for before touching creation flows.",
+      "assertions": [
+        "Explanation defers spawning creation work until the command records acceptance for unresolved targets lacking coverage.",
+        "Directions reference looping back through `zoto-create-evals` once approval exists so new evaluator rows bootstrapped from scratch obey the guarded stamping contracts."
+      ],
+      "assertion_patterns": [
+        "zoto-create-evals"
+      ],
+      "expected_output": "Messaging that distinguishes pending operator approval carried by the owning command versus jumping straight into create routines, signalling when the delegated creation skill engages only after affirmative Task instructions.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+        "last_updated": "2026-05-29T11:52:41.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
+        }
+      }
+    },
+    {
+      "id": "ambiguous-apply-branch-escalation-without-subagent-prompting",
+      "prompt": "Palette-driven branching left you unsure whether the next regenerate pass should chase pytest-only targets or widen to every llm.strategy mode—tell the owning command exactly how you unblock instead of probing me yourself inside this Task chat.",
+      "assertions": [
+        "Agent returns structured `needs_user_input` carrying the branching uncertainty so `/z-eval-update --apply` can resume after command-side questioning.",
+        "Narrative affirms no direct `AskQuestion` call originates inside the updater loop, matching documented command palette escalation."
+      ],
+      "assertion_patterns": [
+        "needs_user_input",
+        "AskQuestion"
+      ],
+      "expected_output": "Advice that emits structured escalation payloads for upstream command bridging while keeping the updater response free of conversational tool prompts authored by this subagent.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+        "last_updated": "2026-05-29T11:52:41.456Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
+          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
+        }
+      }
+    }
+  ]
+}

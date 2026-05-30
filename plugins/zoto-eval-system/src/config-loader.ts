@@ -4,6 +4,15 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 
+import {
+  resolveEvalPaths,
+  type EvalLayoutMode,
+  type EvalPaths,
+} from "./paths.js";
+
+export type { EvalLayoutMode, EvalPaths };
+export { resolveEvalPaths, resultSchemaPath, analyserSchemaPath, analyserAgentPath, resolveHostRepoRoot } from "./paths.js";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const SCHEMA_PATH = join(__dirname, "..", "templates", "schema", "config.schema.json");
@@ -167,6 +176,12 @@ export function migrateFromLegacy(repoRoot: string): MigrationResult {
 
 export function configPathForRepo(repoRoot: string): string {
   return join(repoRoot, ".zoto", "eval-system", "config.yml");
+}
+
+/** Load config and resolve all eval-system paths for the host repo. */
+export function loadEvalPaths(repoRoot: string): EvalPaths {
+  const loaded = loadEvalConfig(repoRoot);
+  return resolveEvalPaths(repoRoot, loaded.config, loaded.path);
 }
 
 export function loadEvalConfig(repoRoot: string, prevMtimeMs?: number): LoadResult {

@@ -17,34 +17,34 @@ Three artefacts are produced:
 3. Extensions to the existing case types: `LlmCaseDefinition` (in `evals/llm/_shared/llm-case.ts`) and `EvalCase` (in `plugins/zoto-eval-system/engine/case.ts`) gain optional `runner` and `parameters` fields.
 
 ## Deliverables Checklist
-- [ ] Create `plugins/zoto-eval-system/templates/schema/case.schema.json` — full JSON Schema for a non-skill case with `oneOf: [DeclarativeCase, RunnerCase]`. Required fields: `DeclarativeCase` = `id` + `prompt` + `assertions`; `RunnerCase` = `id` + `runner` + `parameters`. Reuse existing `_meta` definition from `case-meta.schema.json` via `$ref`.
-- [ ] Create `plugins/zoto-eval-system/templates/schema/runner-params.schema.json` — JSON Schema for the `parameters` payload contract (open shape: `targetId`, `caseId`, and a free-form `parameters` object).
-- [ ] Add a top-level eval-file schema `plugins/zoto-eval-system/templates/schema/eval-file.schema.json` — describes the wrapper `{ target_id, cases: [...case.schema.json], _meta? }` and `$ref`s the per-case schema. This is the JSON Schema for a non-skill `evals/<name>.json` file. Skill files (`evals.json` with `skill_name`) stay outside this schema.
-- [ ] Create `evals/llm/_shared/runner-params.ts` exporting:
+- [x] Create `plugins/zoto-eval-system/templates/schema/case.schema.json` — full JSON Schema for a non-skill case with `oneOf: [DeclarativeCase, RunnerCase]`. Required fields: `DeclarativeCase` = `id` + `prompt` + `assertions`; `RunnerCase` = `id` + `runner` + `parameters`. Reuse existing `_meta` definition from `case-meta.schema.json` via `$ref`.
+- [x] Create `plugins/zoto-eval-system/templates/schema/runner-params.schema.json` — JSON Schema for the `parameters` payload contract (open shape: `targetId`, `caseId`, and a free-form `parameters` object).
+- [x] Add a top-level eval-file schema `plugins/zoto-eval-system/templates/schema/eval-file.schema.json` — describes the wrapper `{ target_id, cases: [...case.schema.json], _meta? }` and `$ref`s the per-case schema. This is the JSON Schema for a non-skill `evals/<name>.json` file. Skill files (`evals.json` with `skill_name`) stay outside this schema.
+- [x] Create `evals/llm/_shared/runner-params.ts` exporting:
     - `interface RunnerParams { targetId: string; caseId: string; parameters: Record<string, unknown>; context: RunnerContext; }`
     - `interface RunnerContext { sdk: SdkBridge; sandbox: SandboxHelper; modelId: string; judgeModel: string; report: ReportCaseFn; expect: typeof import("vitest").expect; agentFactory: AgentFactory; }` — surfaces everything a runner TS file needs without re-importing harness internals directly. `expect` and `agentFactory` are included directly so runner files don't need to import them separately.
     - `interface SdkBridge { ... }` — a named interface mirroring the SDK bridge's public surface (rather than `typeof import("./sdk-bridge")` which forces runner authors to know the module path).
     - `interface RunnerResult { passed: boolean; reason?: string; diagnostics?: Record<string, unknown>; }`
     - `type RunnerFn = (params: RunnerParams) => Promise<RunnerResult>` — the default-export contract.
-- [ ] Extend `LlmCaseDefinition` in `evals/llm/_shared/llm-case.ts`: add optional `runner?: string` (relative path to a `.test.ts` file from the JSON file's directory) and `parameters?: Record<string, unknown>`. Update the JSDoc to explain that a case with `runner` is a *runner case* and MUST NOT carry `assertions`, `graders`, `fixtures`, `expected_filesystem`, or `expected_output`.
-- [ ] Define the `__sourcePath` option on the `DefineLlmEvalOptions` interface (or create it if not yet present): `__sourcePath?: string` — the absolute path to the JSON eval file that sourced this test suite. This field is **set by the JSON loader** (subtask 02) and consumed by the harness runner dispatch (subtask 03) for resolving relative `runner` paths. Document in JSDoc that hand-authored callers may set it to `import.meta.url`. Both subtask 02 and 03 code against this contract.
-- [ ] Extend `EvalCase` in `plugins/zoto-eval-system/engine/case.ts`: add the same optional `runner?: string` and `parameters?: Record<string, unknown>` fields. Update `validateEnriched` to:
+- [x] Extend `LlmCaseDefinition` in `evals/llm/_shared/llm-case.ts`: add optional `runner?: string` (relative path to a `.test.ts` file from the JSON file's directory) and `parameters?: Record<string, unknown>`. Update the JSDoc to explain that a case with `runner` is a *runner case* and MUST NOT carry `assertions`, `graders`, `fixtures`, `expected_filesystem`, or `expected_output`.
+- [x] Define the `__sourcePath` option on the `DefineLlmEvalOptions` interface (or create it if not yet present): `__sourcePath?: string` — the absolute path to the JSON eval file that sourced this test suite. This field is **set by the JSON loader** (subtask 02) and consumed by the harness runner dispatch (subtask 03) for resolving relative `runner` paths. Document in JSDoc that hand-authored callers may set it to `import.meta.url`. Both subtask 02 and 03 code against this contract.
+- [x] Extend `EvalCase` in `plugins/zoto-eval-system/engine/case.ts`: add the same optional `runner?: string` and `parameters?: Record<string, unknown>` fields. Update `validateEnriched` to:
     - Accept runner cases (skip declarative-shape validation when `runner` is set).
     - Reject hybrid cases that combine `runner` with declarative fields (`assertions`, `graders`, `fixtures`, etc.).
     - Reject empty `runner` strings and non-`.test.ts` extensions.
-- [ ] Add unit tests for `validateEnriched`'s new branches (next to the existing engine tests or under `plugins/zoto-eval-system/tests/`). Cover: valid runner case, valid declarative case, hybrid case rejection, runner with wrong extension rejection.
-- [ ] Compile the schemas with Ajv inside the existing schema test (`plugins/zoto-eval-system/tests/plugin.test.ts` or wherever schemas are currently compiled in CI) to confirm they are well-formed.
-- [ ] Update the `_meta.generated` contract documentation in `case-meta.schema.json` if needed so runner cases can carry the marker the same way declarative cases do (no behavioural change — `_meta.generated` remains the user-vs-generated discriminator).
+- [x] Add unit tests for `validateEnriched`'s new branches (next to the existing engine tests or under `plugins/zoto-eval-system/tests/`). Cover: valid runner case, valid declarative case, hybrid case rejection, runner with wrong extension rejection.
+- [x] Compile the schemas with Ajv inside the existing schema test (`plugins/zoto-eval-system/tests/plugin.test.ts` or wherever schemas are currently compiled in CI) to confirm they are well-formed.
+- [x] Update the `_meta.generated` contract documentation in `case-meta.schema.json` if needed so runner cases can carry the marker the same way declarative cases do (no behavioural change — `_meta.generated` remains the user-vs-generated discriminator).
 
 ## Definition of Done
-- [ ] Three new JSON Schema files exist and Ajv-compile without errors
-- [ ] `runner-params.ts` exports the documented interfaces (`RunnerParams`, `RunnerContext`, `SdkBridge`, `RunnerResult`, `RunnerFn`) and is referenced (re-exported) from `evals/llm/_shared/index.ts`
-- [ ] `LlmCaseDefinition` and `EvalCase` both carry optional `runner` + `parameters`
-- [ ] `DefineLlmEvalOptions` (or equivalent) carries optional `__sourcePath` — contracted for use by subtasks 02 and 03
-- [ ] `validateEnriched` accepts runner cases, rejects hybrid cases, and rejects non-`.test.ts` runner paths
-- [ ] Targeted unit tests for the new validation branches pass (`pnpm --filter @zoto-agents/zoto-eval-system test` or the equivalent scoped invocation)
-- [ ] No linter errors in the modified files
-- [ ] No production code path consumes the new fields yet (consumers land in subtasks 02–05)
+- [x] Three new JSON Schema files exist and Ajv-compile without errors
+- [x] `runner-params.ts` exports the documented interfaces (`RunnerParams`, `RunnerContext`, `SdkBridge`, `RunnerResult`, `RunnerFn`) and is referenced (re-exported) from `evals/llm/_shared/index.ts`
+- [x] `LlmCaseDefinition` and `EvalCase` both carry optional `runner` + `parameters`
+- [x] `DefineLlmEvalOptions` (or equivalent) carries optional `__sourcePath` — contracted for use by subtasks 02 and 03
+- [x] `validateEnriched` accepts runner cases, rejects hybrid cases, and rejects non-`.test.ts` runner paths
+- [x] Targeted unit tests for the new validation branches pass (`pnpm --filter @zoto-agents/zoto-eval-system test` or the equivalent scoped invocation)
+- [x] No linter errors in the modified files
+- [x] No production code path consumes the new fields yet (consumers land in subtasks 02–05)
 
 ## Implementation Notes
 

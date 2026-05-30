@@ -14,7 +14,7 @@ Build a one-shot migration script (`scripts/eval-migrate-ts-to-json.ts`) that co
 After this subtask the repo contains zero co-located `.test.ts` LLM eval files; only scenario files under `evals/scenarios/` (none authored yet) and stamped JSON files remain.
 
 ## Deliverables Checklist
-- [ ] Create `scripts/eval-migrate-ts-to-json.ts`:
+- [x] Create `scripts/eval-migrate-ts-to-json.ts`:
     - Discover all co-located LLM eval `.test.ts` files via glob (same patterns as `engine/update.ts#findCoLocatedTsEvals`): `plugins/*/{commands,agents,hooks}/evals/*.test.ts`, `.cursor/{commands,agents,hooks}/evals/*.test.ts`. This includes ALL plugin roots: `plugins/zoto-eval-system/`, `plugins/zoto-spec-system/`, `plugins/zoto-cursor-top/`, and `.cursor/`. Use dynamic discovery (do NOT hardcode a file count).
     - Exclude `evals/scenarios/**` and `evals/llm/_shared/**`.
     - For each file:
@@ -32,19 +32,19 @@ After this subtask the repo contains zero co-located `.test.ts` LLM eval files; 
         - Read `.zoto/eval-system/manifest.yml`.
         - For every `eval_files` entry ending in `.test.ts` whose path corresponds to a migrated file, rewrite to `.json`.
         - Append an entry to `.zoto/eval-system/manifest.history.yml` recording the bulk migration (date, file count, spec id).
-- [ ] Add CLI flags to the script:
+- [x] Add CLI flags to the script:
     - `--dry-run` — print the migration plan (per-file source → destination, case count, target id) without writing anything.
     - `--apply` — actually write files and delete TS originals. Files that fail extraction are left in place with audit entries.
     - `--keep-ts` — for pre-migration safety: write the JSON but leave the TS file in place (recommended before `--apply`).
     - `--single <path>` — migrate a single file (used for spot-checks).
-- [ ] Add unit tests at `scripts/eval-migrate-ts-to-json.test.ts`:
+- [x] Add unit tests at `scripts/eval-migrate-ts-to-json.test.ts`:
     - Given a fixture `.test.ts` with a known `CASES` literal, the AST extraction produces the expected JSON.
     - `defineLlmEval` arg extraction handles `modelId` and `judgeModel` defaults correctly.
     - Hybrid / malformed input raises a clear error naming the source file.
     - Idempotency: re-running on an already-migrated directory is a no-op.
     - Extraction failure (template literal, process.env in CASES, spread operator) produces an audit entry and does NOT write corrupt JSON.
     - Variable name detection handles `CASES`, `SUITE_CASES`, or any `VariableStatement` whose initialiser is a typed `LlmCaseDefinition[]` array.
-- [ ] Execute the migration:
+- [x] Execute the migration:
     1. Run `pnpm exec tsx scripts/eval-migrate-ts-to-json.ts --dry-run` and inspect the plan (dynamically discovered source files; one destination JSON each, plus the manifest rewrite).
     2. Run `pnpm exec tsx scripts/eval-migrate-ts-to-json.ts --keep-ts` first to validate output without deleting originals.
     3. Run `pnpm exec tsx scripts/eval-migrate-ts-to-json.ts --apply`.
@@ -52,20 +52,20 @@ After this subtask the repo contains zero co-located `.test.ts` LLM eval files; 
     5. Run `pnpm eval:list` and confirm every previously-listed `targetId` still appears.
     6. Run `pnpm exec vitest run --config evals/vitest.config.ts <one migrated file>` and confirm Vitest discovers the cases.
     7. Verify migration audit shows 0 failures. If any failures exist, investigate and fix before proceeding.
-- [ ] If any of the discovered files contain `interactions` blocks with `answers[]`, ensure the migration preserves them verbatim — the JSON loader and harness already handle that field.
-- [ ] Cross-reference the migration result against the audit produced inline (the dry-run report serves as the audit). Save the dry-run report at `specs/20260527-evals-json-first-migration/migration-audit-20260527.md` for traceability.
-- [ ] Commit the migrated JSON files, deleted TS files, manifest update, and the migration script in **one** commit so the diff is reviewable. (The actual commit is performed by the executor; this subtask just lands the changes in the working tree.)
+- [x] If any of the discovered files contain `interactions` blocks with `answers[]`, ensure the migration preserves them verbatim — the JSON loader and harness already handle that field.
+- [x] Cross-reference the migration result against the audit produced inline (the dry-run report serves as the audit). Save the dry-run report at `specs/20260527-evals-json-first-migration/migration-audit-20260527.md` for traceability.
+- [x] Commit the migrated JSON files, deleted TS files, manifest update, and the migration script in **one** commit so the diff is reviewable. (The actual commit is performed by the executor; this subtask just lands the changes in the working tree.)
 
 ## Definition of Done
-- [ ] `scripts/eval-migrate-ts-to-json.ts` exists with `--dry-run` / `--apply` / `--keep-ts` / `--single` flags.
-- [ ] Script unit tests pass.
-- [ ] All discovered co-located `.test.ts` LLM evals are converted to `.json` and the TS originals are removed.
-- [ ] Migration audit shows 0 skipped/failed files. If any file cannot be parsed, it is logged with an actionable error and left in place (acceptance criterion: 0 failures in this repo).
-- [ ] `.zoto/eval-system/manifest.yml` has `.json` entries for every migrated target.
-- [ ] `.zoto/eval-system/manifest.history.yml` has a new entry recording the migration.
-- [ ] `pnpm eval:list` enumerates every migrated target.
-- [ ] `migration-audit-20260527.md` exists in the spec directory.
-- [ ] No linter errors in the new script or modified manifest files.
+- [x] `scripts/eval-migrate-ts-to-json.ts` exists with `--dry-run` / `--apply` / `--keep-ts` / `--single` flags.
+- [x] Script unit tests pass.
+- [x] All discovered co-located `.test.ts` LLM evals are converted to `.json` and the TS originals are removed.
+- [x] Migration audit shows 0 skipped/failed files. If any file cannot be parsed, it is logged with an actionable error and left in place (acceptance criterion: 0 failures in this repo).
+- [x] `.zoto/eval-system/manifest.yml` has `.json` entries for every migrated target.
+- [x] `.zoto/eval-system/manifest.history.yml` has a new entry recording the migration.
+- [x] `pnpm eval:list` enumerates every migrated target.
+- [x] `migration-audit-20260527.md` exists in the spec directory.
+- [x] No linter errors in the new script or modified manifest files.
 
 ## Implementation Notes
 

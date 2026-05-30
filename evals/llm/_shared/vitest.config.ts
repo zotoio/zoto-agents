@@ -15,6 +15,7 @@ export default defineConfig({
   },
   test: {
     include: ["**/*.test.ts"],
+    exclude: ["**/__fixtures__/**"],
     testTimeout: 30_000,
     pool: "forks",
     reporters: ["default"],

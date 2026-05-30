@@ -45,6 +45,21 @@
         "If config.json is absent, the skill says so and points to /z-eval-configure instead of inventing values",
         "The skill did not call askQuestion"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "How do I write a TS eval? I have a multi-turn flow that the declarative prompt + assertions case shape can't express cleanly.",
+      "expected_output": "The skill anchors on the README 'Eval formats' / 'Advanced TS escape hatch (`runner` cases)' / 'Multi-primitive scenarios' sections and explains BOTH options: (1) a `runner` case in the co-located JSON eval pointing at a sibling `.test.ts` with a `parameters` payload, implementing `RunnerFn` from `evals/llm/_shared/runner-params.ts`; (2) a multi-primitive scenario under `evals/scenarios/<name>.test.ts`. The answer cites the README with start:end fences, mentions the underscore-prefix opt-in for `evals/scenarios/_*`, and does not call askQuestion.",
+      "files": [],
+      "assertions": [
+        "The skill read plugins/zoto-eval-system/README.md and anchored on the 'Eval formats' section or its 'Advanced TS escape hatch (`runner` cases)' / 'Multi-primitive scenarios' sub-sections",
+        "The response explains BOTH TS options: a `runner` case in co-located JSON (with relative .test.ts path + optional `parameters` payload) AND multi-primitive scenarios under `evals/scenarios/<name>.test.ts`",
+        "The response references the RunnerParams / RunnerFn / RunnerResult contract at evals/llm/_shared/runner-params.ts and/or the JSON-Schema mirror at plugins/zoto-eval-system/templates/schema/runner-params.schema.json",
+        "The response mentions the evals/scenarios/_* exclude convention and how to opt in (rename to drop underscore prefix, or copy into a new scenario file)",
+        "The response includes at least one fenced code block whose info string matches the start:end:plugins/zoto-eval-system/README.md code-reference syntax covering the runner case JSON shape or the RunnerParams signature",
+        "The response paraphrases rather than dumping the full Eval formats section verbatim",
+        "The skill did not call askQuestion"
+      ]
     }
   ,
     {
@@ -58,11 +73,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -79,11 +94,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -101,11 +116,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -123,11 +138,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -145,11 +160,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -167,11 +182,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -189,11 +204,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -211,11 +226,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -233,11 +248,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -255,11 +270,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -277,11 +292,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -298,11 +313,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }
@@ -320,11 +335,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-        "last_updated": "2026-05-17T13:36:46.594Z",
+        "last_updated": "2026-05-29T11:52:41.329Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "ba72b8419aa6afa2851e91c26a2fbaa7bfab03edb83fb134ce1ea916607e459d",
-          "analysed_at": "2026-05-17T13:36:46.594Z",
+          "analysed_at": "2026-05-29T11:52:41.329Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Cases span every Step 3 signal row plus README anchoring, command-supplied `help_context`, rule-driven handoffs, `needs_user_input` when anchors or follow-ups are unresolved, LLM-backend `.env` handling without secrets, run-directory discipline, and a strict ban on skill-side `askQuestion` calls."
         }

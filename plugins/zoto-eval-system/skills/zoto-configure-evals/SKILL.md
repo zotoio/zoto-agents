@@ -1,6 +1,6 @@
 ---
 name: zoto-configure-evals
-description: Writes .zoto/eval-system/config.yml from field values pre-collected by /z-eval-configure (command-owned askQuestion). Refuses bundled update.preserveUserAuthoredCases:false or update.writeMetaMarker:false (including nested payload mirrors) before any manifest read or config write. Validates against templates/schema/config.schema.json. Diffs the chosen config against the manifest snapshot (discovery_config.static.framework) to produce a cleanup_plan validated against templates/schema/cleanup-plan.schema.json, and stamps _meta.primitive_analysis.invalidate=true on every cached primitive analysis when the static framework changes. The unified LLM eval harness ships one TS-everywhere co-located eval per target, with no per-repo selector axis — only the static framework matters here. Never calls askQuestion — returns needs_user_input if validation cannot proceed without user clarification.
+description: Writes .zoto/eval-system/config.yml from field values pre-collected by /z-eval-configure (command-owned askQuestion). Refuses bundled update.preserveUserAuthoredCases:false or update.writeMetaMarker:false (including nested payload mirrors) before any manifest read or config write. Validates against templates/schema/config.schema.json. Diffs the chosen config against the manifest snapshot (discovery_config.static.framework) to produce a cleanup_plan validated against templates/schema/cleanup-plan.schema.json, and stamps _meta.primitive_analysis.invalidate=true on every cached primitive analysis when the static framework changes. The unified LLM eval harness ships one JSON-first co-located eval per target, with no per-repo selector axis — only the static framework matters here. Never calls askQuestion — returns needs_user_input if validation cannot proceed without user clarification.
 ---
 
 # Configure Evals
@@ -17,7 +17,7 @@ Writes `.zoto/eval-system/config.yml` at the repository root. Validated against 
 |---|---|---|---|
 | `static.framework` | enum `pytest` / `vitest` / `jest` | `pytest` | Active static framework for the repo. Python primitives always use pytest regardless; for TS primitives this picks between vitest and jest. |
 
-The LLM backend is **single-shape**: every host repo emits co-located `<kind>/evals/<name>.test.ts` files driven by the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts` (exported as `defineLlmEval`). There is no per-repo backend selector field — the harness reads each case's `requiresInteraction` flag and branches at runtime between the scripted-answer path (interactive primitives) and the single-prompt path (non-interactive primitives).
+The LLM backend is **JSON-first**: every host repo emits co-located `<kind>/evals/<name>.json` files discovered by the Vitest JSON loader plugin. There is no per-repo backend selector field — the harness reads each case's `requiresInteraction` flag and branches at runtime between the scripted-answer path (interactive primitives) and the single-prompt path (non-interactive primitives). Advanced flows may add `runner` cases or scenarios under `evals/scenarios/`.
 
 Switching `static.framework` is a config-changing operation; this skill produces a `cleanup_plan` and the command (`/z-eval-configure`) handles user confirmation and shells out to subtask 03's ``pnpm run eval:cleanup-stale`` for execution.
 
@@ -91,7 +91,7 @@ The skill **does not** read user-authored test files. It only enumerates files m
 
 - The manifest's `targets[].eval_files[]` arrays (returned as `oldSnapshot.evalFiles`).
 - The static-framework fingerprints listed above.
-- The co-located unified LLM eval files (`<kind>/evals/<name>.test.ts`); subtask 03 owns the enumeration logic — this skill hands off the snapshot diff, not the file list.
+- The co-located unified LLM eval files (`<kind>/evals/<name>.json`); subtask 03 owns the enumeration logic — this skill hands off the snapshot diff, not the file list.
 
 ### Step 3: Apply fields
 
@@ -113,7 +113,7 @@ Fields to write, in order (values come from the payload):
 
 `update.preserveUserAuthoredCases` and `update.writeMetaMarker` are always written as **`true`**. Bundled **`false`** for either flag is refused in **Step 0** before this step runs — never merge or honour upstream `false` here.
 
-The LLM backend has no per-repo selector axis — every host repo stamps co-located `<kind>/evals/<name>.test.ts` files driven by the unified LLM eval harness (`evals/llm/_shared/run-llm-suite.ts`, exported as `defineLlmEval`). There is no cross-field validation between `static.framework` and any LLM field, and no need to re-prompt for a missing TS-framework choice.
+The LLM backend has no per-repo selector axis — every host repo stamps co-located `<kind>/evals/<name>.json` files discovered by the Vitest JSON loader plugin. There is no cross-field validation between `static.framework` and any LLM field, and no need to re-prompt for a missing TS-framework choice.
 
 ### Step 4: Build the cleanup_plan
 
@@ -122,7 +122,7 @@ Diff `oldSnapshot` (from Step 2) against the chosen new config and produce a `cl
 Group the candidate files by `reason`:
 
 - `framework-switch` — when `oldSnapshot.static.framework !== newConfig.static.framework`. Files: the previous framework's fingerprint (`evals/conftest.py` / `vitest.config.ts` / `jest.config.{js,ts}`) plus every stamped test file that backend wrote.
-- `removed-target` — when `config.ignore` or `discoveryTargets` removes a target whose generated eval JSON or co-located `<kind>/evals/<name>.test.ts` now becomes orphaned. Compare the new discovery scope to `oldSnapshot.effectiveDiscoveryTargets` (or `oldSnapshot.discoveryTargets` when YAML did not override) plus `ignore` changes; real orphan files belong here, not catalogue ghosts already stripped from `oldSnapshot.evalFiles`.
+- `removed-target` — when `config.ignore` or `discoveryTargets` removes a target whose generated eval JSON or co-located `<kind>/evals/<name>.json` now becomes orphaned. Compare the new discovery scope to `oldSnapshot.effectiveDiscoveryTargets` (or `oldSnapshot.discoveryTargets` when YAML did not override) plus `ignore` changes; real orphan files belong here, not catalogue ghosts already stripped from `oldSnapshot.evalFiles`.
 
 Set `totals.files` to the sum of `groups[].files.length`.
 

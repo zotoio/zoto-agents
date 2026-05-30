@@ -34,6 +34,23 @@ import {
   type AnalysisPayload,
   type SuggestedCase,
 } from "./eval-analyse.ts";
+import { loadEvalConfig, loadEvalPaths } from "../plugins/zoto-eval-system/src/config-loader.js";
+
+function templatesDir(hostRepoRoot: string = REPO_ROOT): string {
+  return loadEvalPaths(hostRepoRoot).templatesDirAbs;
+}
+
+function evalsDirFor(hostRepoRoot: string = REPO_ROOT): string {
+  return loadEvalPaths(hostRepoRoot).evalsDirAbs;
+}
+
+function engineDirFor(hostRepoRoot: string = REPO_ROOT): string {
+  return loadEvalPaths(hostRepoRoot).engineDirAbs;
+}
+
+function analyserCacheDir(hostRepoRoot: string = REPO_ROOT): string {
+  return loadEvalPaths(hostRepoRoot).cacheDirAbs;
+}
 /* === Subtask 06 START === (pytest per-primitive imports) */
 import {
   ANALYSER_VERSION,
@@ -66,8 +83,8 @@ function isAllowlistedSkillStampTarget(targetId: string): boolean {
 /* Subtask 05 — keep this block self-contained so subtask 04's analyser   */
 /* invocation edits in `main()` remain non-overlapping.                   */
 
-const BASELINE_TEMPLATE_REL = "plugins/zoto-eval-system/templates/baseline-fixtures";
-const BASELINE_DEST_REL = "evals/fixtures/baseline";
+const BASELINE_TEMPLATE_SUFFIX = "baseline-fixtures";
+const BASELINE_DEST_SUFFIX = "fixtures/baseline";
 
 export interface BaselineStampOptions {
   /** Source tree (defaults to the in-repo template dir). */
@@ -98,12 +115,12 @@ export function stampBaselineFixtures(
   hostRepoRoot: string = REPO_ROOT,
   opts: BaselineStampOptions = {},
 ): BaselineStampResult {
-  const source = opts.source ?? join(REPO_ROOT, BASELINE_TEMPLATE_REL);
-  const dest = opts.dest ?? join(hostRepoRoot, BASELINE_DEST_REL);
+  const source = opts.source ?? join(templatesDir(hostRepoRoot), BASELINE_TEMPLATE_SUFFIX);
+  const dest = opts.dest ?? join(evalsDirFor(hostRepoRoot), BASELINE_DEST_SUFFIX);
 
   if (!existsSync(source)) {
     throw new Error(
-      `baseline template missing at ${source} - expected ${BASELINE_TEMPLATE_REL}`,
+      `baseline template missing at ${source} - expected templates/${BASELINE_TEMPLATE_SUFFIX}`,
     );
   }
 
@@ -873,13 +890,9 @@ async function main(): Promise<void> {
 /* untouched. Reads the analyser payload from the on-disk cache only —   */
 /* never triggers a fresh LLM call from this code path.                   */
 
-const PYTEST_TEMPLATE_REL =
-  "plugins/zoto-eval-system/templates/static/pytest/per-primitive-test.py.tmpl";
-const PYTEST_CONFTEST_TMPL_REL =
-  "plugins/zoto-eval-system/templates/static/pytest/conftest.py.tmpl";
-const PYTEST_REPORTER_TMPL_REL =
-  "plugins/zoto-eval-system/templates/static/pytest/_reporter.py.tmpl";
-const ANALYSER_CACHE_DIR_REL = ".zoto/eval-system/cache/analyser";
+const PYTEST_TEMPLATE_SUFFIX = "static/pytest/per-primitive-test.py.tmpl";
+const PYTEST_CONFTEST_TMPL_SUFFIX = "static/pytest/conftest.py.tmpl";
+const PYTEST_REPORTER_TMPL_SUFFIX = "static/pytest/_reporter.py.tmpl";
 
 export interface PytestPrimitiveStampMeta {
   /** Short slug used in the file name (defaults to the target's name). */
@@ -1000,11 +1013,7 @@ function readCachedAnalyserPayload(
     analyserVersion: ANALYSER_VERSION,
     modelId: cfg.modelId,
   });
-  const cacheFile = join(
-    hostRepoRoot,
-    ANALYSER_CACHE_DIR_REL,
-    `${cacheKey}.json`,
-  );
+  const cacheFile = join(analyserCacheDir(hostRepoRoot), `${cacheKey}.json`);
   if (!existsSync(cacheFile)) return null;
   try {
     return JSON.parse(readFileSync(cacheFile, "utf-8")) as AnalyserPayload;
@@ -1047,7 +1056,7 @@ export function stampPytestPerPrimitive(
   }
 
   const templatePath =
-    opts.templateOverride ?? join(REPO_ROOT, PYTEST_TEMPLATE_REL);
+    opts.templateOverride ?? join(templatesDir(hostRepoRoot), PYTEST_TEMPLATE_SUFFIX);
   if (!existsSync(templatePath)) {
     throw new Error(`pytest per-primitive template missing: ${templatePath}`);
   }
@@ -1055,7 +1064,7 @@ export function stampPytestPerPrimitive(
 
   const targetName = payload.target_id.split(":")[1] ?? payload.target_id;
   const slug = meta.slug ?? slugify(targetName);
-  const outDir = opts.outDir ?? join(hostRepoRoot, "evals");
+  const outDir = opts.outDir ?? evalsDirFor(hostRepoRoot);
   const outFile = `test_${payload.kind}_${slug}.py`;
   const outPath = join(outDir, outFile);
 
@@ -1192,7 +1201,7 @@ export function ensurePytestSupportFiles(
 
   const reporterDest = join(evalsDir, "_zoto_static_reporter.py");
   const reporterTmplPath =
-    opts.reporterTemplateOverride ?? join(REPO_ROOT, PYTEST_REPORTER_TMPL_REL);
+    opts.reporterTemplateOverride ?? join(templatesDir(hostRepoRoot), PYTEST_REPORTER_TMPL_SUFFIX);
   if (existsSync(reporterTmplPath)) {
     const reporterBody = readFileSync(reporterTmplPath, "utf-8");
     if (
@@ -1208,7 +1217,7 @@ export function ensurePytestSupportFiles(
     const conftestDest = join(evalsDir, "conftest.py");
     const conftestTmplPath =
       opts.conftestTemplateOverride ??
-      join(REPO_ROOT, PYTEST_CONFTEST_TMPL_REL);
+      join(templatesDir(hostRepoRoot), PYTEST_CONFTEST_TMPL_SUFFIX);
     if (existsSync(conftestTmplPath)) {
       const conftestBody = readFileSync(conftestTmplPath, "utf-8");
       /* Conftest is user-editable. Only stamp when missing — never
@@ -1407,10 +1416,8 @@ async function resolveStampPytestTargets(
 
 import type { AnalyserPayload } from "./eval-analyse.ts";
 
-const JEST_TEMPLATE_REL =
-  "plugins/zoto-eval-system/templates/static/jest";
-const SHARED_TEMPLATE_REL =
-  "plugins/zoto-eval-system/templates/static/_shared";
+const JEST_TEMPLATE_SUFFIX = "static/jest";
+const SHARED_TEMPLATE_SUFFIX = "static/_shared";
 
 export type StaticFramework = "jest" | "vitest";
 
@@ -1604,10 +1611,10 @@ export function stampJestPerPrimitive(
     assertNoConflictingFramework("jest", hostRepoRoot);
   }
 
-  const templateRoot = opts.templateRoot ?? join(REPO_ROOT, JEST_TEMPLATE_REL);
+  const templateRoot = opts.templateRoot ?? join(templatesDir(hostRepoRoot), JEST_TEMPLATE_SUFFIX);
   const sharedRoot =
-    opts.sharedTemplateRoot ?? join(REPO_ROOT, SHARED_TEMPLATE_REL);
-  const evalsDir = join(hostRepoRoot, "evals");
+    opts.sharedTemplateRoot ?? join(templatesDir(hostRepoRoot), SHARED_TEMPLATE_SUFFIX);
+  const evalsDir = evalsDirFor(hostRepoRoot);
 
   const testFile = join(evalsDir, `${primitive.slug}.test.ts`);
   const configFile = join(evalsDir, "jest.config.ts");
@@ -1691,10 +1698,8 @@ export function stampJestPerPrimitive(
 /* jest already installed gets a clean error rather than a half-stamped   */
 /* dual-framework workspace.                                                */
 
-const VITEST_TEMPLATE_REL =
-  "plugins/zoto-eval-system/templates/static/vitest";
-const VITEST_SHARED_TEMPLATE_REL =
-  "plugins/zoto-eval-system/templates/static/_shared";
+const VITEST_TEMPLATE_SUFFIX = "static/vitest";
+const VITEST_SHARED_TEMPLATE_SUFFIX = "static/_shared";
 
 export interface VitestStampOptions {
   /** Skip the mutual-exclusion guard (test-only escape hatch). */
@@ -1743,10 +1748,10 @@ export function stampVitestPerPrimitive(
     assertNoConflictingFramework("vitest", hostRepoRoot);
   }
 
-  const templateRoot = opts.templateRoot ?? join(REPO_ROOT, VITEST_TEMPLATE_REL);
+  const templateRoot = opts.templateRoot ?? join(templatesDir(hostRepoRoot), VITEST_TEMPLATE_SUFFIX);
   const sharedRoot =
-    opts.sharedTemplateRoot ?? join(REPO_ROOT, VITEST_SHARED_TEMPLATE_REL);
-  const evalsDir = join(hostRepoRoot, "evals");
+    opts.sharedTemplateRoot ?? join(templatesDir(hostRepoRoot), VITEST_SHARED_TEMPLATE_SUFFIX);
+  const evalsDir = evalsDirFor(hostRepoRoot);
 
   const slug = sanitiseVitestSlug(primitive.slug);
   const testFile = join(
@@ -1900,10 +1905,8 @@ function writeVitestIfChanged(
 /* `_user-case-guards` are imported by the harness at runtime; the
  * stamper no longer queries them directly (the mutual-exclusion guard
  * was retired in subtask 06 of the single-backend collapse). */
-import { loadEvalConfig } from "../plugins/zoto-eval-system/src/config-loader.js";
 
-const LLM_CODE_TEMPLATE_REL =
-  "plugins/zoto-eval-system/templates/llm/code-cursor-sdk";
+const LLM_CODE_TEMPLATE_SUFFIX = "llm/code-cursor-sdk";
 const LLM_CODE_DEST_REL = "evals/llm";
 
 /**
@@ -2097,14 +2100,14 @@ function writeLlmCodeIfChanged(
 
 /**
  * Resolve the co-located eval file path for a non-skill primitive
- * (KD-2 of spec-eval-single-backend-colocated-restructure-20260526):
+ * (JSON-first migration — spec evals-json-first-migration-20260527):
  *
- *   <kind-dir>/evals/<name>.test.ts
+ *   <kind-dir>/evals/<name>.json
  *
- * - `command` / `agent` → `dirname(sourcePath)/evals/<name>.test.ts`
- * - `hook`              → `<hooks-dir>/evals/hooks.test.ts` (one
- *   bundled file per hook source; `.cursor/hooks.json` canonicalises
- *   to `.cursor/hooks/evals/hooks.test.ts`)
+ * - `command` / `agent` → `dirname(sourcePath)/evals/<name>.json`
+ * - `hook`              → `<hooks-dir>/evals/hooks.json` (one bundled
+ *   file per hook source; `.cursor/hooks.json` canonicalises to
+ *   `.cursor/hooks/evals/hooks.json`)
  * - `skill` / `rule`    → `null` (skills retain `evals.json`; rules
  *   are not eval-stamped)
  */
@@ -2116,13 +2119,112 @@ export function resolveLlmTargetPath(
     const dir = dirname(resolved.sourcePath);
     const base = dir.split(sep).pop() ?? "";
     const hooksDir = base === "hooks" ? dir : join(dir, "hooks");
-    return join(hooksDir, "evals", "hooks.test.ts");
+    return join(hooksDir, "evals", "hooks.json");
   }
-  return join(
-    dirname(resolved.sourcePath),
-    "evals",
-    `${resolved.name}.test.ts`,
-  );
+  return join(dirname(resolved.sourcePath), "evals", `${resolved.name}.json`);
+}
+
+/** Template suffix under {@link templatesDir} for a non-skill primitive kind. */
+export function resolveLlmJsonTemplateSuffix(kind: string): string {
+  if (kind === "command") {
+    return "command-evals/evals.json.tmpl";
+  }
+  if (kind === "agent") {
+    return "agent-evals/evals.json.tmpl";
+  }
+  if (kind === "hook") {
+    return "hook-evals/evals.json.tmpl";
+  }
+  throw new Error(`resolveLlmJsonTemplateSuffix: unsupported kind ${kind}`);
+}
+
+/** @deprecated Use {@link resolveLlmJsonTemplateSuffix} with {@link templatesDir}. */
+export function resolveLlmJsonTemplateRel(kind: string): string {
+  return resolveLlmJsonTemplateSuffix(kind);
+}
+
+/**
+ * Build one stamped case row from an analyser payload. Every row carries
+ * `_meta.generated: true` plus the cached `primitive_analysis` envelope.
+ */
+export function buildStampedLlmCaseRow(
+  payload: AnalyserPayload,
+  caseIdx: number,
+  nowIso: string,
+): StampedLlmCaseRow & {
+  _meta: {
+    generated: true;
+    source_hash: string;
+    last_updated: string;
+    generated_by: "zoto-create-evals";
+    primitive_analysis: {
+      source_hash: string;
+      analysed_at: string;
+      analyser_version: string;
+      summary: string;
+      fixture_justifications?: string[];
+    };
+  };
+} {
+  const c = payload.cases[caseIdx];
+  if (!c) {
+    throw new Error(
+      `buildStampedLlmCaseRow: payload has no case at index ${caseIdx}`,
+    );
+  }
+  if (!Array.isArray(c.assertions) || c.assertions.length === 0) {
+    throw new Error(
+      `Refusing to stamp LLM case for ${payload.target_id}#${caseIdx}: no assertions in analyser payload`,
+    );
+  }
+  const row = llmAnalyserCaseToStampedRow(c, caseIdx);
+  return {
+    ...row,
+    _meta: {
+      generated: true,
+      source_hash: payload.source_hash,
+      last_updated: nowIso,
+      generated_by: "zoto-create-evals",
+      primitive_analysis: {
+        source_hash: payload.source_hash,
+        analysed_at: nowIso,
+        analyser_version: payload.analyser_version,
+        summary: payload.summary,
+        ...(c.fixture_justifications && c.fixture_justifications.length > 0
+          ? { fixture_justifications: c.fixture_justifications.slice() }
+          : {}),
+      },
+    },
+  };
+}
+
+/**
+ * Render a non-skill co-located JSON eval file from the kind template
+ * and analyser payload. Strips `_template_doc` and emits the canonical
+ * file-level `_meta` envelope expected by `eval-file.schema.json`.
+ */
+export function renderLlmJsonTemplate(
+  template: string,
+  payload: AnalyserPayload,
+  cases: unknown[],
+  modelId: string,
+  judgeModel: string,
+  caseTimeoutMs: number,
+): string {
+  // Ensure the on-disk template is valid JSON (may carry `_template_doc`).
+  JSON.parse(template);
+
+  const body: Record<string, unknown> = {
+    target_id: payload.target_id,
+    _meta: {
+      generated: true,
+      model_id: modelId,
+      judge_model: judgeModel,
+      case_timeout_ms: caseTimeoutMs,
+    },
+    cases,
+  };
+  return JSON.stringify(body, null, 2) + "\n";
 }
 
 /**
@@ -2135,7 +2237,7 @@ function relativeHarnessImportPath(
   hostRepoRoot: string,
   testFilePath: string,
 ): string {
-  const sharedDir = join(hostRepoRoot, "evals", "llm", "_shared");
+  const sharedDir = join(evalsDirFor(hostRepoRoot), "llm", "_shared");
   const fromDir = dirname(testFilePath);
   let rel = relative(fromDir, sharedDir).split(sep).join("/");
   if (rel.length === 0) rel = ".";
@@ -2164,25 +2266,13 @@ export function buildPrimitiveMetaFromPayload(
 
 /**
  * Stamp the unified LLM eval into a host repo for a single primitive.
- * Idempotent — files are only written when their content differs from
- * the existing on-disk content.
+ * Idempotent — the co-located JSON file is only written when content differs.
  *
  * Template source of truth:
- *   `plugins/zoto-eval-system/templates/llm/code-cursor-sdk/`
+ *   `plugins/zoto-eval-system/templates/{command,agent,hook}-evals/evals.json.tmpl`
  *
- * Per-primitive test body: rendered from `per-primitive-test.ts.tmpl`
- * with placeholders substituted at stamp time. The emitted test file
- * lands at the co-located path produced by `resolveLlmTargetPath` —
- * `<kind-dir>/evals/<name>.test.ts` — and imports the harness from a
- * relative path back to `evals/llm/_shared/`.
- *
- * When the host repo already has `plugins/zoto-eval-system/engine/`
- * (the canonical source directory — always present in the zoto-agents
- * monorepo), `sdk-bridge.ts`, `_user-case-guards.ts`, and the graders
- * are NOT copied into `_shared/`; the harness imports them via the
- * `#eval-engine` alias. For external repos that lack the engine, the
- * stamper falls back to the copy behaviour so the layout stays
- * self-contained.
+ * The emitted JSON lands at the co-located path from `resolveLlmTargetPath`:
+ * `<kind-dir>/evals/<name>.json` (or `<hooks-dir>/evals/hooks.json`).
  */
 export function stampLlmTarget(
   hostRepoRoot: string,
@@ -2191,13 +2281,8 @@ export function stampLlmTarget(
   resolved: { kind: string; sourcePath: string; name: string; targetId: string },
   opts: LlmStampOptions,
 ): LlmStampResult {
-  const templateRoot =
-    opts.templateRoot ?? join(REPO_ROOT, LLM_CODE_TEMPLATE_REL);
-  const sharedSourceRoot =
-    opts.sharedSourceRoot ?? join(REPO_ROOT, "plugins", "zoto-eval-system", "engine");
-  const evalsDirRel = opts.evalsDir ?? "evals";
-  const evalsDir = join(hostRepoRoot, evalsDirRel);
-  const llmDir = join(hostRepoRoot, evalsDirRel, "llm");
+  const evalsDir = opts.evalsDir ? join(hostRepoRoot, opts.evalsDir) : evalsDirFor(hostRepoRoot);
+  const llmDir = join(evalsDir, "llm");
   const sharedDir = join(llmDir, "_shared");
   const caseTimeoutMs = opts.caseTimeoutMs ?? 180000;
 
@@ -2208,25 +2293,9 @@ export function stampLlmTarget(
     );
   }
 
-  // Rebase the (potentially monorepo-absolute) target path under `hostRepoRoot`
-  // so the relative-harness-path computation stays inside the host tree even
-  // when callers pass a tmp `hostRepoRoot` for fixture tests.
-  const testFile = targetPath.startsWith(hostRepoRoot)
+  const jsonFile = targetPath.startsWith(hostRepoRoot)
     ? targetPath
     : join(hostRepoRoot, relative(REPO_ROOT, targetPath));
-
-  const setupFile = join(sharedDir, "setup.ts");
-  const reporterFile = join(sharedDir, "zoto-llm-reporter.ts");
-  const sdkBridgeFile = join(sharedDir, "sdk-bridge.ts");
-  const sandboxHelpersFile = join(sharedDir, "sandbox-helpers.ts");
-  const userCaseGuardsFile = join(sharedDir, "_user-case-guards.ts");
-  const graderFiles = [
-    join(sharedDir, "graders", "common.ts"),
-    join(sharedDir, "graders", "contains.ts"),
-    join(sharedDir, "graders", "regex.ts"),
-    join(sharedDir, "graders", "tool-called.ts"),
-    join(sharedDir, "graders", "llm-judge.ts"),
-  ];
 
   const state: { written: string[]; unchanged: string[] } = {
     written: [],
@@ -2234,90 +2303,28 @@ export function stampLlmTarget(
   };
   const dryRun = opts.dryRun ?? false;
 
-  const testTemplate = loadLlmCodeTemplate(
-    join(templateRoot, "per-primitive-test.ts.tmpl"),
-  );
-  const setupTemplate = loadLlmCodeTemplate(
-    join(templateRoot, "setup.ts.tmpl"),
-  );
-  const reporterTemplate = loadLlmCodeTemplate(
-    join(templateRoot, "reporters", "zoto-llm-reporter.ts.tmpl"),
-  );
-  const sandboxHelpersTemplate = loadLlmCodeTemplate(
-    join(templateRoot, "sandbox-helpers.ts.tmpl"),
-  );
-  const graderTemplates = [
-    loadLlmCodeTemplate(join(templateRoot, "graders", "common.ts.tmpl")),
-    loadLlmCodeTemplate(join(templateRoot, "graders", "contains.ts.tmpl")),
-    loadLlmCodeTemplate(join(templateRoot, "graders", "regex.ts.tmpl")),
-    loadLlmCodeTemplate(join(templateRoot, "graders", "tool-called.ts.tmpl")),
-    loadLlmCodeTemplate(join(templateRoot, "graders", "llm-judge.ts.tmpl")),
-  ];
+  const templateSuffix = resolveLlmJsonTemplateSuffix(resolved.kind);
+  const templatePath =
+    opts.templateRoot != null
+      ? join(opts.templateRoot, "evals.json.tmpl")
+      : join(templatesDir(hostRepoRoot), templateSuffix);
+  const template = loadLlmCodeTemplate(templatePath);
 
-  const engineDir = join(REPO_ROOT, "plugins", "zoto-eval-system", "engine");
-  const hostHasCanonicalSource =
-    existsSync(join(engineDir, "sdk-bridge.ts")) &&
-    existsSync(join(engineDir, "_user-case-guards.ts"));
-
-  let sdkBridgeBody: string | null = null;
-  let userCaseGuardsBody: string | null = null;
-
-  if (!hostHasCanonicalSource) {
-    const sdkBridgeSrc = join(sharedSourceRoot, "sdk-bridge.ts");
-    if (!existsSync(sdkBridgeSrc)) {
-      throw new Error(
-        `sdk-bridge source missing at ${sdkBridgeSrc}; requires plugins/zoto-eval-system/engine/sdk-bridge.ts`,
-      );
-    }
-    sdkBridgeBody = readFileSync(sdkBridgeSrc, "utf-8");
-
-    const userCaseGuardsSrc = join(sharedSourceRoot, "_user-case-guards.ts");
-    if (!existsSync(userCaseGuardsSrc)) {
-      throw new Error(
-        `_user-case-guards source missing at ${userCaseGuardsSrc}; requires plugins/zoto-eval-system/engine/_user-case-guards.ts`,
-      );
-    }
-    userCaseGuardsBody = readFileSync(userCaseGuardsSrc, "utf-8");
-  }
-
-  const harnessRel = relativeHarnessImportPath(hostRepoRoot, testFile);
-
-  const renderedTest = ensureLlmCodeGeneratedMarker(
-    renderLlmPerPrimitiveTest(
-      testTemplate,
-      payload,
-      primitive,
-      opts.modelId,
-      opts.judgeModel,
-      caseTimeoutMs,
-      harnessRel,
-    ),
+  const nowIso = new Date().toISOString();
+  const cases = (payload.cases ?? []).map((_c, i) =>
+    buildStampedLlmCaseRow(payload, i, nowIso),
   );
 
-  writeLlmCodeIfChanged(testFile, renderedTest, state, dryRun);
-  writeLlmCodeIfChanged(setupFile, setupTemplate, state, dryRun);
+  const rendered = renderLlmJsonTemplate(
+    template,
+    payload,
+    cases,
+    opts.modelId,
+    opts.judgeModel,
+    caseTimeoutMs,
+  );
 
-  if (hostHasCanonicalSource) {
-    const patchedReporter = reporterTemplate
-      .replace(
-        /from\s+["']\.\.\/(_shared\/)?graders\/common\.js["']/g,
-        'from "#eval-engine/graders/common.js"',
-      )
-      .replace(
-        /from\s+["']\.\.\/(_shared\/)?sandbox-helpers\.js["']/g,
-        'from "./sandbox-helpers.js"',
-      );
-    writeLlmCodeIfChanged(reporterFile, patchedReporter, state, dryRun);
-  } else {
-    writeLlmCodeIfChanged(reporterFile, reporterTemplate, state, dryRun);
-    writeLlmCodeIfChanged(sdkBridgeFile, sdkBridgeBody!, state, dryRun);
-    writeLlmCodeIfChanged(userCaseGuardsFile, userCaseGuardsBody!, state, dryRun);
-    for (let i = 0; i < graderFiles.length; i++) {
-      writeLlmCodeIfChanged(graderFiles[i]!, graderTemplates[i]!, state, dryRun);
-    }
-  }
-
-  writeLlmCodeIfChanged(sandboxHelpersFile, sandboxHelpersTemplate, state, dryRun);
+  writeLlmCodeIfChanged(jsonFile, rendered, state, dryRun);
 
   if (opts.tokenFieldNotes) {
     process.stderr.write(
@@ -2334,13 +2341,13 @@ export function stampLlmTarget(
     hostRepoRoot,
     evalsDir,
     llmDir,
-    testFile,
-    setupFile,
-    reporterFile,
-    sdkBridgeFile,
-    sandboxHelpersFile,
-    userCaseGuardsFile,
-    graderFiles,
+    testFile: jsonFile,
+    setupFile: join(sharedDir, "setup.ts"),
+    reporterFile: join(sharedDir, "zoto-llm-reporter.ts"),
+    sdkBridgeFile: join(sharedDir, "sdk-bridge.ts"),
+    sandboxHelpersFile: join(sharedDir, "sandbox-helpers.ts"),
+    userCaseGuardsFile: join(sharedDir, "_user-case-guards.ts"),
+    graderFiles: [],
     written: state.written,
     unchanged: state.unchanged,
   };
@@ -2381,7 +2388,7 @@ export interface StampTargetResult {
 /**
  * Stamp the single LLM eval artefact for a target. Skills are skipped
  * (their existing `evals.json` is retained); rules are not eval-stamped.
- * All other primitives stamp a co-located `<kind-dir>/evals/<name>.test.ts`.
+ * All other primitives stamp a co-located `<kind-dir>/evals/<name>.json`.
  */
 export async function stampTarget(
   hostRepoRoot: string,

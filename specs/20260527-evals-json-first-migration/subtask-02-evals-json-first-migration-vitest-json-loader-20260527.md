@@ -14,7 +14,7 @@ Implement a Vite plugin that loads non-skill eval JSON files as in-memory Vitest
 The loader is the foundational piece that lets us drop the per-primitive `.test.ts` stamp template entirely.
 
 ## Deliverables Checklist
-- [ ] Create `evals/llm/_shared/vitest-json-loader.ts` exporting `evalJsonLoader(): Plugin` (Vite plugin). The plugin:
+- [x] Create `evals/llm/_shared/vitest-json-loader.ts` exporting `evalJsonLoader(): Plugin` (Vite plugin). The plugin:
     - Implements `name: "zoto-eval-system:json-loader"`.
     - Hooks `resolveId(source, importer)`: when `source` ends in `.json` and the resolved path matches the non-skill eval glob (`**/evals/**/*.json` AND the file is not a skill `evals.json`), return a virtual ID like `\0zoto-eval-json:<absolutePath>` so Vite knows the plugin will own the load.
     - Hooks `load(id)`: when `id` starts with `\0zoto-eval-json:`, read the underlying JSON, parse it, and return a synthesised ES module source that:
@@ -22,25 +22,25 @@ The loader is the foundational piece that lets us drop the per-primitive `.test.
         - Imports `describe`, `it`, `afterAll`, `expect` from `vitest`.
         - Embeds the JSON's `target_id`, `cases`, `_meta.model_id` (or default), `_meta.judge_model` (or default), `_meta.case_timeout_ms` (or default) as inline constants.
         - Calls `defineLlmEval({ targetId, cases, modelId, judgeModel, caseTimeoutMs, describe, it, afterAll, expect })`.
-- [ ] Define and use a single shared helper `isNonSkillEvalJsonPath(absPath: string): boolean` so the loader and the reporter classifiers in subtask 06 agree on the discrimination rule. Skill files match: contains `/skills/<name>/evals/evals.json` (`evals.json` filename + `skills` segment ancestor). Non-skill match: anything under `**/evals/<name>.json` that is NOT a skill file.
-- [ ] Add defence-in-depth inside the `load` hook: after parsing JSON, check for a `skill_name` field at the top level. If present, return `null` (skip the file) and log a warning. This prevents accidental loading of skill evals if the path-based discrimination has an edge case.
-- [ ] Generate stable in-memory module text: deterministic JSON serialisation (`JSON.stringify(cases, null, 2)`) so source maps remain useful and reruns produce identical hashes. Include the original JSON file path in a leading `// @sourceFile: <abs path>` comment so debugging is trivial.
-- [ ] Map Vite/Vitest errors back to JSON line/column where possible (use a heuristic: prepend a `//# sourceURL=<json file>` line; full sourcemap support is a stretch goal — document as a follow-up if not implemented in this subtask).
-- [ ] Add unit tests under `evals/llm/_shared/vitest-json-loader.test.ts` exercising:
+- [x] Define and use a single shared helper `isNonSkillEvalJsonPath(absPath: string): boolean` so the loader and the reporter classifiers in subtask 06 agree on the discrimination rule. Skill files match: contains `/skills/<name>/evals/evals.json` (`evals.json` filename + `skills` segment ancestor). Non-skill match: anything under `**/evals/<name>.json` that is NOT a skill file.
+- [x] Add defence-in-depth inside the `load` hook: after parsing JSON, check for a `skill_name` field at the top level. If present, return `null` (skip the file) and log a warning. This prevents accidental loading of skill evals if the path-based discrimination has an edge case.
+- [x] Generate stable in-memory module text: deterministic JSON serialisation (`JSON.stringify(cases, null, 2)`) so source maps remain useful and reruns produce identical hashes. Include the original JSON file path in a leading `// @sourceFile: <abs path>` comment so debugging is trivial.
+- [x] Map Vite/Vitest errors back to JSON line/column where possible (use a heuristic: prepend a `//# sourceURL=<json file>` line; full sourcemap support is a stretch goal — document as a follow-up if not implemented in this subtask).
+- [x] Add unit tests under `evals/llm/_shared/vitest-json-loader.test.ts` exercising:
     - `resolveId` recognises a non-skill eval JSON and returns the virtual ID.
     - `resolveId` returns `null` for skill `evals.json`.
     - `load` for a fixture JSON returns a string containing `defineLlmEval` and the expected `targetId`.
     - `load` returns `null` for non-virtual IDs.
     - `load` rejects malformed JSON with a clear error message including the file path.
-- [ ] Add a fixture JSON (e.g. `evals/llm/_shared/__fixtures__/sample-eval.json`) used only by the loader tests — a tiny `target_id: "command:sample"` file with one declarative case AND one runner case.
-- [ ] Document the loader at the top of `vitest-json-loader.ts` with a JSDoc block referencing this spec and explaining the virtual-module flow.
+- [x] Add a fixture JSON (e.g. `evals/llm/_shared/__fixtures__/sample-eval.json`) used only by the loader tests — a tiny `target_id: "command:sample"` file with one declarative case AND one runner case.
+- [x] Document the loader at the top of `vitest-json-loader.ts` with a JSDoc block referencing this spec and explaining the virtual-module flow.
 
 ## Definition of Done
-- [ ] `evals/llm/_shared/vitest-json-loader.ts` exists, exports `evalJsonLoader`, and is fully typed.
-- [ ] Loader unit tests pass via `pnpm --filter @zoto-agents/zoto-eval-system test` or the existing `evals/llm/_shared/vitest.config.ts` invocation.
-- [ ] Loader correctly handles runner-shaped cases (passes them through to `defineLlmEval`; the harness dispatch in subtask 03 takes over from there).
-- [ ] No production import path is broken — loader is not yet wired into `evals/vitest.config.ts` (that is subtask 06's job).
-- [ ] No linter errors in the modified files.
+- [x] `evals/llm/_shared/vitest-json-loader.ts` exists, exports `evalJsonLoader`, and is fully typed.
+- [x] Loader unit tests pass via `pnpm --filter @zoto-agents/zoto-eval-system test` or the existing `evals/llm/_shared/vitest.config.ts` invocation.
+- [x] Loader correctly handles runner-shaped cases (passes them through to `defineLlmEval`; the harness dispatch in subtask 03 takes over from there).
+- [x] No production import path is broken — loader is not yet wired into `evals/vitest.config.ts` (that is subtask 06's job).
+- [x] No linter errors in the modified files.
 
 ## Implementation Notes
 

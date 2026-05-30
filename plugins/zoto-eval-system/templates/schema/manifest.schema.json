@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://zotoio.github.io/zoto-agents/schemas/zoto-eval-system/manifest.schema.json",
   "title": "Zoto Eval System Manifest",
+  "description": "Persistent catalogue of discovered primitives and their stamped eval artefacts. Hand-authored scenario files under `evals/scenarios/<name>.test.ts` are intentionally NOT tracked in `targets[].eval_files[]` — scenarios live outside the manifest trail and are excluded from this schema by design. Per-file JSON validation against `eval-file.schema.json` is enforced at runtime by `engine/runner.ts` / `engine/update.ts`, not at manifest-write time.",
   "type": "object",
   "required": ["schema_version", "created_at", "updated_at", "git_ref", "generated_by", "discovery_config", "targets"],
   "additionalProperties": false,
@@ -89,9 +90,48 @@
           },
           "eval_files": {
             "type": "array",
-            "items": { "type": "string" }
+            "description": "Repo-relative paths to eval artefact files the stamper/updater owns. Non-skill entries MUST end in `.json` after the JSON-first migration; skill entries MUST be `evals/evals.json`. Scenario `.test.ts` files under `evals/scenarios/` are never listed here.",
+            "items": { "type": "string", "minLength": 1 }
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": { "kind": { "const": "skill" } },
+              "required": ["kind"]
+            },
+            "then": {
+              "properties": {
+                "eval_files": {
+                  "items": {
+                    "type": "string",
+                    "pattern": "evals\\.json$",
+                    "description": "Skill targets MUST reference `evals/evals.json` per the Cursor Agent Skills spec."
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": { "enum": ["command", "agent", "hook", "cli", "lib"] }
+              },
+              "required": ["kind"]
+            },
+            "then": {
+              "properties": {
+                "eval_files": {
+                  "items": {
+                    "type": "string",
+                    "pattern": "\\.json$",
+                    "description": "Non-skill LLM eval files MUST use co-located `.json` paths (JSON-first migration)."
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     }
   }

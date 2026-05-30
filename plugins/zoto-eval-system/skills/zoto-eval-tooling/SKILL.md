@@ -49,7 +49,7 @@ Stamp (generate) per-primitive eval test files from an analyser payload.
 
 ### `pnpm run eval:cleanup-stale`
 
-Safe workflow before deleting generated eval assets after a **static framework** change: default mode only **plans**; destructive `--apply` is gated. The unified LLM eval harness ships a single backend shape (one TS-everywhere co-located eval per target), so cleanup only sweeps stale static-framework fingerprints / tests and orphaned co-located `<kind>/evals/<name>.test.ts` files (and orphaned generated rows in central `evals.json`).
+Safe workflow before deleting generated eval assets after a **static framework** change: default mode only **plans**; destructive `--apply` is gated. The unified LLM eval harness ships a JSON-first backend shape (one co-located `<kind>/evals/<name>.json` per target), so cleanup only sweeps stale static-framework fingerprints / tests and orphaned co-located `<kind>/evals/<name>.json` files (and orphaned generated rows in central `evals.json`).
 
 | Detail | Value |
 |--------|-------|

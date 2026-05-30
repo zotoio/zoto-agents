@@ -59,11 +59,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
-        "last_updated": "2026-05-17T13:36:46.561Z",
+        "last_updated": "2026-05-29T11:52:41.290Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
-          "analysed_at": "2026-05-17T13:36:46.561Z",
+          "analysed_at": "2026-05-29T11:52:41.290Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers the dual-backend scaffold path with discovery, manifest writes, package merge, validation gates, ignore-driven skips, and guardrails around interactive prompts and env template handling."
         }
@@ -81,11 +81,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
-        "last_updated": "2026-05-17T13:36:46.561Z",
+        "last_updated": "2026-05-29T11:52:41.290Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
-          "analysed_at": "2026-05-17T13:36:46.561Z",
+          "analysed_at": "2026-05-29T11:52:41.290Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers the dual-backend scaffold path with discovery, manifest writes, package merge, validation gates, ignore-driven skips, and guardrails around interactive prompts and env template handling."
         }
@@ -103,11 +103,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
-        "last_updated": "2026-05-17T13:36:46.561Z",
+        "last_updated": "2026-05-29T11:52:41.290Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
-          "analysed_at": "2026-05-17T13:36:46.561Z",
+          "analysed_at": "2026-05-29T11:52:41.290Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers the dual-backend scaffold path with discovery, manifest writes, package merge, validation gates, ignore-driven skips, and guardrails around interactive prompts and env template handling.",
           "fixture_justifications": [
@@ -136,11 +136,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
-        "last_updated": "2026-05-17T13:36:46.561Z",
+        "last_updated": "2026-05-29T11:52:41.290Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
-          "analysed_at": "2026-05-17T13:36:46.561Z",
+          "analysed_at": "2026-05-29T11:52:41.290Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers the dual-backend scaffold path with discovery, manifest writes, package merge, validation gates, ignore-driven skips, and guardrails around interactive prompts and env template handling.",
           "fixture_justifications": [
@@ -169,11 +169,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
-        "last_updated": "2026-05-17T13:36:46.561Z",
+        "last_updated": "2026-05-29T11:52:41.290Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "2ac11a420c0e8a817c86f7d7f00ccf58e1b17c825ca571984dd09e385ae82fed",
-          "analysed_at": "2026-05-17T13:36:46.561Z",
+          "analysed_at": "2026-05-29T11:52:41.290Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Covers the dual-backend scaffold path with discovery, manifest writes, package merge, validation gates, ignore-driven skips, and guardrails around interactive prompts and env template handling.",
           "fixture_justifications": [

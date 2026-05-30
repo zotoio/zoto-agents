@@ -51,7 +51,8 @@ Read whichever of these are relevant to the chosen section. Skip files that don'
 | Configuration | `.zoto/eval-system/config.yml` (full), `templates/schema/config.schema.json` for field reference |
 | Static backend | `config.json` → `static.framework`, host repo's `evalsDir` contents |
 | LLM backend (`@cursor/sdk`) | `config.json` → `llm.*`, `.env.example`, `.env` (presence only — never read secret values), `package.json` devDeps for `@cursor/sdk`, `dotenv` |
-| Interaction branch (unified LLM eval harness) | `manifest.yml` → per-target `eval_files[]` (one co-located `<kind>/evals/<name>.test.ts` per target); presence of `evals/llm/_shared/run-llm-suite.ts` (the unified LLM eval harness exporting `defineLlmEval`) and `evals/llm/_shared/askquestion-bridge.ts`; cached analyser payloads under `.zoto/eval-system/cache/analyser/` for `requiresInteraction` (drives scripted-answer vs single-prompt at runtime); latest `report.yml` per-case `backend:` |
+| Interaction branch (unified LLM eval harness) | `manifest.yml` → per-target `eval_files[]` (one co-located `<kind>/evals/<name>.json` per target); presence of `evals/llm/_shared/vitest-json-loader.ts` and `evals/llm/_shared/run-llm-suite.ts`; cached analyser payloads under `.zoto/eval-system/cache/analyser/` for `requiresInteraction`; latest `report.yml` per-case `backend:` |
+| Advanced TS escape hatch (`runner` cases) and scenarios | README "Eval formats" / "Advanced TS escape hatch" / "Multi-primitive scenarios" sections; `evals/llm/_shared/runner-params.ts` contract; `evals/scenarios/` directory listing; presence of `evals/scenarios/_example-multi-primitive.test.ts` |
 | Updating evals | `manifest.yml` → `discovery_config`, `targets[]`; `manifest.history.yml` (last entry) |
 | Result schema | latest `evals/_runs/<run-id>/report.yml` and per-backend `static.yml` / `llm.yml` if any |
 | Run logs | `evals/_runs/` directory listing; latest `<run-id>/logs/` |
@@ -128,3 +129,10 @@ Anti-patterns (will fail the skill's evals):
 - Do not call `askQuestion` from this skill. Use `needs_user_input` so the command can prompt and resume.
 - Do not read or echo secret values from `.env` — only check whether the file exists.
 - Do not invent project values when a file is absent. Say "no `manifest.yml` yet" and point at the command that would create it.
+
+## Q&A quick reference
+
+| User question | Answer anchor |
+|---|---|
+| How do I write a TS eval? | Use a `runner` case in your co-located JSON eval (see README "Advanced TS escape hatch"), or add a multi-primitive scenario under `evals/scenarios/`. |
+| Where is the `RunnerParams` contract defined? | `evals/llm/_shared/runner-params.ts` (TS source) and `plugins/zoto-eval-system/templates/schema/runner-params.schema.json` (JSON Schema mirror). |

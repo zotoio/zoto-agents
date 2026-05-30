@@ -34,7 +34,9 @@ import { createHash } from "node:crypto";
 
 import type { CaseExpectedFilesystem, CaseFixtures } from "./case.js";
 
-const DEFAULT_REPO_ROOT = resolve(process.cwd());
+import { resolveHostRepoRoot } from "../src/config-loader.js";
+
+const DEFAULT_REPO_ROOT = resolveHostRepoRoot();
 const BASELINE_REL_POSIX = "evals/fixtures/baseline";
 
 /* ----------------------------------------------------------------------- */

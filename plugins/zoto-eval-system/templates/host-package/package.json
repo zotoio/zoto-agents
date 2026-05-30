@@ -1,0 +1,44 @@
+{
+  "name": "@zoto/eval-system-host",
+  "private": true,
+  "type": "module",
+  "description": "Self-contained eval-system runtime (scaffolded under .zoto/eval-system/)",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sqlite3"
+    ]
+  },
+  "scripts": {
+    "eval": "tsx scripts/eval-orchestrate.ts",
+    "eval:full": "tsx scripts/eval-orchestrate.ts --full",
+    "eval:llm": "tsx scripts/eval-orchestrate.ts --llm-only",
+    "eval:gc": "tsx scripts/eval-gc.ts --dry-run",
+    "eval:gc:apply": "tsx scripts/eval-gc.ts --apply",
+    "eval:static": "python3 scripts/test.py",
+    "eval:static:pytest": "pytest evals/ -v --tb=short",
+    "eval:list": "tsx engine/runner.ts --list",
+    "eval:manual": "python3 scripts/test.py --mode manual",
+    "eval:judge": "tsx engine/runner.ts --judge-only",
+    "eval:update": "tsx engine/update.ts",
+    "eval:update:check": "tsx engine/update.ts --check",
+    "eval:compare": "tsx engine/compare.ts",
+    "eval:discover": "tsx scripts/eval-discover.ts",
+    "eval:analyse": "tsx scripts/eval-analyse.ts",
+    "eval:stamp": "tsx scripts/eval-stamp.ts",
+    "eval:baseline-stamp": "tsx scripts/eval-stamp.ts --baseline-only",
+    "eval:cleanup-vendored": "tsx scripts/eval-cleanup-vendored.ts",
+    "eval:ensure-host": "tsx scripts/eval-ensure-host.ts"
+  },
+  "devDependencies": {
+    "@cursor/sdk": "^1.0.12",
+    "ajv": "^8.17.0",
+    "ajv-formats": "^3.0.1",
+    "dotenv": "^17.4.2",
+    "json-source-map": "^0.6.1",
+    "minimatch": "^10.2.5",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "yaml": "^2.6.0"
+  }
+}

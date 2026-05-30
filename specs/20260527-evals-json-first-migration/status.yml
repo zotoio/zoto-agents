@@ -1,0 +1,395 @@
+schema_version: 1
+spec_id: 20260527-evals-json-first-migration
+phase: 0
+aggregate_state: completed
+started_at: 2026-05-27T14:34:42.199Z
+updated_at: 2026-05-29T12:17:38.890Z
+aggregate_progress:
+  total: 10
+  completed: 10
+  in_progress: 0
+  blocked: 0
+  failed: 0
+subtasks:
+  - subtask_id: "01"
+    state: completed
+    status_path: specs/20260527-evals-json-first-migration/status/subtask-01-evals-json-first-migration-schema-contract-20260527.status.yml
+    last_heartbeat: 2026-05-29T19:09:00.000Z
+  - subtask_id: "02"
+    state: completed
+    status_path: specs/20260527-evals-json-first-migration/status/subtask-02-evals-json-first-migration-vitest-json-loader-20260527.status.yml
+    last_heartbeat: 2026-05-29T19:10:00.000Z
+  - subtask_id: "03"
+    state: completed
+    status_path: specs/20260527-evals-json-first-migration/status/subtask-03-evals-json-first-migration-harness-runner-dispatch-20260527.status.yml
+    last_heartbeat: 2026-05-29T19:12:00.000Z
+  - subtask_id: "04"
+    state: completed
+    status_path: specs/20260527-evals-json-first-migration/status/subtask-04-evals-json-first-migration-engine-runner-update-20260527.status.yml
+    last_heartbeat: 2026-05-29T09:11:29.182Z
+  - subtask_id: "05"
+    state: completed
+    status_path: specs/20260527-evals-json-first-migration/status/subtask-05-evals-json-first-migration-manifest-schema-20260527.status.yml
+    last_heartbeat: 2026-05-29T19:14:00.000Z
+  - subtask_id: "06"
+    state: completed
+    status_path: specs/20260527-evals-json-first-migration/status/subtask-06-evals-json-first-migration-vitest-config-orchestrator-20260527.status.yml
+    last_heartbeat: 2026-05-29T19:18:00.000Z
+  - subtask_id: "07"
+    state: completed
+    status_path: specs/20260527-evals-json-first-migration/status/subtask-07-evals-json-first-migration-migration-script-execute-20260527.status.yml
+    last_heartbeat: 2026-05-29T19:22:00.000Z
+  - subtask_id: "08"
+    state: completed
+    status_path: specs/20260527-evals-json-first-migration/status/subtask-08-evals-json-first-migration-stamper-template-cleanup-20260527.status.yml
+    last_heartbeat: 2026-05-29T09:21:13.903Z
+  - subtask_id: "09"
+    state: completed
+    status_path: specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+    last_heartbeat: 2026-05-29T12:00:00Z
+  - subtask_id: "10"
+    state: completed
+    status_path: specs/20260527-evals-json-first-migration/status/subtask-10-evals-json-first-migration-validation-ci-20260527.status.yml
+    last_heartbeat: 2026-05-29T12:10:18.540Z
+blockers: []
+definition_of_done_status:
+  - id: DOD01
+    text: "All 10 subtasks completed with paired `.status.md` + `.status.yml` marked `state: completed`"
+    done: true
+  - id: DOD02
+    text: No co-located `*.test.ts` LLM eval files remain anywhere under `plugins/*/{commands,agents,hooks}/evals/`, `.cursor/{commands,agents,hooks}/evals/`
+    done: true
+  - id: DOD03
+    text: "Every non-skill primitive has a co-located `<name>.json` (or `hooks.json` for hooks) with `_meta.generated: true` where appropriate"
+    done: true
+  - id: DOD04
+    text: Migration audit shows 0 skipped files (all discovered `.test.ts` files successfully migrated)
+    done: true
+  - id: DOD05
+    text: "`pnpm eval` and `pnpm eval:full` succeed (or skip gracefully without `CURSOR_API_KEY`) using only the unified `evals/vitest.config.ts`"
+    done: true
+  - id: DOD06
+    text: "`pnpm eval:update:check` reports zero critical drift"
+    done: true
+  - id: DOD07
+    text: "`pnpm eval:list` enumerates every migrated `.json` file"
+    done: true
+  - id: DOD08
+    text: "`scripts/validate-template.mjs`, `scripts/validate-skills.mjs`, and `pnpm test` all pass"
+    done: true
+  - id: DOD09
+    text: Eval-system README has an "Advanced TS escape hatch" section with a working `runner` example
+    done: true
+  - id: DOD10
+    text: "`evals/scenarios/_example-multi-primitive.test.ts` exists in the host repo template AND is copied by `/z-eval-create` on init"
+    done: true
+  - id: DOD11
+    text: CHANGELOG.md records the breaking change
+    done: true
+  - id: DOD12
+    text: "`manifest.schema.json` rejects non-`.json` entries for non-skill primitives (smoke-tested with an invalid fixture)"
+    done: true
+config_reloaded: []
+events:
+  - at: 2026-05-27T16:45:10.829Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest c1b9c571…
+  - at: 2026-05-27T16:45:55.613Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest a708a7db…
+  - at: 2026-05-27T16:50:18.055Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 7efa1d31…
+  - at: 2026-05-27T16:50:21.136Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest d84095ed…
+  - at: 2026-05-27T16:51:09.053Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 25b1b655…
+  - at: 2026-05-27T16:51:41.352Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 4a66f28a…
+  - at: 2026-05-27T16:53:07.104Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 309b5919…
+  - at: 2026-05-27T16:54:12.922Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 781a3cac…
+  - at: 2026-05-27T17:07:01.697Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+  - at: 2026-05-27T17:07:01.697Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 348641d4…
+  - at: 2026-05-27T17:07:03.371Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+  - at: 2026-05-27T17:07:03.371Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest f3e012bb…
+  - at: 2026-05-27T17:07:14.026Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+  - at: 2026-05-27T17:07:14.026Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 3f6d34a0…
+  - at: 2026-05-27T17:07:31.005Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest d9d7beb1…
+  - at: 2026-05-27T17:07:32.569Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 92bb2040…
+  - at: 2026-05-27T17:10:01.221Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 288cb1b5…
+  - at: 2026-05-27T17:10:21.506Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest b3f6ba3a…
+  - at: 2026-05-27T17:16:30.403Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+  - at: 2026-05-27T17:16:30.403Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 2e3d5552…
+  - at: 2026-05-27T17:16:31.969Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+  - at: 2026-05-27T17:16:31.969Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 8f8e1961…
+  - at: 2026-05-27T17:17:29.280Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+  - at: 2026-05-27T17:17:29.280Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 87160240…
+  - at: 2026-05-27T17:17:30.902Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+  - at: 2026-05-27T17:17:30.902Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest fc37a60e…
+  - at: 2026-05-27T17:18:08.234Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 5774f7fe…
+  - at: 2026-05-27T17:18:09.781Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest a8315203…
+  - at: 2026-05-27T17:18:28.293Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 1ec75512…
+  - at: 2026-05-27T17:18:29.843Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 1674d85c…
+  - at: 2026-05-27T17:20:02.787Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest eda5748d…
+  - at: 2026-05-27T17:20:04.318Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 9bb29b41…
+  - at: 2026-05-27T17:20:15.078Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 3981a54d…
+  - at: 2026-05-27T17:20:16.660Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest fdc97c0d…
+  - at: 2026-05-27T17:20:24.408Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 77f7199b…
+  - at: 2026-05-27T17:20:41.299Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 1aaff7f7…
+  - at: 2026-05-27T17:20:53.712Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 25b5f35b…
+  - at: 2026-05-29T09:08:37.167Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-01-evals-json-first-migration-schema-contract-20260527.status.yml
+  - at: 2026-05-29T09:08:37.167Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 1130d722…
+  - at: 2026-05-29T09:08:38.748Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-01-evals-json-first-migration-schema-contract-20260527.status.yml
+  - at: 2026-05-29T09:08:38.748Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 1a83f081…
+  - at: 2026-05-29T09:08:51.011Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 3ec69390…
+  - at: 2026-05-29T09:08:52.554Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest ee1c49dd…
+  - at: 2026-05-29T09:09:51.251Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 85d6bf0c…
+  - at: 2026-05-29T09:09:52.821Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest d68bbe02…
+  - at: 2026-05-29T09:10:25.147Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 88b74160…
+  - at: 2026-05-29T09:11:29.767Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 0fd43496…
+  - at: 2026-05-29T09:11:31.328Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 0eb6e2ac…
+  - at: 2026-05-29T09:12:23.532Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest f8b330e8…
+  - at: 2026-05-29T09:12:25.072Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest c77af030…
+  - at: 2026-05-29T09:13:31.194Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 75501f10…
+  - at: 2026-05-29T09:13:32.761Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 4f640e3f…
+  - at: 2026-05-29T09:14:45.107Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest aa9db830…
+  - at: 2026-05-29T09:14:51.627Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 04b53853…
+  - at: 2026-05-29T09:16:04.121Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 98e6d3eb…
+  - at: 2026-05-29T09:16:36.617Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 5f086cdd…
+  - at: 2026-05-29T09:16:42.825Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest e1179b5e…
+  - at: 2026-05-29T09:17:24.901Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 9623c07b…
+  - at: 2026-05-29T09:17:26.463Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 2e8e8008…
+  - at: 2026-05-29T09:19:49.639Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest ffc5b90d…
+  - at: 2026-05-29T09:21:12.663Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest f949d7b7…
+  - at: 2026-05-29T09:21:14.208Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 244c76ab…
+  - at: 2026-05-29T09:21:15.756Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 551c5e3b…
+  - at: 2026-05-29T09:21:20.394Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 8e53b8de…
+  - at: 2026-05-29T09:21:42.407Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-07-evals-json-first-migration-migration-script-execute-20260527.status.yml
+  - at: 2026-05-29T09:21:42.407Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest a267b24f…
+  - at: 2026-05-29T09:21:43.981Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-07-evals-json-first-migration-migration-script-execute-20260527.status.yml
+  - at: 2026-05-29T09:21:43.981Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 76f882fd…
+  - at: 2026-05-29T09:21:50.181Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 6e15781a…
+  - at: 2026-05-29T09:21:51.750Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 6681d84a…
+  - at: 2026-05-29T09:23:19.474Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 3e71bf2a…
+  - at: 2026-05-29T09:25:56.745Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest bf0565ab…
+  - at: 2026-05-29T09:37:11.630Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 13a395f3…
+  - at: 2026-05-29T10:00:27.106Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 73a20f38…
+  - at: 2026-05-29T10:09:43.394Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 0d0e6faa…
+  - at: 2026-05-29T10:09:56.654Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 26a93c52…
+  - at: 2026-05-29T10:17:41.317Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 037bad03…
+  - at: 2026-05-29T10:17:46.194Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 592bd712…
+  - at: 2026-05-29T10:17:55.372Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+  - at: 2026-05-29T10:17:55.372Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 0d705442…
+  - at: 2026-05-29T10:17:55.948Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+  - at: 2026-05-29T10:17:55.948Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest bc24d3b1…
+  - at: 2026-05-29T10:18:16.485Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260527-evals-json-first-migration/status/subtask-09-evals-json-first-migration-scenarios-docs-20260527.status.yml
+  - at: 2026-05-29T10:18:16.485Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest b9f797d1…
+  - at: 2026-05-29T10:18:57.668Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest f895e496…
+  - at: 2026-05-29T10:18:59.276Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest f3e4e6f9…
+  - at: 2026-05-29T10:19:18.524Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 603804fb…
+  - at: 2026-05-29T10:19:41.349Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest ea9e8e2c…
+  - at: 2026-05-29T10:20:07.920Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 2661c9d8…
+  - at: 2026-05-29T10:20:14.032Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 122108bc…
+  - at: 2026-05-29T10:20:17.719Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 7b4c68ca…
+  - at: 2026-05-29T10:20:42.152Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest db6c586a…
+  - at: 2026-05-29T10:20:56.137Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 7b4c68ca…
+  - at: 2026-05-29T10:21:18.974Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest db6c586a…
+  - at: 2026-05-29T10:21:40.846Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest d8f941f9…
+  - at: 2026-05-29T10:21:42.425Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 3a7c2d93…
+  - at: 2026-05-29T10:22:17.652Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 686ba462…
+  - at: 2026-05-29T10:22:38.865Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 04592440…
+  - at: 2026-05-29T10:22:55.982Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest 1ec6963a…
+  - at: 2026-05-29T12:17:38.890Z
+    kind: rebuild
+    message: Aggregated 10 subtask source(s); digest af236f6c…
+extra:
+  aggregator_digest: af236f6c0628aea459a09a026dbc04175f6ee8b3e3780482e5185177214e87e8

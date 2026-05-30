@@ -263,6 +263,86 @@ describe("Schemas & config contract", () => {
     const raw = readText(join(PLUGIN_DIR, "templates", "skill-evals", "evals.json.tmpl"));
     expect(/"_meta"\s*:\s*\{[\s\S]*?"generated"\s*:\s*true/.test(raw)).toBe(true);
   });
+
+  function minimalManifest(targets: Record<string, unknown>[]): Record<string, unknown> {
+    return {
+      schema_version: 1,
+      created_at: "2026-05-27T00:00:00Z",
+      updated_at: "2026-05-27T00:00:00Z",
+      git_ref: "deadbeef",
+      generated_by: "zoto-create-evals",
+      discovery_config: {
+        discoveryTargets: ["command", "skill"],
+        skillsRoots: ["skills"],
+        evalsDir: "evals",
+      },
+      targets,
+    };
+  }
+
+  it("manifest.schema accepts .json eval_files for non-skill targets", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "manifest.schema.json"));
+    const v = ajv.compile(schema);
+    const doc = minimalManifest([
+      {
+        id: "command:z-eval-help",
+        kind: "command",
+        path: "plugins/zoto-eval-system/commands/z-eval-help.md",
+        content_hash: "a".repeat(64),
+        eval_files: ["plugins/zoto-eval-system/commands/evals/z-eval-help.json"],
+      },
+    ]);
+    expect(v(doc), JSON.stringify(v.errors)).toBe(true);
+  });
+
+  it("manifest.schema rejects .test.ts eval_files for non-skill targets", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "manifest.schema.json"));
+    const v = ajv.compile(schema);
+    const doc = minimalManifest([
+      {
+        id: "command:z-eval-help",
+        kind: "command",
+        path: "plugins/zoto-eval-system/commands/z-eval-help.md",
+        content_hash: "a".repeat(64),
+        eval_files: ["plugins/zoto-eval-system/commands/evals/z-eval-help.test.ts"],
+      },
+    ]);
+    expect(v(doc)).toBe(false);
+  });
+
+  it("manifest.schema rejects non-evals.json skill eval_files entries", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "manifest.schema.json"));
+    const v = ajv.compile(schema);
+    const doc = minimalManifest([
+      {
+        id: "skill:zoto-create-evals",
+        kind: "skill",
+        path: "plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md",
+        content_hash: "b".repeat(64),
+        eval_files: ["plugins/zoto-eval-system/skills/zoto-create-evals/evals/custom.json"],
+      },
+    ]);
+    expect(v(doc)).toBe(false);
+  });
+
+  it("manifest.schema accepts evals/evals.json for skill targets", () => {
+    const ajv = newAjv();
+    const schema = loadJson(join(schemaDir, "manifest.schema.json"));
+    const v = ajv.compile(schema);
+    const doc = minimalManifest([
+      {
+        id: "skill:zoto-create-evals",
+        kind: "skill",
+        path: "plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md",
+        content_hash: "b".repeat(64),
+        eval_files: ["plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json"],
+      },
+    ]);
+    expect(v(doc), JSON.stringify(v.errors)).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1022,7 +1102,121 @@ describe("Fixture repo — update semantics", () => {
 });
 
 // ---------------------------------------------------------------------------
-// 8. Package-json merger
+// 8. JSON-first migration invariants (spec 20260527)
+// ---------------------------------------------------------------------------
+const SCENARIO_REL_PATH = "evals/scenarios/_example-multi-primitive.test.ts";
+
+describe("JSON-first migration invariants", () => {
+  const REPO_ROOT = resolve(PLUGIN_DIR, "../..");
+  const COLOCATED_KINDS = ["commands", "agents", "hooks"] as const;
+  const COLOCATED_EXCLUDE = ["/scenarios/", "/_shared/", "/node_modules/"];
+
+  function findColocatedTsEvals(): string[] {
+    const hits: string[] = [];
+    const scanKindDir = (kindDir: string) => {
+      const evalsDir = join(kindDir, "evals");
+      if (!existsSync(evalsDir)) return;
+      for (const name of readdirSync(evalsDir)) {
+        if (!name.endsWith(".test.ts")) continue;
+        const full = join(evalsDir, name);
+        const rel = relative(REPO_ROOT, full).replace(/\\/g, "/");
+        if (COLOCATED_EXCLUDE.some((frag) => rel.includes(frag))) continue;
+        hits.push(rel);
+      }
+    };
+    const pluginsRoot = join(REPO_ROOT, "plugins");
+    if (existsSync(pluginsRoot)) {
+      for (const plugin of readdirSync(pluginsRoot)) {
+        const pluginDir = join(pluginsRoot, plugin);
+        if (!isDir(pluginDir)) continue;
+        for (const kind of COLOCATED_KINDS) scanKindDir(join(pluginDir, kind));
+      }
+    }
+    const cursorRoot = join(REPO_ROOT, ".cursor");
+    if (existsSync(cursorRoot)) {
+      for (const kind of COLOCATED_KINDS) scanKindDir(join(cursorRoot, kind));
+    }
+    return hits.sort();
+  }
+
+  it("manifest non-skill eval_files entries end in .json", () => {
+    const manifestPath = join(REPO_ROOT, ".zoto", "eval-system", "manifest.yml");
+    expect(isFile(manifestPath), "manifest.yml missing").toBe(true);
+    const doc = YAML.parse(readText(manifestPath)) as {
+      targets?: Array<{ id?: string; kind?: string; eval_files?: string[] }>;
+    };
+    for (const t of doc.targets ?? []) {
+      if (t.kind === "skill") continue;
+      for (const ef of t.eval_files ?? []) {
+        expect(
+          ef.endsWith(".json"),
+          `${t.id} eval_files must be .json after migration: ${ef}`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("no co-located TS LLM eval files under commands/agents/hooks evals/", () => {
+    expect(findColocatedTsEvals()).toEqual([]);
+  });
+
+  it("unified vitest config wires zoto-eval-system:json-loader", () => {
+    const cfgPath = join(REPO_ROOT, "evals", "vitest.config.ts");
+    expect(isFile(cfgPath)).toBe(true);
+    const raw = readText(cfgPath);
+    expect(raw).toContain("evalJsonLoader");
+    expect(raw).toContain("**/evals/*.json");
+    const loaderPath = join(REPO_ROOT, "evals", "llm", "_shared", "vitest-json-loader.ts");
+    expect(isFile(loaderPath)).toBe(true);
+    const loaderSrc = readText(loaderPath);
+    expect(loaderSrc).toContain('PLUGIN_NAME = "zoto-eval-system:json-loader"');
+  });
+
+  it("per-primitive-test.ts.tmpl removed from llm/code-cursor-sdk", () => {
+    const obsolete = join(
+      PLUGIN_DIR,
+      "templates",
+      "llm",
+      "code-cursor-sdk",
+      "per-primitive-test.ts.tmpl",
+    );
+    expect(existsSync(obsolete)).toBe(false);
+  });
+
+  it(
+    "eval-ensure-host stamps skipped scenario example idempotently",
+    () => {
+    const t = mkdtempSync(join(tmpdir(), "zoto-eval-ensure-host-"));
+    const script = join(REPO_ROOT, "scripts/eval-ensure-host.ts");
+    try {
+      const first = execSync(`pnpm exec tsx ${script} --repo-root ${t}`, {
+        encoding: "utf-8",
+        cwd: REPO_ROOT,
+        timeout: 60_000,
+      });
+      expect(first).toContain("created");
+      expect(first).toContain(SCENARIO_REL_PATH);
+      const scenarioPath = join(t, "evals", "scenarios", "_example-multi-primitive.test.ts");
+      expect(isFile(scenarioPath)).toBe(true);
+      const body = readText(scenarioPath);
+      expect(body.startsWith("// _meta.generated: false")).toBe(true);
+      expect(body).toContain('describe.skip("Example multi-primitive scenario"');
+      const second = execSync(`pnpm exec tsx ${script} --repo-root ${t}`, {
+        encoding: "utf-8",
+        cwd: REPO_ROOT,
+        timeout: 60_000,
+      });
+      expect(second).toContain("skipped-existing");
+    } finally {
+      rmSync(t, { recursive: true, force: true });
+    }
+  },
+    90_000,
+  );
+});
+
+// ---------------------------------------------------------------------------
+// 9. Package-json merger
 // ---------------------------------------------------------------------------
 describe("package.json merger", () => {
   it("merges scripts and devDependencies idempotently", () => {

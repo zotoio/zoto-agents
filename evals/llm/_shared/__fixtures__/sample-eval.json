@@ -1,0 +1,31 @@
+{
+  "target_id": "command:sample",
+  "model_id": "composer-2.5",
+  "judge_model": "opus-4.6",
+  "case_timeout_ms": 60000,
+  "cases": [
+    {
+      "id": "declarative-greeting",
+      "prompt": "Reply with the literal text 'hello sample'.",
+      "assertions": [
+        "The response contains the lower-case phrase 'hello sample'."
+      ],
+      "_meta": {
+        "generated": true,
+        "primitive_analysis": {
+          "requiresInteraction": false
+        }
+      }
+    },
+    {
+      "id": "runner-noop",
+      "runner": "./sample-runner.test.ts",
+      "parameters": {
+        "expected": "noop"
+      },
+      "_meta": {
+        "generated": true
+      }
+    }
+  ]
+}

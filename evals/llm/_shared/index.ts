@@ -4,4 +4,5 @@
  */
 export * from "./askquestion-bridge.js";
 export * from "./llm-case.js";
+export * from "./runner-params.js";
 export * from "./sdk-bridge.js";

@@ -29,7 +29,7 @@ import { createHash } from "node:crypto";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
-import { loadEvalConfig } from "../plugins/zoto-eval-system/src/config-loader.js";
+import { loadEvalConfig, loadEvalPaths, analyserAgentPath, analyserSchemaPath } from "../plugins/zoto-eval-system/src/config-loader.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
@@ -1251,12 +1251,6 @@ const DEFAULT_ANALYSER_CFG: AnalyserConfig = {
   maxCallsPerInvocation: 50,
 };
 
-const ANALYSER_CACHE_REL = ".zoto/eval-system/cache/analyser";
-const SUBAGENT_PROMPT_REL =
-  "plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md";
-const PAYLOAD_SCHEMA_REL =
-  "plugins/zoto-eval-system/templates/schema/analyser-payload.schema.json";
-
 /**
  * Read analyser-relevant fields from `.zoto/eval-system/config.yml`. Falls
  * back to documented defaults when the file is missing or malformed.
@@ -1344,7 +1338,7 @@ async function defaultSdkFactory(): Promise<AnalyserSdk> {
  * missing (the parity check for the file is owned by subtask 13's docs gate).
  */
 function loadSubagentPrompt(repoRoot: string = REPO_ROOT): string {
-  const p = join(repoRoot, SUBAGENT_PROMPT_REL);
+  const p = analyserAgentPath(loadEvalPaths(repoRoot));
   if (existsSync(p)) {
     const raw = readFileSync(p, "utf-8");
     return raw.replace(/^---[\s\S]*?\n---\n/, "").trim();
@@ -1419,7 +1413,7 @@ async function getPayloadValidator(
     errors: unknown[] | null;
   };
   const schema = JSON.parse(
-    readFileSync(join(repoRoot, PAYLOAD_SCHEMA_REL), "utf-8"),
+    readFileSync(analyserSchemaPath(loadEvalPaths(repoRoot)), "utf-8"),
   );
   const compiled = ajv.compile(schema);
   _payloadValidator = (data: unknown) => {
@@ -1820,7 +1814,7 @@ export async function runAnalyser(
     };
   }
 
-  const cacheDir = opts.cacheDir ?? join(repoRoot, ANALYSER_CACHE_REL);
+  const cacheDir = opts.cacheDir ?? loadEvalPaths(repoRoot).cacheDirAbs;
   if (!opts.invalidate) {
     const cached = readDiskCache(cacheDir, sourceHash);
     if (cached) {

@@ -60,7 +60,7 @@ describe("loadEvalConfig", () => {
     expect(res.config.runs.retention).toBe(30);
     expect(res.config.update.preserveUserAuthoredCases).toBe(true);
     expect(res.config.update.writeMetaMarker).toBe(true);
-    expect(res.config.update.manifestPath).toBe(".zoto/eval-system/manifest.yml");
+    expect(res.config.update.manifestPath).toBe("manifest.yml");
   });
 
   it("treats the all-comments init template as empty (defaults applied)", () => {

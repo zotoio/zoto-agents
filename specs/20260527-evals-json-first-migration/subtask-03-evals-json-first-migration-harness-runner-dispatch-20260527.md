@@ -14,8 +14,8 @@ Extend the shared LLM harness `defineLlmEval()` in `evals/llm/_shared/run-llm-su
 Runner cases keep using the existing `it()` wrapper, sandbox lifecycle, and `reportCase` reporter integration — only the case body changes. The runner TS file owns the assertion logic.
 
 ## Deliverables Checklist
-- [ ] Update `evals/llm/_shared/run-llm-suite.ts` to detect runner cases inside the loop that emits `it()` blocks. Detection rule: `typeof caseDef.runner === "string" && caseDef.runner.length > 0`.
-- [ ] For runner cases, the synthesised `it()` body:
+- [x] Update `evals/llm/_shared/run-llm-suite.ts` to detect runner cases inside the loop that emits `it()` blocks. Detection rule: `typeof caseDef.runner === "string" && caseDef.runner.length > 0`.
+- [x] For runner cases, the synthesised `it()` body:
     1. Builds the `RunnerParams` payload (from `runner-params.ts` produced in subtask 01): `targetId`, `caseId`, `parameters = caseDef.parameters ?? {}`, and a populated `RunnerContext` (sdk bridge instance, sandbox helper, model id, judge model, reporter hooks).
     2. Resolves the `runner` string relative to the **JSON file's directory**. The JSON file path must be passed through from the loader (subtask 02) — extend the `defineLlmEval` options to accept an optional `__sourcePath: string` so the harness knows the JSON file's location. The loader sets this when it synthesises the module.
     3. Dynamically imports the runner file: `const mod = await import(new URL(runnerPath, pathToFileURL(sourcePath)).href);`
@@ -23,25 +23,25 @@ Runner cases keep using the existing `it()` wrapper, sandbox lifecycle, and `rep
     5. Awaits `const result: RunnerResult = await mod.default(params);`.
     6. Calls `reportCase` with `result.passed`, `result.reason`, and any diagnostics.
     7. Uses `expect(result.passed, result.reason).toBe(true)` to surface the pass/fail to Vitest.
-- [ ] Add type guards / runtime assertion helpers in `evals/llm/_shared/run-llm-suite.ts`:
+- [x] Add type guards / runtime assertion helpers in `evals/llm/_shared/run-llm-suite.ts`:
     - `isRunnerCase(c: LlmCaseDefinition): boolean`
     - `assertNoHybridCase(c: LlmCaseDefinition): void` — throws if a case has both `runner` AND any declarative field (mirrors the engine `validateEnriched` check, but operating at suite-load time).
-- [ ] Update the suite-load validator (`validateCasesAtSuiteLoad` or equivalent) to run `assertNoHybridCase` per case and to confirm the `__sourcePath` option is present whenever any case is a runner case (otherwise we cannot resolve the relative path safely).
-- [ ] Document the `__sourcePath` option in the `defineLlmEval` JSDoc. Mark it as **set by the JSON loader; tests authored by hand may set it to `import.meta.url`**.
-- [ ] Add focused harness tests under `evals/llm/_shared/run-llm-suite.test.ts`:
+- [x] Update the suite-load validator (`validateCasesAtSuiteLoad` or equivalent) to run `assertNoHybridCase` per case and to confirm the `__sourcePath` option is present whenever any case is a runner case (otherwise we cannot resolve the relative path safely).
+- [x] Document the `__sourcePath` option in the `defineLlmEval` JSDoc. Mark it as **set by the JSON loader; tests authored by hand may set it to `import.meta.url`**.
+- [x] Add focused harness tests under `evals/llm/_shared/run-llm-suite.test.ts`:
     - Runner case dispatch: a fixture JSON case with `runner: "./fixture-runner.test.ts"` invokes the default export and the default export's return value is reflected in the test outcome.
     - Hybrid rejection at suite load time.
     - Missing default export error has a clear message.
     - `__sourcePath` omission with a runner case raises a clear error.
-- [ ] Provide a minimal fixture runner `evals/llm/_shared/__fixtures__/sample-runner.test.ts` that exports a default function returning `{ passed: true, reason: "ok" }`. This is consumed by the harness tests only.
+- [x] Provide a minimal fixture runner `evals/llm/_shared/__fixtures__/sample-runner.test.ts` that exports a default function returning `{ passed: true, reason: "ok" }`. This is consumed by the harness tests only.
 
 ## Definition of Done
-- [ ] `defineLlmEval` correctly partitions declarative vs runner cases.
-- [ ] Runner cases produce one `it()` per case, dispatch to the referenced TS file, and bubble pass/fail through the standard reporter.
-- [ ] Suite-load validation rejects hybrid cases and missing `__sourcePath` cases.
-- [ ] Unit tests for the new branches all pass.
-- [ ] No regressions in existing declarative-case behaviour (existing harness tests still pass).
-- [ ] No linter errors in modified files.
+- [x] `defineLlmEval` correctly partitions declarative vs runner cases.
+- [x] Runner cases produce one `it()` per case, dispatch to the referenced TS file, and bubble pass/fail through the standard reporter.
+- [x] Suite-load validation rejects hybrid cases and missing `__sourcePath` cases.
+- [x] Unit tests for the new branches all pass.
+- [x] No regressions in existing declarative-case behaviour (existing harness tests still pass).
+- [x] No linter errors in modified files.
 
 ## Implementation Notes
 

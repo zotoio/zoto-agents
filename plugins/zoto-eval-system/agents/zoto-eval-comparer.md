@@ -1,6 +1,6 @@
 ---
 name: zoto-eval-comparer
-model: claude-opus-4-6
+model: claude-opus-4-8[]
 description: Cross-run analysis that emits a flat dataset and a /canvas hand-off instruction. The host agent is expected to invoke Cursor's built-in /canvas tool to render the comparison. Skill never renders charts itself. Drilldown opens per-case log files. Does not call askQuestion — when fragments (e.g. `20260503`) match multiple `{evalsDir}/_runs/<ts>/` folders and the prompt did not pin one path per argument, return schema-valid **`needs_user_input`** with each candidate's full **`{evalsDir}/_runs/<ts>/`** path in **`options[].label`**; **`/z-eval-compare`** surfaces that without **`askQuestion`**.
 ---
 

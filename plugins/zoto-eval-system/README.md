@@ -15,7 +15,7 @@ Use this plugin when you want to:
 - Gate CI on drift between code and evals (`pnpm run eval:update --check`).
 - Compare runs across models, dates, or PRs using merged **`report.yml`** data and Cursor's built-in `/canvas` tool.
 
-**Unified LLM backend**: A single LLM harness — `defineLlmEval` from [`evals/llm/_shared/run-llm-suite.ts`](../../evals/llm/_shared/run-llm-suite.ts) — drives every non-skill eval. Each command, agent, and hook stamps a co-located `<kind>/evals/<name>.test.ts` test file adjacent to its source. Skills are exempt and keep `skills/<name>/evals/evals.json` per the Cursor Agent Skills spec. See [Co-located eval layout](#co-located-eval-layout) and [Adding an eval as a plugin author](#adding-an-eval-as-a-plugin-author).
+**Unified LLM backend**: A single LLM harness — `defineLlmEval` from [`evals/llm/_shared/run-llm-suite.ts`](../../evals/llm/_shared/run-llm-suite.ts) — drives every non-skill eval. Each command, agent, and hook stamps a co-located `<kind>/evals/<name>.json` file adjacent to its source; Vitest discovers it via the JSON loader plugin in [`evals/vitest.config.ts`](../../evals/vitest.config.ts). Skills are exempt and keep `skills/<name>/evals/evals.json` per the Cursor Agent Skills spec. See [Co-located eval layout](#co-located-eval-layout), [Eval formats](#eval-formats), and [Adding an eval as a plugin author](#adding-an-eval-as-a-plugin-author).
 
 **User confirmation at every step**: When the updater detects drift or the configurer proposes a change, the user sees and approves each modification before it is written. Under the hood, slash commands own the interactive prompts and pass answers to subagents via a structured `needs_user_input` / resume contract (see `rules/zoto-eval-system.mdc` for the schema). This is an implementation detail of how Cursor subagents handle user input, not a standalone feature — the important thing is that **no generated eval is rewritten without explicit user consent**.
 
@@ -27,7 +27,7 @@ Breaking changes operators should expect:
 
 1. Config fields added (with safe defaults).
 2. Output filename rename (`results.yml` → `llm.yml`, plus new `static.yml` and `report.yml`).
-3. The earlier per-target backend selector under `llm.*` (and the matching framework knob) has been removed from `config.yml`. A single unified LLM backend stamps every non-skill primitive as a co-located `<kind>/evals/<name>.test.ts` file; skills retain `skills/<name>/evals/evals.json` (Cursor Agent Skills spec). Repos created against the older layout migrate to the co-located paths via `pnpm run eval:update --apply`. See [`CHANGELOG.md`](CHANGELOG.md) for the BREAKING entry.
+3. The earlier per-target backend selector under `llm.*` (and the matching framework knob) has been removed from `config.yml`. A single unified LLM backend stamps every non-skill primitive as a co-located `<kind>/evals/<name>.json` file; skills retain `skills/<name>/evals/evals.json` (Cursor Agent Skills spec). Repos created against the older `.test.ts` layout migrate via `scripts/eval-migrate-ts-to-json.ts` (idempotent). See [`CHANGELOG.md`](CHANGELOG.md) for the BREAKING entry and [Migration notes](#migration-notes) below.
 4. Generated cases now embed `_meta.primitive_analysis`.
 5. User-case preservation is hard-coded — no opt-out.
 
@@ -126,15 +126,15 @@ Run `/z-eval-configure` so the command can `askQuestion` through every field, em
 
 ### Create
 
-Run `/z-eval-create` after configuration. It discovers targets, runs the LLM analyser per approved central primitive, and stamps the unified backends: the **static** suite (pytest/vitest/jest per `static.framework`) plus a co-located `<kind>/evals/<name>.test.ts` per non-skill primitive (skills retain their `evals/evals.json`). The manifest is recorded at `.zoto/eval-system/manifest.yml`. Authoritative workflow: [`skills/zoto-create-evals/SKILL.md`](skills/zoto-create-evals/SKILL.md).
+Run `/z-eval-create` after configuration. It discovers targets, runs the LLM analyser per approved central primitive, and stamps the unified backends: the **static** suite (pytest/vitest/jest per `static.framework`) plus a co-located `<kind>/evals/<name>.json` per non-skill primitive (skills retain their `evals/evals.json`). The manifest is recorded at `.zoto/eval-system/manifest.yml`. Authoritative workflow: [`skills/zoto-create-evals/SKILL.md`](skills/zoto-create-evals/SKILL.md).
 
 ### Update
 
-Run `/z-eval-update` (dry-run or `--apply`) to diff live targets against generated eval cases, re-invoke the analyser on drift, and stamp regenerated cases into the co-located `<kind>/evals/<name>.test.ts` file while preserving user-authored cases (`_meta.generated !== true`). Authoritative workflow: [`skills/zoto-update-evals/SKILL.md`](skills/zoto-update-evals/SKILL.md).
+Run `/z-eval-update` (dry-run or `--apply`) to diff live targets against generated eval cases, re-invoke the analyser on drift, and stamp regenerated cases into the co-located `<kind>/evals/<name>.json` file while preserving user-authored cases (`_meta.generated !== true`). Authoritative workflow: [`skills/zoto-update-evals/SKILL.md`](skills/zoto-update-evals/SKILL.md).
 
 ### Execute
 
-Run `/z-eval-execute` (optionally `--full` for LLM cases). The host `package.json` scripts invoke the orchestrator: the static backend runs first, then the unified LLM backend (vitest discovers every `<kind>/evals/<name>.test.ts`), producing **`static.yml`**, **`llm.yml`**, and **`report.yml`**, after which `eval:update --check` appends a warn-only drift line. Authoritative workflow: [`skills/zoto-execute-evals/SKILL.md`](skills/zoto-execute-evals/SKILL.md).
+Run `/z-eval-execute` (optionally `--full` for LLM cases). The host `package.json` scripts invoke the orchestrator: the static backend runs first, then the unified LLM backend (Vitest discovers every `<kind>/evals/*.json` via the JSON loader plugin and any `evals/scenarios/*.test.ts` scenarios), producing **`static.yml`**, **`llm.yml`**, and **`report.yml`**, after which `eval:update --check` appends a warn-only drift line. Authoritative workflow: [`skills/zoto-execute-evals/SKILL.md`](skills/zoto-execute-evals/SKILL.md).
 
 ### Judge
 
@@ -149,7 +149,7 @@ Run `/z-eval-compare` with two or more run ids. Comparison is driven by each run
 When `/zoto-create-plugin` scaffolds a new marketplace plugin, Step **6e — Classify and stamp evals** in [`.cursor/skills/zoto-create-plugin/SKILL.md`](../../.cursor/skills/zoto-create-plugin/SKILL.md) runs per eval-eligible component (agents, skills, commands, hooks):
 
 1. **Analyse** — `pnpm run eval:analyse --target <component-source-path>`; the analyser emits `requiresInteraction` into `_meta.primitive_analysis`.
-2. **Stamp** — every non-skill primitive gets a co-located `<kind>/evals/<name>.test.ts` file built on `defineLlmEval`. Skills get `skills/<name>/evals/evals.json` (Cursor Agent Skills spec). The same `requiresInteraction` flag controls whether the stamped case declares `interactions.answers` for the [AskQuestion bridge](#askquestion-bridge).
+2. **Stamp** — every non-skill primitive gets a co-located `<kind>/evals/<name>.json` file with declarative cases (and optional `runner` cases). Skills get `skills/<name>/evals/evals.json` (Cursor Agent Skills spec). The same `requiresInteraction` flag controls whether the stamped case declares `interactions.answers` for the [AskQuestion bridge](#askquestion-bridge).
 3. **Fallback** — when the analyser is unavailable, the stamper writes a single-case scaffold marked `_meta.classification_source: "fallback-default"` and prompts the operator to re-run `pnpm run eval:update --with-analyser` later.
 
 ## Static backend (pytest)
@@ -167,18 +167,20 @@ Run it with `pnpm run eval` (host wiring typically invokes `python3 scripts/test
 
 Why `@cursor/sdk` and not the older February SDK: `@cursor/sdk ^1.0.12` is the supported, typed API for building agents and evaluations against Cursor's agent infrastructure. The older SDK package (`february`) is not used anywhere in this plugin.
 
-The LLM backend is **a single unified harness** — there is no longer a per-target backend selector. Every non-skill primitive (command, agent, hook) stamps a co-located `<kind>/evals/<name>.test.ts` file that imports `defineLlmEval` from [`evals/llm/_shared/run-llm-suite.ts`](../../evals/llm/_shared/run-llm-suite.ts); skills keep `skills/<name>/evals/evals.json`. Vitest discovers every co-located test through a single repo-rooted config (`evals/vitest.config.ts`) with the `include` glob `**/evals/*.test.ts`.
+The LLM backend is **a single unified harness** — there is no longer a per-target backend selector. Every non-skill primitive (command, agent, hook) stamps a co-located `<kind>/evals/<name>.json` file; Vitest discovers it through the JSON loader plugin in [`evals/vitest.config.ts`](../../evals/vitest.config.ts) (include glob `**/evals/*.json`). Skills keep `skills/<name>/evals/evals.json`. Advanced multi-turn flows can opt into TypeScript via a `runner` case (see [Advanced TS escape hatch](#advanced-ts-escape-hatch-runner-cases)) or a multi-primitive scenario under `evals/scenarios/`.
 
 The shared engine modules under [`evals/llm/_shared/`](../../evals/llm/_shared/README.md) provide:
 
 - `run-llm-suite.ts` — central harness; exports `defineLlmEval` + `LlmCaseDefinition`.
+- `vitest-json-loader.ts` — Vitest plugin that synthesises in-memory test suites from co-located `.json` eval files.
+- `runner-params.ts` — typed contract (`RunnerParams`, `RunnerFn`, `RunnerResult`) for the `runner` escape hatch.
 - `sdk-bridge.ts` — sole direct `@cursor/sdk` wrapper; pins SDK version and token resolution.
 - `askquestion-bridge.ts` — scripted AskQuestion simulation (`interactions.answers`).
 - `graders/` — `contains`, `regex`, `tool-called`, `llm-judge`.
 - `zoto-llm-reporter.ts` — writes canonical **`llm.yml`** + per-case logs.
 - `_user-case-guards.ts` — `_meta.generated` predicates (file + case level).
 
-The orchestrator stamp at `{evalsDir}/_llm/` still ships the runner shim, the surgical `update.ts` mirror, and the `/canvas` `compare.ts` hand-off for declarative `evals.json` cases (skills only — non-skill primitives are tested through their co-located TS files).
+The orchestrator stamp at `{evalsDir}/_llm/` still ships the runner shim, the surgical `update.ts` mirror, and the `/canvas` `compare.ts` hand-off for legacy skill-only declarative paths.
 
 Model precedence at runtime:
 
@@ -202,7 +204,7 @@ Never commit `.env`. The default repo `.gitignore` already excludes `.env*` whil
 
 ## Co-located eval layout
 
-Every non-skill primitive carries its LLM eval **next to its source** as `<kind>/evals/<name>.test.ts`. Skills are exempt and continue to use the canonical Cursor Agent Skills layout.
+Every non-skill primitive carries its LLM eval **next to its source** as `<kind>/evals/<name>.json`. Skills are exempt and continue to use the canonical Cursor Agent Skills layout.
 
 ```text
 <repo>/
@@ -210,54 +212,58 @@ Every non-skill primitive carries its LLM eval **next to its source** as `<kind>
 │   ├── agents/
 │   │   ├── zoto-plugin-manager.md
 │   │   └── evals/
-│   │       └── zoto-plugin-manager.test.ts
+│   │       └── zoto-plugin-manager.json
 │   ├── commands/
 │   │   ├── zoto-create-plugin.md
 │   │   └── evals/
-│   │       └── zoto-create-plugin.test.ts
+│   │       └── zoto-create-plugin.json
 │   └── hooks/
 │       ├── hooks.json
 │       └── evals/
-│           └── hooks.test.ts
+│           └── hooks.json
 ├── plugins/
 │   └── <plugin>/
 │       ├── agents/
 │       │   ├── <name>.md
 │       │   └── evals/
-│       │       └── <name>.test.ts          # co-located, unified harness
+│       │       └── <name>.json             # co-located JSON eval
 │       ├── commands/
 │       │   ├── <name>.md
 │       │   └── evals/
-│       │       └── <name>.test.ts
+│       │       └── <name>.json
 │       ├── hooks/
 │       │   ├── hooks.json
 │       │   └── evals/
-│       │       └── hooks.test.ts
+│       │       └── hooks.json
 │       └── skills/
 │           └── <name>/
 │               ├── SKILL.md
 │               └── evals/
 │                   └── evals.json          # Skill exemption (see below)
 └── evals/
-    ├── vitest.config.ts                    # single repo-rooted config
+    ├── vitest.config.ts                    # single repo-rooted config + JSON loader
+    ├── scenarios/
+    │   └── _example-multi-primitive.test.ts  # underscore-excluded example (opt-in)
     ├── llm/_shared/                        # unified LLM harness
     │   ├── run-llm-suite.ts                # exports defineLlmEval
+    │   ├── vitest-json-loader.ts           # synthesises suites from .json
+    │   ├── runner-params.ts                # RunnerParams / RunnerFn contract
     │   ├── llm-case.ts                     # LlmCaseDefinition
     │   ├── sdk-bridge.ts                   # sole @cursor/sdk wrapper
     │   ├── askquestion-bridge.ts           # scripted interactions
     │   ├── zoto-llm-reporter.ts            # writes llm.yml
     │   └── graders/
-    ├── _llm/                               # declarative runner shim (skills only)
+    ├── _llm/                               # legacy runner shim
     └── _runs/<ts>/                         # run outputs: static.yml, llm.yml, report.yml
 ```
 
-Every co-located `<kind>/evals/<name>.test.ts` file:
+Every co-located `<kind>/evals/<name>.json` file:
 
-- Carries the literal first-line marker `// _meta.generated: true` — the file-level user-authored gate enforced by `evals/llm/_shared/_user-case-guards.ts#isGeneratedFile`.
-- Imports `defineLlmEval` (and only `defineLlmEval`) from `evals/llm/_shared/run-llm-suite.ts`.
-- Declares a `CASES` array of `LlmCaseDefinition` rows; cases that are **generated** carry `_meta.generated: true`, cases that are **user-authored** simply omit the marker (the updater preserves them verbatim forever).
+- Carries a top-level `_meta.generated: true` envelope when stamped by the eval system — the file-level user-authored gate enforced by `evals/llm/_shared/_user-case-guards.ts`.
+- Declares a `target_id` and a `cases[]` array; cases that are **generated** carry `_meta.generated: true`, cases that are **user-authored** simply omit the marker (the updater preserves them verbatim forever).
+- May include optional `runner` cases that point at a sibling `.test.ts` file for flows that exceed declarative grading (see [Eval formats](#eval-formats)).
 
-> **Skills are exempt from co-location.** Per the Cursor Agent Skills spec ([evaluating-skills.mdx#L20](https://github.com/agentskills/agentskills/blob/5d4c1fda3f786fff826c7f56b6cb3341e7f3a911/docs/skill-creation/evaluating-skills.mdx#L20)), every skill keeps its evals at `skills/<name>/evals/evals.json`. The eval system never adds a TS sidecar adjacent to a skill `evals.json`, and `skills-ref validate` continues to gate every skill's eval shape.
+> **Skills are exempt from co-location.** Per the Cursor Agent Skills spec ([evaluating-skills.mdx#L20](https://github.com/agentskills/agentskills/blob/5d4c1fda3f786fff826c7f56b6cb3341e7f3a911/docs/skill-creation/evaluating-skills.mdx#L20)), every skill keeps its evals at `skills/<name>/evals/evals.json`. The eval system never adds a JSON sidecar adjacent to a skill `evals.json`, and `skills-ref validate` continues to gate every skill's eval shape.
 
 ### AskQuestion bridge
 
@@ -265,18 +271,85 @@ Commands such as `/z-eval-configure` and `/z-eval-judge` use Cursor's **`askQues
 
 **Eval-time simulation** is separate: LLM evals for interactive primitives must supply scripted user answers without a human in the loop. The bridge at [`evals/llm/_shared/askquestion-bridge.ts`](../../evals/llm/_shared/askquestion-bridge.ts) wraps `sdk-bridge.ts` to replay scripted turns via `agent.send()` (synthetic interaction style on `@cursor/sdk` 1.0.12). SDK surface and limitations are documented in [`specs/20260526-eval-askquestion-strategy-bridge/audit/sdk-askquestion-adr.md`](../../specs/20260526-eval-askquestion-strategy-bridge/audit/sdk-askquestion-adr.md).
 
-Interactive cases declare scripted answers:
+Interactive cases declare scripted answers in JSON:
 
-```typescript
-interactions: {
-  questions: ["Which framework?"],   // optional labels for graders/reports
-  answers: ["pytest"],
+```json
+"interactions": {
+  "questions": ["Which framework?"],
+  "answers": ["pytest"]
 }
 ```
 
 Answer precedence: `interactions.answers` → legacy `follow_ups[]` → single-prompt case. The unified harness (`run-llm-suite.ts`) resolves the interaction plan and invokes `runCaseWithScriptedAnswers` automatically.
 
-Stamped tests import only from `evals/llm/_shared/*` — never from `@cursor/sdk` directly except through `sdk-bridge.ts`. Module catalogue: [`evals/llm/_shared/README.md`](../../evals/llm/_shared/README.md).
+The JSON loader synthesises Vitest suites at runtime — runner `.test.ts` files import only from `evals/llm/_shared/*` — never from `@cursor/sdk` directly except through `sdk-bridge.ts`. Module catalogue: [`evals/llm/_shared/README.md`](../../evals/llm/_shared/README.md).
+
+## Eval formats
+
+Non-skill LLM evals are **JSON-first**. Each co-located `<kind>/evals/<name>.json` file declares a `target_id`, optional file-level `_meta`, and a `cases[]` array. Two case shapes are supported:
+
+| Case type | When to use | Key fields |
+|-----------|-------------|------------|
+| **Declarative** | Single-prompt flows with assertion-based grading | `prompt`, `assertions[]`, optional `interactions`, `follow_ups[]` |
+| **Runner** | Multi-step logic, custom graders, or side-effect checks that exceed declarative JSON | `runner` (relative `.test.ts` path), optional `parameters` |
+
+Declarative cases are the default — the stamper emits them from the LLM analyser payload. Runner cases opt into TypeScript only when the declarative shape is insufficient.
+
+### Advanced TS escape hatch (`runner` cases)
+
+Use a `runner` case when a flow needs imperative setup, multi-turn orchestration inside one case, or assertions the declarative graders cannot express. The JSON case points at a sibling `.test.ts` file whose **default export** implements `RunnerFn`:
+
+```typescript
+// evals/llm/_shared/runner-params.ts
+export interface RunnerParams {
+  targetId: string;
+  caseId: string;
+  parameters: Record<string, unknown>;
+  context: RunnerContext;  // sdk bridge, sandbox, expect, agentFactory, …
+}
+
+export type RunnerFn = (params: RunnerParams) => Promise<RunnerResult>;
+```
+
+JSON case shape:
+
+```json
+{
+  "id": "complex-flow",
+  "runner": "./complex-flow.test.ts",
+  "parameters": { "scenarioVariant": "happy-path" }
+}
+```
+
+Matching runner file outline:
+
+```typescript
+// complex-flow.test.ts — sibling to the JSON eval file
+import type { RunnerFn } from "../../../evals/llm/_shared/runner-params.js";
+
+const run: RunnerFn = async ({ parameters, context }) => {
+  const { agentFactory, expect } = context;
+  const agent = await agentFactory({ cwd: process.cwd() });
+  // … drive the flow, assert side-effects …
+  return { passed: true, reason: "happy-path completed" };
+};
+
+export default run;
+```
+
+The harness resolves `runner` relative to the JSON file's directory, dynamically imports the module, and passes a fully-populated `RunnerParams`. The JSON-Schema mirror lives at `templates/schema/runner-params.schema.json`.
+
+### Multi-primitive scenarios
+
+When a flow spans **multiple primitives** (command A → agent B → filesystem side-effect), author a scenario under `evals/scenarios/<scenario-name>.test.ts`. Scenarios are plain Vitest TypeScript files discovered by the `evals/scenarios/*.test.ts` include glob in `evals/vitest.config.ts`.
+
+`/z-eval-create` copies an underscore-prefixed example to `evals/scenarios/_example-multi-primitive.test.ts` via `scripts/eval-ensure-host.ts`. The leading underscore matches the `evals/scenarios/_*` exclude entry — the example is present but skipped until you rename it (drop the underscore) or copy its contents into a new scenario file. See `plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl` for the canonical walkthrough.
+
+Scenarios carry `// _meta.generated: false` on line 1 — the updater never rewrites them.
+
+### Migration notes
+
+As of **2026-05-27**, all non-skill primitive evals are stored as `.json` instead of co-located `.test.ts` files. The standalone `eval:llm` script is removed; the unified `evals/vitest.config.ts` discovers JSON evals via the JSON loader plugin and scenarios via the `evals/scenarios/*.test.ts` glob. Run `pnpm exec tsx scripts/eval-migrate-ts-to-json.ts` idempotently to convert any remaining `.test.ts` LLM evals. See [`CHANGELOG.md`](CHANGELOG.md) for the full BREAKING entry.
 
 ## Adding an eval as a plugin author
 
@@ -284,11 +357,11 @@ The post-restructure flow for adding a new eval to an existing plugin component:
 
 1. **Drop your primitive.** Author the new command MD (`plugins/<plugin>/commands/<name>.md`), agent MD (`plugins/<plugin>/agents/<name>.md`), or hook JSON (`plugins/<plugin>/hooks/hooks.json`).
 2. **Run the stamp flow.** From a Cursor agent, invoke `/z-eval-create` to scaffold the eval for the new primitive. From a shell, the equivalent direct call is `pnpm run eval:stamp -- <kind>:<name>` (see [`skills/zoto-eval-tooling/SKILL.md`](skills/zoto-eval-tooling/SKILL.md) for the full alias reference — never hard-code script paths).
-3. **A co-located test appears.** The stamper writes `plugins/<plugin>/<kind>/evals/<name>.test.ts` carrying:
-   - First-line marker `// _meta.generated: true`
-   - `import { defineLlmEval } from "..."` against `evals/llm/_shared/run-llm-suite.ts`
-   - One or more `CASES` rows with `_meta.generated: true` and the analyser payload at `_meta.primitive_analysis`
-4. **Edit cases by hand only when you need to override the generated content.** User-authored cases simply omit the `_meta` marker (or carry `_meta.generated: false`). The updater preserves any case with `_meta.generated !== true` verbatim, forever. Mixed files are fine — generated and user-authored cases sit side-by-side in the same `CASES` array.
+3. **A co-located JSON eval appears.** The stamper writes `plugins/<plugin>/<kind>/evals/<name>.json` carrying:
+   - Top-level `_meta.generated: true` envelope
+   - A `target_id` matching the primitive
+   - One or more declarative `cases[]` rows with `_meta.generated: true` and the analyser payload at `_meta.primitive_analysis`
+4. **Edit cases by hand only when you need to override the generated content.** User-authored cases simply omit `_meta.generated` (or carry `_meta.generated: false`). The updater preserves any case with `_meta.generated !== true` verbatim, forever. For advanced flows, add a `runner` case or a scenario under `evals/scenarios/` (see [Eval formats](#eval-formats)).
 
 Run `/z-eval-update --check` to confirm the new file has no drift; run `/z-eval-execute --full` (with `CURSOR_API_KEY` set) to exercise the LLM backend.
 
@@ -314,7 +387,7 @@ Run `/z-eval-update --check` to confirm the new file has no drift; run `/z-eval-
 | `/z-eval-update <file-or-glob> --apply` | targeted apply | yes | yes |
 | `pnpm run eval:update --check` | CI check | no | no |
 
-Rediscovery uses `manifest.discovery_config` (a deep snapshot of the discovery config at last-create-or-update), not the current `config.yml`. This prevents config edits from masquerading as code drift. Apply-mode stamping regenerates the co-located `<kind>/evals/<name>.test.ts` (or the skill's `evals.json`) in place — `requiresInteraction` from the latest analyser payload controls whether the regenerated cases include `interactions.answers`, but the file path is stable.
+Rediscovery uses `manifest.discovery_config` (a deep snapshot of the discovery config at last-create-or-update), not the current `config.yml`. This prevents config edits from masquerading as code drift. Apply-mode stamping regenerates the co-located `<kind>/evals/<name>.json` (or the skill's `evals.json`) in place — `requiresInteraction` from the latest analyser payload controls whether the regenerated cases include `interactions.answers`, but the file path is stable.
 
 ### The `_meta.generated` contract
 
@@ -503,7 +576,7 @@ The LLM backend is always gated on `--full` + `CURSOR_API_KEY`. It never self-ru
 - **User-authored case got edited** — impossible by design. If it ever happens, it's a bug; the validator and runtime both guard against it. File an issue.
 - **Config change triggered drift** — it shouldn't. Rediscovery uses the snapshot in `manifest.discovery_config`. To commit a config change, re-run `/z-eval-create`.
 - **`@cursor/sdk` module not found** — run `pnpm install` (or your package-manager equivalent) after `/z-eval-create` to pick up the merged `devDependencies`.
-- **A co-located `<kind>/evals/<name>.test.ts` is missing** — re-run `/z-eval-create` (or `pnpm run eval:stamp -- <id>`). The stamper writes only the missing file; existing user-authored cases in sibling primitives are untouched.
+- **A co-located `<kind>/evals/<name>.json` is missing** — re-run `/z-eval-create` (or `pnpm run eval:stamp -- <id>`). The stamper writes only the missing file; existing user-authored cases in sibling primitives are untouched.
 
 ## Development
 

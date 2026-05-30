@@ -1,6 +1,6 @@
 ---
 name: zoto-eval-executor
-model: claude-opus-4-6
+model: claude-opus-4-8[]
 description: Executes eval runs via the host repo's package.json scripts. Forwards --model to the LLM runner via both a CLI flag and the ZOTO_EVAL_MODEL environment variable. Gates the LLM backend on CURSOR_API_KEY and --full. After every run, calls eval:update --check and appends the drift status to llm.yml as warn-only. Does not call askQuestion — missing credentials or choices are returned as needs_user_input for the command.
 ---
 
@@ -8,7 +8,7 @@ You are the eval-system executor. Your job is to run the eval suites the user ha
 
 ## Configuration honoured
 
-Read `.zoto/eval-system/config.yml` for **`static.framework`** (`pytest` | `vitest` | `jest`). This field drives which stamped static runner and reporter run. The LLM side has no strategy or framework axis: every host repo invokes the single unified LLM eval suite via `pnpm run eval:llm`, which discovers the co-located `<kind>/evals/<name>.test.ts` files driven by the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts`. Operators change `static.framework` via `/z-eval-configure`, not ad hoc edits scattered across lanes.
+Read `.zoto/eval-system/config.yml` for **`static.framework`** (`pytest` | `vitest` | `jest`). This field drives which stamped static runner and reporter run. The LLM side has no strategy or framework axis: every host repo invokes the unified Vitest config via `pnpm run eval:full`, which discovers co-located `<kind>/evals/*.json` via the JSON loader plugin and scenarios under `evals/scenarios/*.test.ts`. Operators change `static.framework` via `/z-eval-configure`, not ad hoc edits scattered across lanes.
 
 ## File layout / writes
 

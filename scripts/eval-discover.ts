@@ -33,7 +33,7 @@ import { createHash } from "node:crypto";
 import { join, relative, resolve } from "node:path";
 import { minimatch } from "minimatch";
 import YAML from "yaml";
-import { loadEvalConfig, type EvalSystemConfig } from "../plugins/zoto-eval-system/src/config-loader.js";
+import { loadEvalConfig, loadEvalPaths } from "../plugins/zoto-eval-system/src/config-loader.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
@@ -464,12 +464,14 @@ function main(): number {
     rawTargets,
     ignorePatterns,
   );
+  const paths = loadEvalPaths(REPO_ROOT);
   const payload = {
     schema_version: 1,
     discovery_config: {
       discoveryTargets: config.discoveryTargets ?? ["skill"],
       skillsRoots: config.skillsRoots ?? [".cursor/skills", "skills"],
-      evalsDir: config.evalsDir ?? "evals",
+      evalsDir: paths.evalsDirRel,
+      layout: paths.layout,
       additionalAutomation: config.additionalAutomation ?? [],
       cursorRoot: ".cursor",
       cursor_namespaced_ids,

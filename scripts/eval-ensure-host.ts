@@ -13,6 +13,9 @@
  *      missing; appends missing rule lines under a labelled header
  *      otherwise. Existing operator-authored entries are never
  *      touched, so this is safe to re-run.
+ *   3. Copy the skipped multi-primitive scenario example to
+ *      `evals/scenarios/_example-multi-primitive.test.ts` when missing
+ *      (never overwrites an existing file).
  *
  * Standalone by design: the host repo carries the `.env.example`
  * body inline so this script does not need to look up the
@@ -24,6 +27,14 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const SCENARIO_REL_PATH = "evals/scenarios/_example-multi-primitive.test.ts";
+const SCENARIO_TEMPLATE_PATH = resolve(
+  SCRIPT_DIR,
+  "../plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl",
+);
 
 const ENV_EXAMPLE_BODY = `# Eval system — environment variables.
 #
@@ -112,7 +123,22 @@ function ensureGitignore(repoRoot: string, dryRun: boolean): string {
   return `${exists ? "appended" : "created"} ${path} (added ${missing.length} line${missing.length === 1 ? "" : "s"})`;
 }
 
+function ensureScenarioExample(repoRoot: string, dryRun: boolean): string {
+  const path = join(repoRoot, SCENARIO_REL_PATH);
+  if (existsSync(path)) return `skipped-existing ${path}`;
+  if (!existsSync(SCENARIO_TEMPLATE_PATH)) {
+    return `skipped-missing-template ${SCENARIO_TEMPLATE_PATH}`;
+  }
+  const body = readFileSync(SCENARIO_TEMPLATE_PATH, "utf-8");
+  if (!dryRun) {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, body, "utf-8");
+  }
+  return `created ${path}`;
+}
+
 const opts = parseArgs(process.argv.slice(2));
 console.log(`eval-ensure-host ${opts.dryRun ? "(dry-run) " : ""}in ${opts.repoRoot}`);
 console.log(`  ${ensureEnvExample(opts.repoRoot, opts.dryRun)}`);
 console.log(`  ${ensureGitignore(opts.repoRoot, opts.dryRun)}`);
+console.log(`  ${ensureScenarioExample(opts.repoRoot, opts.dryRun)}`);

@@ -1,0 +1,38 @@
+{
+  "target_id": "command:sync-plugins",
+  "_meta": {
+    "generated": true,
+    "migrated_from": ".cursor/commands/evals/sync-plugins.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": "full-sync-with-hook-stdin-protocol",
+      "prompt": "/sync-plugins — realign bundled workspace plugins with my Cursor local install after I pulled teammate updates.",
+      "assertions": [
+        "After `/sync-plugins`, the assistant directs execution of `node .cursor/hooks/sync-plugins.mjs --full` with the workspace root as the working directory",
+        "The sync invocation supplies an empty JSON object on standard input matching the hook-protocol requirement in the command instructions",
+        "Once the runner finishes, the assistant lists plugin bundles that synced according to the run output or clearly states when none were reported"
+      ],
+      "assertion_patterns": [
+        "/sync-plugins"
+      ],
+      "expected_output": "The assistant runs the sync script from the repository root with the full flag, feeds an empty JSON object on stdin per the hook protocol, relays which plugin directories the runner reports as synced, and tells me to reload Cursor so the copies take effect."
+    },
+    {
+      "id": "post-sync-inventory-and-reload-guidance",
+      "prompt": "/sync-plugins — push this repo's curated plugin payloads out so tooling inside Cursor sees the freshest copies.",
+      "assertions": [
+        "The assistant answer lists synced plugin bundles by recognizable names grounded in the workspace `plugins/` layout",
+        "The assistant explicitly warns that a Cursor window reload is necessary before refreshed plugin files surface in the IDE"
+      ],
+      "assertion_patterns": [
+        "plugins/"
+      ],
+      "expected_output": "The assistant shares a readable inventory of synced plugin bundles grounded in the workspace layout and closes with reload guidance so refreshed local artefacts load in the IDE."
+    }
+  ]
+}

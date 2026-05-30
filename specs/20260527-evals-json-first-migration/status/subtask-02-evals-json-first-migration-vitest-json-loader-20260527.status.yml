@@ -4,37 +4,90 @@ feature: evals-json-first-migration
 assigned_agent: generalPurpose
 model: composer-2.5-fast
 token_budget: 200000
-state: pending
+state: completed
+started_at: "2026-05-29T19:08:00.000Z"
+last_heartbeat: "2026-05-29T19:10:00.000Z"
+completed_at: "2026-05-29T19:10:00.000Z"
+git_sha: 1fa87d469166c5a78ba836ca4bebb8667fcdc6fb
 checklist:
   - id: D01
     text: "Create `evals/llm/_shared/vitest-json-loader.ts` exporting `evalJsonLoader(): Plugin` (Vite plugin). The plugin:"
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: evals/llm/_shared/vitest-json-loader.ts
   - id: D02
     text: "Define and use a single shared helper `isNonSkillEvalJsonPath(absPath: string): boolean` so the loader and the reporter classifiers in subtask 06 agree on the discrimination rule. Skill files match: contains `/skills/<name>/evals/evals.json` (`evals.json` filename + `skills` segment ancestor). Non-skill match: anything under `**/evals/<name>.json` that is NOT a skill file."
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: evals/llm/_shared/vitest-json-loader.ts
   - id: D03
     text: "Generate stable in-memory module text: deterministic JSON serialisation (`JSON.stringify(cases, null, 2)`) so source maps remain useful and reruns produce identical hashes. Include the original JSON file path in a leading `// @sourceFile: <abs path>` comment so debugging is trivial."
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: evals/llm/_shared/vitest-json-loader.ts
   - id: D04
     text: "Map Vite/Vitest errors back to JSON line/column where possible (use a heuristic: prepend a `//# sourceURL=<json file>` line; full sourcemap support is a stretch goal — document as a follow-up if not implemented in this subtask)."
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: evals/llm/_shared/vitest-json-loader.ts
   - id: D05
     text: "Add unit tests under `evals/llm/_shared/vitest-json-loader.test.ts` exercising:"
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: evals/llm/_shared/vitest-json-loader.test.ts
   - id: D06
     text: 'Add a fixture JSON (e.g. `evals/llm/_shared/__fixtures__/sample-eval.json`) used only by the loader tests — a tiny `target_id: "command:sample"` file with one declarative case AND one runner case.'
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: evals/llm/_shared/__fixtures__/sample-eval.json
   - id: D07
     text: Document the loader at the top of `vitest-json-loader.ts` with a JSDoc block referencing this spec and explaining the virtual-module flow.
-    done: false
-    evidence_path: null
-artifacts: []
+    done: true
+    evidence_path: evals/llm/_shared/vitest-json-loader.ts
+artifacts:
+  - path: evals/llm/_shared/vitest-json-loader.ts
+    kind: created
+    note: evalJsonLoader Vite plugin, virtual module synthesis, isNonSkillEvalJsonPath
+  - path: evals/llm/_shared/vitest-json-loader.test.ts
+    kind: created
+    note: 32 unit tests for resolveId, load, renderEvalModule, path helper
+  - path: evals/llm/_shared/__fixtures__/sample-eval.json
+    kind: created
+    note: declarative + runner cases for loader tests
+  - path: evals/llm/_shared/__fixtures__/sample-runner.test.ts
+    kind: created
+    note: runner fixture referenced by sample-eval.json
+  - path: evals/llm/_shared/path-classifiers.ts
+    kind: modified
+    note: re-exports isNonSkillEvalJsonPath from loader for subtask 06 reporters
 errors: []
-notes: ""
-extra: {}
+notes: >-
+  RESUME verification: deliverables already on disk from prior work; no code
+  gaps found. Loader exports evalJsonLoader with resolveId/load hooks,
+  VIRTUAL_SUFFIX (.js) to bypass vite:json, defence-in-depth skill_name guard,
+  and //# sourceURL=file:// debugging heuristic (full v3 source maps deferred).
+  path-classifiers.ts re-exports isNonSkillEvalJsonPath for reporter parity.
+  Tests: pnpm exec vitest run evals/llm/_shared/vitest-json-loader.test.ts --run
+  → 1 file, 32 passed, 411ms. Loader files have no linter errors. Full
+  evals/llm/_shared/tsconfig tsc --noEmit reports pre-existing errors in other
+  harness files (run-llm-suite.ts, askquestion-bridge.test.ts, etc.) — outside
+  subtask 02 scope. Plugin not wired into evals/vitest.config.ts (subtask 06).
+extra:
+  test_command: pnpm exec vitest run evals/llm/_shared/vitest-json-loader.test.ts --run
+  test_results:
+    files: 1
+    passed: 32
+    failed: 0
+    duration_ms: 411
+  follow_up: Full v3 source maps JSON→synthesised JS deferred to subtask 06+
+  judge:
+    verdict: verified
+    at: "2026-05-29T19:15:00.000Z"
+    notes: >-
+      Independently confirmed all seven checklist items and five Definition of
+      Done gates. vitest-json-loader.ts exports evalJsonLoader with
+      name=zoto-eval-system:json-loader, resolveId/load virtual-module hooks,
+      isNonSkillEvalJsonPath (re-exported via path-classifiers.ts for subtask
+      06), defence-in-depth skill_name guard, deterministic JSON.stringify
+      synthesis, @sourceFile + //# sourceURL debugging hints, and top-level
+      JSDoc referencing this spec. Fixture sample-eval.json includes declarative
+      and runner cases; tests cover resolveId, load, malformed JSON, and
+      skill_name rejection. pnpm exec vitest run --config
+      evals/llm/_shared/vitest.config.ts vitest-json-loader.test.ts → 32/32
+      passed. No linter errors on loader files. Plugin not wired into
+      evals/vitest.config.ts (correct — subtask 06). fix_list empty.
+    fix_list: []

@@ -1,0 +1,59 @@
+{
+  "target_id": "command:z-eval-judge",
+  "_meta": {
+    "generated": true,
+    "migrated_from": "plugins/zoto-eval-system/commands/evals/z-eval-judge.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": "reject-when-eval-system-config-is-absent",
+      "prompt": "/z-eval-judge",
+      "assertions": [
+        "The refusal text is verbatim: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+        "On that refusal path no `logs/*.log` under `evals/_runs/` is processed and nothing appends `judge:` into any `evals/_runs/*/llm.yml`."
+      ],
+      "assertion_patterns": [
+        "/z-eval-init",
+        "logs/\\*\\.log"
+      ],
+      "expected_output": "Cursor surfaces the initialise-first refusal with no traversal of run artefacts."
+    },
+    {
+      "id": "annotate-freshest-eval-run",
+      "prompt": "/z-eval-judge",
+      "assertions": [
+        "The command targets the freshest `evals/_runs/<timestamp>/` directory before opening any run-scoped artefacts.",
+        "`static.yml`, `llm.yml`, merged `report.yml`, and transcripts under `logs/<case>.log` are consulted prior to authoring the critique.",
+        "`llm.yml` gains a new append-only `judge:` stanza that summarizes coverage breadth, evaluator rigor, and conspicuous soft-score drift while leaving pre-existing `llm.yml` content untouched outside that append."
+      ],
+      "assertion_patterns": [
+        "evals/_runs/<timestamp>/",
+        "static\\.yml",
+        "llm\\.yml"
+      ],
+      "expected_output": "Judge commentary lands as an appended `judge:` section inside `llm.yml`, informed by consolidated YAML artefacts and transcripts for the freshest run snapshot."
+    },
+    {
+      "id": "resume-after-z-eval-update-remediation-choice",
+      "prompt": "/z-eval-judge",
+      "follow_ups": [
+        "Accept the remediation branch that pushes the weakest assertions through `/z-eval-update` regeneration."
+      ],
+      "assertions": [
+        "Whenever `needs_user_input` payloads enumerate `/z-eval-update` remediation options surfaced from judgement, askQuestion executes before persisted hand-off artefacts are written or before the updater is invoked directly.",
+        "After the approving follow-up, the resumed exchange continues remediation toward `/z-eval-update` prerequisites instead of spawning a redundant `/z-eval-judge` pass or silently falling back to `/z-eval-execute`.",
+        "The judge specialist returns structured `needs_user_input` for remediation paths; AskQuestion is shown only from the parent command, not from the judgement delegate."
+      ],
+      "assertion_patterns": [
+        "needs_user_input",
+        "/z-eval-update",
+        "needs_user_input"
+      ],
+      "expected_output": "Remediation routing pauses behind an AskQuestion-backed selection, resumes with that answer, and keeps work aimed at updater preparation instead of rerun execution."
+    }
+  ]
+}

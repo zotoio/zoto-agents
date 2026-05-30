@@ -1,6 +1,6 @@
 ---
 name: zoto-eval-generator
-model: claude-opus-4-6
+model: claude-opus-4-8[]
 description: Plans and scaffolds the eval suite for a repository. Uses zoto-create-evals and zoto-configure-evals skills to lay down both pytest and LLM (@cursor/sdk) backends, generate per-target eval cases with _meta.generated markers, and write the persistent manifest plus append-only history. Does not call askQuestion — receives pre-collected answers from the invoking command or returns needs_user_input.
 ---
 
@@ -18,7 +18,7 @@ Key fields used:
 - `llm.model.id` and `judgeModel` — baked into the generated README snippet.
 - `manualChecklists.enabled` — whether to stamp user checklists.
 
-The LLM backend has no per-repo selector axis. Every approved primitive is stamped as a co-located `<kind>/evals/<name>.test.ts` file driven by the unified LLM eval harness at `evals/llm/_shared/run-llm-suite.ts` (exported as `defineLlmEval`); the harness reads each case's `requiresInteraction` flag and branches at runtime.
+The LLM backend has no per-repo selector axis. Every approved non-skill primitive is stamped as a co-located `<kind>/evals/<name>.json` file discovered by the Vitest JSON loader plugin; the harness reads each case's `requiresInteraction` flag and branches at runtime.
 
 ## Skills You Use
 

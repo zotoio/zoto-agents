@@ -4,37 +4,83 @@ feature: evals-json-first-migration
 assigned_agent: generalPurpose
 model: composer-2.5-fast
 token_budget: 200000
-state: pending
+state: completed
+started_at: "2026-05-29T19:10:00.000Z"
+last_heartbeat: "2026-05-29T19:18:00.000Z"
+completed_at: "2026-05-29T19:18:00.000Z"
+git_sha: 1fa87d469166c5a78ba836ca4bebb8667fcdc6fb
 checklist:
   - id: D01
     text: "Update `evals/vitest.config.ts`:"
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: evals/vitest.config.ts
   - id: D02
     text: "Update `package.json`:"
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: package.json
   - id: D03
     text: "Update `scripts/eval-orchestrate.ts`:"
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: scripts/eval-orchestrate.ts
   - id: D04
     text: "Update `evals/llm/_shared/zoto-llm-reporter.ts`:"
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: evals/llm/_shared/zoto-llm-reporter.ts
   - id: D05
     text: "Update `evals/reporters/zoto-eval-reporter.ts`:"
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: evals/reporters/zoto-eval-reporter.ts
   - id: D06
     text: "Smoke-test the wiring locally (without API key):"
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: tmp/smoke/commands/evals/sample-eval.json
   - id: D07
     text: Document the new flow with a short paragraph at the top of `evals/vitest.config.ts` (replace the stale "subtask 08 will relocate" comment block).
-    done: false
-    evidence_path: null
-artifacts: []
+    done: true
+    evidence_path: evals/vitest.config.ts
+artifacts:
+  - path: evals/vitest.config.ts
+    kind: modified
+    note: unified config with evalJsonLoader, repo-root include/exclude, dual reporters
+  - path: package.json
+    kind: modified
+    note: removed eval:llm; added eval:vitest; eval:static:vitest aliases to eval:vitest
+  - path: scripts/eval-orchestrate.ts
+    kind: modified
+    note: single eval:vitest spawn when static.framework is vitest
+  - path: scripts/__tests__/eval-orchestrate.test.ts
+    kind: modified
+    note: updated stubs for unified vitest dispatch
+  - path: evals/llm/_shared/zoto-llm-reporter.ts
+    kind: modified
+    note: path-classifier re-exports, lazy logs dir, ZotoLlmVitestReporter shim
+  - path: evals/reporters/zoto-eval-reporter.ts
+    kind: modified
+    note: isStaticEvalPath filter; skip empty static.yml
 errors: []
-notes: ""
-extra: {}
+notes: |
+  Smoke (no API key): declarative-greeting skipped, runner-noop passed — exit 0.
+  Smoke (API key present): both cases passed — exit 0.
+  eval-orchestrate.test.ts: 14/14 passed — exit 0.
+  vitest-json-loader.test.ts: 32/32 passed — exit 0.
+extra:
+  judge:
+    verdict: verified
+    at: "2026-05-29T19:20:00.000Z"
+    notes: |
+      Independently confirmed: `package.json` has no `eval:llm` script; `eval:vitest`
+      and backwards-compat `eval:static:vitest` alias present; `eval:static:pytest` and
+      `eval:static:jest` untouched. `evals/vitest.config.ts` imports `evalJsonLoader`,
+      sets `plugins: [evalJsonLoader()]`, includes `**/evals/*.json` and
+      `evals/scenarios/*.test.ts`, and applies the specified exclude list with updated
+      header docs. `scripts/eval-orchestrate.ts` uses `VITEST_SCRIPT = "eval:vitest"` with
+      a single spawn when `static.framework === "vitest"`; no `LLM_SCRIPT`, `eval:llm`, or
+      `evals/llm/vitest.config.ts` probes remain. Path classifiers in
+      `evals/llm/_shared/path-classifiers.ts` partition virtual JSON ids and scenario paths
+      to LLM; static reporter filters via `isStaticEvalPath`. Smoke: Vitest discovered two
+      cases from a temp `commands/evals/sample-eval.json` (declarative + runner). Re-ran
+      `tsx scripts/__tests__/eval-orchestrate.test.ts` (14/14) and
+      `vitest-json-loader.test.ts` (32/32); no linter errors on modified files. DoD
+      migration-not-yet-performed holds at recorded `git_sha` (38 co-located `.test.ts`
+      files); uncommitted JSON migration in the working tree is subtask 07 scope.
+    fix_list: []

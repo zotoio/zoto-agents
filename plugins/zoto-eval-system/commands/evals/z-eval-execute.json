@@ -1,0 +1,257 @@
+{
+  "target_id": "command:z-eval-execute",
+  "_meta": {
+    "generated": true,
+    "migrated_from": "plugins/zoto-eval-system/commands/evals/z-eval-execute.test.ts",
+    "migrated_at": "2026-05-27T17:21:10.986Z",
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": "blocked-when-zoto-eval-system-config-yml-is-absent-before-spawning-any-task-work",
+      "prompt": "/z-eval-execute",
+      "assertions": [
+        "After `/z-eval-execute`, operator-visible messaging reproduces verbatim Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+        "Workspace growth under evals/_runs does not acquire a newly stamped directory for this refusal."
+      ],
+      "assertion_patterns": [
+        "/z-eval-execute"
+      ],
+      "expected_output": "Execution halts with only the initialise-first refusal so no eval runs enqueue."
+    },
+    {
+      "id": "documented-bare-invocation-runs-static-only-suites-through-host-scripts",
+      "prompt": "/z-eval-execute",
+      "assertions": [
+        "Fresh evals/_runs/*/static.yml and sibling report.yml exist with report.yml aligning static telemetry per the sibling-artefact contract.",
+        "`/z-eval-execute` streamed shell-driven host package-script output resolves to static posture because `--full` was omitted before delegating workloads.",
+        "After script completion tooling shows `pnpm run eval:update --check` succeeding and drift metadata appended on the paired llm.yml for that same timestamp prefix."
+      ],
+      "assertion_patterns": [
+        "/z-eval-execute",
+        "pnpm run eval:update --check"
+      ],
+      "expected_output": "Configured static scripts finish, freshest evals/_runs siblings capture results, streamed totals summarize the static pass, hygiene updates merge drift snippets into llm.yml, aggregates cover both backends shown in merged report artefacts."
+    },
+    {
+      "id": "full-sweep-with-explicit-model-forwards-opus-4-6-into-delegated-executor-instruc",
+      "prompt": "/z-eval-execute --full --model opus-4.6",
+      "assertions": [
+        "Visible delegation text cites opus-4.6 verbatim alongside credential_resolution narration required for `--full` Task prompts.",
+        "The newest llm.yml under evals/_runs reflects LLM execution while neighbouring report.yml folds static and llm excerpts per File layout writes.",
+        "Final streamed narration lists aggregate summaries plus drift line tied to eval:update --check output."
+      ],
+      "assertion_patterns": [
+        "--full"
+      ],
+      "expected_output": "With credentials satisfied, opus-4.6 shows up verbatim in delegated copy, `_runs/*/llm.yml` records LLM output, merged report aligns both backends with drift chatter printed at the end."
+    },
+    {
+      "id": "full-sweep-without-cursor-api-credential-surfaces-command-owned-credential-askqu",
+      "prompt": "/z-eval-execute --full",
+      "follow_ups": [
+        "Abort entirely once askQuestion renders; insist credential_resolution encodes cancelling any LLM launch because the Cursor API credential stays unavailable"
+      ],
+      "assertions": [
+        "`/z-eval-execute --full` emitted askQuestion before spawning zoto-eval-executor whenever neither CURSOR_API_KEY is set nor repo-root uncommented CURSOR credential lines populate dotenv ingestion.",
+        "askQuestion surfaced guidance about provisioning repo-root `.env`, never fabricating secrets.",
+        "After choosing abort credential_resolution resumes without launching host LLM eval scripts evidenced by lacking fresh llm pass rows beneath evals/_runs for that aborted attempt."
+      ],
+      "assertion_patterns": [
+        "/z-eval-execute --full",
+        "\\.env"
+      ],
+      "expected_output": "askQuestion distinguishes abort versus static downgrade, honouring outright cancellation skips substantive LLM pass columns for that attempt."
+    },
+    {
+      "id": "full-credential-gap-resolves-to-delegated-static-downgrade-after-answered-askque",
+      "prompt": "/z-eval-execute --full",
+      "follow_ups": [
+        "Resolve askQuestion toward static-host-only posture; insist credential_resolution encodes cancelling LLM while keeping static suites"
+      ],
+      "assertions": [
+        "Resumed delegation copy documents static downgrade inside credential_resolution per operator answer.",
+        "Newest snapshot shows static.yml populated whereas llm.yml avoids fresh llm pass tallies besides drift hygiene fields.",
+        "Streamed aggregates report completed static workloads while echoed drift narration references eval:update --check."
+      ],
+      "assertion_patterns": [],
+      "expected_output": "Operator answer records downgrade, delegated instructions embed static posture, refreshed static artefacts land while substantive llm summaries stay dormant yet drift bookkeeping still attaches to llm.yml."
+    },
+    {
+      "id": "resume-continues-after-delegated-needs-user-input-on-credential-ambiguity",
+      "prompt": "/z-eval-execute --full --model opus-4.6",
+      "follow_ups": [
+        "Clarify in the resumed turn that credential_resolution authorises proceeding with opus-4.6 because the stalled prompt is satisfied"
+      ],
+      "assertions": [
+        "When zoto-eval-executor returns credential-oriented needs_user_input, `/z-eval-execute` issues askQuestion and resumes with clarified credential_resolution.",
+        "Following resume, freshest llm.yml timestamps align with opus-4.6 full sweep artefacts alongside neighbouring report.yml merges",
+        "Once streamed totals finish, no renewed operator credential dialogs appear tied to stalled delegations"
+      ],
+      "assertion_patterns": [
+        "/z-eval-execute"
+      ],
+      "expected_output": "Structured needs_user_input triggers credential clarification, resumed turn satisfies it, rerun finishes llm artefacts plus merged report totals without another escalation."
+    },
+    {
+      "id": "blocked-when-zoto-eval-system-config-yml-is-absent-before-spawning-any-task-work",
+      "prompt": "/z-eval-execute",
+      "assertions": [
+        "After `/z-eval-execute`, operator-visible messaging reproduces verbatim Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+        "Workspace growth under evals/_runs does not acquire a newly stamped directory for this refusal."
+      ],
+      "assertion_patterns": [
+        "/z-eval-execute"
+      ],
+      "expected_output": "Execution halts with only the initialise-first refusal so no eval runs enqueue.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+        "last_updated": "2026-05-29T11:52:41.371Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
+        }
+      }
+    },
+    {
+      "id": "documented-bare-invocation-runs-static-only-suites-through-host-scripts",
+      "prompt": "/z-eval-execute",
+      "assertions": [
+        "Fresh evals/_runs/*/static.yml and sibling report.yml exist with report.yml aligning static telemetry per the sibling-artefact contract.",
+        "`/z-eval-execute` streamed shell-driven host package-script output resolves to static posture because `--full` was omitted before delegating workloads.",
+        "After script completion tooling shows `pnpm run eval:update --check` succeeding and drift metadata appended on the paired llm.yml for that same timestamp prefix."
+      ],
+      "assertion_patterns": [
+        "/z-eval-execute",
+        "pnpm run eval:update --check"
+      ],
+      "expected_output": "Configured static scripts finish, freshest evals/_runs siblings capture results, streamed totals summarize the static pass, hygiene updates merge drift snippets into llm.yml, aggregates cover both backends shown in merged report artefacts.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+        "last_updated": "2026-05-29T11:52:41.371Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
+        }
+      }
+    },
+    {
+      "id": "full-sweep-with-explicit-model-forwards-opus-4-6-into-delegated-executor-instruc",
+      "prompt": "/z-eval-execute --full --model opus-4.6",
+      "assertions": [
+        "Visible delegation text cites opus-4.6 verbatim alongside credential_resolution narration required for `--full` Task prompts.",
+        "The newest llm.yml under evals/_runs reflects LLM execution while neighbouring report.yml folds static and llm excerpts per File layout writes.",
+        "Final streamed narration lists aggregate summaries plus drift line tied to eval:update --check output."
+      ],
+      "assertion_patterns": [
+        "--full"
+      ],
+      "expected_output": "With credentials satisfied, opus-4.6 shows up verbatim in delegated copy, `_runs/*/llm.yml` records LLM output, merged report aligns both backends with drift chatter printed at the end.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+        "last_updated": "2026-05-29T11:52:41.371Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
+        }
+      }
+    },
+    {
+      "id": "full-sweep-without-cursor-api-credential-surfaces-command-owned-credential-askqu",
+      "prompt": "/z-eval-execute --full",
+      "follow_ups": [
+        "Abort entirely once askQuestion renders; insist credential_resolution encodes cancelling any LLM launch because the Cursor API credential stays unavailable"
+      ],
+      "assertions": [
+        "`/z-eval-execute --full` emitted askQuestion before spawning zoto-eval-executor whenever neither CURSOR_API_KEY is set nor repo-root uncommented CURSOR credential lines populate dotenv ingestion.",
+        "askQuestion surfaced guidance about provisioning repo-root `.env`, never fabricating secrets.",
+        "After choosing abort credential_resolution resumes without launching host LLM eval scripts evidenced by lacking fresh llm pass rows beneath evals/_runs for that aborted attempt."
+      ],
+      "assertion_patterns": [
+        "/z-eval-execute --full",
+        "\\.env"
+      ],
+      "expected_output": "askQuestion distinguishes abort versus static downgrade, honouring outright cancellation skips substantive LLM pass columns for that attempt.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+        "last_updated": "2026-05-29T11:52:41.371Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
+        }
+      }
+    },
+    {
+      "id": "full-credential-gap-resolves-to-delegated-static-downgrade-after-answered-askque",
+      "prompt": "/z-eval-execute --full",
+      "follow_ups": [
+        "Resolve askQuestion toward static-host-only posture; insist credential_resolution encodes cancelling LLM while keeping static suites"
+      ],
+      "assertions": [
+        "Resumed delegation copy documents static downgrade inside credential_resolution per operator answer.",
+        "Newest snapshot shows static.yml populated whereas llm.yml avoids fresh llm pass tallies besides drift hygiene fields.",
+        "Streamed aggregates report completed static workloads while echoed drift narration references eval:update --check."
+      ],
+      "assertion_patterns": [],
+      "expected_output": "Operator answer records downgrade, delegated instructions embed static posture, refreshed static artefacts land while substantive llm summaries stay dormant yet drift bookkeeping still attaches to llm.yml.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+        "last_updated": "2026-05-29T11:52:41.371Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
+        }
+      }
+    },
+    {
+      "id": "resume-continues-after-delegated-needs-user-input-on-credential-ambiguity",
+      "prompt": "/z-eval-execute --full --model opus-4.6",
+      "follow_ups": [
+        "Clarify in the resumed turn that credential_resolution authorises proceeding with opus-4.6 because the stalled prompt is satisfied"
+      ],
+      "assertions": [
+        "When zoto-eval-executor returns credential-oriented needs_user_input, `/z-eval-execute` issues askQuestion and resumes with clarified credential_resolution.",
+        "Following resume, freshest llm.yml timestamps align with opus-4.6 full sweep artefacts alongside neighbouring report.yml merges",
+        "Once streamed totals finish, no renewed operator credential dialogs appear tied to stalled delegations"
+      ],
+      "assertion_patterns": [
+        "/z-eval-execute"
+      ],
+      "expected_output": "Structured needs_user_input triggers credential clarification, resumed turn satisfies it, rerun finishes llm artefacts plus merged report totals without another escalation.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+        "last_updated": "2026-05-29T11:52:41.371Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
+          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
+        }
+      }
+    }
+  ]
+}

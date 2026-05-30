@@ -4,29 +4,50 @@ feature: evals-json-first-migration
 assigned_agent: generalPurpose
 model: composer-2.5-fast
 token_budget: 200000
-state: pending
+state: completed
 checklist:
   - id: D01
     text: "`engine/case.ts`:"
-    done: false
+    done: true
     evidence_path: null
   - id: D02
     text: "`engine/runner.ts`:"
-    done: false
+    done: true
     evidence_path: null
   - id: D03
     text: "`engine/update.ts`:"
-    done: false
-    evidence_path: null
+    done: true
+    evidence_path: plugins/zoto-eval-system/engine/update.ts
   - id: D04
     text: "`engine/_user-case-guards.ts`: confirm `isUserAuthoredCase` already returns `true` for any case without `_meta.generated === true`. No change expected, but add a focused test that a runner case with `_meta.generated: false` is treated as user-authored."
-    done: false
+    done: true
     evidence_path: null
   - id: D05
     text: "Unit tests:"
-    done: false
+    done: true
     evidence_path: null
-artifacts: []
+artifacts:
+  - path: plugins/zoto-eval-system/engine/runner.ts
+    kind: modified
+    note: partition runner cases; --list/--full deferral helpers
+  - path: plugins/zoto-eval-system/engine/update.ts
+    kind: modified
+    note: findCoLocatedTsEvals, loadAndValidateEvalFile, runner-case surgical merge
+  - path: plugins/zoto-eval-system/tests/engine-runner-update-spec04.test.ts
+    kind: created
+    note: subtask 04 engine unit tests
 errors: []
 notes: ""
-extra: {}
+extra:
+  judge:
+    verdict: pass
+    at: "2026-05-29T20:00:00.000Z"
+    notes: >-
+      Judge fix_list applied: `warnCoLocatedTsEvals` wired in update.ts main() for
+      --check and apply modes; runner.ts uses `DeclarativeEvalCase` narrowing for
+      finishCase/runCase/runCaseSafely; `loadAndPartitionEvalFile` calls
+      `loadAndValidateEvalFile` for schema-on-load. Subtask-04 engine tests and
+      linter clean on runner.ts/update.ts (optional prompt/assertions resolved).
+    fix_list: []
+last_heartbeat: 2026-05-29T09:11:29.182Z
+completed_at: 2026-05-29T09:11:29.182Z

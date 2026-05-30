@@ -212,20 +212,21 @@ describe("classifyAndStampPluginComponents", () => {
         classification_source: "analyser",
       });
 
-      const codeTestPath = join(
+      const jsonEvalPath = join(
         host,
         "plugins",
         PLUGIN,
         "commands",
         "evals",
-        `${COMMAND}.test.ts`,
+        `${COMMAND}.json`,
       );
-      expect(existsSync(codeTestPath)).toBe(true);
-      const body = readFileSync(codeTestPath, "utf-8");
-      expect(body.split("\n", 1)[0]).toBe("// _meta.generated: true");
-      expect(body).toContain("defineLlmEval");
-      expect(body).toContain("LlmCaseDefinition");
-      expect(body).toContain("run-llm-suite.js");
+      expect(existsSync(jsonEvalPath)).toBe(true);
+      const stamped = JSON.parse(readFileSync(jsonEvalPath, "utf-8")) as {
+        target_id?: string;
+        cases?: unknown[];
+      };
+      expect(stamped.target_id).toBe(`command:${COMMAND}`);
+      expect(Array.isArray(stamped.cases) && stamped.cases.length >= 1).toBe(true);
 
       // Skill flow: stampTarget skips, the seed evals.json is untouched.
       const skillResult = results[1];
@@ -278,15 +279,15 @@ describe("classifyAndStampPluginComponents", () => {
         operator_note: FALLBACK_OPERATOR_NOTE,
       });
 
-      const codeTestPath = join(
+      const jsonEvalPath = join(
         host,
         "plugins",
         PLUGIN,
         "commands",
         "evals",
-        `${COMMAND}.test.ts`,
+        `${COMMAND}.json`,
       );
-      expect(existsSync(codeTestPath)).toBe(true);
+      expect(existsSync(jsonEvalPath)).toBe(true);
     } finally {
       rmSync(host, { recursive: true, force: true });
     }

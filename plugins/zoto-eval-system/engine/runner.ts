@@ -48,7 +48,7 @@ import {
   statSync,
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __engine_dir = dirname(fileURLToPath(import.meta.url));
 
@@ -56,10 +56,14 @@ import YAML from "yaml";
 
 import {
   casesOf,
+  isRunnerCase,
   loadEvalFile,
   validateEnriched,
+  type DeclarativeEvalCase,
   type EvalCase,
+  type EvalFile,
 } from "./case.js";
+import { loadAndValidateEvalFile } from "./update.js";
 import { computeMetrics } from "./metrics.js";
 import { writeResults, type WriterCase } from "./writer.js";
 import { contains } from "./graders/contains.js";
@@ -68,7 +72,7 @@ import { toolCalled } from "./graders/tool-called.js";
 import { llmJudge } from "./graders/llm-judge.js";
 import type { GraderReport } from "./graders/common.js";
 import type { SnapshotDiff } from "./sandbox.js";
-import { loadEvalConfig } from "../src/config-loader.js";
+import { loadEvalConfig, resolveHostRepoRoot } from "../src/config-loader.js";
 import {
   createSandbox,
   diffSnapshots,
@@ -91,7 +95,7 @@ import {
   type SDKAgent,
 } from "./sdk-bridge.js";
 
-const REPO_ROOT = resolve(process.cwd());
+const REPO_ROOT = resolveHostRepoRoot();
 
 const DEFAULT_EXCLUDE = [
   "evals/_runs",
@@ -199,6 +203,61 @@ function discoverCursorCentralEvalJson(): string[] {
   return out;
 }
 
+const COLOCATED_EVAL_JSON_KINDS = ["commands", "agents", "hooks"] as const;
+
+/**
+ * Walk co-located non-skill JSON eval files:
+ *   `<host>/{plugins/*, .cursor}/{commands,agents,hooks}/evals/*.json`
+ *
+ * Excludes the legacy central tree at `plugins/<p>/evals/{commands,...}/`.
+ */
+export function discoverCoLocatedEvalJson(
+  hostRepoRoot: string = REPO_ROOT,
+): string[] {
+  const out: string[] = [];
+
+  function pushFromKindDir(kindDir: string): void {
+    if (!existsSync(kindDir) || !statSync(kindDir).isDirectory()) return;
+    const evalsDir = join(kindDir, "evals");
+    if (!existsSync(evalsDir) || !statSync(evalsDir).isDirectory()) return;
+    for (const entry of readdirSync(evalsDir).sort()) {
+      if (!entry.endsWith(".json")) continue;
+      const full = join(evalsDir, entry);
+      try {
+        if (statSync(full).isFile()) out.push(full);
+      } catch {
+        /* skip unreadable */
+      }
+    }
+  }
+
+  const pluginsRoot = join(hostRepoRoot, "plugins");
+  if (existsSync(pluginsRoot) && statSync(pluginsRoot).isDirectory()) {
+    for (const plugin of readdirSync(pluginsRoot).sort()) {
+      const pluginDir = join(pluginsRoot, plugin);
+      let st;
+      try {
+        st = statSync(pluginDir);
+      } catch {
+        continue;
+      }
+      if (!st.isDirectory()) continue;
+      for (const kind of COLOCATED_EVAL_JSON_KINDS) {
+        pushFromKindDir(join(pluginDir, kind));
+      }
+    }
+  }
+
+  const cursorRoot = join(hostRepoRoot, ".cursor");
+  if (existsSync(cursorRoot) && statSync(cursorRoot).isDirectory()) {
+    for (const kind of COLOCATED_EVAL_JSON_KINDS) {
+      pushFromKindDir(join(cursorRoot, kind));
+    }
+  }
+
+  return Array.from(new Set(out)).sort();
+}
+
 function discoverCaseFiles(
   evalsDir: string,
   config: Record<string, unknown>,
@@ -237,6 +296,76 @@ function walk(dir: string, fn: (f: string) => void): void {
   }
 }
 
+/** Non-skill JSON eval files carry `target_id`; legacy shapes use named fields. */
+type EvalFileWithTarget = EvalFile & { target_id?: string };
+
+function targetIdOf(file: EvalFileWithTarget): string | null {
+  if (typeof file.target_id === "string" && file.target_id.length > 0) {
+    return file.target_id;
+  }
+  if (typeof file.target === "string" && file.target.length > 0) {
+    return file.target;
+  }
+  if (file.skill_name) return `skill:${file.skill_name}`;
+  if (file.command_name) return `command:${file.command_name}`;
+  if (file.agent_name) return `agent:${file.agent_name}`;
+  if (file.hook_plugin) return `hook:${file.hook_plugin}`;
+  return null;
+}
+
+export interface PartitionedEvalFile {
+  targetId: string | null;
+  declarative: EvalCase[];
+  runners: EvalCase[];
+}
+
+/**
+ * Load a JSON eval file and partition cases into declarative vs runner
+ * buckets. Returns `null` when the file cannot be parsed.
+ */
+export function loadAndPartitionEvalFile(
+  path: string,
+): PartitionedEvalFile | null {
+  try {
+    const file = loadAndValidateEvalFile(path) as EvalFileWithTarget;
+    const declarative: EvalCase[] = [];
+    const runners: EvalCase[] = [];
+    for (const c of casesOf(file)) {
+      if (isRunnerCase(c)) runners.push(c);
+      else declarative.push(c);
+    }
+    return {
+      targetId: targetIdOf(file),
+      declarative,
+      runners,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** `--list` line format: `<targetId>#<caseId>` with optional runner suffix. */
+export function formatListLine(
+  targetId: string | null,
+  c: EvalCase,
+): string {
+  const tid = targetId ?? "unknown:target";
+  const base = `${tid}#${c.id}`;
+  if (isRunnerCase(c) && typeof c.runner === "string") {
+    return `${base} [runner: ${c.runner}]`;
+  }
+  return base;
+}
+
+/** Summary log emitted once per target during `--full` when runner cases defer to Vitest. */
+export function formatDeferredRunnerLine(
+  targetId: string | null,
+  count: number,
+): string {
+  const tid = targetId ?? "unknown:target";
+  return `[runner-cases] target=${tid} count=${count} deferred-to-vitest`;
+}
+
 /* Subtask 10: bridge-backed agent factory. The bridge owns the
  * canonical `Agent.create(...)` shape; the runner only knows about the
  * (apiKey, modelId, cwd) → Promise<SDKAgent> contract. Tests inject a
@@ -244,7 +373,7 @@ function walk(dir: string, fn: (f: string) => void): void {
 type AgentFactory = (cwd: string) => Promise<SDKAgent>;
 
 async function finishCase(
-  c: EvalCase,
+  c: DeclarativeEvalCase,
   opts: {
     started: number;
     logLines: string[];
@@ -419,7 +548,7 @@ async function finishCase(
 }
 
 async function runCase(
-  c: EvalCase,
+  c: DeclarativeEvalCase,
   agentFactory: AgentFactory,
   ctx: { runId: string },
 ): Promise<WriterCase> {
@@ -514,7 +643,7 @@ async function runCase(
 }
 
 async function runCaseSafely(
-  c: EvalCase,
+  c: DeclarativeEvalCase,
   agentFactory: AgentFactory,
   ctx: { runId: string },
 ): Promise<WriterCase> {
@@ -606,11 +735,18 @@ async function main(): Promise<number> {
 
   if (args.list) {
     const files = discoverCaseFiles(evalsDir, config);
-    const total = files.reduce(
-      (n, f) => n + casesOf(loadEvalFile(f)).length,
-      0,
-    );
-    console.log(JSON.stringify({ files, total }, null, 2));
+    for (const f of files) {
+      const loaded = loadAndPartitionEvalFile(f);
+      if (!loaded) continue;
+      try {
+        const file = loadEvalFile(f) as EvalFileWithTarget;
+        for (const c of casesOf(file)) {
+          console.log(formatListLine(loaded.targetId, c));
+        }
+      } catch {
+        /* skip unreadable */
+      }
+    }
     return 0;
   }
 
@@ -647,7 +783,16 @@ async function main(): Promise<number> {
 
   const model = resolveModel(args, config);
   const files = discoverCaseFiles(evalsDir, config);
-  const allCases = files.flatMap((f) => casesOf(loadEvalFile(f)));
+  const loaded = files
+    .map((f) => loadAndPartitionEvalFile(f))
+    .filter((x): x is PartitionedEvalFile => x !== null);
+
+  for (const l of loaded) {
+    if (l.runners.length === 0) continue;
+    console.error(formatDeferredRunnerLine(l.targetId, l.runners.length));
+  }
+
+  const allCases = loaded.flatMap((l) => l.declarative);
 
   /* Subtask 10 enriched-shape gate. Run BEFORE constructing Agent so we
    * fail fast on cheap, deterministic problems (missing prompt, empty
@@ -686,7 +831,9 @@ async function main(): Promise<number> {
   const results: WriterCase[] = [];
 
   for (const c of allCases) {
-    results.push(await runCaseSafely(c, agentFactory, { runId }));
+    results.push(
+      await runCaseSafely(c as DeclarativeEvalCase, agentFactory, { runId }),
+    );
   }
 
   const endedAt = new Date().toISOString();
@@ -706,10 +853,22 @@ async function main(): Promise<number> {
   return results.every((r) => r.status === "passed") ? 0 : 1;
 }
 
-main().then(
-  (code) => process.exit(code),
-  (err) => {
-    console.error(err);
-    process.exit(1);
-  },
-);
+function isRunnerEntrypoint(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return pathToFileURL(resolve(entry)).href === import.meta.url;
+  } catch {
+    return entry.endsWith("runner.ts") || entry.endsWith("runner.js");
+  }
+}
+
+if (isRunnerEntrypoint()) {
+  main().then(
+    (code) => process.exit(code),
+    (err) => {
+      console.error(err);
+      process.exit(1);
+    },
+  );
+}

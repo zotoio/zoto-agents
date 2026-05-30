@@ -86,12 +86,27 @@ export interface DeclarativeForbiddenInteractions {
 
 export interface EvalCase {
   id: number | string;
-  prompt: string;
+  /**
+   * Declarative cases require a realistic user/agent turn. Runner cases
+   * (`runner` set) MUST omit this field — see `case.schema.json#RunnerCase`.
+   */
+  prompt?: string;
+  /**
+   * Relative path to a `.test.ts` runner from the JSON file's directory.
+   * When set, the case is a *runner case* and declarative grading is skipped.
+   */
+  runner?: string;
+  /**
+   * Free-form payload passed to the runner as `RunnerParams.parameters`.
+   * Required on runner cases; absent on declarative cases.
+   */
+  parameters?: Record<string, unknown>;
   fixtures?: CaseFixtures;
   expected_filesystem?: CaseExpectedFilesystem;
   expected_output?: string;
   files?: string[];
-  assertions: string[];
+  /** Declarative cases require ≥1 assertion; runner cases MUST omit this field. */
+  assertions?: string[];
   /** Object graders run through the declarative runner; bare strings are legacy no-ops at parse time. */
   graders?: Array<DeclarativeGraderConfig | string>;
   follow_ups?: string[];
@@ -101,6 +116,15 @@ export interface EvalCase {
 /** Widen eval JSON that may carry forbidden `interactions` from a mis-stamped file. */
 export type EvalCaseWithOptionalInteractions = EvalCase & {
   interactions?: DeclarativeForbiddenInteractions | null;
+};
+
+/**
+ * Declarative case after `validateEnriched` — prompt and assertions are
+ * required; runner cases are excluded from this shape.
+ */
+export type DeclarativeEvalCase = EvalCase & {
+  prompt: string;
+  assertions: string[];
 };
 
 export interface EvalFile {
@@ -225,6 +249,83 @@ export function detectPlaceholderPrompt(prompt: unknown): string | null {
 export interface ValidateEnrichedResult {
   ok: boolean;
   reason?: string;
+}
+
+/** Runner paths MUST end in `.test.ts` so the loader can distinguish runner targets. */
+const RUNNER_PATH_EXT_RE = /\.test\.ts$/;
+
+/** Declarative fields forbidden on runner cases (hybrid rejection). */
+const RUNNER_FORBIDDEN_DECLARATIVE_FIELDS = [
+  "prompt",
+  "assertions",
+  "graders",
+  "fixtures",
+  "expected_filesystem",
+  "expected_output",
+  "follow_ups",
+] as const;
+
+/**
+ * Returns true when `c` is a runner case — carries a non-empty `runner`
+ * path ending in `.test.ts`. Re-usable by the harness runner dispatch
+ * (subtask 03) and the engine updater (subtask 04).
+ */
+export function isRunnerCase(c: EvalCase | null | undefined): boolean {
+  if (c == null || typeof c !== "object") return false;
+  const runner = c.runner;
+  if (typeof runner !== "string") return false;
+  const trimmed = runner.trim();
+  if (trimmed.length === 0) return false;
+  return RUNNER_PATH_EXT_RE.test(trimmed);
+}
+
+function runnerHybridFieldReason(
+  c: EvalCaseWithOptionalInteractions,
+): string | null {
+  for (const field of RUNNER_FORBIDDEN_DECLARATIVE_FIELDS) {
+    const val = c[field as keyof EvalCase];
+    if (val === undefined || val === null) continue;
+    if (field === "assertions" && Array.isArray(val) && val.length === 0) {
+      continue;
+    }
+    if (typeof val === "string" && val.trim().length === 0) continue;
+    if (Array.isArray(val) && val.length === 0) continue;
+    return `runner case must not carry declarative field "${field}"`;
+  }
+  if (caseDeclaresInteractions(c)) {
+    return `runner case must not carry declarative field "interactions"`;
+  }
+  return null;
+}
+
+function validateRunnerEnriched(c: EvalCase): ValidateEnrichedResult {
+  const runner = c.runner;
+  if (typeof runner !== "string" || runner.trim().length === 0) {
+    return { ok: false, reason: "empty `runner` path" };
+  }
+  if (!RUNNER_PATH_EXT_RE.test(runner.trim())) {
+    return {
+      ok: false,
+      reason: `invalid extension on \`runner\` path "${runner}" (must end in .test.ts)`,
+    };
+  }
+  const params = c.parameters;
+  if (
+    params === undefined ||
+    params === null ||
+    typeof params !== "object" ||
+    Array.isArray(params)
+  ) {
+    return {
+      ok: false,
+      reason: "runner case missing the `parameters` object",
+    };
+  }
+  const hybrid = runnerHybridFieldReason(c as EvalCaseWithOptionalInteractions);
+  if (hybrid) {
+    return { ok: false, reason: hybrid };
+  }
+  return { ok: true };
 }
 
 /**
@@ -383,6 +484,10 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
 }
 
 export function validateEnriched(c: EvalCase): ValidateEnrichedResult {
+  if (c.runner !== undefined && c.runner !== null) {
+    return validateRunnerEnriched(c);
+  }
+
   const interactionsReason = declarativeInteractionsRejectionReason(
     c as EvalCaseWithOptionalInteractions,
   );
