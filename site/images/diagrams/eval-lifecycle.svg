@@ -108,5 +108,5 @@
   <text x="1000" y="558" text-anchor="middle" class="label-sub">citation / checklist coverage.</text>
 
   <!-- Footer -->
-  <text x="600" y="660" text-anchor="middle" class="footer">zoto-eval-system v0.2.0  Static + LLM eval suites, kept in lock-step with code.</text>
+  <text x="600" y="660" text-anchor="middle" class="footer">zoto-eval-system v0.3.1  Static + LLM eval suites, kept in lock-step with code.</text>
 </svg>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overview — Cursor Top — Zoto Agents</title>
+  <meta name="description" content="zoto-cursor-top overview — a live, htop-style CLI that lists every Cursor agent on your machine in one expandable parent-to-subagent tree with scrolling log tails.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Cursor Top — Overview — Zoto Agents">
+  <meta property="og:description" content="Discover every Cursor IDE window, cursor-agent CLI session, and Cloud Agent VM in one live tree, with model, repo, status, and the last log lines per agent.">
+  <meta property="og:url" content="https://zotoio.github.io/zoto-agents/cursor-top/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Cursor Top — Overview — Zoto Agents">
+  <meta name="twitter:description" content="A live, htop-style monitor for every Cursor agent on your machine.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
+</head>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <nav class="top-nav" aria-label="Main navigation">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="../spec-system/index.html" class="nav-dropdown-toggle">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../spec-system/index.html">Overview</a></li>
+            <li><a href="../spec-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../spec-system/design.html">Design</a></li>
+            <li><a href="../spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../eval-system/index.html">Overview</a></li>
+            <li><a href="../eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../eval-system/design.html">Design</a></li>
+            <li><a href="../eval-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="index.html" class="nav-dropdown-toggle active">Cursor Top</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="quickstart.html">Quickstart</a></li>
+          </ul>
+        </li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" aria-label="Cursor Top pages">
+        <h3 class="sidebar-heading">Cursor Top</h3>
+        <ul class="sidebar-list">
+          <li><a href="index.html" class="sidebar-link active">Overview</a></li>
+          <li><a href="quickstart.html" class="sidebar-link">Quickstart</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="index.html">Cursor Top</a></li>
+          <li>Overview</li>
+        </ul>
+
+        <h1 id="overview">Cursor Top</h1>
+        <p>
+          <strong>A live, <code>htop</code>-style CLI that shows every Cursor agent on the current
+          machine.</strong> The <code>zoto-cursor-top</code> plugin discovers Cursor IDE windows,
+          every <code>cursor-agent</code> CLI session, and Cloud Agent VM exec daemons, then renders
+          them in one expandable tree. Parent agents expand to reveal their subagents, and every row
+          shows the start time, elapsed duration, model, repo (working directory), status, and the
+          last few log lines scrolling live.
+        </p>
+
+        <figure>
+          <pre><code>cursor-top  ·  5 processes · 3 roots · 5 subagents · refresh 1000ms
+
+TYPE     PID  AGENT                                MODEL              REPO                     START (elapsed)  STATUS
+[CLD]   6712  ▼ Cloud Agent VM                     claude-sonnet-4.5  /workspace               11:30:14 (32m04s) running
+              Design plugin live-updating htop CLI
+              log: tool: write plugins/zoto-cursor-top/src/cli.ts
+              log: spawning subagent: generalPurpose
+              log: tool: glob 'plugins/**/.cursor-plugin/plugin.json'
+   [SUB]   --  ▶ Task(explore)                     claude-sonnet-4.5  /workspace               11:32:01 (30m17s) done
+   [SUB]   --  ▼ Task(generalPurpose)              claude-sonnet-4.5  /workspace               11:40:01 (22m17s) running
+              Scaffold htop-style TUI and wire discovery layer
+              log: vitest 18/18 passed
+              log: tsup build dist/cli.js ... 142kb
+              log: writing tests/discovery/processes.test.ts
+   [SUB]   --  ▶ Task(debug)                       claude-sonnet-4.5  /workspace               11:58:01 (4m17s)  waiting
+[IDE]   4231  ▶ Cursor IDE                         claude-opus-4.7    /Users/dev/work/app      12:01:11 (14m07s) running
+[CLI]   5612  ▶ cursor-agent CLI                   gpt-5              /Users/dev/work/util     12:08:11 (7m07s)  waiting
+
+[↑/↓] move  [→/enter] expand  [←] collapse  [e]xpand all  [c]ollapse all  [r]efresh  [q]uit</code></pre>
+          <figcaption>A populated <code>--demo</code> frame. Cloud, IDE, and CLI roots sit at the top level; <code>Task</code> subagents nest under their parent.</figcaption>
+        </figure>
+
+        <h2 id="when-to-use">When to use</h2>
+        <p>Reach for Cursor Top when you want to:</p>
+        <ul>
+          <li>See, in one glance, every Cursor agent running across your machine — IDE, CLI, and Cloud.</li>
+          <li>Understand the parent-to-subagent hierarchy of a long-running, multi-agent task.</li>
+          <li>Tail the most recent log lines of several agents at once without switching windows.</li>
+          <li>Capture a machine-readable snapshot (<code>--json</code>) or a one-shot frame (<code>--once</code>) for a report or CI log.</li>
+        </ul>
+
+        <h2 id="features">Features</h2>
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>What it does</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cross-process visibility</td>
+              <td>Discovers Cursor IDE windows, every <code>cursor-agent</code> CLI session, and Cloud Agent VM exec daemons in one view.</td>
+            </tr>
+            <tr>
+              <td>Parent / subagent hierarchy</td>
+              <td>Subagents spawned via the <code>Task</code> tool are nested under their parent in a collapsible tree.</td>
+            </tr>
+            <tr>
+              <td>Per-row context</td>
+              <td>Start time, elapsed duration, model, repo, status, and the last 3 log lines (configurable) for every agent.</td>
+            </tr>
+            <tr>
+              <td>Live updates</td>
+              <td>Refresh interval is configurable — default 1&nbsp;second, minimum 200ms. Log lines re-tail every tick.</td>
+            </tr>
+            <tr>
+              <td>Three output modes</td>
+              <td>Interactive TUI, <code>--once</code> for a one-shot formatted frame, and <code>--json</code> for machine-readable snapshots.</td>
+            </tr>
+            <tr>
+              <td>Demo mode</td>
+              <td><code>--demo</code> renders a populated synthetic fixture for screenshots and onboarding — no Cursor session required.</td>
+            </tr>
+            <tr>
+              <td>No native deps</td>
+              <td>Works on macOS, Linux, and Windows using only <code>ps</code> / PowerShell and the standard library.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="data-sources">Data sources</h2>
+        <p>
+          Every data source is optional: the CLI tolerates missing directories and emits diagnostics
+          rather than crashing.
+        </p>
+        <table>
+          <thead>
+            <tr><th>Source</th><th>Used for</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>ps -axww</code> (macOS / Linux) or <code>Get-CimInstance Win32_Process</code> (Windows)</td>
+              <td>Cursor IDE, <code>cursor-agent</code>, and Cloud Agent VM processes.</td>
+            </tr>
+            <tr>
+              <td><code>~/Library/Application Support/Cursor/</code> (macOS), <code>~/.config/Cursor/</code> (Linux), <code>%APPDATA%/Cursor/</code> (Windows)</td>
+              <td>IDE session metadata.</td>
+            </tr>
+            <tr>
+              <td><code>~/.cursor/cli/</code></td>
+              <td><code>cursor-agent</code> CLI session metadata.</td>
+            </tr>
+            <tr>
+              <td><code>~/.cursor/projects/&lt;workspace&gt;/</code></td>
+              <td>Cloud Agent VM in-flight agents.</td>
+            </tr>
+            <tr>
+              <td>Log files referenced from each session record</td>
+              <td>Last few lines per agent.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="hierarchy">How the hierarchy is built</h2>
+        <ol>
+          <li><strong>Explicit <code>parentId</code></strong> from session metadata wins when present.</li>
+          <li><strong>PID &rarr; PPID</strong> from the OS process table is used when metadata is missing.</li>
+          <li><strong>Root fallback</strong> — any node with no resolvable parent is rendered at the top level.</li>
+        </ol>
+        <p>
+          A subagent appearing at root level always indicates that the session metadata was missing a
+          <code>parentId</code> for it. The <code>zoto-cursor-top-troubleshooter</code> agent walks you
+          through filing a Cursor-side report when this happens.
+        </p>
+
+        <h2 id="inside-cursor">Inside Cursor</h2>
+        <p>Beyond the standalone CLI, the plugin registers:</p>
+        <ul>
+          <li>The slash command <code>/zoto-cursor-top</code> — launches the TUI in the active terminal with <code>$ARGUMENTS</code> passed through.</li>
+          <li>The skill <code>zoto-cursor-top-monitor</code> — a guided workflow for launching and interpreting the TUI.</li>
+          <li>The agent <code>zoto-cursor-top-troubleshooter</code> — diagnoses missing rows or empty log tails when discovery comes up short.</li>
+          <li>The rule <code>zoto-cursor-top.mdc</code> — documents conventions and data sources for any agent that wants to invoke or describe the CLI.</li>
+        </ul>
+
+        <h2 id="see-also">See also</h2>
+        <div class="grid grid-3">
+          <a class="link-card" href="quickstart.html">
+            <span class="link-card-title">Quickstart</span>
+            <span class="link-card-desc">Install, run, flags, keyboard shortcuts, and in-Cursor usage.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-cursor-top" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">Source</span>
+            <span class="link-card-desc">The plugin source, discovery layer, and Ink UI components.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="../index.html#plugins">
+            <span class="link-card-title">All plugins</span>
+            <span class="link-card-desc">Spec System and Eval System round out the zoto-agents trio.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+        </div>
+
+        <p>
+          Source-of-truth: <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-cursor-top/README.md" target="_blank" rel="noopener noreferrer"><code>plugins/zoto-cursor-top/README.md</code></a>.
+        </p>
+
+        <nav class="page-nav" aria-label="Page navigation">
+          <a class="page-nav-link page-nav-next" href="quickstart.html">
+            <span class="page-nav-label">Next</span>
+            <span class="page-nav-title">Quickstart &rarr;</span>
+          </a>
+        </nav>
+
+      </div>
+
+      <footer class="site-footer">
+        <p>Cursor Top v0.1.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

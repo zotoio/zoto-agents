@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quickstart — Cursor Top — Zoto Agents</title>
+  <meta name="description" content="Install and run zoto-cursor-top — the live, htop-style CLI for every Cursor agent on your machine. Flags, keyboard shortcuts, output modes, and in-Cursor usage.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Cursor Top — Quickstart — Zoto Agents">
+  <meta property="og:description" content="Install, run, and drive the cursor-top TUI — flags, keyboard shortcuts, --once / --json output modes, and the /zoto-cursor-top slash command.">
+  <meta property="og:url" content="https://zotoio.github.io/zoto-agents/cursor-top/quickstart.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Cursor Top — Quickstart — Zoto Agents">
+  <meta name="twitter:description" content="Install and run the live Cursor agent monitor.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
+</head>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <nav class="top-nav" aria-label="Main navigation">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="../spec-system/index.html" class="nav-dropdown-toggle">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../spec-system/index.html">Overview</a></li>
+            <li><a href="../spec-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../spec-system/design.html">Design</a></li>
+            <li><a href="../spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../eval-system/index.html">Overview</a></li>
+            <li><a href="../eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../eval-system/design.html">Design</a></li>
+            <li><a href="../eval-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="index.html" class="nav-dropdown-toggle active">Cursor Top</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="quickstart.html">Quickstart</a></li>
+          </ul>
+        </li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" aria-label="Cursor Top pages">
+        <h3 class="sidebar-heading">Cursor Top</h3>
+        <ul class="sidebar-list">
+          <li><a href="index.html" class="sidebar-link">Overview</a></li>
+          <li><a href="quickstart.html" class="sidebar-link active">Quickstart</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="index.html">Cursor Top</a></li>
+          <li>Quickstart</li>
+        </ul>
+
+        <h1 id="quickstart">Cursor Top Quickstart</h1>
+        <p>
+          Get a live view of every Cursor agent on your machine in under a minute. The CLI is exposed
+          as <code>cursor-top</code> and needs no native dependencies — only <code>ps</code> /
+          PowerShell and the standard library.
+        </p>
+
+        <h2 id="install">Install</h2>
+        <p>The plugin ships in the <code>zoto-agents</code> monorepo. From the repo root:</p>
+        <pre><code class="language-bash">pnpm install
+pnpm --filter @zoto-agents/zoto-cursor-top build</code></pre>
+        <p>To use the CLI standalone, install the package globally (once published):</p>
+        <pre><code class="language-bash"># with pnpm
+pnpm add -g @zoto-agents/zoto-cursor-top
+# or npm
+npm install -g @zoto-agents/zoto-cursor-top</code></pre>
+
+        <h2 id="run">Run</h2>
+        <p>Launch the interactive TUI, or pick a one-shot output mode:</p>
+        <pre><code class="language-bash">cursor-top                # interactive live TUI (default 1s refresh)
+cursor-top --demo         # synthetic fixture, no Cursor required
+cursor-top --once         # render one frame to stdout and exit
+cursor-top --json         # emit one snapshot as JSON and exit
+cursor-top --interval 500 # refresh every 500ms (minimum 200ms)
+cursor-top --lines 5      # tail 5 log lines per agent (default 3)
+cursor-top --help         # show all flags</code></pre>
+        <p>
+          New to the tool? Start with <code>cursor-top --demo</code> — it renders a populated
+          synthetic fixture so you can learn the layout without needing any Cursor session running.
+        </p>
+
+        <h2 id="keyboard">Keyboard</h2>
+        <table>
+          <thead>
+            <tr><th>Key</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>↑</code> / <code>↓</code> or <code>j</code> / <code>k</code></td><td>Move selection.</td></tr>
+            <tr><td><code>→</code> / <code>Enter</code> or <code>l</code></td><td>Expand selected node.</td></tr>
+            <tr><td><code>←</code> or <code>h</code></td><td>Collapse selected node.</td></tr>
+            <tr><td><code>e</code></td><td>Expand all.</td></tr>
+            <tr><td><code>c</code></td><td>Collapse all.</td></tr>
+            <tr><td><code>r</code></td><td>Force refresh.</td></tr>
+            <tr><td><code>q</code> or <code>Ctrl-C</code></td><td>Quit.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="inside-cursor">Inside Cursor</h2>
+        <p>
+          Once the plugin is installed in Cursor, run the slash command to launch the TUI in the
+          active terminal — any arguments are passed straight through to the CLI:
+        </p>
+        <pre><code class="language-bash">/zoto-cursor-top
+/zoto-cursor-top --interval 500 --lines 5</code></pre>
+        <p>
+          The <code>zoto-cursor-top-monitor</code> skill provides a guided workflow for launching and
+          interpreting the TUI — process discovery, hierarchy expansion, log-tail interpretation, and
+          recommended flags for different scenarios.
+        </p>
+
+        <h2 id="troubleshooting">Troubleshooting</h2>
+        <p>
+          If rows are missing or log tails come up empty, the <code>zoto-cursor-top-troubleshooter</code>
+          agent diagnoses the gap. The most common case is a subagent appearing at root level — that
+          always means the session metadata was missing a <code>parentId</code>, and the
+          troubleshooter walks you through filing a Cursor-side report. See
+          <a href="index.html#hierarchy">How the hierarchy is built</a> on the Overview page.
+        </p>
+
+        <h2 id="develop">Develop</h2>
+        <p>From inside the plugin directory:</p>
+        <pre><code class="language-bash">cd plugins/zoto-cursor-top
+pnpm install
+pnpm test           # vitest
+pnpm validate       # structural validation
+pnpm build          # tsup -> dist/cli.js
+pnpm start          # run via tsx
+pnpm demo           # run --demo via tsx</code></pre>
+
+        <h2 id="see-also">See also</h2>
+        <div class="grid grid-3">
+          <a class="link-card" href="index.html">
+            <span class="link-card-title">Overview</span>
+            <span class="link-card-desc">What the monitor shows, data sources, and the hierarchy model.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-cursor-top" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">Source</span>
+            <span class="link-card-desc">The plugin source, discovery layer, and Ink UI components.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="../index.html#plugins">
+            <span class="link-card-title">All plugins</span>
+            <span class="link-card-desc">Spec System and Eval System round out the zoto-agents trio.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+        </div>
+
+        <p>
+          Source-of-truth: <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-cursor-top/README.md" target="_blank" rel="noopener noreferrer"><code>plugins/zoto-cursor-top/README.md</code></a>.
+        </p>
+
+        <nav class="page-nav" aria-label="Page navigation">
+          <a class="page-nav-link" href="index.html">
+            <span class="page-nav-label">Previous</span>
+            <span class="page-nav-title">&larr; Overview</span>
+          </a>
+        </nav>
+
+      </div>
+
+      <footer class="site-footer">
+        <p>Cursor Top v0.1.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

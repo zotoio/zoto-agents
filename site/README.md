@@ -28,6 +28,9 @@ site/
 │   ├── quickstart.html
 │   ├── design.html
 │   └── configuration.html
+├── cursor-top/         Cursor Top documentation subtree
+│   ├── index.html
+│   └── quickstart.html
 ├── sitemap.xml
 └── robots.txt
 ```
@@ -53,16 +56,17 @@ The canvas requires `<canvas class="matrix-rain-canvas">` in the page markup.
 
 ## Publish Path (GitHub Pages)
 
-The site is deployed automatically by `.github/workflows/deploy-pages.yml` on every push to `main` that touches `site/**`. The workflow uploads the `site/` directory as a Pages artifact and deploys it.
+The site is deployed automatically by `.github/workflows/deploy-pages.yml` on every push to `main` that touches `site/**` or the workflow file. You can also run the workflow manually from the Actions tab (`workflow_dispatch`). The workflow uploads the `site/` directory as a Pages artifact and deploys it to https://zotoio.github.io/zoto-agents/.
 
 ## Smoke Test Checklist
 
 After modifying the site, run a local preview and verify:
 
-1. Landing page (`/`) renders with the falling-glyphs rain canvas.
-2. Both top-nav dropdown menus (Spec System, Eval System) open and close.
+1. Landing page (`/`) renders with the falling-glyphs rain canvas and a three-plugin grid.
+2. All three top-nav dropdown menus (Spec System, Eval System, Cursor Top) open and close.
 3. All four Spec System pages load without errors.
 4. All four Eval System pages load without errors.
-5. The 404 page (`/nonexistent`) renders the custom layout.
-6. Enable reduced-motion (browser DevTools → Rendering → Emulate CSS media `prefers-reduced-motion: reduce`) — the rain stops.
-7. Browser console is clean: no 404s, no script errors.
+5. Both Cursor Top pages (Overview, Quickstart) load without errors.
+6. The 404 page (`/nonexistent`) renders the custom layout.
+7. Enable reduced-motion (browser DevTools → Rendering → Emulate CSS media `prefers-reduced-motion: reduce`) — the rain stops.
+8. Browser console is clean: no 404s, no script errors.

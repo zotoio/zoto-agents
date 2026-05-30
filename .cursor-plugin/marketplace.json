@@ -5,8 +5,8 @@
     "email": "plugins@zotoio.com"
   },
   "metadata": {
-    "description": "Two peer Cursor plugins for structured engineering: plan and verify your specs, generate and update your evals.",
-    "version": "0.5.0",
+    "description": "Three peer Cursor plugins for structured engineering: plan and verify your specs, generate and update your evals, and monitor every agent on your machine.",
+    "version": "0.6.0",
     "pluginRoot": "plugins"
   },
   "plugins": [

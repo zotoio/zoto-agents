@@ -2,7 +2,7 @@
 
 Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 
-**Plan and verify your specs. Generate and update your evals.** Two Cursor plugins shipped together as peers — independent, composable, free. Install one, install both; they cooperate but neither depends on the other.
+**Plan and verify your specs. Generate and update your evals. Watch every agent.** Three Cursor plugins shipped together as peers — independent, composable, free. Install one, install all; they cooperate but none depends on another.
 
 ## Plugins
 
@@ -10,6 +10,7 @@ Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 |--------|-------------|
 | [zoto-spec-system](plugins/zoto-spec-system/) | Decompose complex initiatives into reviewable specs, judge them independently, then execute with adversarial verification at every subtask. |
 | [zoto-eval-system](plugins/zoto-eval-system/) | Stamp static (pytest) and LLM (`@cursor/sdk`) eval suites side-by-side, detect drift when AI primitives change and update evals with user confirmation, and compare runs across models on a single `/canvas`. |
+| [zoto-cursor-top](plugins/zoto-cursor-top/) | Live, `htop`-style CLI that lists every Cursor agent on the current machine — IDE windows, `cursor-agent` CLI sessions, and Cloud Agent VMs — in one expandable parent-to-subagent tree with scrolling log tails. |
 
 ## Getting Started
 
