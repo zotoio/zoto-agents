@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-05-29T11:52:41.458Z
-git_ref: 1fa87d469166c5a78ba836ca4bebb8667fcdc6fb
+updated_at: 2026-05-30T14:05:11.463Z
+git_ref: 6345b245cff3c552c71e1131f1e961d273e5dfa2
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -117,7 +117,7 @@ targets:
   - id: skill:zoto-create-evals
     kind: skill
     path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
-    content_hash: 58a55dfee7e5f563307aeeed87dfc89eeffa322156402bc413d62df2b64003f5
+    content_hash: a2fb6aa4980cd3ae01d845f4b876a5b78d47c345ac6693299a540ad118db48dd
     public_surface:
       frontmatter:
         name: zoto-create-evals
