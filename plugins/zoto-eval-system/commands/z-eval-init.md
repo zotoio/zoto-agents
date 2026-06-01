@@ -17,14 +17,21 @@ Scaffold a fresh `.zoto/eval-system/config.yml` for this repository. The generat
 ## Instructions
 
 1. Resolve the repository root from `$CURSOR_WORKING_DIRECTORY` (fall back to the current working directory if unset).
-2. Read `plugins/zoto-eval-system/templates/init-config.yml` from the installed plugin and write it verbatim to `<repoRoot>/.zoto/eval-system/config.yml`, creating the parent directories with `mkdir -p` semantics.
-3. **Idempotency rule:** if the destination file already exists, **abort with a non-zero exit message** unless `--force` was passed. Never silently overwrite a user-edited config.
-4. After writing the file, print a one-line confirmation that includes:
-   - the absolute path of the new file,
+2. Invoke the plugin's `scripts/eval-init.ts` with `--repo-root <repoRoot>` and forward `--force` when the user passed it. This script:
+   - reads `templates/init-config.yml` from the installed plugin and writes it verbatim to `<repoRoot>/.zoto/eval-system/config.yml` (idempotent: aborts unless `--force` when the file already exists);
+   - calls `ensure-host-env-and-gitignore.ts` to stamp `.env.example`, repo-root `.gitignore`, and missing `README.md` / `AGENTS.md` (never writes `.env`; never overwrites existing root docs);
+   - stamps lean eval-home runtime under `<repoRoot>/.zoto/eval-system/` (`package.json`, `scripts/eval-bridge.ts`, cache dirs, `.gitignore`) via `stamp-lean-layout.ts --skip-llm-harness`;
+   - removes legacy root `scripts/eval-bridge.ts` and root `package.json` eval aliases if present;
+   - runs **`pnpm install`** in `.zoto/eval-system/`, falling back to **`npm install`** when pnpm is unavailable or fails.
+3. **Do not** write config or touch the filesystem yourself when `eval-init.ts` is available — delegate to it so init behaviour stays in one place.
+4. Print a one-line confirmation that includes:
+   - the absolute path of the new config file,
    - a reminder that all defaults are commented (so the file behaves identically to no-config until the user uncomments lines),
    - a pointer to `plugins/zoto-eval-system/templates/schema/config.schema.json` for the full reference,
-   - a hint that `/z-eval-configure` is the next interactive step for users who prefer guided question-by-question setup.
-5. Do **not** spawn the configurer subagent and do **not** run any other Eval System command from this command — `init` is purely a scaffolding step.
+   - a hint that `/z-eval-configure` is the next interactive step for users who prefer guided question-by-question setup,
+   - a note that lean mode runs from `.zoto/eval-system/` (`pnpm -C .zoto/eval-system run eval` / `eval:full`) and resolves full runtime from the installed plugin (see README "Plugin vs host runtime layout"),
+   - a reminder to copy `.env.example` → `.env` and set `CURSOR_API_KEY` before running LLM evals.
+5. Do **not** spawn the configurer subagent and do **not** run any other Eval System command from this command — `init` is purely a scaffolding step (aside from the eval-home dependency install above).
 
 ## Failure modes
 

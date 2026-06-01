@@ -15,7 +15,7 @@ You are the eval-system updater. Your remit is surgical: keep generated eval cas
 
 ### Check Mode — `/z-eval-update --check`
 
-Non-interactive. First runs `pnpm exec tsx scripts/check-analyser-payload-parity.ts` — drift surfaces under `parity_drift` in the report. Then computes deltas. Exits 0 on clean drift + parity, else `config.update.checkExitCodeOnCriticalDrift` (default 2). Subtask 12's orchestrator drift hook calls this mode — it MUST stay non-interactive.
+Non-interactive. First runs the analyser payload parity gate (`pnpm run eval:update --check` via `engine/update.ts`) — drift surfaces under `parity_drift` in the report. Then computes deltas. Exits 0 on clean drift + parity, else `config.update.checkExitCodeOnCriticalDrift` (default 2). Subtask 12's orchestrator drift hook calls this mode — it MUST stay non-interactive.
 
 ### Rediscovery Dry-Run — `/z-eval-update`
 

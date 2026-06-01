@@ -3,7 +3,7 @@
 This directory ships the **first-class vitest backend** for `zoto-eval-system`'s
 static eval suite (subtask 07 of the eval-system-v2 spec). When a host repo's
 `.zoto/eval-system/config.yml` declares `static.framework === "vitest"`,
-`scripts/eval-stamp.ts#stampVitestPerPrimitive` materialises every file in
+`plugins/zoto-eval-system/scripts/eval-stamp.ts#stampVitestPerPrimitive` materialises every file in
 this directory into the host repo under `evals/` and creates one
 per-primitive test file at `evals/test_<kind>_<slug>.test.ts`.
 
@@ -47,7 +47,7 @@ Subtask 07 (vitest backend) and subtask 08 (jest backend) are mutually
 exclusive at the host-repo level. Only one TypeScript static framework may be
 installed or stamped per repo.
 
-`scripts/eval-stamp.ts` exposes the symmetric helper
+`plugins/zoto-eval-system/scripts/eval-stamp.ts` exposes the symmetric helper
 `assertNoConflictingFramework(target, hostRepoRoot)` that both
 `stampVitestPerPrimitive` and `stampJestPerPrimitive` invoke before stamping
 any asset. The helper is defined once in subtask 08's fence and re-used by
@@ -89,12 +89,14 @@ owned by subtask 12's orchestrator. Subtask 07 only owns the **per-backend
 script**:
 
 ```bash
-pnpm run eval:static:vitest
+pnpm run eval:vitest
 # expands to:  vitest run --config evals/vitest.config.ts
 ```
 
-When `static.framework === "vitest"`, subtask 12's orchestrator dispatches
-`pnpm run eval` to this script.
+`eval:static:vitest` is a backwards-compatible alias for the same command.
+The orchestrator invokes `eval:vitest` for the unified static + LLM Vitest run
+(when `static.framework === "vitest"`) and for the LLM/JSON path on pytest/jest
+hosts.
 
 ## Dependencies
 

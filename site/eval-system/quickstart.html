@@ -112,8 +112,13 @@
         </p>
         <pre><code class="language-bash">/z-eval-init</code></pre>
         <p>
-          Edit the file by hand if you know what you want — every line is commented, so you can
-          uncomment selectively. Or run <code>/z-eval-configure</code> for the interactive flow.
+          Init also stamps the <strong>lean</strong> eval-home runtime under
+          <code>.zoto/eval-system/</code> (nested <code>package.json</code>,
+          <code>scripts/eval-bridge.ts</code>, cache dirs). Run orchestrated evals with
+          <code>pnpm -C .zoto/eval-system run eval</code> / <code>eval:full</code> once
+          dependencies are installed. Edit config by hand if you prefer — every line is
+          commented, so you can uncomment selectively — or run <code>/z-eval-configure</code>
+          for the interactive flow.
         </p>
 
         <h2 id="configure">Configure — interactive guided setup</h2>

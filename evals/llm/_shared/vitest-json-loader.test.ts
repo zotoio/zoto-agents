@@ -19,6 +19,7 @@ import {
   buildVirtualEvalJsonId,
   evalJsonLoader,
   isNonSkillEvalJsonPath,
+  isSkillEvalJsonPath,
   renderEvalModule,
   unwrapVirtualEvalJsonId,
 } from "./vitest-json-loader.js";
@@ -112,6 +113,14 @@ describe("isNonSkillEvalJsonPath", () => {
     ).toBe(false);
   });
 
+  it("classifies .cursor/skills evals.json as a skill eval path", () => {
+    expect(
+      isSkillEvalJsonPath(
+        "/repo/.cursor/skills/zoto-create-plugin/evals/evals.json",
+      ),
+    ).toBe(true);
+  });
+
   it("rejects a non-JSON path", () => {
     expect(
       isNonSkillEvalJsonPath(
@@ -172,10 +181,11 @@ describe("evalJsonLoader resolveId", () => {
     );
   });
 
-  it("returns null for a skill evals.json (absolute source)", () => {
-    const abs = "/abs/repo/plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json";
+  it("returns the virtual ID for a skill evals.json (skipped pytest suite)", () => {
+    const abs =
+      "/abs/repo/.cursor/skills/zoto-create-plugin/evals/evals.json";
     const result = callResolve(plugin, abs);
-    expect(result).toBeNull();
+    expect(result).toBe(buildVirtualEvalJsonId(abs));
   });
 
   it("returns null for a non-JSON source", () => {
@@ -229,6 +239,17 @@ describe("evalJsonLoader load", () => {
     expect(result).toBeNull();
   });
 
+  it("synthesises a skipped suite for skill evals.json", async () => {
+    const abs =
+      "/abs/repo/.cursor/skills/zoto-create-plugin/evals/evals.json";
+    const virtualId = buildVirtualEvalJsonId(abs);
+    const result = await callLoad(plugin, virtualId);
+    const code = unwrapCode(result);
+    expect(code).toContain("it.skip");
+    expect(code).toContain("pytest static backend");
+    expect(code).not.toContain("defineLlmEval");
+  });
+
   it("synthesises a module containing defineLlmEval + targetId for the fixture", async () => {
     const virtualId = `${VIRTUAL_PREFIX}${FIXTURE_PATH}`;
     const result = await callLoad(plugin, virtualId);
@@ -257,7 +278,7 @@ describe("evalJsonLoader load", () => {
 
     /* Optional metadata fields appear when present in the JSON. */
     expect(code).toContain(`const MODEL_ID = "composer-2.5"`);
-    expect(code).toContain(`const JUDGE_MODEL = "opus-4.6"`);
+    expect(code).toContain(`const JUDGE_MODEL = "claude-opus-4-8[]"`);
     expect(code).toContain(`const CASE_TIMEOUT_MS = 60000`);
   });
 
@@ -450,13 +471,13 @@ describe("renderEvalModule", () => {
         target_id: "command:full",
         cases: [{ id: "c1", prompt: "p", assertions: ["a"] }],
         model_id: "composer-2.5",
-        judge_model: "opus-4.6",
+        judge_model: "claude-opus-4-8[]",
         case_timeout_ms: 60000,
       },
       { harnessModulePath: "/abs/path/to/run-llm-suite.js" },
     );
     expect(code).toContain(`const MODEL_ID = "composer-2.5"`);
-    expect(code).toContain(`const JUDGE_MODEL = "opus-4.6"`);
+    expect(code).toContain(`const JUDGE_MODEL = "claude-opus-4-8[]"`);
     expect(code).toContain(`const CASE_TIMEOUT_MS = 60000`);
     expect(code).toContain(`  modelId: MODEL_ID,`);
     expect(code).toContain(`  judgeModel: JUDGE_MODEL,`);
@@ -471,14 +492,14 @@ describe("renderEvalModule", () => {
         cases: [{ id: "c1", prompt: "p", assertions: ["a"] }],
         _meta: {
           model_id: "composer-2.5",
-          judge_model: "opus-4.6",
+          judge_model: "claude-opus-4-8[]",
           case_timeout_ms: 120000,
         },
       },
       { harnessModulePath: "/abs/path/to/run-llm-suite.js" },
     );
     expect(code).toContain(`const MODEL_ID = "composer-2.5"`);
-    expect(code).toContain(`const JUDGE_MODEL = "opus-4.6"`);
+    expect(code).toContain(`const JUDGE_MODEL = "claude-opus-4-8[]"`);
     expect(code).toContain(`const CASE_TIMEOUT_MS = 120000`);
   });
 

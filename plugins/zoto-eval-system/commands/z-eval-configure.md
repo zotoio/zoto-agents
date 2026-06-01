@@ -33,8 +33,8 @@ Run `askQuestion` for each field in this order. Use enum-backed options (no free
 4. **discoveryTargets** — multi-select: `skill`, `command`, `agent`, `hook`, `cli`, `lib`.
 5. **`static.framework`** *(new — subtask 02)* — `pytest` / `vitest` / `jest`. Recommendation hint: pytest if the repo has Python primitives, vitest by default for TS-only repos, jest if the repo already ships jest tooling.
 6. **llm.runtime** — `tsx` vs `node`.
-7. **llm.model.id** — `composer-2.5` / `opus-4.6` / `sonnet`.
-8. **judgeModel** — same set; default `opus-4.6`.
+7. **llm.model.id** — `composer-2.5` / `claude-opus-4-8[]` / `sonnet`.
+8. **judgeModel** — same set; default `claude-opus-4-8[]`.
 9. **manualChecklists.enabled** — yes / no.
 10. **additionalAutomation** — none / vitest / jest / bats (multi-select).
 11. **update.criticalChangeRules.*** — five yes/no toggles (defaults on).

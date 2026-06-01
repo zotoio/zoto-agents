@@ -1,0 +1,78 @@
+schema_version: 1
+subtask_id: "03"
+feature: eval-dual-host-layout
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`/z-eval-init` updated: after writing config.yml, runs `pnpm install` at repo root to install eval devDeps"
+    done: true
+    evidence_path: plugins/zoto-eval-system/commands/z-eval-init.md
+  - id: D02
+    text: "`/z-eval-create` flow updated: stamps ONLY config.yml, manifest.yml, evals/ structure, _runs/.gitkeep, cache/.gitkeep, .gitignore — NO src/, engine/, templates/, scripts/, agents/, nested package.json"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-lean-layout.ts
+  - id: D03
+    text: "Root `package.json` eval script aliases updated to resolve through plugin: `tsx <resolved-plugin-path>/scripts/<name>.ts` pattern OR wrapper script that calls `resolvePluginRoot()`"
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/runner/eval-bridge.ts.tmpl
+  - id: D04
+    text: "Minimal devDeps added to root `package.json` by create flow: `@cursor/sdk`, `tsx`, `yaml`, `dotenv`, `ajv`, `ajv-formats`, `typescript`, `minimatch`"
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/package-scripts/base.json
+  - id: D05
+    text: "`stamp-host-layout.ts` NOT called by `/z-eval-create` in lean mode"
+    done: true
+    evidence_path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+  - id: D06
+    text: "`zoto-create-evals` SKILL.md updated to document lean-mode behaviour"
+    done: true
+    evidence_path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+  - id: D07
+    text: "`z-eval-create.md` command doc updated"
+    done: true
+    evidence_path: plugins/zoto-eval-system/commands/z-eval-create.md
+artifacts:
+  - path: plugins/zoto-eval-system/scripts/stamp-lean-layout.ts
+    kind: created
+    note: lean layout stamper
+  - path: plugins/zoto-eval-system/templates/runner/eval-bridge.ts.tmpl
+    kind: created
+    note: cross-platform eval script bridge template
+  - path: plugins/zoto-eval-system/templates/package-scripts/base.json
+    kind: modified
+    note: eval:* aliases via eval-bridge + minimal devDeps
+  - path: plugins/zoto-eval-system/scripts/eval-ensure-host.ts
+    kind: modified
+    note: lean ensure-host updates
+  - path: plugins/zoto-eval-system/commands/z-eval-init.md
+    kind: modified
+    note: pnpm install after config write
+  - path: plugins/zoto-eval-system/commands/z-eval-create.md
+    kind: modified
+    note: lean create flow documentation
+  - path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+    kind: modified
+    note: lean-mode behaviour documented
+  - path: plugins/zoto-eval-system/agents/zoto-eval-generator.md
+    kind: modified
+    note: generator uses stamp-lean-layout only
+  - path: plugins/zoto-eval-system/tests/plugin.test.ts
+    kind: modified
+    note: stampLeanLayout and merger tests
+errors: []
+notes: "Bridge smoke-tested: eval-discover via stamped bridge from temp lean host against monorepo plugin resolution."
+extra:
+  judge:
+    verdict: verified
+    at: "2026-06-01T14:45:00Z"
+    notes: >-
+      All seven deliverables confirmed on disk: z-eval-init documents root pnpm install after config write;
+      stamp-lean-layout.ts materialises lean assets only (no src/engine/templates/scripts/agents/nested package.json);
+      eval-bridge.ts.tmpl uses spawnSync without shell interpolation; base.json merges eval:* aliases via
+      tsx scripts/eval-bridge.ts and lists all seven minimal devDeps; create flow docs and generator agent
+      route through stamp-lean-layout only (stamp-host-layout eject-only). plugin.test.ts 66/66 passed including
+      stampLeanLayout and package-json merger cases. ReadLints clean on modified plugin files.
+    fix_list: []

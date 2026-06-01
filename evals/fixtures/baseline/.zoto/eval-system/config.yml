@@ -25,6 +25,11 @@
 # ignore: []
 
 
+# ─────────────────────────────  host layout  ─────────────────────────────────
+# Lean (plugin-dependent) is the default. Eject via `pnpm run eval:stamp-host-layout`.
+# hostLayout: plugin          # plugin | ejected
+
+
 # ──────────────────────────────  backends  ───────────────────────────────────
 # `static` is the non-LLM backend (pytest for Python, vitest|jest for TS).
 # `llm` configures the single unified LLM harness — every non-skill primitive
@@ -37,12 +42,12 @@
 # llm:
 #   runtime: tsx               # tsx | node
 #   model:
-#     id: composer-2.5           # composer-2.5 | opus-4.6 | sonnet
+#     id: composer-2.5           # composer-2.5 | claude-opus-4-8[] | sonnet
 
 
 # ────────────────────────────────  judge  ────────────────────────────────────
-# Model used by /zoto-eval-judge for adversarial scoring.
-# judgeModel: opus-4.6
+# Model used by /z-eval-judge for adversarial scoring.
+# judgeModel: claude-opus-4-8[]
 
 
 # ────────────────────────────  manual checklists  ────────────────────────────

@@ -5,7 +5,7 @@
     "migrated_from": "plugins/zoto-eval-system/agents/evals/zoto-eval-executor.test.ts",
     "migrated_at": "2026-05-27T17:21:10.986Z",
     "model_id": "composer-2.5",
-    "judge_model": "opus-4.6",
+    "judge_model": "claude-opus-4-8[]",
     "case_timeout_ms": 180000
   },
   "cases": [
@@ -94,11 +94,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58a14ba7156d08b76dd1efe24173bc77a6288fd8e01df0f85ece3ce544a94010",
-        "last_updated": "2026-05-29T11:52:41.423Z",
+        "last_updated": "2026-06-01T04:55:08.370Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58a14ba7156d08b76dd1efe24173bc77a6288fd8e01df0f85ece3ce544a94010",
-          "analysed_at": "2026-05-29T11:52:41.423Z",
+          "analysed_at": "2026-06-01T04:55:08.370Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The evaluator executor agent honours `.zoto/eval-system/config.yml` when choosing stamped runners; it invokes the host repo’s `pnpm run eval` or `pnpm run eval:full` pipelines, merges `static.yml`, `llm.yml`, and `report.yml` under `evals/_runs/`, mirrors `--model` into `ZOTO_EVAL_MODEL`, appends guarded drift lines via `pnpm run eval:update --check`, refuses LLM tiers without simultaneous `--full` plus Cursor credential availability, and returns structured `needs_user_input` rather than emitting `askQuestion`."
         }
@@ -127,11 +127,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58a14ba7156d08b76dd1efe24173bc77a6288fd8e01df0f85ece3ce544a94010",
-        "last_updated": "2026-05-29T11:52:41.423Z",
+        "last_updated": "2026-06-01T04:55:08.370Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58a14ba7156d08b76dd1efe24173bc77a6288fd8e01df0f85ece3ce544a94010",
-          "analysed_at": "2026-05-29T11:52:41.423Z",
+          "analysed_at": "2026-06-01T04:55:08.370Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The evaluator executor agent honours `.zoto/eval-system/config.yml` when choosing stamped runners; it invokes the host repo’s `pnpm run eval` or `pnpm run eval:full` pipelines, merges `static.yml`, `llm.yml`, and `report.yml` under `evals/_runs/`, mirrors `--model` into `ZOTO_EVAL_MODEL`, appends guarded drift lines via `pnpm run eval:update --check`, refuses LLM tiers without simultaneous `--full` plus Cursor credential availability, and returns structured `needs_user_input` rather than emitting `askQuestion`."
         }
@@ -152,11 +152,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58a14ba7156d08b76dd1efe24173bc77a6288fd8e01df0f85ece3ce544a94010",
-        "last_updated": "2026-05-29T11:52:41.423Z",
+        "last_updated": "2026-06-01T04:55:08.370Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58a14ba7156d08b76dd1efe24173bc77a6288fd8e01df0f85ece3ce544a94010",
-          "analysed_at": "2026-05-29T11:52:41.423Z",
+          "analysed_at": "2026-06-01T04:55:08.370Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The evaluator executor agent honours `.zoto/eval-system/config.yml` when choosing stamped runners; it invokes the host repo’s `pnpm run eval` or `pnpm run eval:full` pipelines, merges `static.yml`, `llm.yml`, and `report.yml` under `evals/_runs/`, mirrors `--model` into `ZOTO_EVAL_MODEL`, appends guarded drift lines via `pnpm run eval:update --check`, refuses LLM tiers without simultaneous `--full` plus Cursor credential availability, and returns structured `needs_user_input` rather than emitting `askQuestion`."
         }
@@ -179,11 +179,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "58a14ba7156d08b76dd1efe24173bc77a6288fd8e01df0f85ece3ce544a94010",
-        "last_updated": "2026-05-29T11:52:41.423Z",
+        "last_updated": "2026-06-01T04:55:08.370Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "58a14ba7156d08b76dd1efe24173bc77a6288fd8e01df0f85ece3ce544a94010",
-          "analysed_at": "2026-05-29T11:52:41.423Z",
+          "analysed_at": "2026-06-01T04:55:08.370Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The evaluator executor agent honours `.zoto/eval-system/config.yml` when choosing stamped runners; it invokes the host repo’s `pnpm run eval` or `pnpm run eval:full` pipelines, merges `static.yml`, `llm.yml`, and `report.yml` under `evals/_runs/`, mirrors `--model` into `ZOTO_EVAL_MODEL`, appends guarded drift lines via `pnpm run eval:update --check`, refuses LLM tiers without simultaneous `--full` plus Cursor credential availability, and returns structured `needs_user_input` rather than emitting `askQuestion`."
         }

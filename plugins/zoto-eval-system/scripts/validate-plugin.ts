@@ -384,7 +384,7 @@ function checkUpdateTemplateGuard(): CheckResult[] {
   const results: CheckResult[] = [];
   for (const rel of [
     "templates/llm/agent-sdk/update.ts.tmpl",
-    "scripts/eval-update.ts",
+    "engine/update.ts",
   ]) {
     const path = join(REPO_ROOT, rel);
     if (!isFile(path)) {

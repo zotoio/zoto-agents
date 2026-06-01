@@ -1,0 +1,87 @@
+schema_version: 1
+subtask_id: "04"
+feature: eval-dual-host-layout
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "`stamp-host-layout.ts` refactored: uses `resolvePluginRoot()` (from S01) instead of hardcoded `PLUGIN_ROOT` for source resolution"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D02
+    text: "On eject: writes `hostLayout: ejected` into `.zoto/eval-system/config.yml` (preserving all other config)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D03
+    text: "On eject: creates nested `.zoto/eval-system/package.json` with self-contained deps"
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/host-package/package.json
+  - id: D04
+    text: "On eject: copies src/, engine/, templates/, scripts/ to `.zoto/eval-system/`"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D05
+    text: "On eject: does NOT copy agents/skills/commands to `.zoto/eval-system/agents/` (that's S05's job — `.cursor/*/eval-sys/`)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/stamp-host-layout.test.ts
+  - id: D06
+    text: Remove the `ANALYSER_AGENT` copy logic that puts agent into `.zoto/eval-system/agents/`
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D07
+    text: Root `package.json` eval aliases updated to point to `.zoto/eval-system/` (self-contained paths) after eject
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D08
+    text: "`eval:stamp-host-layout` alias added/verified in root package.json template"
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/package-scripts/base.json
+  - id: D09
+    text: Prints clear summary of what was ejected and next steps (run `pnpm install` in `.zoto/eval-system/`)
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D10
+    text: "`--dry-run` flag continues to work"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/stamp-host-layout.test.ts
+artifacts:
+  - path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+    kind: modified
+    note: eject CLI refactor
+  - path: plugins/zoto-eval-system/tests/stamp-host-layout.test.ts
+    kind: created
+    note: targeted eject tests
+  - path: plugins/zoto-eval-system/templates/package-scripts/base.json
+    kind: modified
+    note: eval:stamp-host-layout alias
+  - path: plugins/zoto-eval-system/templates/host-package/package.json
+    kind: modified
+    note: nested eval:stamp-host-layout
+  - path: plugins/zoto-eval-system/scripts/migrate-host-layout-v3.ts
+    kind: modified
+    note: delegate stampRootEvalAliases to stampHostLayout
+errors: []
+notes: |
+  Eject CLI refactored as explicit opt-in. Uses resolvePluginRoot() for source resolution;
+  patchConfigHostLayout() sets hostLayout via yaml parseDocument; stampRootEvalAliases()
+  delegates all eval:* scripts to pnpm -C .zoto/eval-system. ANALYSER_AGENT copy removed.
+  S05 primitives stamping deferred. Judge: vitest stamp-host-layout.test.ts 5/5 pass; no lints.
+extra:
+  test_results: "plugins/zoto-eval-system/tests/stamp-host-layout.test.ts — 5 passed (judge re-run 2026-06-01)"
+  judge:
+    verdict: verified
+    at: "2026-06-01T14:43:12.000Z"
+    notes: >-
+      All ten deliverables and four Definition-of-Done gates confirmed on disk.
+      resolveSourcePluginRoot() calls resolvePluginRoot(); patchConfigHostLayout uses
+      parseDocument; COPY_DIRS + stampScripts copy runtime; no agents/ dir (grep + test);
+      ANALYSER_AGENT absent; stampRootEvalAliases delegates via pnpm -C .zoto/eval-system;
+      eval:stamp-host-layout in base.json and host-package template; printEjectSummary
+      documents pnpm install next step; dry-run test passes. vitest run
+      tests/stamp-host-layout.test.ts: 5/5 passed. ReadLints clean on stamp-host-layout.ts
+      and test file. Corrected invalid state "done" → completed.
+    fix_list: []
+last_heartbeat: 2026-06-01T14:43:12.000Z
+completed_at: 2026-06-01T14:43:12.000Z

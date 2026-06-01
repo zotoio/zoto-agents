@@ -5,7 +5,19 @@ description: Invocation reference for all eval-system CLI commands. Use this ski
 
 # Eval System CLI Tooling
 
-This skill is the **single source of truth** for how agents invoke eval-system CLI commands. All commands are available as `pnpm run eval:<name>` aliases defined in the host repo's `package.json`. Agents and skills MUST invoke these aliases — never reference the underlying TypeScript file paths directly.
+This skill is the **single source of truth** for how agents invoke eval-system CLI commands.
+
+**Lean hosts (default):** nested `.zoto/eval-system/package.json` exposes `pnpm run eval` and `pnpm run eval:full` (root may delegate via `pnpm -C .zoto/eval-system run eval`). Every other command is invoked via the bridge from the repo root:
+
+```bash
+tsx .zoto/eval-system/scripts/eval-bridge.ts <script-base> [-- <args>]
+```
+
+Examples: `tsx .zoto/eval-system/scripts/eval-bridge.ts eval-discover`, `tsx .zoto/eval-system/scripts/eval-bridge.ts engine/update -- --check`, `tsx .zoto/eval-system/scripts/eval-bridge.ts eval-stamp -- command:foo`.
+
+**Ejected hosts:** root aliases delegate to `pnpm -C .zoto/eval-system <script>`; the nested package carries the full `eval:*` set.
+
+Agents MUST NOT reference underlying TypeScript file paths in the plugin install — always go through `.zoto/eval-system/scripts/eval-bridge.ts` (lean) or root `pnpm run eval:*` (ejected).
 
 ## Commands
 
@@ -45,7 +57,7 @@ Stamp (generate) per-primitive eval test files from an analyser payload.
 | **Output** | Files written under `{evalsDir}/` for command/agent/hook targets; **`skill:zoto-eval-tooling`** stamps `plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json` from the analyser cache — stdout reports the path written |
 | **Exit codes** | 0 = success, 1 = error (missing payload, bad target), 2 = non-allowlisted `skill:*` target |
 | **Config fields used** | `static.framework`, `evalsDir` |
-| **Note** | **`skill:zoto-eval-tooling`** is allowlisted: run `pnpm run eval:analyse -- skill:zoto-eval-tooling` first (cache under `.zoto/eval-system/cache/analyser/`), then `pnpm run eval:stamp -- skill:zoto-eval-tooling`. Every other `skill:*` refuses stamp — use `templates/skill-evals/evals.json.tmpl` (see `CENTRAL_STAMP_SKILL_ALLOWLIST` in the host `scripts/eval-stamp.ts`). |
+| **Note** | **`skill:zoto-eval-tooling`** is allowlisted: run `pnpm run eval:analyse -- skill:zoto-eval-tooling` first (cache under `.zoto/eval-system/cache/analyser/`), then `pnpm run eval:stamp -- skill:zoto-eval-tooling`. Every other `skill:*` refuses stamp — use `templates/skill-evals/evals.json.tmpl`. The allowlist (`CENTRAL_STAMP_SKILL_ALLOWLIST`) lives in `eval-stamp.ts`: **lean** mode resolves it from the plugin via `eval-bridge.ts` (`plugins/zoto-eval-system/scripts/eval-stamp.ts`); **ejected** mode uses the vendored copy at `.zoto/eval-system/scripts/eval-stamp.ts`. |
 
 ### `pnpm run eval:cleanup-stale`
 
@@ -100,10 +112,48 @@ Prune old run folders past the configured retention limit.
 | **Exit codes** | 0 = success |
 | **Config fields used** | `evalsDir`, `runs.retention` |
 
+### `pnpm run eval:stamp-host-layout`
+
+Opt-in **eject** — copy self-contained runtime into `.zoto/eval-system/`.
+
+| Detail | Value |
+|--------|-------|
+| **Purpose** | Vendor `src/`, `templates/`, `engine/`, `scripts/` under `.zoto/eval-system/`, write nested `package.json`, stamp eval primitives to `.cursor/*/eval-sys/`, set `hostLayout: ejected` |
+| **When** | Offline/air-gapped hosts, heavy engine customisation, CI without plugin access — **not** part of `/z-eval-create` |
+| **Args** | `-- [--dry-run]` |
+| **Output** | Summary on stdout listing copied dirs and config patch |
+| **Exit codes** | 0 = success, 1 = error |
+| **Config fields used** | Patches `hostLayout` to `ejected` |
+| **Note** | In lean mode, this alias invokes `plugins/zoto-eval-system/scripts/stamp-host-layout.ts` directly (not via `eval-bridge.ts`). After eject, other `eval:*` aliases run scripts inside `.zoto/eval-system/`. |
+
+### `pnpm run eval:un-eject`
+
+Reverse eject — restore **lean** plugin-dependent layout.
+
+| Detail | Value |
+|--------|-------|
+| **Purpose** | Remove vendored runtime, strip ejected primitives from `.cursor/`, set `hostLayout: plugin`, re-merge root eval aliases |
+| **When** | Returning to lean after a prior eject; external repos migrating off full-stamp create |
+| **Args** | `-- [--dry-run] [--force]` |
+| **Preserves** | `config.yml`, `manifest.yml`, eval cases, `{evalsDir}/_runs/` |
+| **Exit codes** | 0 = success, 1 = error or user cancelled |
+| **Note** | Requires resolvable plugin (or `ZOTO_EVAL_PLUGIN_ROOT`) before subsequent lean-mode eval runs. Run `pnpm install` after un-eject. |
+
+## Host layout modes
+
+| Mode | `hostLayout` | Script resolution |
+|------|--------------|-------------------|
+| **Lean (default)** | `plugin` | `pnpm -C .zoto/eval-system run eval` / `eval:full` (or root delegates); other commands → `tsx .zoto/eval-system/scripts/eval-bridge.ts <script-base>` |
+| **Ejected (opt-in)** | `ejected` | Root aliases → `.zoto/eval-system/scripts/<name>.ts` (nested package) |
+
+Agents MUST use `pnpm run eval:*` aliases — never hard-code paths that assume one mode.
+
 ## Invocation rules for agents
 
-1. **Always use the `pnpm run eval:<name>` alias** — never `pnpm exec tsx scripts/<file>.ts`.
-2. **Pass args after `--`** when the script needs them: `pnpm run eval:analyse -- <target-id>`.
-3. **Config is loaded automatically** by the centralized loader (`loadEvalConfig`). You do NOT need to pass `--config`.
-4. **Migration is automatic** — if the user's repo has a legacy `.zoto-eval-system/` directory, it is migrated transparently on first run.
-5. **Error handling** — non-zero exit means the operation failed. Parse stderr for structured error JSON when available (`{ "error": "...", "code": "..." }`).
+1. **Lean mode:** use `pnpm -C .zoto/eval-system run eval` / `eval:full` (or root `pnpm run eval` when delegated) for orchestrated runs; use `tsx .zoto/eval-system/scripts/eval-bridge.ts <script-base> [-- args]` for everything else — never `pnpm exec tsx` paths under the plugin install.
+2. **Ejected mode:** use root `pnpm run eval:*` aliases (they delegate to `.zoto/eval-system/`).
+3. **Pass args after `--`** when the script needs them: `tsx .zoto/eval-system/scripts/eval-bridge.ts eval-analyse -- command:foo`.
+4. **Config is loaded automatically** by the centralized loader (`loadEvalConfig`). You do NOT need to pass `--config`.
+5. **Layout modes** — lean (`hostLayout: plugin`) resolves scripts via `.zoto/eval-system/scripts/eval-bridge.ts`; ejected (`hostLayout: ejected`) runs vendored scripts under `.zoto/eval-system/`. Eject/un-eject are CLI-only (`tsx .zoto/eval-system/scripts/eval-bridge.ts stamp-host-layout` / `eval-un-eject` in lean mode).
+6. **Migration is automatic** — if the user's repo has a legacy `.zoto-eval-system/` directory, it is migrated transparently on first run.
+7. **Error handling** — non-zero exit means the operation failed. Parse stderr for structured error JSON when available (`{ "error": "...", "code": "..." }`).

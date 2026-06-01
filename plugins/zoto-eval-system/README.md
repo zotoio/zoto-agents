@@ -19,17 +19,91 @@ Use this plugin when you want to:
 
 **User confirmation at every step**: When the updater detects drift or the configurer proposes a change, the user sees and approves each modification before it is written. Under the hood, slash commands own the interactive prompts and pass answers to subagents via a structured `needs_user_input` / resume contract (see `rules/zoto-eval-system.mdc` for the schema). This is an implementation detail of how Cursor subagents handle user input, not a standalone feature — the important thing is that **no generated eval is rewritten without explicit user consent**.
 
+## Plugin vs host runtime layout
+
+The eval-system runtime can live in **four** layers. Knowing which mode your repo uses removes nearly all path confusion.
+
+| Layer | Location | Role | Who runs it |
+|-------|----------|------|-------------|
+| **Plugin package** (authoring / source of truth) | `plugins/zoto-eval-system/` — `scripts/`, `engine/`, `src/`, `templates/` | Canonical runtime shipped to the marketplace. `scripts/` is the **single source of truth** for every host eval CLI (`eval-analyse.ts`, `eval-stamp.ts`, `eval-orchestrate.ts`, `eval-discover.ts`, `eval-gc.ts`, …); scripts import only plugin-relative modules (`../src/…`, `../engine/…`). | Plugin authors / marketplace install |
+| **Lean host** (**default**) | `.zoto/eval-system/` — repo-specific assets (`config.yml`, `manifest.yml`, `cache/`, `.gitignore`, nested `package.json`, `scripts/eval-bridge.ts`) plus `{evalsDir}/` and `{evalsDir}/_runs/` | What `/z-eval-create` materialises by default. Engine, scripts, and templates resolve from the **installed plugin** at runtime via `.zoto/eval-system/scripts/eval-bridge.ts` and `resolvePluginRoot()`. Nested `package.json` carries `eval` + `eval:full`; root `package.json` may delegate with `pnpm -C .zoto/eval-system run eval` (merged from `lean-root-vitest.json`). Other commands: `tsx .zoto/eval-system/scripts/eval-bridge.ts <script-base> [-- args]` from the repo root. | Host operators (recommended) |
+| **Ejected host** (opt-in) | `.zoto/eval-system/` — vendored `scripts/`, `engine/`, `src/`, `templates/`, **full** nested `package.json`, plus the same repo-specific assets as lean | Self-contained copy created by `pnpm run eval:stamp-host-layout` (CLI only — not `/z-eval-create`). Root aliases delegate via `pnpm -C .zoto/eval-system …`; the nested package carries the full eval script + devDependency contract from `templates/host-package/package.json`. Eval primitives (agents, skills, commands) are copied to `.cursor/*/eval-sys/` (see [Ejected primitives layout](#ejected-primitives-layout)). | Host operators needing offline/air-gapped use, heavy engine customisation, or CI without plugin access |
+| **Monorepo dogfood** | this repo's root `package.json` `eval:*` aliases | Contributor shortcut: root aliases invoke `plugins/zoto-eval-system/scripts/` and `engine/` directly (same canonical sources consumers reach through the bridge). Repo-root `scripts/` holds **only** monorepo CI/migration tooling — never the canonical host CLI. `hostLayout: plugin` in `.zoto/eval-system/config.yml`. | This repo's contributors / CI |
+
+> **Canonical rule:** Prefer `pnpm run eval:*` aliases over hard-coded script paths (see [`skills/zoto-eval-tooling/SKILL.md`](skills/zoto-eval-tooling/SKILL.md)). In **lean** mode, `pnpm -C .zoto/eval-system run eval` (or root delegates) route through `.zoto/eval-system/scripts/eval-bridge.ts` → `resolvePluginRoot()` → plugin `scripts/<name>.ts`. In **ejected** mode, nested `eval:*` aliases run vendored `tsx scripts/<name>.ts` inside `.zoto/eval-system/`.
+
+### Plugin resolution precedence
+
+Lean mode (and the eject/un-eject CLIs) locate the plugin via `resolvePluginRoot()` in `src/paths.ts`. Precedence is fixed and tested:
+
+1. **Monorepo** — `<repoRoot>/plugins/zoto-eval-system/` when that directory contains the plugin marker (`package.json` + `scripts/eval-discover.ts`).
+2. **Environment** — `ZOTO_EVAL_PLUGIN_ROOT` (absolute or repo-relative path; same marker check).
+3. **Cursor install** — platform-aware plugin directories (`~/.cursor/plugins/…/zoto-eval-system` on Unix/macOS; `%APPDATA%/Cursor/plugins/…` on Windows). When multiple candidates exist, the highest `package.json` semver wins; if semver is unavailable, the most recently modified directory wins.
+
+If no candidate resolves, scripts fail with a clear error — set `ZOTO_EVAL_PLUGIN_ROOT` or install the plugin.
+
+### Eject and un-eject (CLI only)
+
+| Command | When to use | What it does |
+|---------|-------------|--------------|
+| `pnpm run eval:stamp-host-layout` | Opt into self-contained layout after lean create | Copies runtime (`src/`, `templates/`, `engine/`, `scripts/`) into `.zoto/eval-system/`, writes nested `package.json`, stamps eval primitives under `.cursor/*/eval-sys/`, sets `hostLayout: ejected` in `config.yml`. Does **not** replace config, manifest, or eval cases. Pass `--dry-run` to preview. |
+| `pnpm run eval:un-eject` | Return to lean after a prior eject | Removes vendored runtime dirs and nested `package.json`, strips ejected primitives from `.cursor/`, sets `hostLayout: plugin`, re-merges root eval aliases from `templates/package-scripts/lean.json`. **Preserves** `config.yml`, `manifest.yml`, eval cases, and run history. Pass `--dry-run` to preview; `--force` skips confirmation. |
+
+**When to eject:** offline or air-gapped environments, heavy customisation of engine/scripts, CI runners without Cursor plugin access.
+
+**When to un-eject:** you no longer need a vendored copy and want plugin updates to flow automatically again.
+
+There is no slash command for either operation — both are operator CLIs only.
+
+### Ejected primitives layout
+
+On eject, eval-system agents, skills, and commands are copied from the plugin into Cursor-native paths — **not** under `.zoto/eval-system/agents/`.
+
+Default layout (Cursor IDE discovery):
+
+```text
+.cursor/
+├── agents/eval-sys--<name>.md      # flat-prefix (default)
+├── commands/eval-sys--<name>.md
+└── skills/eval-sys--<name>/SKILL.md
+```
+
+Alternative nested layout (when flat-prefix is disabled):
+
+```text
+.cursor/
+├── agents/eval-sys/<name>.md
+├── commands/eval-sys/<name>.md
+└── skills/eval-sys/<name>/SKILL.md
+```
+
+Un-eject removes these stamped primitives; the plugin originals remain the source of truth.
+
+### Migration from ejected to lean
+
+**External host repos** that previously ran full-stamp `/z-eval-create` (self-contained `.zoto/eval-system/` with vendored runtime) can return to lean mode without losing eval data:
+
+```bash
+pnpm run eval:un-eject          # preview with --dry-run first
+pnpm install                    # refresh root devDeps merged by un-eject
+```
+
+This strips vendored runtime and `.cursor/*/eval-sys/` (or flat-prefix) primitives, sets `hostLayout: plugin`, and keeps `config.yml`, `manifest.yml`, eval cases, and `{evalsDir}/_runs/` intact. Ensure the **zoto-eval-system** plugin is installed (or set `ZOTO_EVAL_PLUGIN_ROOT`) before running eval commands again.
+
+Fresh repos created after this change already use lean mode — no migration step required.
+
 ## Migration from current state
 
-If your repository already used earlier Eval System scaffolding (heuristic discovery, shape-test-heavy pytest suites, or the old single-file `results.yml` layout), adopt **eval-system v2** deliberately — there is no separate “released v1” product line to upgrade from.
+If your repository already used earlier Eval System scaffolding, adopt **eval-system v3** deliberately.
 
 Breaking changes operators should expect:
 
-1. Config fields added (with safe defaults).
-2. Output filename rename (`results.yml` → `llm.yml`, plus new `static.yml` and `report.yml`).
-3. The earlier per-target backend selector under `llm.*` (and the matching framework knob) has been removed from `config.yml`. A single unified LLM backend stamps every non-skill primitive as a co-located `<kind>/evals/<name>.json` file; skills retain `skills/<name>/evals/evals.json` (Cursor Agent Skills spec). Repos created against the older `.test.ts` layout migrate via `scripts/eval-migrate-ts-to-json.ts` (idempotent). See [`CHANGELOG.md`](CHANGELOG.md) for the BREAKING entry and [Migration notes](#migration-notes) below.
-4. Generated cases now embed `_meta.primitive_analysis`.
-5. User-case preservation is hard-coded — no opt-out.
+1. **Dual-mode host layout (BREAKING).** `/z-eval-create` now materialises **lean** layout by default — only repo-specific assets under `.zoto/eval-system/`. Full self-contained runtime is opt-in via `pnpm run eval:stamp-host-layout`. Existing ejected hosts can return to lean with `pnpm run eval:un-eject` (see [Migration from ejected to lean](#migration-from-ejected-to-lean)).
+2. Config fields added (with safe defaults), including `hostLayout: plugin | ejected`.
+3. Output filename rename (`results.yml` → `llm.yml`, plus new `static.yml` and `report.yml`).
+4. The earlier per-target backend selector under `llm.*` (and the matching framework knob) has been removed from `config.yml`. A single unified LLM backend stamps every non-skill primitive as a co-located `<kind>/evals/<name>.json` file; skills retain `skills/<name>/evals/evals.json` (Cursor Agent Skills spec). Repos created against the older `.test.ts` layout migrate via the monorepo-only one-shot `scripts/eval-migrate-ts-to-json.ts` at the repo root (not part of the host eval CLI). See [`CHANGELOG.md`](CHANGELOG.md) for the BREAKING entry and [Migration notes](#migration-notes) below.
+5. Generated cases now embed `_meta.primitive_analysis`.
+6. User-case preservation is hard-coded — no opt-out.
 
 ## Quick start
 
@@ -61,12 +135,13 @@ Key fields:
 
 | Field | Purpose |
 |-------|---------|
+| `hostLayout` | Active layout mode: **`plugin`** (lean — default) resolves engine/scripts/templates from the installed plugin; **`ejected`** runs a self-contained copy under `.zoto/eval-system/`. Set automatically by `eval:stamp-host-layout` / `eval:un-eject`; override only when you know what you are doing. |
 | `static.framework` | Static test harness the stamper targets: **`pytest`** (default shape from `templates/static/pytest/` or vitest/jest variants when configured). |
 | `evalsDir` | Where static tests and the LLM harness scaffold are stamped. Default: `evals`. |
 | `skillsRoots[]` | Glob roots the discoverer walks to find `SKILL.md` files. Default: `[".cursor/skills", "skills", "plugins/*/skills"]`. |
 | `discoveryTargets[]` | Which kinds of artefacts to scaffold evals for: `skill`, `command`, `agent`, `hook`, `cli`, `lib`. |
 | `llm.runtime` | `"tsx"` (default) or `"node"`. |
-| `llm.model.id` | Default LLM model. One of `composer-2.5`, `opus-4.6`, `sonnet`. |
+| `llm.model.id` | Default LLM model. One of `composer-2.5`, `claude-opus-4-8[]`, `sonnet`. |
 | `judgeModel` | Model the judge skill uses for soft-metric scoring. |
 | `manualChecklists.enabled` | Stamp `USER_EVAL_CHECKLISTS.md` on create. |
 | `additionalAutomation[]` | Optional extras such as **`vitest`** / **`jest`** automation hooks stamped alongside the baseline static backend — **not** legacy `bats` (removed in eval-system v2; see `CHANGELOG.md`). Orphaned on-disk artefacts from predeployment templates may still be enumerated for manual cleanup — see [`subtask-03-eval-system-v2-cleanup-engine-20260503.md`](../../specs/20260503-eval-system-v2/subtask-03-eval-system-v2-cleanup-engine-20260503.md). |
@@ -118,7 +193,7 @@ The schema lives at `templates/schema/config.schema.json` → `runs.retention`.
 
 ### Install
 
-Add the **zoto-eval-system** plugin to Cursor (marketplace or local dev install from this monorepo). No host-repo files change until you run `/z-eval-configure`.
+Add the **zoto-eval-system** plugin to Cursor (marketplace or local dev install from this monorepo). No host-repo files change until you run `/z-eval-init`. Lean mode requires the plugin (or `ZOTO_EVAL_PLUGIN_ROOT`) at runtime.
 
 ### Configure
 
@@ -126,7 +201,7 @@ Run `/z-eval-configure` so the command can `askQuestion` through every field, em
 
 ### Create
 
-Run `/z-eval-create` after configuration. It discovers targets, runs the LLM analyser per approved central primitive, and stamps the unified backends: the **static** suite (pytest/vitest/jest per `static.framework`) plus a co-located `<kind>/evals/<name>.json` per non-skill primitive (skills retain their `evals/evals.json`). The manifest is recorded at `.zoto/eval-system/manifest.yml`. Authoritative workflow: [`skills/zoto-create-evals/SKILL.md`](skills/zoto-create-evals/SKILL.md).
+Run `/z-eval-create` after configuration. It discovers targets, runs the LLM analyser per approved central primitive, and stamps the unified backends: the **static** suite (pytest/vitest/jest per `static.framework`) plus a co-located `<kind>/evals/<name>.json` per non-skill primitive (skills retain their `evals/evals.json`). **Lean layout only** — repo-specific assets under `.zoto/eval-system/` (including `scripts/eval-bridge.ts` and nested `package.json`), plus optional root `package.json` delegates. For self-contained runtime, run `pnpm run eval:stamp-host-layout` separately. The manifest is recorded at `.zoto/eval-system/manifest.yml`. Authoritative workflow: [`skills/zoto-create-evals/SKILL.md`](skills/zoto-create-evals/SKILL.md).
 
 ### Update
 
@@ -190,17 +265,17 @@ Model precedence at runtime:
 
 ### Environment variables (`.env` / `.env.example`)
 
-`/z-eval-create` stamps a `.env.example` placeholder at the repo root containing `CURSOR_API_KEY=` (and a commented `ZOTO_EVAL_MODEL=`). It is **never overwritten** if one already exists.
+`/z-eval-init` and `/z-eval-create` ensure the host repo has a `.env.example` placeholder, that repo-root `.gitignore` excludes `.env`, and that repo-root `README.md` / `AGENTS.md` exist (via `ensure-host-env-and-gitignore.ts` and `eval:ensure-host`). Templates live under `templates/host-package/`. The example env file contains `CURSOR_API_KEY=` (and a commented `ZOTO_EVAL_MODEL=`). Root docs and `.env.example` are **never overwritten** if they already exist.
 
-The runner imports `dotenv/config` at startup, so values in `.env` flow into `process.env` automatically. Standard dotenv precedence applies — anything already exported in your shell wins over `.env`.
+`.zoto/eval-system/scripts/eval-bridge.ts` loads `<repoRoot>/.env` before every eval command, so values flow into `process.env` for orchestration, analysis, and LLM runs. Standard dotenv precedence applies — anything already exported in your shell wins over `.env`.
 
 ```bash
 cp .env.example .env       # then edit .env locally; .env is gitignored
-pnpm install               # picks up the dotenv devDep added by /z-eval-create
+pnpm install               # root: tsx + dotenv only; plugin install carries eval runtime deps
 pnpm run eval:full         # CURSOR_API_KEY is now sourced from .env
 ```
 
-Never commit `.env`. The default repo `.gitignore` already excludes `.env*` while allowing `.env.example`.
+Never commit `.env`. `/z-eval-init` and `/z-eval-create` append `.env`, `.env.*`, and `!.env.example` to the repo-root `.gitignore` when those lines are missing.
 
 ## Co-located eval layout
 
@@ -343,13 +418,13 @@ The harness resolves `runner` relative to the JSON file's directory, dynamically
 
 When a flow spans **multiple primitives** (command A → agent B → filesystem side-effect), author a scenario under `evals/scenarios/<scenario-name>.test.ts`. Scenarios are plain Vitest TypeScript files discovered by the `evals/scenarios/*.test.ts` include glob in `evals/vitest.config.ts`.
 
-`/z-eval-create` copies an underscore-prefixed example to `evals/scenarios/_example-multi-primitive.test.ts` via `scripts/eval-ensure-host.ts`. The leading underscore matches the `evals/scenarios/_*` exclude entry — the example is present but skipped until you rename it (drop the underscore) or copy its contents into a new scenario file. See `plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl` for the canonical walkthrough.
+`/z-eval-create` copies an underscore-prefixed example to `evals/scenarios/_example-multi-primitive.test.ts` via `pnpm run eval:ensure-host` — in **lean** mode the bridge routes to the plugin's `scripts/eval-ensure-host.ts`; in **ejected** mode the vendored script runs from `.zoto/eval-system/scripts/eval-ensure-host.ts`. The leading underscore matches the `evals/scenarios/_*` exclude entry — the example is present but skipped until you rename it (drop the underscore) or copy its contents into a new scenario file. See `plugins/zoto-eval-system/templates/scenarios/_example-multi-primitive.test.ts.tmpl` for the canonical walkthrough.
 
 Scenarios carry `// _meta.generated: false` on line 1 — the updater never rewrites them.
 
 ### Migration notes
 
-As of **2026-05-27**, all non-skill primitive evals are stored as `.json` instead of co-located `.test.ts` files. The standalone `eval:llm` script is removed; the unified `evals/vitest.config.ts` discovers JSON evals via the JSON loader plugin and scenarios via the `evals/scenarios/*.test.ts` glob. Run `pnpm exec tsx scripts/eval-migrate-ts-to-json.ts` idempotently to convert any remaining `.test.ts` LLM evals. See [`CHANGELOG.md`](CHANGELOG.md) for the full BREAKING entry.
+As of **2026-05-27**, all non-skill primitive evals are stored as `.json` instead of co-located `.test.ts` files. The standalone `eval:llm` script is removed; the unified `evals/vitest.config.ts` discovers JSON evals via the JSON loader plugin and scenarios via the `evals/scenarios/*.test.ts` glob. In this monorepo only, run `pnpm exec tsx scripts/eval-migrate-ts-to-json.ts` idempotently to convert any remaining `.test.ts` LLM evals (repo-root CI/migration tooling — not shipped under `.zoto/eval-system/`). See [`CHANGELOG.md`](CHANGELOG.md) for the full BREAKING entry.
 
 ## Adding an eval as a plugin author
 
@@ -575,7 +650,8 @@ The LLM backend is always gated on `--full` + `CURSOR_API_KEY`. It never self-ru
 - **`eval:update --check` keeps returning 2** — a target changed its public surface; either update the target's eval cases interactively or accept the drift via `/z-eval-update --apply`.
 - **User-authored case got edited** — impossible by design. If it ever happens, it's a bug; the validator and runtime both guard against it. File an issue.
 - **Config change triggered drift** — it shouldn't. Rediscovery uses the snapshot in `manifest.discovery_config`. To commit a config change, re-run `/z-eval-create`.
-- **`@cursor/sdk` module not found** — run `pnpm install` (or your package-manager equivalent) after `/z-eval-create` to pick up the merged `devDependencies`.
+- **`@cursor/sdk` module not found** — run `pnpm install` at the repo root after `/z-eval-create` or `/z-eval-init` to pick up merged devDeps.
+- **Cannot resolve zoto-eval-system plugin** — install the plugin, set `ZOTO_EVAL_PLUGIN_ROOT`, or (in this monorepo) ensure `plugins/zoto-eval-system/` exists. Lean mode cannot run without a resolvable plugin.
 - **A co-located `<kind>/evals/<name>.json` is missing** — re-run `/z-eval-create` (or `pnpm run eval:stamp -- <id>`). The stamper writes only the missing file; existing user-authored cases in sibling primitives are untouched.
 
 ## Development

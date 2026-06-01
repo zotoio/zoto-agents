@@ -2,7 +2,7 @@
 
 This directory ships the **first-class jest backend** for `zoto-eval-system`'s
 static eval suite. When a host repo's `.zoto/eval-system/config.yml` declares
-`static.framework === "jest"`, `scripts/eval-stamp.ts#stampJestPerPrimitive`
+`static.framework === "jest"`, `plugins/zoto-eval-system/scripts/eval-stamp.ts#stampJestPerPrimitive`
 materialises every file in this directory into the host repo under `evals/`.
 
 ## Files in this template tree
@@ -24,7 +24,7 @@ Subtask 07 (vitest backend) and subtask 08 (jest backend) are mutually
 exclusive at the host-repo level. Only one static framework may be installed
 or stamped per repo.
 
-`scripts/eval-stamp.ts` exposes a small symmetric helper —
+`plugins/zoto-eval-system/scripts/eval-stamp.ts` exposes a small symmetric helper —
 `assertNoConflictingFramework(target, hostRepoRoot)` — that both
 `stampVitestPerPrimitive` and `stampJestPerPrimitive` invoke before stamping.
 The guard refuses to stamp when the **other** framework's config or
@@ -41,7 +41,7 @@ The guard is the **single source of truth** for mutual exclusion. Do not
 re-implement framework detection inline in either backend's stamping helper —
 call `assertNoConflictingFramework(...)` and let it throw. **Subtask 07
 (vitest) is the canonical owner of the helper**; subtask 08 ships a
-placeholder under its own fence in `scripts/eval-stamp.ts` that subtask
+placeholder under its own fence in `plugins/zoto-eval-system/scripts/eval-stamp.ts` that subtask
 07's canonical implementation replaces. Call sites stay unchanged.
 
 ## File-level marker contract

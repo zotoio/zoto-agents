@@ -35,14 +35,14 @@ Expect the Task prompt from `/z-eval-create` to include pre-collected approval l
 1. Confirm config exists; if not, `needs_user_input` — do not prompt inline.
 2. Run ``pnpm run eval:discover`` via the `explore` subagent.
 3. Target approval is **already** decided by the command — proceed with the approved lists passed in the prompt.
-4. Stamp BOTH backends every time — static pytest and LLM (@cursor/sdk).
-5. Generate eval cases for each approved target using the correct template per kind (`skills/<x>/evals/evals.json`, `plugins/<p>/evals/commands|agents|hooks/…`). Every generated case gets `_meta.generated: true`, `source_hash` (sha256 of normalised source), `last_updated` (ISO-8601), and `generated_by: zoto-create-evals`.
-6. Stamp `.env.example` at the repo root from `templates/env/.env.example.tmpl` AND ensure the host `.gitignore` excludes `.env` (creates `.gitignore` if missing, appends the rule lines if missing — never duplicates). Both steps happen via `scripts/ensure-host-env-and-gitignore.ts` (`pnpm exec tsx <plugin>/scripts/ensure-host-env-and-gitignore.ts`) which returns a JSON report you must surface to the operator. Never overwrite an existing `.env.example`; never write `.env`.
-7. Merge `templates/package-scripts/base.json` into the host repo's `package.json` (includes `dotenv` so the LLM runner can auto-load `.env`).
+4. **Lean layout:** run `pnpm exec tsx plugins/zoto-eval-system/scripts/stamp-lean-layout.ts --repo-root <host>` — stamps `.zoto/eval-system/scripts/eval-bridge.ts`, nested `package.json`, optional root delegates, creates `.zoto/eval-system/cache/` and `.gitignore`. **Do not** call `stamp-host-layout.ts` (eject-only CLI).
+5. Stamp BOTH backends every time — static pytest and LLM (@cursor/sdk) via `pnpm run eval:baseline-stamp`.
+6. Generate eval cases for each approved target using the correct template per kind (`skills/<x>/evals/evals.json`, `plugins/<p>/evals/commands|agents|hooks/…`). Every generated case gets `_meta.generated: true`, `source_hash` (sha256 of normalised source), `last_updated` (ISO-8601), and `generated_by: zoto-create-evals`.
+7. Run `pnpm run eval:ensure-host` (plugin `ensure-host-env-and-gitignore.ts` via bridge). Surface the JSON report to the operator. Never overwrite an existing `.env.example`; never write `.env`.
 8. If `manualChecklists.enabled`, stamp `USER_EVAL_CHECKLISTS.md`.
 9. Write `.zoto/eval-system/manifest.yml` and append to `.zoto/eval-system/manifest.history.yml`.
 10. Validate: `pnpm run eval:list`, `pnpm run eval -- --collect-only`, `pnpm run eval:update --check` (must exit 0 immediately after create).
-11. Surface in the final report: any pre-existing `.env.example` skipped, the `.gitignore` action taken by `ensure-host-env-and-gitignore.ts` (`created` / `appended` / `no-change` plus the lines added), plus a one-liner reminding the operator to run their package manager once to pick up new devDeps.
+11. Surface in the final report: ensure-host actions, plus a one-liner reminding the operator to run `pnpm install` at the repo root if devDeps were newly merged (or note that `/z-eval-init` may have already run it).
 
 ## Critical Rules
 

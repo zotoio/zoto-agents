@@ -1,0 +1,14 @@
+{
+  "name": "@zoto/eval-system-host-lean",
+  "private": true,
+  "type": "module",
+  "description": "Lean eval-system host runtime (.zoto/eval-system/) — bridge to installed plugin",
+  "scripts": {
+    "eval": "tsx scripts/eval-bridge.ts eval-orchestrate",
+    "eval:full": "tsx scripts/eval-bridge.ts eval-orchestrate -- --full"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "tsx": "^4.19.0"
+  }
+}

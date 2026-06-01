@@ -1,0 +1,95 @@
+schema_version: 1
+subtask_id: "07"
+feature: eval-dual-host-layout
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: "2026-06-01T14:45:00Z"
+last_heartbeat: "2026-06-01T14:52:00Z"
+completed_at: "2026-06-01T14:48:00Z"
+git_sha: fbfecad
+checklist:
+  - id: D01
+    text: "New script: `plugins/zoto-eval-system/scripts/eval-un-eject.ts`"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-un-eject.ts
+  - id: D02
+    text: "Removes vendored directories: `.zoto/eval-system/src/`, `engine/`, `templates/`, `scripts/`"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-un-eject.ts
+  - id: D03
+    text: Removes nested `.zoto/eval-system/package.json`
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-un-eject.ts
+  - id: D04
+    text: "Removes ejected primitives: `.cursor/agents/eval-sys/`, `.cursor/skills/eval-sys/`, `.cursor/commands/eval-sys/`"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-primitives.ts
+  - id: D05
+    text: "Patches config.yml: sets `hostLayout: plugin` (preserves all other config)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D06
+    text: Updates root `package.json` eval aliases from self-contained paths back to plugin-resolved paths
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-lean-layout.ts
+  - id: D07
+    text: "Preserves repo-specific assets: config.yml, manifest.yml, manifest.history.yml, cache/, evals/"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-un-eject.ts
+  - id: D08
+    text: "`--dry-run` flag: prints what would be deleted/modified without acting"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/eval-un-eject.test.ts
+  - id: D09
+    text: "`--force` flag: skip confirmation prompt (for CI/automation)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-un-eject.ts
+  - id: D10
+    text: "Interactive confirmation by default: lists files to delete, asks y/N"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-un-eject.ts
+  - id: D11
+    text: Prints clear summary of changes made and next steps
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-un-eject.ts
+  - id: D12
+    text: Add `eval:un-eject` alias to root package.json and to `templates/package-scripts/base.json`
+    done: true
+    evidence_path: package.json
+  - id: DoD1
+    text: Un-eject reverses eject cleanly (eject → un-eject round-trip)
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/eval-un-eject.test.ts
+  - id: DoD2
+    text: Lean mode works after un-eject (eval:* scripts resolve from plugin)
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/eval-un-eject.test.ts
+  - id: DoD3
+    text: No linter errors in modified files
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-un-eject.ts
+artifacts:
+  - path: plugins/zoto-eval-system/scripts/eval-un-eject.ts
+    kind: created
+    note: un-eject CLI and unEjectHostLayout core
+  - path: plugins/zoto-eval-system/tests/eval-un-eject.test.ts
+    kind: created
+    note: round-trip, dry-run, guard tests (4 cases)
+  - path: plugins/zoto-eval-system/templates/package-scripts/base.json
+    kind: modified
+    note: eval:un-eject alias
+  - path: package.json
+    kind: modified
+    note: eval:un-eject alias
+errors: []
+notes: |
+  Judge verified eval-un-eject.ts removes vendored dirs, nested package.json, flat-prefix and nested primitives via ejectedPrimitivesCleanupTargets, patches hostLayout to plugin, stamps lean aliases via stampLeanLayout. CLI supports --dry-run, --force, interactive y/N, --json, --repo-root=. vitest run tests/eval-un-eject.test.ts 4/4 pass. ReadLints clean. Corrected status yml from invalid map checklist to schema array.
+extra:
+  judge:
+    verdict: verified
+    at: "2026-06-01T14:53:30Z"
+    notes: |
+      Independent adversarial verification (fresh context). eval-un-eject.ts exists with VENDORED_DIRS (src/engine/templates/scripts), nested package.json removal, ejectedPrimitivesCleanupTargets (flat-prefix + nested), patchConfigHostLayout→plugin (parseDocument), stampLeanLayout for lean aliases, PRESERVED_EVAL_HOME_NAMES guard. CLI: --dry-run, --force/skipConfirm, confirmDeletion y/N default, printUnEjectSummary next steps. eval:un-eject alias in package.json and templates/package-scripts/base.json. tests/eval-un-eject.test.ts: vitest 4/4 pass (eject→un-eject round-trip, dry-run no mutations, plugin resolution failure, not-ejected guard). ReadLints clean. Checklist already schema-valid array; all 15 items confirmed on disk.
+    fix_list: []

@@ -23,6 +23,16 @@ You do **NOT** do raw code refactors, schema-field edits, or apply-mode regenera
 
 The plugin (`plugins/zoto-eval-system/`, mirrored at `~/.cursor/plugins/local/zoto-eval-system/`) ships:
 
+### Plugin vs host runtime layout (KD-1)
+
+| Layer | Location | Role |
+|-------|----------|------|
+| **Plugin package** | `plugins/zoto-eval-system/{scripts,engine,src,templates}/` | Authoring source of truth; marketplace install |
+| **Stamped host copy** | `.zoto/eval-system/` | What `/z-eval-create` materialises; host `pnpm run eval:*` resolves here |
+| **Monorepo dogfood** | Root `package.json` `eval:*` → `tsx plugins/zoto-eval-system/scripts/<name>.ts` | Exercises canonical scripts; repo-root `scripts/` is CI/migration only |
+
+When citing paths in reviews: **plugin package** for authoring, **`.zoto/eval-system/`** for host operators — never repo-root `scripts/eval-*` as canonical.
+
 | Surface | Count | Examples |
 |---------|-------|----------|
 | Agents | 8 | `zoto-eval-analyser-subagent`, `zoto-eval-configurer`, `zoto-eval-executor`, `zoto-eval-generator`, `zoto-eval-judge`, `zoto-eval-comparer`, `zoto-eval-adviser`, `zoto-eval-updater` |
@@ -64,7 +74,7 @@ init → configure → create → update ⇄ execute → judge → compare → a
 3. `config.yml` → `llm.model.id`
 4. Default: `composer-2.5`
 
-Judge defaults to `opus-4.6` (overridable via `config.yml` → `judgeModel`).
+Judge defaults to `claude-opus-4-8[]` (overridable via `config.yml` → `judgeModel`).
 
 ### Hard-Coded Contracts
 

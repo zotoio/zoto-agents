@@ -47,6 +47,7 @@ describe("loadEvalConfig", () => {
     expect(res.mtimeMs).toBe(0);
     expect(res.reloaded).toBe(false);
     expect(res.config.evalsDir).toBe("evals");
+    expect(res.config.hostLayout).toBe("plugin");
     expect(res.config.skillsRoots).toEqual([".cursor/skills", "skills", "plugins/*/skills"]);
     expect(res.config.discoveryTargets).toEqual(["skill", "command", "agent", "hook"]);
     expect(res.config.static.framework).toBe("pytest");
@@ -54,13 +55,14 @@ describe("loadEvalConfig", () => {
     expect(res.config.llm.model.id).toBe("composer-2.5");
     expect((res.config.llm as Record<string, unknown>).strategy).toBeUndefined();
     expect((res.config.llm as Record<string, unknown>).codeFramework).toBeUndefined();
-    expect(res.config.judgeModel).toBe("opus-4.6");
+    expect(res.config.judgeModel).toBe("claude-opus-4-8[]");
     expect(res.config.analyser.concurrency).toBe(4);
     expect(res.config.analyser.maxCallsPerInvocation).toBe(50);
     expect(res.config.runs.retention).toBe(30);
     expect(res.config.update.preserveUserAuthoredCases).toBe(true);
     expect(res.config.update.writeMetaMarker).toBe(true);
     expect(res.config.update.manifestPath).toBe("manifest.yml");
+    expect(res.hostLayoutExplicit).toBe(true);
   });
 
   it("treats the all-comments init template as empty (defaults applied)", () => {
@@ -162,6 +164,36 @@ describe("loadEvalConfig", () => {
     writeRepoConfig(repo, YAML.stringify({
       update: { preserveUserAuthoredCases: false, writeMetaMarker: true },
     }));
+    expect(() => loadEvalConfig(repo)).toThrow(ConfigValidationError);
+  });
+
+  it("loads hostLayout: plugin explicitly", () => {
+    const repo = tempRepo();
+    writeRepoConfig(repo, YAML.stringify({ hostLayout: "plugin" }));
+    const res = loadEvalConfig(repo);
+    expect(res.config.hostLayout).toBe("plugin");
+    expect(res.hostLayoutExplicit).toBe(true);
+  });
+
+  it("loads hostLayout: ejected explicitly", () => {
+    const repo = tempRepo();
+    writeRepoConfig(repo, YAML.stringify({ hostLayout: "ejected" }));
+    const res = loadEvalConfig(repo);
+    expect(res.config.hostLayout).toBe("ejected");
+    expect(res.hostLayoutExplicit).toBe(true);
+  });
+
+  it("defaults hostLayout to plugin when omitted but marks it implicit", () => {
+    const repo = tempRepo();
+    writeRepoConfig(repo, YAML.stringify({ evalsDir: "evals" }));
+    const res = loadEvalConfig(repo);
+    expect(res.config.hostLayout).toBe("plugin");
+    expect(res.hostLayoutExplicit).toBe(false);
+  });
+
+  it("rejects invalid hostLayout values", () => {
+    const repo = tempRepo();
+    writeRepoConfig(repo, YAML.stringify({ hostLayout: "standalone" }));
     expect(() => loadEvalConfig(repo)).toThrow(ConfigValidationError);
   });
 

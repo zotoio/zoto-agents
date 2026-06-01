@@ -5,7 +5,7 @@
     "migrated_from": "plugins/zoto-eval-system/commands/evals/z-eval-create.test.ts",
     "migrated_at": "2026-05-27T17:21:10.986Z",
     "model_id": "composer-2.5",
-    "judge_model": "opus-4.6",
+    "judge_model": "claude-opus-4-8[]",
     "case_timeout_ms": 180000
   },
   "cases": [
@@ -69,6 +69,133 @@
         "\\.zoto/eval-system/manifest\\.yml"
       ],
       "expected_output": "The command chains additional askQuestion turns until generator blockers dissolve, manifests reflect the tightened approvals, and no unresolved structured pause persists in the transcript."
+    },
+    {
+      "id": "generator-needs-clarification-resume-loop-after-askquestion",
+      "prompt": "/z-eval-create",
+      "assertions": [
+        "When `.zoto/eval-system/config.yml` is missing, the assistant returns the exact refuse message before any discovery or subagent work.",
+        "When that file is missing, the assistant returned the exact message: Eval System is not initialised. Run `/z-eval-init` first to create `.zoto/eval-system/config.yml`.",
+        "No manifest rows are written and no eval scaffolding files appear while the precondition fails.",
+        "Post-scaffold guidance recommends `pnpm run eval:list` to enumerate the covered targets.",
+        "Verification guidance includes `pnpm run eval -- --collect-only` to confirm generated cases without executing the runners.",
+        "Drift confirmation guidance includes `pnpm run eval:update --check` so the operator can verify the freshly scaffolded suite has zero drift.",
+        "The generator appends each new manifest snapshot to `manifest.history.yml` (append-only, never compacted)."
+      ],
+      "assertion_patterns": [
+        "\\.zoto/eval-system/config\\.yml",
+        "/z-eval-init",
+        "pnpm run eval:list",
+        "pnpm run eval -- --collect-only",
+        "pnpm run eval:update --check",
+        "manifest\\.history\\.yml"
+      ],
+      "expected_output": "The assistant stops immediately with the precise initialisation error, cites `/z-eval-init`, and performs no discovery, checklist, or subagent work.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "6c3ecb1c63d7b11829fd0005abef1e6973236ae5d661cf82f2b784985ae5cb67",
+        "last_updated": "2026-06-01T11:42:06.348Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "6c3ecb1c63d7b11829fd0005abef1e6973236ae5d661cf82f2b784985ae5cb67",
+          "analysed_at": "2026-06-01T11:42:06.348Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The `/z-eval-create` command refuses to run until `.zoto/eval-system/config.yml` exists, then collects operator choices with `askQuestion` for skills, commands, agents, and hooks before spawning `zoto-eval-generator` via the `zoto-create-evals` skill. The generator path must stamp both eval backends, merge package metadata, update manifests, honour `.env.example` non-overwrite rules, and finish by running the documented `pnpm` validation gates."
+        }
+      }
+    },
+    {
+      "id": "configured-workspace-four-checklists-then-full-generator-pipeline",
+      "prompt": "Scaffold evals for this repo — approve all skills, plugin commands, plugin agents, and hook bundles from the checklists.",
+      "assertions": [
+        "After confirming `.zoto/eval-system/config.yml`, the command ran `askQuestion` to capture approve-or-prune lists for skills, plugin and workspace commands, plugin and workspace agents, and hook bundles (`hook:cursor` when applicable) before spawning any Task.",
+        "Because the config file was already present, the assistant did not prompt a configure-versus-abort choice for a missing eval-system config.",
+        "After scaffolding completes, `.zoto/eval-system/manifest.yml` lists every operator-approved target and the closing guidance mentions `pnpm run eval:list`, `pnpm run eval -- --collect-only`, and `pnpm run eval:update --check`.",
+        "Stamped eval JSON files exist under the configured evalsDir for each approved skill, command, agent, and hook target.",
+        "The assistant reported that `.env.example` already existed and left its contents untouched while still stamping the template when absent in other runs.",
+        "The assistant merged `package.json` scripts and devDependencies (including `dotenv`) and reminded the operator to install packages before executing the suite.",
+        "Fresh `manifest.yml` content plus an append-only row in `manifest.history.yml` recorded every newly stamped target.",
+        "Closing gates ran successfully: `pnpm run eval:list`, `pnpm run eval -- --collect-only`, and `pnpm run eval:update --check` each exited with status 0.",
+        "Optional `USER_EVAL_CHECKLISTS.md` creation, when offered, did not block manifest writes or the validation trio if skipped.",
+        "Post-scaffold guidance recommends `pnpm run eval:list` to enumerate the covered targets.",
+        "Verification guidance includes `pnpm run eval -- --collect-only` to confirm generated cases without executing the runners.",
+        "Drift confirmation guidance includes `pnpm run eval:update --check` so the operator can verify the freshly scaffolded suite has zero drift.",
+        "The generator appends each new manifest snapshot to `manifest.history.yml` (append-only, never compacted)."
+      ],
+      "assertion_patterns": [
+        "\\.zoto/eval-system/config\\.yml",
+        "\\.zoto/eval-system/manifest\\.yml",
+        "\\.env\\.example",
+        "package\\.json",
+        "manifest\\.yml",
+        "pnpm run eval:list",
+        "USER_EVAL_CHECKLISTS\\.md",
+        "pnpm run eval:list",
+        "pnpm run eval -- --collect-only",
+        "pnpm run eval:update --check",
+        "manifest\\.history\\.yml"
+      ],
+      "fixtures": {
+        "files": [
+          {
+            "path": ".env.example",
+            "content": "# overlay: proves non-destructive stamping\nPRECOMMIT_SENTINEL=do-not-clobber\n"
+          }
+        ]
+      },
+      "expected_output": "Checklists complete, the generator runs discovery, stamps pytest and LLM suites, updates manifests and package scripts, preserves `.env.example`, and all three validation commands exit zero.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "6c3ecb1c63d7b11829fd0005abef1e6973236ae5d661cf82f2b784985ae5cb67",
+        "last_updated": "2026-06-01T11:42:06.348Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "6c3ecb1c63d7b11829fd0005abef1e6973236ae5d661cf82f2b784985ae5cb67",
+          "analysed_at": "2026-06-01T11:42:06.348Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The `/z-eval-create` command refuses to run until `.zoto/eval-system/config.yml` exists, then collects operator choices with `askQuestion` for skills, commands, agents, and hooks before spawning `zoto-eval-generator` via the `zoto-create-evals` skill. The generator path must stamp both eval backends, merge package metadata, update manifests, honour `.env.example` non-overwrite rules, and finish by running the documented `pnpm` validation gates.",
+          "fixture_justifications": [
+            "Provides a pre-existing root `.env.example` so the run can assert the generator only surfaces a note and never overwrites that file."
+          ]
+        }
+      }
+    },
+    {
+      "id": "generator-needs-clarification-resume-loop-after-askquestion",
+      "prompt": "/z-eval-create",
+      "follow_ups": [
+        "For the paused generator report, answer the outstanding question by approving only `skill:zoto-help-evals` and `command:z-eval-execute` from the lists already shown.",
+        "Resume the `zoto-eval-generator` Task with that approval and ask it to continue stamping the remaining approved hook ids without re-prompting me."
+      ],
+      "assertions": [
+        "After the generator returned `needs_user_input`, the command issued a concrete `askQuestion` instead of silently stopping.",
+        "After the operator answers the outstanding question, scaffolding continues and completes without restarting from scratch.",
+        "Post-resume stdout or messaging reflected continued stamping progress and ended with the same validation gate trio once work finished.",
+        "Post-scaffold guidance recommends `pnpm run eval:list` to enumerate the covered targets.",
+        "Verification guidance includes `pnpm run eval -- --collect-only` to confirm generated cases without executing the runners.",
+        "Drift confirmation guidance includes `pnpm run eval:update --check` so the operator can verify the freshly scaffolded suite has zero drift.",
+        "The generator appends each new manifest snapshot to `manifest.history.yml` (append-only, never compacted)."
+      ],
+      "assertion_patterns": [
+        "needs_user_input",
+        "pnpm run eval:list",
+        "pnpm run eval -- --collect-only",
+        "pnpm run eval:update --check",
+        "manifest\\.history\\.yml"
+      ],
+      "expected_output": "The assistant surfaces `askQuestion` for the incomplete generator report, records the answers, resumes the same Task, and completes stamping without abandoning prior progress.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "6c3ecb1c63d7b11829fd0005abef1e6973236ae5d661cf82f2b784985ae5cb67",
+        "last_updated": "2026-06-01T11:42:06.348Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "6c3ecb1c63d7b11829fd0005abef1e6973236ae5d661cf82f2b784985ae5cb67",
+          "analysed_at": "2026-06-01T11:42:06.348Z",
+          "analyser_version": "2026.05.03-1",
+          "summary": "The `/z-eval-create` command refuses to run until `.zoto/eval-system/config.yml` exists, then collects operator choices with `askQuestion` for skills, commands, agents, and hooks before spawning `zoto-eval-generator` via the `zoto-create-evals` skill. The generator path must stamp both eval backends, merge package metadata, update manifests, honour `.env.example` non-overwrite rules, and finish by running the documented `pnpm` validation gates."
+        }
+      }
     }
   ]
 }

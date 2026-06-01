@@ -54,11 +54,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.316Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.316Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }
@@ -74,11 +74,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.316Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.316Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }
@@ -98,11 +98,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.316Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.316Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }
@@ -124,11 +124,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.316Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.316Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }
@@ -147,11 +147,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.316Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.316Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }
@@ -170,11 +170,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.317Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.317Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }
@@ -194,11 +194,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.317Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.317Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }
@@ -218,11 +218,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.317Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.317Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }
@@ -241,11 +241,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.317Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.317Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }
@@ -263,11 +263,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.317Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.317Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }
@@ -285,11 +285,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-        "last_updated": "2026-05-29T11:52:41.343Z",
+        "last_updated": "2026-06-01T11:42:06.317Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1190450cadd855276ebec8908155007f54a8e342ce649beb19286f078a7ee2c0",
-          "analysed_at": "2026-05-29T11:52:41.343Z",
+          "analysed_at": "2026-06-01T11:42:06.317Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The skill governs diff-aware eval refresh across check, dry-run, targeted, and apply modes with manifest-snapshot rediscovery, per-primitive analyser refresh or CI cache reuse, framework-specific static stamping plus unified LLM regeneration, and strict preservation of user-authored cases and test files."
         }

@@ -1,8 +1,7 @@
 {
   "_template_doc": [
     "REFERENCE ONLY — authoring aid. Executable hook eval JSON is stamped by:",
-    "`pnpm exec tsx scripts/eval-analyse.ts hook:<plugin|cursor>` then",
-    "`pnpm exec tsx scripts/eval-stamp.ts hook:<plugin|cursor>` (cursor → `.cursor/evals/hooks/hooks.json`).",
+    "`pnpm run eval:analyse -- hook:<plugin|cursor>` then `pnpm run eval:stamp -- hook:<plugin|cursor>` (cursor → `.cursor/evals/hooks/hooks.json`).",
     "`hook:cursor` expands to one eval case per handler entry enumerated in `.cursor/hooks.json`",
     "(or `.cursor/hooks/hooks.json` when present).",
     "Runner case example (advanced TS escape hatch):",

@@ -1,8 +1,7 @@
 {
   "_template_doc": [
     "REFERENCE ONLY — authoring aid. Executable eval JSON is stamped by:",
-    "`pnpm exec tsx scripts/eval-analyse.ts agent:<name>` then",
-    "`pnpm exec tsx scripts/eval-stamp.ts agent:<name>`.",
+    "`pnpm run eval:analyse -- agent:<name>` then `pnpm run eval:stamp -- agent:<name>`.",
     "Each generated case SHOULD include fixtures and expected_filesystem blocks mirroring sandbox IO.",
     "Runner case example (advanced TS escape hatch):",
     "{ \"id\": \"adv-1\", \"runner\": \"./adv.test.ts\", \"parameters\": {} }",

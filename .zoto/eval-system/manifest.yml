@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-05-30T14:05:11.463Z
-git_ref: 6345b245cff3c552c71e1131f1e961d273e5dfa2
+updated_at: 2026-06-01T11:42:06.477Z
+git_ref: fbfecad15cca5de07f40ec150555f1b8d2fff64c
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -94,7 +94,7 @@ targets:
   - id: skill:zoto-configure-evals
     kind: skill
     path: plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md
-    content_hash: 35745fa9cc0971382d24f3e41112b3ef03202cad2ae624c31b9e2c6385840cee
+    content_hash: a77f21b7da13bf2da4d4bae1d79c4fe69b5bb740e43752114e867724c0609947
     public_surface:
       frontmatter:
         name: zoto-configure-evals
@@ -117,7 +117,7 @@ targets:
   - id: skill:zoto-create-evals
     kind: skill
     path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
-    content_hash: a2fb6aa4980cd3ae01d845f4b876a5b78d47c345ac6693299a540ad118db48dd
+    content_hash: a000fce6a4e03731aaf0a5604c097e2f6ab3efa7a780723ef83f5a1c3598b4b7
     public_surface:
       frontmatter:
         name: zoto-create-evals
@@ -132,7 +132,7 @@ targets:
   - id: skill:zoto-eval-tooling
     kind: skill
     path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
-    content_hash: 43439dc05a3d2677988e976f0977aebd7c9fefdadf8e182900be1ef8d7e2e6cc
+    content_hash: 901336b2a1b2431f5b7857e62b8cd9425097f78a81f95b99891cf1047a394af2
     public_surface:
       frontmatter:
         name: zoto-eval-tooling
@@ -144,7 +144,7 @@ targets:
   - id: skill:zoto-execute-evals
     kind: skill
     path: plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md
-    content_hash: f035e3beae7997b30036cee3b8406324242363f7d76aac550551be36f64abb86
+    content_hash: f9215ca71cca10db74f78971b9aa416e1fcaf854b26ed956cfa63c3a5ba62fc7
     public_surface:
       frontmatter:
         name: zoto-execute-evals
@@ -178,7 +178,7 @@ targets:
   - id: skill:zoto-judge-evals
     kind: skill
     path: plugins/zoto-eval-system/skills/zoto-judge-evals/SKILL.md
-    content_hash: 440f7c58f833b6f506aefbd0a9607ff5bc87bf1679ddc73501c8a3ec3a906cde
+    content_hash: ab6eb45f980baf9aa5c161744cd31d3805e56ea4eddee4f3363b37ae5b922146
     public_surface:
       frontmatter:
         name: zoto-judge-evals
@@ -188,13 +188,13 @@ targets:
           annotations. Does not call askQuestion — handoff to /z-eval-update is
           expressed as needs_user_input for the command to confirm via
           askQuestion and resume. Uses the configured judgeModel (default
-          opus-4.6).
+          claude-opus-4-8[]).
     eval_files:
       - plugins/zoto-eval-system/skills/zoto-judge-evals/evals/evals.json
   - id: skill:zoto-update-evals
     kind: skill
     path: plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md
-    content_hash: bdf255602f78239c987be5cffe1cd4cecc85b48238447c4349b63f428f60176c
+    content_hash: 8e04894bce247d7877e22fad123a41947921883e9b2279815babea1850c0e225
     public_surface:
       frontmatter:
         name: zoto-update-evals
@@ -296,7 +296,7 @@ targets:
   - id: command:z-eval-configure
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-configure.md
-    content_hash: 2a5fcd67250d69b3dda047eaf710171f71f999e3be673aafeb659afe26925901
+    content_hash: cb792ed5d287975e6d5ebbf0d45c3e923ac6bd62eb456a79ea5069402131facb
     public_surface:
       frontmatter:
         name: z-eval-configure
@@ -314,7 +314,7 @@ targets:
   - id: command:z-eval-create
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-create.md
-    content_hash: 2589376397ac6b0916ade8e0bd5cdab101b357141b31ec3f6c56af6c6508dbaf
+    content_hash: 6af19bfa3497af02ee868c1f53a4c3faaf0d0a802cedd0cd445fd96f449f5ba2
     public_surface:
       frontmatter:
         name: z-eval-create
@@ -327,7 +327,7 @@ targets:
   - id: command:z-eval-execute
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-execute.md
-    content_hash: e2d354db5d2294ae5278aff9ffcd16fe5f3f49dd8090f9d2bacfb60ffa42367b
+    content_hash: 63ae39aef8a3507aae5f872f264039691a24a69602a624d605a7d57d6e1bc951
     public_surface:
       frontmatter:
         name: z-eval-execute
@@ -353,7 +353,7 @@ targets:
   - id: command:z-eval-init
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-init.md
-    content_hash: ec0ec69c61a7e1796a45514f7238ba3ff1c80e1e7a0fada9440509e0efa3a977
+    content_hash: 481399fdf23e89ea6bca7d88e0d57a32c793d9411fb20ac50fda6a76806a3371
     public_surface:
       frontmatter:
         name: z-eval-init
@@ -411,7 +411,7 @@ targets:
   - id: command:z-eval-update
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-update.md
-    content_hash: bf08f6d7339b06f21184cdf809993b52b3460a4ce4728d343e7a4775c3592a15
+    content_hash: 209668cadaa4f5de4fddb0ad5001fa4afc96e0f67488ac0f7fe18d07e693e85b
     public_surface:
       frontmatter:
         name: z-eval-update
@@ -499,21 +499,22 @@ targets:
   - id: agent:zoto-cursor-top-troubleshooter
     kind: agent
     path: plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md
-    content_hash: c3997ab769bf1f9e01ed0092daa5f072b8393e7fca88a8ac2ee59e4658658755
+    content_hash: 0bfd7b8dae4a7e8af6b5be3084cd37971d39bf590fa88495968d7f801e7a15c0
     public_surface:
       frontmatter:
         name: zoto-cursor-top-troubleshooter
         description: Diagnose missing rows, empty log tails, or platform-specific gaps
           in cursor-top discovery and recommend remediations.
+        model: composer-2.5[]
     eval_files: []
   - id: agent:zoto-eval-adviser
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-adviser.md
-    content_hash: 19a218aa38cd550d70f59f3a9ada1cd3536bf09628533acfe924a5b18a89c3bd
+    content_hash: 197d697909824afaf30a3d9533c4457902f060e23347bb3f8cc843af2d0dab72
     public_surface:
       frontmatter:
         name: zoto-eval-adviser
-        model: claude-opus-4-6
+        model: claude-opus-4-8[]
         description: Assesses eval suite coverage gaps across five dimensions
           (trigger-phrase coverage, schema validation, regression baselines,
           citation verification, checklist completeness). Reads
@@ -526,11 +527,11 @@ targets:
   - id: agent:zoto-eval-analyser-subagent
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
-    content_hash: dcc9bddeea031c14ae1483252be63fe3cc894b4aae99353a47fc19fbf19572db
+    content_hash: 13f55ef284e5712772a1184414b6f78972d1264daa78f28911d54da0d3673074
     public_surface:
       frontmatter:
         name: zoto-eval-analyser-subagent
-        model: claude-opus-4-6
+        model: claude-opus-4-8[]
         description: System prompt for the LLM-driven primitive analyser invoked by
           `pnpm run eval:analyse`. Not surfaced to humans — driven by the
           eval-system stamp/update flows via @cursor/sdk. Produces a strict JSON
@@ -540,11 +541,11 @@ targets:
   - id: agent:zoto-eval-comparer
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-comparer.md
-    content_hash: e6bfc4ba512e1ac78be21e6acfb25ced17862f60500c24d78f3514914e1a7263
+    content_hash: e1579b08c2077e07673503d3c9d45bcaaa3ec70838622e304c1c2922a3eabc22
     public_surface:
       frontmatter:
         name: zoto-eval-comparer
-        model: claude-opus-4-6
+        model: claude-opus-4-8[]
         description: Cross-run analysis that emits a flat dataset and a /canvas hand-off
           instruction. The host agent is expected to invoke Cursor's built-in
           /canvas tool to render the comparison. Skill never renders charts
@@ -559,11 +560,11 @@ targets:
   - id: agent:zoto-eval-configurer
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-configurer.md
-    content_hash: eb01db375f621a4dc3df1537b6c7f9575483690e2ddd23fe3a109a2d25b693ee
+    content_hash: 03f7312a3b39afb26cc983d1b8f3ee8cfae18a545ec690bb87d5bbabf982296f
     public_surface:
       frontmatter:
         name: zoto-eval-configurer
-        model: claude-opus-4-6
+        model: claude-opus-4-8[]
         description: Writes .zoto/eval-system/config.yml using the zoto-configure-evals
           skill. Presents enum-backed fields only through answers pre-collected
           by the invoking command; never calls askQuestion. Reads the manifest
@@ -580,11 +581,11 @@ targets:
   - id: agent:zoto-eval-executor
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-executor.md
-    content_hash: 7848dd5e1e6d52d49168081b131a304e0921aa0ccab9fba4d0d1f0df9d8b7bde
+    content_hash: 7f0ed629e61557cfed0c6cc6ae1c51d0f2059b3eb47732c315bb8469643d7a1c
     public_surface:
       frontmatter:
         name: zoto-eval-executor
-        model: claude-opus-4-6
+        model: claude-opus-4-8[]
         description: Executes eval runs via the host repo's package.json scripts.
           Forwards --model to the LLM runner via both a CLI flag and the
           ZOTO_EVAL_MODEL environment variable. Gates the LLM backend on
@@ -596,11 +597,11 @@ targets:
   - id: agent:zoto-eval-generator
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-generator.md
-    content_hash: 63439d10d40e1c5a66b785c7ac8feefa843337472d3df8276424b26042cd148f
+    content_hash: 14a86ea692695a5743bfd45b139257a8041a5daba7c105f26c746022c8474181
     public_surface:
       frontmatter:
         name: zoto-eval-generator
-        model: claude-opus-4-6
+        model: claude-opus-4-8[]
         description: Plans and scaffolds the eval suite for a repository. Uses
           zoto-create-evals and zoto-configure-evals skills to lay down both
           pytest and LLM (@cursor/sdk) backends, generate per-target eval cases
@@ -612,11 +613,11 @@ targets:
   - id: agent:zoto-eval-judge
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-judge.md
-    content_hash: f0608d3e410c2207fd697ef4461665398d07717d02b11228d1b3d597ecde59d3
+    content_hash: a802872245e0918d336460b875b9ef7c3940d993406eeeafb493c472985af719
     public_surface:
       frontmatter:
         name: zoto-eval-judge
-        model: claude-opus-4-6
+        model: claude-opus-4-8[]
         description: Adversarial eval judge. Reads the most recent llm.yml and per-case
           logs, flags weak graders, under-covered assertions, verbosity spikes,
           and low-confidence cases. Writes a judge block to llm.yml. Does not
@@ -627,11 +628,11 @@ targets:
   - id: agent:zoto-eval-updater
     kind: agent
     path: plugins/zoto-eval-system/agents/zoto-eval-updater.md
-    content_hash: 2a97efdf14d521b20aedb052e76413925b3dde02de38cffe01273821926bcd0e
+    content_hash: d5dbe917302861f47f3500d4736988b03efc925766425071219e761d38f032fa
     public_surface:
       frontmatter:
         name: zoto-eval-updater
-        model: claude-opus-4-6
+        model: claude-opus-4-8[]
         description: '"Diff-aware eval updater. Uses zoto-update-evals to detect drift
           between covered targets and generated eval cases, re-invokes the LLM
           analyser per drifted primitive, and dispatches per-framework static
@@ -647,11 +648,11 @@ targets:
   - id: agent:zoto-spec-executor
     kind: agent
     path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
-    content_hash: dd062c90f67ebb78b2aa9c1933d99e09f7411bb52c74dc492e9a1ecace7f1ee2
+    content_hash: 62b73f7f5372980ae0a500c3b0264e744c0df69cc1ba6ef67458f1bc4047f1b3
     public_surface:
       frontmatter:
         name: zoto-spec-executor
-        model: claude-4.6-opus-high-thinking
+        model: composer-2.5[]
         description: Execution coordination specialist. Executes engineering specs by
           spawning subagents for each subtask, tracking progress through
           dependency phases, coordinating adversarial verification, and
@@ -661,11 +662,11 @@ targets:
   - id: agent:zoto-spec-generator
     kind: agent
     path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
-    content_hash: 3301285f8246dadb6fab9f1502fe72e0c9cb7c264d39307530b2bf9f60d99efb
+    content_hash: 0cb7fb39e7f410e372bd9f2f8d706d925bea1ccd0efc970a760a35d25e9499f3
     public_surface:
       frontmatter:
         name: zoto-spec-generator
-        model: claude-opus-4-7-thinking-xhigh
+        model: claude-opus-4-8[]
         description: Config-driven spec creation specialist. Breaks down complex
           features into well-defined subtasks with clear deliverables,
           dependency graphs, and execution phases. Specs are ephemeral
@@ -674,11 +675,11 @@ targets:
   - id: agent:zoto-spec-judge
     kind: agent
     path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
-    content_hash: 2987336807ee6534d4139785d4980bac3084911852ed0b4d84114efa33766633
+    content_hash: f144935058a14896d7b7492a4584f2e696e5626626343632230813efc9d800c5
     public_surface:
       frontmatter:
         name: zoto-spec-judge
-        model: claude-opus-4-6
+        model: claude-opus-4-8[]
         description: Independent quality gate for the Spec System. Performs adversarial
           verification of subtask deliverables during spec execution
           (status-pair-only writes; fix-lists routed back to the assigned
@@ -691,11 +692,11 @@ targets:
   - id: agent:zoto-eval-architect
     kind: agent
     path: .cursor/agents/zoto-eval-architect.md
-    content_hash: 218704f61b24c8ab6ee8591f45a04278eebce259dd35b16ea776b988bbdf7597
+    content_hash: 71a840d3483c0fe14cbe1604bafbc51b44b283716b2c9e7c5c5185f43de07a41
     public_surface:
       frontmatter:
         name: zoto-eval-architect
-        model: claude-opus-4-7-thinking-xhigh
+        model: claude-opus-4-8[]
         description: Eval-system architect specialising in the design, ergonomics,
           performance, and quality strategy of the `zoto-eval-system` plugin.
           Deep knowledge of the declarative-vs-code LLM-strategy split, the
@@ -709,11 +710,11 @@ targets:
   - id: agent:zoto-eval-engineer
     kind: agent
     path: .cursor/agents/zoto-eval-engineer.md
-    content_hash: 2ac100e8cd33216a93ec7b9e514804f3bd1c58cab00704f3c46c9c91521db10e
+    content_hash: 5f6111c7b000f431c2dde3d1a8740d338628a6649b4e05947a341a47715d8df4
     public_surface:
       frontmatter:
         name: zoto-eval-engineer
-        model: claude-opus-4-7
+        model: claude-opus-4-8[]
         description: Eval-system implementation engineer specialising in the code,
           schemas, contracts, and host-repo application of the
           `zoto-eval-system` plugin. Deep knowledge of the TypeScript engine,
@@ -726,11 +727,11 @@ targets:
   - id: agent:zoto-plugin-manager
     kind: agent
     path: .cursor/agents/zoto-plugin-manager.md
-    content_hash: 1b2f91ef634be3901bc7afd4e9cdc4aa2546b76603f8139d9a47379678688e01
+    content_hash: eb8d5c9c66162ac653955044a3a2222a856bbc1016847c9f68d1089b1f3e9162
     public_surface:
       frontmatter:
         name: zoto-plugin-manager
-        model: claude-opus-4-7[]
+        model: claude-opus-4-8[]
         description: Expert at creating, validating, and managing Cursor plugins in this
           monorepo. Deep knowledge of plugin anatomy (agents, skills, commands,
           rules, hooks, MCP), the Agent Skills specification, marketplace

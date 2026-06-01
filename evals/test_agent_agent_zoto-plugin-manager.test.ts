@@ -16,7 +16,7 @@
  * Type contract
  * -------------
  * `AnalyserPayload` mirrors the canonical TS interface exported by
- * `scripts/eval-analyse.ts` and the JSON schema at
+ * `eval:analyse` CLI and the JSON schema at
  * `plugins/zoto-eval-system/templates/schema/analyser-payload.schema.json`
  * (subtask 04). Keep the local type narrow so generated test files have
  * no project-relative imports beyond `vitest` itself — the stamper writes

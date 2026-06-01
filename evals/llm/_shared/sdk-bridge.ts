@@ -90,7 +90,7 @@ export interface AwaitedRun {
 export interface CreateAgentOptions {
   /** Cursor API key; defaults to `process.env.CURSOR_API_KEY`. */
   apiKey?: string;
-  /** Concrete Cursor model id (e.g. `composer-2.5`, `opus-4.6`). */
+  /** Concrete Cursor model id (e.g. `composer-2.5`, `claude-opus-4-8[]`). */
   modelId: string;
   /** Sandbox / workspace cwd — the agent executes against this tree. */
   cwd: string;

@@ -543,7 +543,7 @@ export function wrapDeclarativeJsonAsTs(args: {
     `  targetId: "${args.targetId}",`,
     "  cases: CASES,",
     `  modelId: process.env.ZOTO_EVAL_MODEL ?? "composer-2.5",`,
-    `  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? "opus-4.6",`,
+    `  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? "claude-opus-4-8[]",`,
     "  caseTimeoutMs: 180000,",
     "  describe,",
     "  it,",

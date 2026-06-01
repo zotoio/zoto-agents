@@ -78,6 +78,8 @@ The `_user-case-guards/` directory contains the runtime guards that enforce the 
 
 ### Host-Repo Layout (When Applied)
 
+Runtime follows the three-layer model (KD-1): **plugin package** (`plugins/zoto-eval-system/scripts/`, `engine/`, `src/`) is the authoring source; **stamped host copy** (`.zoto/eval-system/`) is what operators run via `pnpm run eval:*`; **monorepo dogfood** invokes `plugins/zoto-eval-system/scripts/` directly from root `package.json`. Repo-root `scripts/` holds CI/migration tooling only — not the canonical host CLI.
+
 ```
 <host-repo>/
 ├── .zoto/eval-system/

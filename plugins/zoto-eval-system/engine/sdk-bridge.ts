@@ -90,7 +90,7 @@ export interface AwaitedRun {
 export interface CreateAgentOptions {
   /** Cursor API key; defaults to `process.env.CURSOR_API_KEY`. */
   apiKey?: string;
-  /** Concrete Cursor model id (e.g. `composer-2.5`, `opus-4.6`). */
+  /** Concrete Cursor model id (e.g. `composer-2.5`, `claude-opus-4-8[]`). */
   modelId: string;
   /** Sandbox / workspace cwd — the agent executes against this tree. */
   cwd: string;
@@ -98,26 +98,26 @@ export interface CreateAgentOptions {
 
 /**
  * Maps abstract model labels used throughout the eval system
- * (`opus-4.6`, `sonnet`, etc.) to the concrete model ids accepted by
+ * (`claude-opus-4-8[]`, `sonnet`, etc.) to the concrete model ids accepted by
  * `@cursor/sdk` `Agent.create({ model: { id } })`.
  *
  * Background: the eval-system config schema and stamped test files use
- * short, version-stable labels (e.g. `opus-4.6`) so that bumping the
+ * version-stable labels (e.g. `claude-opus-4-8[]`) so that bumping the
  * underlying provider model doesn't require a sweep across dozens of
  * generated `*.test.ts` files. The SDK, however, expects the provider's
- * literal id (e.g. `claude-opus-4-6`). This table is the single
+ * literal id (e.g. `claude-opus-4-8[]`). This table is the single
  * translation point — update it when a provider renames a model.
  *
  * Override at runtime via `ZOTO_EVAL_MODEL_ALIASES`, a JSON object
  * mapping abstract labels to concrete ids, e.g.
- *   ZOTO_EVAL_MODEL_ALIASES='{"opus-4.6":"claude-opus-4-7"}'
+ *   ZOTO_EVAL_MODEL_ALIASES='{"claude-opus-4-8[]":"claude-opus-4-8[]"}'
  *
  * Unknown labels pass through unchanged so concrete ids
- * (`claude-opus-4-7`, `composer-2.5`, etc.) keep working without any
+ * (`claude-opus-4-8[]`, `composer-2.5`, etc.) keep working without any
  * rewrite.
  */
 const DEFAULT_MODEL_ALIASES: Record<string, string> = {
-  "opus-4.6": "claude-opus-4-6",
+  "claude-opus-4-8[]": "claude-opus-4-8[]",
   "opus-4.7": "claude-opus-4-7",
   "sonnet": "claude-sonnet-4-6",
   "sonnet-4.6": "claude-sonnet-4-6",
@@ -146,8 +146,8 @@ function loadModelAliases(): Record<string, string> {
 }
 
 /**
- * Translate an abstract model label (`opus-4.6`) to the concrete API id
- * (`claude-opus-4-6`). Returns the input unchanged if no alias matches.
+ * Translate an abstract model label (`claude-opus-4-8[]`) to the concrete API id
+ * (`claude-opus-4-8[]`). Returns the input unchanged if no alias matches.
  * Exported so reporters and logs can show the resolved id.
  */
 export function resolveModelId(modelId: string): string {

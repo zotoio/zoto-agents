@@ -1,0 +1,76 @@
+schema_version: 1
+subtask_id: "04"
+feature: Eval Plugin Self-Contained Scripts Consolidation
+assigned_agent: zoto-eval-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: '`stamp-host-layout.ts` — `HOST_SCRIPT_NAMES` copied from `join(PLUGIN_ROOT, "scripts", name)` not `join(agentsRoot, "scripts", name)`'
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D02
+    text: Add `check-analyser-payload-parity.ts` to stamper list if `engine/update.ts --check` expects it under stamped host `scripts/`
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D03
+    text: Simplify `rewriteScriptBody` — remove `../plugins/zoto-eval-system/` replacements if source scripts already use `../src/` and `../engine/`
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D04
+    text: "`rewriteEngineFile` — change `../../../scripts/` → `../scripts/` rewrite may become unnecessary if engine imports are already `../scripts/` in plugin source; keep rewrite for backward compatibility during migration or remove if redundant"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D05
+    text: "`migrate-host-layout-v3.ts` — update comments and any hardcoded root script paths"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/migrate-host-layout-v3.ts
+  - id: D06
+    text: "`install-local.ts` — add `engine` and `src` to `PLUGIN_DIRS`"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/install-local.ts
+  - id: D07
+    text: "Dry-run verification: `pnpm exec tsx plugins/zoto-eval-system/scripts/stamp-host-layout.ts --dry-run --repo-root .` reports copies from plugin scripts"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+artifacts:
+  - path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+    kind: modified
+    note: Script sourcing defaults to PLUGIN_ROOT; added parity + cleanup-stale scripts; simplified rewriteScriptBody
+  - path: plugins/zoto-eval-system/scripts/migrate-host-layout-v3.ts
+    kind: modified
+    note: Updated legacy-move comments; expanded scriptNames; removed zotoAgentsRoot override
+  - path: plugins/zoto-eval-system/scripts/install-local.ts
+    kind: modified
+    note: Added engine and src to PLUGIN_DIRS
+  - path: plugins/zoto-eval-system/templates/host-package/package.json
+    kind: modified
+    note: Added eval:analyser-parity-check, eval:cleanup-stale, eval:cleanup-stale:apply aliases
+errors: []
+notes: >-
+  Dry-run stamp lists eval-cleanup-stale.ts and check-analyser-payload-parity.ts under
+  .zoto/eval-system/scripts/. Temp-dir force-stamp confirms eval-stamp.ts imports
+  ../src/config-loader.js (no monorepo import paths). install-local --dry-run copies
+  engine/ and src/. plugin.test.ts had no stamper assertions requiring updates.
+extra:
+  host_package_aliases_added:
+    - eval:analyser-parity-check
+    - eval:cleanup-stale
+    - eval:cleanup-stale:apply
+  judge:
+    verdict: verified
+    at: "2026-06-01T12:00:00.000Z"
+    notes: |
+      Independently confirmed all checklist and DoD items. stampScripts sources
+      HOST_SCRIPT_NAMES from join(pluginRoot, "scripts", name) with pluginRoot
+      defaulting to PLUGIN_ROOT; eval-cleanup-stale.ts and
+      check-analyser-payload-parity.ts are in the stamp list and host template
+      exposes matching aliases. rewriteScriptBody no longer rewrites monorepo
+      plugin paths; rewriteEngineFile retained for legacy ../../../scripts/
+      compat. migrate-host-layout-v3.ts comments and scriptNames updated.
+      install-local PLUGIN_DIRS includes engine and src (dry-run logs both).
+      stamp-host-layout --dry-run lists parity + cleanup-stale under
+      .zoto/eval-system/scripts/. Stamped eval-stamp.ts imports
+      ../src/config-loader.js. plugin.test.ts needs no stamper updates.
+    fix_list: []

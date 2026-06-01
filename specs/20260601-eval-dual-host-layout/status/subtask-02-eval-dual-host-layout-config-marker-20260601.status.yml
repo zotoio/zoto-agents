@@ -1,0 +1,73 @@
+schema_version: 1
+subtask_id: "02"
+feature: eval-dual-host-layout
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: Add `hostLayout` enum (`"plugin"` | `"ejected"`) to `templates/schema/config.schema.json` with default `"plugin"`
+    done: true
+    evidence_path: null
+  - id: D02
+    text: Add `hostLayout` field to `EvalSystemConfig` type in `plugins/zoto-eval-system/src/config-loader.ts`
+    done: true
+    evidence_path: null
+  - id: D03
+    text: 'Update `templates/config.json` baseline with `hostLayout: "plugin"` default'
+    done: true
+    evidence_path: null
+  - id: D04
+    text: "Update `templates/init-config.yml` template with commented `# hostLayout: plugin`"
+    done: true
+    evidence_path: null
+  - id: D05
+    text: Existing `detectLayout()` in `paths.ts` updated to consult `config.hostLayout` first, falling back to filesystem heuristics only when not set
+    done: true
+    evidence_path: null
+  - id: D06
+    text: 'Update `EvalLayoutMode` type to align with new config-driven detection: `"plugin"` (lean) maps to resolving from plugin, `"ejected"` maps to self-contained'
+    done: true
+    evidence_path: null
+  - id: D07
+    text: Config validation tests pass with both values and with the field omitted (defaults to `"plugin"`)
+    done: true
+    evidence_path: null
+artifacts:
+  - path: plugins/zoto-eval-system/templates/schema/config.schema.json
+    kind: modified
+    note: hostLayout enum
+  - path: plugins/zoto-eval-system/src/config-loader.ts
+    kind: modified
+    note: HostLayout type and loader
+  - path: plugins/zoto-eval-system/templates/config.json
+    kind: modified
+    note: default hostLayout
+  - path: plugins/zoto-eval-system/templates/init-config.yml
+    kind: modified
+    note: commented hostLayout
+  - path: plugins/zoto-eval-system/src/paths.ts
+    kind: modified
+    note: config-driven detectLayout
+  - path: plugins/zoto-eval-system/src/config-loader.test.ts
+    kind: modified
+    note: hostLayout tests
+errors: []
+notes: ""
+extra:
+  judge:
+    verdict: verified
+    at: "2026-06-01T14:37:00.000Z"
+    notes: >-
+      All seven deliverables confirmed on disk. Schema defines hostLayout enum
+      with default plugin; EvalSystemConfig/HostLayout types and hostLayoutExplicit
+      tracking in loader; templates updated; detectLayout gates on hostLayoutExplicit
+      before filesystem heuristics; EvalLayoutMode aliased to plugin|ejected.
+      config-loader.test.ts 18/18 pass via plugin package vitest (pnpm test from
+      plugins/zoto-eval-system). No linter errors on modified src files. HostLayout
+      exported from index.ts.
+    fix_list: []
+last_heartbeat: 2026-06-01T14:37:00.000Z
+started_at: 2026-06-01T04:34:35.625Z
+completed_at: 2026-06-01T04:36:03.957Z

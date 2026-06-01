@@ -123,7 +123,7 @@ When `kind` is `command`, the default prompt shape is `/<cmd-name> <realistic ar
 1. **Precondition-abort** — the command's own markdown documents an early refuse when setup is missing (e.g. Eval System not initialised, missing `.zoto/eval-system/config.yml`). The case prompt stays bare; assertions cite the exact refuse string and the on-disk absence proof.
 2. **Documented no-args capability** — the command's Usage section shows bare `/cmd` as the intended invocation (e.g. `/z-eval-init`, `/z-eval-start`, `/zoto-create-plugin`).
 
-Every other command case MUST include realistic flags or arguments (`/z-eval-update --check`, `/z-eval-help configuration`, `/z-eval-execute --full --model opus-4.6`, …). Do not emit bare `/cmd` for generic smoke tests, assertion tightening, or "operator forgot args" scenarios unless the analysed primitive's source documents that path.
+Every other command case MUST include realistic flags or arguments (`/z-eval-update --check`, `/z-eval-help configuration`, `/z-eval-execute --full --model claude-opus-4-8[]`, …). Do not emit bare `/cmd` for generic smoke tests, assertion tightening, or "operator forgot args" scenarios unless the analysed primitive's source documents that path.
 
 The canonical register of retained bare prompts (file, case id, exemption, code ref) lives in `specs/20260525-eval-prompt-realism-audit/audit/realism-rubric.md` under **Bare-command exception register (KD-2)**. When stamping a command whose bare case is **not** on that register, rewrite the prompt to include realistic args.
 

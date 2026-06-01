@@ -20,7 +20,7 @@
     "judge_model": {
       "type": "string",
       "minLength": 1,
-      "description": "Optional override for the LLM judge model id. Falls back to `ZOTO_EVAL_JUDGE_MODEL` env / `opus-4.6` at runtime."
+      "description": "Optional override for the LLM judge model id. Falls back to `ZOTO_EVAL_JUDGE_MODEL` env / `claude-opus-4-8[]` at runtime."
     },
     "case_timeout_ms": {
       "type": "integer",

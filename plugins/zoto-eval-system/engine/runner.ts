@@ -142,7 +142,7 @@ function printHelp(): void {
   console.log(
     "  --judge-only  Smoke: validate latest llm.yml exists (no Agent run).",
   );
-  console.log("  --model <id>  Override model (composer-2.5 | opus-4.6 | sonnet).");
+  console.log("  --model <id>  Override model (composer-2.5 | claude-opus-4-8[] | sonnet).");
 }
 
 function loadConfig(): Record<string, unknown> {

@@ -16,12 +16,11 @@ Reads `.zoto/eval-system/config.yml`. If missing, return `needs_user_input` so `
 Stamping selects the static backend using **`static.framework`** (`pytest` | `vitest` | `jest`). The LLM backend is JSON-first: every approved non-skill primitive is stamped as a co-located `<kind>/evals/<name>.json` file discovered by the Vitest JSON loader plugin in `evals/vitest.config.ts`. Skills retain `skills/<name>/evals/evals.json` per the Cursor Agent Skills spec. Operators edit `static.framework` in `.zoto/eval-system/config.yml` (via `/z-eval-configure`); flipping it is cleanup work, not silent drift.
 
 Writes:
-- `.zoto/eval-system/` — self-contained eval runtime (`evals/`, `scripts/`, `src/`, `templates/`, `engine/`, `package.json`, `manifest.yml`, `manifest.history.yml`, `cache/`).
-- `.env.example` at the repo root (from `templates/env/.env.example.tmpl`) — placeholder for `CURSOR_API_KEY` and optional `ZOTO_EVAL_MODEL`. **Never overwritten** if it already exists.
-- `.gitignore` at the repo root — three rule lines (`.env`, `.env.*`, `!.env.example`) are appended under a labelled header if missing. `.gitignore` is created if absent. Existing entries are never duplicated or rewritten.
-- Optional thin aliases in the host repo root `package.json` (`eval`, `eval:full` → `pnpm -C .zoto/eval-system …`) — eval scripts and devDependencies live in `.zoto/eval-system/package.json` only.
+- `.zoto/eval-system/` — **lean (default)**: repo-specific assets (`manifest.yml`, `manifest.history.yml`, `cache/`, `.gitignore`, nested `package.json`, `scripts/eval-bridge.ts`). Engine, scripts, and templates resolve from the installed plugin at runtime via the bridge. **Ejected** hosts (opt-in via `pnpm run eval:stamp-host-layout`) additionally carry vendored `src/`, `templates/`, `engine/`, `scripts/`, and the full nested script contract from `templates/host-package/package.json`.
+- `.zoto/eval-system/scripts/eval-bridge.ts` (stamped from `templates/runner/eval-bridge.ts.tmpl` when missing) — cross-platform wrapper that loads `<repoRoot>/.env` then calls `resolvePluginRoot()` and execs plugin scripts via `tsx` (no shell interpolation).
+- Nested `.zoto/eval-system/package.json` with `eval` / `eval:full` bridge aliases; root `package.json` may gain `pnpm -C .zoto/eval-system run eval` delegates plus Vitest harness devDeps via `lean-root-vitest.json`.
 
-`.env.example` and `.gitignore` are both handled by the same idempotent helper: `scripts/ensure-host-env-and-gitignore.ts`. It returns a JSON report describing the actions taken (`created` / `skipped-existing` / `appended` / `no-change`) so the agent can surface them in the final report.
+`.env.example` and `.gitignore` are handled by `pnpm run eval:ensure-host` (plugin `ensure-host-env-and-gitignore.ts` via the bridge). It returns a JSON report describing the actions taken (`created` / `skipped-existing` / `appended` / `no-change`) so the agent can surface them in the final report.
 
 ## When to Use
 
@@ -45,30 +44,32 @@ The **`/z-eval-create` command** presents checklists via `askQuestion` **before*
 
 Immediately filter that list against `config.ignore`: map each retained ID to its canonical source (`SKILL.md`, `commands/<name>.md`, `agents/<name>.md`, `hooks.json`, …) and drop any path whose POSIX repo-relative form matches a minimatch entry (same rules as `eval-analyse.ts` / `eval-stamp.ts`). **Do not** run `pnpm run eval:analyse --` / `eval-stamp.ts` for excluded IDs; tooling will exit cleanly with `{ ignored: true }` if invoked accidentally.
 
-Run `pnpm exec tsx scripts/eval-cleanup-vendored.ts` after host operators populate `ignore` so legacy generated-only eval JSON for upstream bundles (typically `crux-*`) disappears (see Ignored section).
+Run `pnpm exec tsx plugins/zoto-eval-system/scripts/eval-cleanup-vendored.ts` after host operators populate `ignore` so legacy generated-only eval JSON for upstream bundles (typically `crux-*`) disappears (see Ignored section).
 
-### Step 4: Stamp self-contained host layout + backend templates
+### Step 4: Stamp lean host layout + backend templates
 
 Run once per host (idempotent):
 
 ```bash
-pnpm exec tsx plugins/zoto-eval-system/scripts/stamp-host-layout.ts --repo-root <host>
-cd .zoto/eval-system && pnpm install
+pnpm exec tsx plugins/zoto-eval-system/scripts/stamp-lean-layout.ts --repo-root <host>
 ```
 
-From the dogfood monorepo, point `--repo-root` at the target host. The stamper copies `src/`, `templates/`, `engine/`, vendored `scripts/`, the analyser agent, and writes `.zoto/eval-system/package.json`. Re-run with `--force-scripts` to refresh vendored CLI scripts after plugin upgrades.
+This is the **default** create path. It materialises repo-specific assets under `.zoto/eval-system/` (`cache/`, `.gitignore`, nested `package.json`, `scripts/eval-bridge.ts`), `evals/_runs/.gitkeep`, and optional root `package.json` delegates. It **does not** call `stamp-host-layout.ts` — that CLI is eject-only.
+
+For a **self-contained ejected runtime** (opt-in), operators run `pnpm run eval:stamp-host-layout` separately (see `/z-eval-create` lean vs ejected table).
 
 Every invocation ALWAYS stamps both backends (no opt‑out):
 
-- Static: copy `templates/static/pytest/*` to `.zoto/eval-system/evals/` (via `eval-stamp.ts --baseline-only` or manual copy during greenfield).
-- LLM harness: copy `templates/llm/agent-sdk/*` to `.zoto/eval-system/evals/_llm/` when present.
-- Copy `templates/schema/result.schema.json` to `.zoto/eval-system/evals/_llm/result.schema.json` when needed.
-- Run `pnpm run eval:ensure-host` from `.zoto/eval-system/` (stamped `scripts/eval-ensure-host.ts`). It:
+- Static: `pnpm run eval:baseline-stamp` (or `eval-stamp.ts --baseline-only`) copies baseline fixtures into the configured `evalsDir`.
+- LLM harness: baseline stamp also lays down `evals/_llm/` harness files from plugin templates when present.
+- Copy `templates/schema/result.schema.json` to `evals/_llm/result.schema.json` when needed.
+- Run `pnpm run eval:ensure-host` from the repo root. It:
   - Copies `templates/env/.env.example.tmpl` to the **repo root** `.env.example` only if missing.
   - Ensures the host `.gitignore` covers `.env`.
-  - Copies the multi-primitive scenario example to `.zoto/eval-system/evals/scenarios/_example-multi-primitive.test.ts` when missing.
+  - Stamps repo-root `README.md` and `AGENTS.md` from `templates/host-package/*.tmpl` when missing.
+  - Copies the multi-primitive scenario example to `{evalsDir}/scenarios/_example-multi-primitive.test.ts` when missing.
 
-Skills still consume `skills/<name>/evals/evals.json` via **`templates/skill-evals/evals.json.tmpl`** inside each approved skill folder. **`eval-stamp.ts` refuses most `skill:*` ids** (exit code 2) — optional `pnpm run eval:analyse -- skill:<name>` supplies hints, then operators merge manually or copy the template. **Exception:** `skill:zoto-eval-tooling` is allowlisted (`CENTRAL_STAMP_SKILL_ALLOWLIST` in `scripts/eval-stamp.ts`); refresh it with analyse then **`pnpm run eval:stamp -- skill:zoto-eval-tooling`** so rows come straight from the cached analyser payload.
+Skills still consume `skills/<name>/evals/evals.json` via **`templates/skill-evals/evals.json.tmpl`** inside each approved skill folder. **`eval-stamp.ts` refuses most `skill:*` ids** (exit code 2) — optional `pnpm run eval:analyse -- skill:<name>` supplies hints, then operators merge manually or copy the template. **Exception:** `skill:zoto-eval-tooling` is allowlisted (`CENTRAL_STAMP_SKILL_ALLOWLIST` in `eval-stamp.ts`, resolved from the plugin in lean mode or from `.zoto/eval-system/scripts/eval-stamp.ts` when ejected); refresh it with analyse then **`pnpm run eval:stamp -- skill:zoto-eval-tooling`** so rows come straight from the cached analyser payload.
 
 ### Step 4a: Analyse each approved central target & stamp fixtures
 
@@ -105,16 +106,9 @@ _meta:
   partial: <optional true when only shape-sanity signal existed>
 ```
 
-### Step 5: Root package.json aliases (optional)
+### Step 5: Root package.json aliases
 
-Legacy hosts used `scripts/package-json-merger.ts` to pollute the root `package.json`. **v3 greenfield hosts must not merge eval scripts into root.** After stamping, optionally add two aliases only:
-
-```json
-"eval": "pnpm -C .zoto/eval-system eval",
-"eval:full": "pnpm -C .zoto/eval-system eval:full"
-```
-
-Run `pnpm install` inside `.zoto/eval-system/` (not at repo root) to fetch eval devDeps. Document this in the final report.
+Lean create merges `templates/host-package/lean-package.json` into `.zoto/eval-system/package.json` and `lean-root-vitest.json` into the repo root — nested `eval` / `eval:full` plus optional root `pnpm -C .zoto/eval-system` delegates. Full eval runtime dependencies and all other CLI entry points live in the **installed plugin**; ejected hosts get the full contract under `.zoto/eval-system/package.json`. For any other command in lean mode, invoke `tsx .zoto/eval-system/scripts/eval-bridge.ts <script-base> [-- args]` (e.g. `eval-discover`, `engine/update -- --check`). Run `pnpm install` in `.zoto/eval-system/` (and at repo root when root Vitest deps were merged). Document this in the final report.
 
 ### Step 6: Manual checklists
 
@@ -142,10 +136,10 @@ Append the exact same document to `.zoto/eval-system/manifest.history.yml` (appe
 
 ### Step 8: Validate
 
-Run from `.zoto/eval-system/` (or via root aliases):
-- `pnpm run eval:list` — must succeed.
+Run from the repo root (lean mode resolves through `.zoto/eval-system/scripts/eval-bridge.ts`):
 - `pnpm run eval -- --collect-only` — must succeed.
-- `pnpm run eval:update --check` — must exit 0.
+- `tsx .zoto/eval-system/scripts/eval-bridge.ts engine/runner -- --list` — must succeed.
+- `tsx .zoto/eval-system/scripts/eval-bridge.ts engine/update -- --check` — must exit 0.
 - Optional hygiene: `pnpm run eval:cleanup-vendored` (non–dry-run) once `ignore[]` ships in the host config removes orphan generated fixtures for upstream-only assets.
 
 If any gate fails, report errors in your final output; if user decision is needed to retry, use `needs_user_input` — **never** `askQuestion`.
@@ -154,12 +148,16 @@ If any gate fails, report errors in your final output; if user decision is neede
 
 - `ignore` (`string[]`) lives in `.zoto/eval-system/config.yml` (template default `[]`). Entries are minimatch globs validated against POSIX repo-relative source paths (`eval-analyse.ts`/`eval-stamp.ts` honor them first).
 - **Generation/skipping**: Any approved target whose canonical source hits a glob exits `eval-analyse` / `eval-stamp` cleanly with `{ ignored: true, matched_glob }` (`eval-stamp` never writes files for those primitives).
-- **Cleanup**: Operators run `pnpm exec tsx scripts/eval-cleanup-vendored.ts` (supports `--dry-run`) to unlink generated-only (`_meta.generated === true` everywhere) skill/central JSON whose mapped source sits under ignored globs, then prune empty `evals/` directories. Mixed user/generated files raise `needs_user_input` rather than silently deleting anything.
+- **Cleanup**: Operators run `pnpm run eval:cleanup-vendored` (supports `--dry-run`) to unlink generated-only (`_meta.generated === true` everywhere) skill/central JSON whose mapped source sits under ignored globs, then prune empty `evals/` directories. Mixed user/generated files raise `needs_user_input` rather than silently deleting anything.
 - **Recommendation**: Repo-local upstream mirrors — e.g., everything under `crux-*` prefixes — should be enumerated in `ignore` so eval efforts focus on proprietary zoto assets.
+
+## Eject / un-eject (operator CLI)
+
+This skill stamps **lean** layout only. Operators who need a self-contained runtime run **`pnpm run eval:stamp-host-layout`** after create (see README and `zoto-eval-tooling` skill). To reverse ejection without losing config, manifest, or eval cases, run **`pnpm run eval:un-eject`**. Both CLIs patch `hostLayout` in `config.yml` automatically.
 
 ## Conventions
 
-- Never write outside `.zoto/eval-system/` (except co-located primitive eval JSON, repo-root `.env.example`, and append-only `.gitignore` lines).
+- Never write outside `.zoto/eval-system/` except: co-located primitive eval JSON, root `package.json` eval delegates/devDeps (when merged), repo-root `.env.example`, and append-only `.gitignore` lines.
 - Every generated case gets a `_meta` marker with `generated: true`.
 - `manifest.history.yml` is append-only.
 - `.env.example` is **never** overwritten if it already exists — operators may have other env vars in there.

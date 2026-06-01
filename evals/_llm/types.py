@@ -1,5 +1,5 @@
 """Python mirror of the canonical TypeScript ``AnalyserPayload`` type from
-``scripts/eval-analyse.ts``.
+``eval:analyse`` CLI.
 
 This file is the Python source-of-truth for the LLM-driven analyser payload
 contract (subtask 04 of the eval-system-v2 spec). Static and LLM backend

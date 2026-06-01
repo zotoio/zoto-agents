@@ -5,7 +5,7 @@ import { defineConfig } from "vitest/config";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const evalEngineRoot = resolve(__dirname, "../../../plugins/zoto-eval-system/engine");
 
-/** Unit tests for `_shared/` helpers (excluded from `evals/llm/vitest.config.ts`). */
+/** Unit tests for `_shared/` helpers (excluded from the unified `evals/vitest.config.ts`). */
 export default defineConfig({
   root: __dirname,
   resolve: {

@@ -30,7 +30,7 @@
     "model_id": {
       "type": "string",
       "minLength": 1,
-      "description": "Concrete Cursor model id used to generate this payload (e.g. `composer-2.5`, `opus-4.6`, `sonnet`). Mirrors the `_meta.primitive_analysis.model_id` callers use to detect model swaps."
+      "description": "Concrete Cursor model id used to generate this payload (e.g. `composer-2.5`, `claude-opus-4-8[]`, `sonnet`). Mirrors the `_meta.primitive_analysis.model_id` callers use to detect model swaps."
     },
     "target_id": {
       "type": "string",

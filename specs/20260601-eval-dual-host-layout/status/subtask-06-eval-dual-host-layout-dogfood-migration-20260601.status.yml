@@ -1,0 +1,96 @@
+schema_version: 1
+subtask_id: "06"
+feature: eval-dual-host-layout
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: Delete `.zoto/eval-system/src/` directory (vendored config-loader, paths, etc.)
+    done: true
+    evidence_path: null
+  - id: D02
+    text: Delete `.zoto/eval-system/engine/` directory (vendored runner, update, compare, etc.)
+    done: true
+    evidence_path: null
+  - id: D03
+    text: Delete `.zoto/eval-system/templates/` directory (vendored templates tree)
+    done: true
+    evidence_path: null
+  - id: D04
+    text: Delete `.zoto/eval-system/scripts/` directory (vendored eval-discover, eval-analyse, etc.)
+    done: true
+    evidence_path: null
+  - id: D05
+    text: Delete `.zoto/eval-system/agents/` directory (vendored analyser agent)
+    done: true
+    evidence_path: null
+  - id: D06
+    text: Delete `.zoto/eval-system/package.json` (nested package)
+    done: true
+    evidence_path: null
+  - id: D07
+    text: Delete `.zoto/eval-system/.env.example` (if sourced from plugin template)
+    done: true
+    evidence_path: null
+  - id: D08
+    text: Delete `.zoto/eval-system/.gitignore` (if sourced from plugin template — or replace with lean version)
+    done: true
+    evidence_path: null
+  - id: D09
+    text: Keep `.zoto/eval-system/config.yml` (repo-specific config)
+    done: true
+    evidence_path: .zoto/eval-system/config.yml
+  - id: D10
+    text: Keep `.zoto/eval-system/manifest.yml` and `manifest.history.yml` (repo-specific state)
+    done: true
+    evidence_path: .zoto/eval-system/manifest.yml
+  - id: D11
+    text: "Set `hostLayout: plugin` in `.zoto/eval-system/config.yml`"
+    done: true
+    evidence_path: .zoto/eval-system/config.yml
+  - id: D12
+    text: Verify root `package.json` eval:* scripts already point to `plugins/zoto-eval-system/scripts/` (they do currently — confirm no breakage)
+    done: true
+    evidence_path: package.json
+  - id: D13
+    text: Remove any root-level devDeps that were only needed for the vendored nested package (if any)
+    done: true
+    evidence_path: null
+  - id: D14
+    text: Verify `pnpm run eval:discover`, `pnpm run eval:update --check`, and `pnpm run eval:list` work post-migration
+    done: true
+    evidence_path: null
+artifacts:
+  - path: .zoto/eval-system/config.yml
+    kind: modified
+    note: "Added hostLayout:plugin; fixed judgeModel to claude-opus-4-8[]"
+errors: []
+notes: >-
+  Vendored runtime was untracked; deletions are filesystem-only (no git deletions).
+  eval:discover reports layout:plugin, 52 targets. eval:list succeeds.
+  eval:update --check exits 2 with 6 pre-existing critical skill drifts (S01–S03 plugin edits);
+  layout_drift_count=0 — not migration-related.
+  Fixed judgeModel opus-4.6 → claude-opus-4-8[] (schema-invalid value restored from stash).
+  No root devDep removals needed — all deps serve plugin/host eval harness.
+extra:
+  git_checkpoint: "stash@{0}: pre-lean-migration .zoto/eval-system"
+  eval_discover_layout: plugin
+  eval_discover_targets: 52
+  eval_update_exit_code: 2
+  eval_update_layout_drift_count: 0
+  judge:
+    verdict: verified
+    at: "2026-06-01T14:50:00+10:00"
+    notes: >-
+      Independently confirmed vendored runtime dirs (src/, engine/, templates/, scripts/, agents/),
+      package.json, .env.example, and .gitignore are absent from .zoto/eval-system/. Lean layout
+      retains config.yml (hostLayout:plugin), manifest.yml, manifest.history.yml, and cache/.
+      Root package.json eval:* scripts resolve to plugins/zoto-eval-system/. eval:discover exit 0
+      with layout:plugin and 52 targets; eval:list exit 0; eval:update --check runs via plugin
+      engine (exit 2, layout_drift_count=0, 6 pre-existing skill drifts — not migration-related).
+      Git checkpoint stash@{0} present. ReadLints clean on config.yml. Git shows only config.yml
+      edit under .zoto/eval-system/ (vendored tree was untracked). Pre-existing tracked
+      .last-drift-check remains; outside strict DoD "only" list but not introduced by S06.
+    fix_list: []

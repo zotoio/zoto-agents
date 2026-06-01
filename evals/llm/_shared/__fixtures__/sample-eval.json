@@ -1,7 +1,7 @@
 {
   "target_id": "command:sample",
   "model_id": "composer-2.5",
-  "judge_model": "opus-4.6",
+  "judge_model": "claude-opus-4-8[]",
   "case_timeout_ms": 60000,
   "cases": [
     {

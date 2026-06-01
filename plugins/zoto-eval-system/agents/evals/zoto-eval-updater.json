@@ -5,7 +5,7 @@
     "migrated_from": "plugins/zoto-eval-system/agents/evals/zoto-eval-updater.test.ts",
     "migrated_at": "2026-05-27T17:21:10.986Z",
     "model_id": "composer-2.5",
-    "judge_model": "opus-4.6",
+    "judge_model": "claude-opus-4-8[]",
     "case_timeout_ms": 180000
   },
   "cases": [
@@ -132,11 +132,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-        "last_updated": "2026-05-29T11:52:41.456Z",
+        "last_updated": "2026-06-01T11:42:06.474Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analysed_at": "2026-06-01T11:42:06.474Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
         }
@@ -154,11 +154,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-        "last_updated": "2026-05-29T11:52:41.456Z",
+        "last_updated": "2026-06-01T11:42:06.474Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analysed_at": "2026-06-01T11:42:06.474Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
         }
@@ -188,11 +188,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-        "last_updated": "2026-05-29T11:52:41.456Z",
+        "last_updated": "2026-06-01T11:42:06.474Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analysed_at": "2026-06-01T11:42:06.474Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
         }
@@ -213,11 +213,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-        "last_updated": "2026-05-29T11:52:41.456Z",
+        "last_updated": "2026-06-01T11:42:06.474Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analysed_at": "2026-06-01T11:42:06.474Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
         }
@@ -240,11 +240,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-        "last_updated": "2026-05-29T11:52:41.456Z",
+        "last_updated": "2026-06-01T11:42:06.474Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analysed_at": "2026-06-01T11:42:06.474Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
         }
@@ -266,11 +266,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-        "last_updated": "2026-05-29T11:52:41.456Z",
+        "last_updated": "2026-06-01T11:42:06.474Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analysed_at": "2026-06-01T11:42:06.474Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
         }
@@ -290,11 +290,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-        "last_updated": "2026-05-29T11:52:41.456Z",
+        "last_updated": "2026-06-01T11:42:06.474Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analysed_at": "2026-06-01T11:42:06.474Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
         }
@@ -315,11 +315,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-        "last_updated": "2026-05-29T11:52:41.456Z",
+        "last_updated": "2026-06-01T11:42:06.474Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "15dcb1a906cdf512fd12459a3454bd46a2a0d0076d9d84f0711364dbd4c640f0",
-          "analysed_at": "2026-05-29T11:52:41.456Z",
+          "analysed_at": "2026-06-01T11:42:06.474Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The updater reconciles drift between manifests and generated eval artefacts under strict regeneration gates, honours every operating mode from non-interactive check and dry-run through apply and targeted scopes, preserves user-owned rows and stamped files only, and escalates ambiguity through structured needs_user_input instead of prompting inside the Task."
         }

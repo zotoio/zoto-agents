@@ -1,0 +1,61 @@
+schema_version: 1
+subtask_id: "05"
+feature: Eval Plugin Self-Contained Scripts Consolidation
+assigned_agent: zoto-eval-engineer
+model: composer-2.5-fast
+token_budget: 300000
+state: completed
+checklist:
+  - id: D01
+    text: Root `package.json` — every `eval:*` script points at `plugins/zoto-eval-system/scripts/<file>` or `plugins/zoto-eval-system/engine/<file>` (for `eval:update`, `eval:compare`, etc.)
+    done: true
+    evidence_path: package.json
+  - id: D02
+    text: "Delete repo-root moved files: `scripts/eval-analyse.ts`, `eval-stamp.ts`, `eval-orchestrate.ts`, `eval-discover.ts`, `eval-gc.ts`, `eval-cleanup-vendored.ts`, `eval-cleanup-stale.ts`, `check-analyser-payload-parity.ts`, `test.py`, `eval-ensure-host.ts` (after retargeting)"
+    done: true
+    evidence_path: scripts/
+  - id: D03
+    text: Update `evals/llm/_shared/vitest.config.ts` or other configs referencing root `scripts/` paths
+    done: true
+    evidence_path: evals/vitest.config.ts
+  - id: D04
+    text: Update `.cursor/agents/*.md` or workspace eval JSON if they hardcode root script paths (grep `scripts/eval-`)
+    done: true
+    evidence_path: .cursor/agents/
+  - id: D05
+    text: "Optional: add `scripts/README.md` one paragraph explaining eval CLI moved to plugin (monorepo-only note)"
+    done: true
+    evidence_path: scripts/README.md
+artifacts:
+  - path: package.json
+    kind: modified
+    note: All eval:* aliases retargeted to plugins/zoto-eval-system/; removed orphan eval:bootstrap-llm-code; eval:llm → evals/vitest.config.ts
+  - path: plugins/zoto-eval-system/scripts/eval-cleanup-sandboxes.ts
+    kind: created
+    note: Copied so eval:cleanup-sandboxes satisfies DoD grep (root scripts/eval-cleanup-sandboxes.ts retained per spec)
+  - path: scripts/README.md
+    kind: created
+    note: Monorepo-only pointer to plugin CLI paths
+errors: []
+notes: |
+  DoD verified: `pnpm run eval:list` exit 0; `pnpm run eval:stamp -- --help` exit 0;
+  `rg 'tsx scripts/eval-' package.json` zero hits; deleted root scripts absent.
+  `scripts/__tests__/` still imports deleted `../eval-*.ts` — left intact for subtask 06 relocation.
+extra:
+  dod:
+    eval_list_exit: 0
+    eval_stamp_help_exit: 0
+    package_json_scripts_eval_grep: 0
+  judge:
+    verdict: verified
+    at: "2026-06-01T12:00:00.000Z"
+    notes: |
+      Re-verified all checklist and DoD items. Root package.json eval:* aliases
+      invoke plugins/zoto-eval-system/scripts/ or engine/ only; rg
+      'tsx scripts/eval-' package.json returns zero hits; orphan
+      eval:bootstrap-llm-code absent. All ten listed repo-root script copies
+      deleted (scripts/eval-cleanup-sandboxes.ts retained per spec). vitest
+      configs reference plugin paths. No scripts/eval- hardcodes in
+      .cursor/agents/ or evals JSON. scripts/README.md present.
+      pnpm run eval:list and eval:stamp -- --help exit 0.
+    fix_list: []

@@ -9,6 +9,12 @@
 # =============================================================================
 
 
+# ─────────────────────────────  host layout  ─────────────────────────────────
+# `plugin` resolves runtime from the installed plugin (lean default).
+# `ejected` uses a self-contained copy under `.zoto/eval-system/`.
+# hostLayout: plugin
+
+
 # ─────────────────────────────  discovery  ───────────────────────────────────
 # Where evals live, where to look for skills, what kinds of primitives to
 # discover, and which paths to ignore.
@@ -37,12 +43,12 @@
 #   strategy: declarative      # declarative | code
 #   codeFramework: vitest      # vitest | jest  (only meaningful when strategy=code)
 #   model:
-#     id: composer-2.5           # composer-2.5 | opus-4.6 | sonnet
+#     id: composer-2.5           # composer-2.5 | claude-opus-4-8[] | sonnet
 
 
 # ────────────────────────────────  judge  ────────────────────────────────────
 # Model used by /z-eval-judge for adversarial scoring.
-# judgeModel: opus-4.6
+# judgeModel: claude-opus-4-8[]
 
 
 # ────────────────────────────  manual checklists  ────────────────────────────

@@ -25,24 +25,29 @@
 # ignore: []
 
 
+# ─────────────────────────────  host layout  ─────────────────────────────────
+# Lean (plugin-dependent) is the default. Eject via `pnpm run eval:stamp-host-layout`.
+# hostLayout: plugin          # plugin | ejected
+
+
 # ──────────────────────────────  backends  ───────────────────────────────────
 # `static` is the non-LLM backend (pytest for Python, vitest|jest for TS).
-# `llm` selects how LLM evals are emitted: `declarative` keeps a central
-# evals.json + runner.ts; `code` emits per-primitive *.test.ts files.
-# When llm.strategy is "code", llm.codeFramework MUST equal static.framework.
+# `llm` configures the single unified LLM harness — every non-skill primitive
+# emits a co-located `<kind>/evals/<name>.test.ts`. The runtime branch
+# (scripted askQuestion answers vs single sendPrompt) is decided per case by
+# the analyser's `requiresInteraction` flag — there is no `llm.strategy` /
+# `llm.codeFramework` knob.
 # static:
 #   framework: pytest          # pytest | vitest | jest
 # llm:
 #   runtime: tsx               # tsx | node
-#   strategy: declarative      # declarative | code
-#   codeFramework: vitest      # vitest | jest  (only meaningful when strategy=code)
 #   model:
-#     id: composer-2.5           # composer-2.5 | opus-4.6 | sonnet
+#     id: composer-2.5           # composer-2.5 | claude-opus-4-8[] | sonnet
 
 
 # ────────────────────────────────  judge  ────────────────────────────────────
 # Model used by /z-eval-judge for adversarial scoring.
-# judgeModel: opus-4.6
+# judgeModel: claude-opus-4-8[]
 
 
 # ────────────────────────────  manual checklists  ────────────────────────────
@@ -69,13 +74,7 @@
 
 
 # ────────────────────────────────  update  ───────────────────────────────────
-# Drift-detection rules consumed by /z-eval-update. On CI workers set
-# `CI=true` and pass `--no-analyser` (or omit it — CI defaults match
-# `--no-analyser`) so primitives reuse `.zoto/eval-system/cache/analyser/`.
-# Stderr prints `[CI WARNING] skipping fresh primitive analysis …` whenever
-# cached analysis applies in CI. Set `failOnNoAnalyserInCI: true` below to abort
-# with exit code `5` immediately after that stderr line (same as forbidding any
-# cached-only analyser run in CI).
+# Drift-detection rules consumed by /zoto-eval-update.
 # update:
 #   criticalChangeRules:
 #     addedTargetWithoutCoverage: true
@@ -89,4 +88,3 @@
 #   historyPath: .zoto/eval-system/manifest.history.yml
 #   rediscoverWithSameDefaults: true
 #   checkExitCodeOnCriticalDrift: 2       # min 1, max 255
-#   failOnNoAnalyserInCI: false          # true → CI + `--no-analyser`/`CI=true` exits 5 after stderr warning

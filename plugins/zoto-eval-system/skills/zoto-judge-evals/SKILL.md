@@ -1,6 +1,6 @@
 ---
 name: zoto-judge-evals
-description: Adversarial judge for eval runs. Identifies weak graders, under-covered assertions, verbosity spikes, and accuracy/confidence regressions. Produces an enriched llm.yml with soft-metric annotations. Does not call askQuestion — handoff to /z-eval-update is expressed as needs_user_input for the command to confirm via askQuestion and resume. Uses the configured judgeModel (default opus-4.6).
+description: Adversarial judge for eval runs. Identifies weak graders, under-covered assertions, verbosity spikes, and accuracy/confidence regressions. Produces an enriched llm.yml with soft-metric annotations. Does not call askQuestion — handoff to /z-eval-update is expressed as needs_user_input for the command to confirm via askQuestion and resume. Uses the configured judgeModel (default claude-opus-4-8[]).
 ---
 
 # Judge Evals
@@ -9,7 +9,7 @@ Independent coverage critic for the most recent eval run. The judge does not re-
 
 ## Configuration
 
-Reads `.zoto/eval-system/config.yml`. Uses `config.judgeModel` (default `opus-4.6`) and `config.evalsDir`.
+Reads `.zoto/eval-system/config.yml`. Uses `config.judgeModel` (default `claude-opus-4-8[]`) and `config.evalsDir`.
 
 ## File layout / reads
 

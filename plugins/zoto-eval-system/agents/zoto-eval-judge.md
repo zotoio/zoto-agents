@@ -33,4 +33,4 @@ In `{evalsDir}/_runs/<ts>/`, read **`static.yml`** (static-backend outcomes), **
 - Never re-run cases. The judge operates only on stored artefacts.
 - Never modify eval JSON directly — delegate to `/z-eval-update` after the command confirms via resume.
 - **Never** call `askQuestion`.
-- Use the `judgeModel` from `.zoto/eval-system/config.yml` (default `opus-4.6`).
+- Use the `judgeModel` from `.zoto/eval-system/config.yml` (default `claude-opus-4-8[]`).

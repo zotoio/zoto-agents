@@ -20,7 +20,7 @@ The orchestrator writes three sibling artefacts under `{evalsDir}/_runs/<ts>/`: 
 ```
 /z-eval-execute                        # static only
 /z-eval-execute --full                 # static + LLM (needs CURSOR_API_KEY)
-/z-eval-execute --full --model opus-4.6
+/z-eval-execute --full --model claude-opus-4-8[]
 ```
 
 ## Instructions

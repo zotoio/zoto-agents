@@ -91,7 +91,7 @@ function sampleTsBody(targetId: string, caseId: string): string {
     `  targetId: \"${targetId}\",`,
     "  cases: CASES,",
     "  modelId: process.env.ZOTO_EVAL_MODEL ?? \"composer-2.5\",",
-    "  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? \"opus-4.6\",",
+    "  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? \"claude-opus-4-8[]\",",
     "  caseTimeoutMs: 180000,",
     "  describe,",
     "  it,",
@@ -125,7 +125,7 @@ function sampleSuiteCasesBody(targetId: string): string {
     `  targetId: \"${targetId}\",`,
     "  cases: SUITE_CASES,",
     "  modelId: process.env.ZOTO_EVAL_MODEL ?? \"composer-2.5\",",
-    "  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? \"opus-4.6\",",
+    "  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? \"claude-opus-4-8[]\",",
     "  caseTimeoutMs: 180000,",
     "  describe,",
     "  it,",
@@ -159,7 +159,7 @@ function sampleInteractionsBody(targetId: string): string {
     `  targetId: \"${targetId}\",`,
     "  cases: CASES,",
     "  modelId: process.env.ZOTO_EVAL_MODEL ?? \"composer-2.5\",",
-    "  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? \"opus-4.6\",",
+    "  judgeModel: process.env.ZOTO_EVAL_JUDGE_MODEL ?? \"claude-opus-4-8[]\",",
     "  caseTimeoutMs: 180000,",
     "  describe,",
     "  it,",
@@ -176,7 +176,7 @@ describe("extractFromSource", () => {
     const r = extractFromSource(body, "/tmp/sample.test.ts");
     expect(r.targetId).toBe("command:sample");
     expect(r.modelId).toBe("composer-2.5");
-    expect(r.judgeModel).toBe("opus-4.6");
+    expect(r.judgeModel).toBe("claude-opus-4-8[]");
     expect(r.caseTimeoutMs).toBe(180000);
     expect(r.cases).toHaveLength(1);
     expect((r.cases[0] as { id: string }).id).toBe("case-1");
@@ -268,7 +268,7 @@ describe("buildEvalFileJson", () => {
     const meta = json._meta as Record<string, unknown>;
     expect(meta.generated).toBe(true);
     expect(meta.model_id).toBe("composer-2.5");
-    expect(meta.judge_model).toBe("opus-4.6");
+    expect(meta.judge_model).toBe("claude-opus-4-8[]");
     expect(meta.case_timeout_ms).toBe(180000);
     expect(meta.migrated_from).toBe("plugins/x/commands/evals/e.test.ts");
     expect(meta.migrated_at).toBe(NOW_ISO);

@@ -17,12 +17,12 @@ import {
   normaliseContent,
   resolveAnalyserTarget,
   type ResolvedTarget,
-} from "../../../scripts/eval-analyse.ts";
+} from "#eval-analyse";
 import {
   stampTarget,
   type StampTargetOptions,
   type StampTargetResult,
-} from "../../../scripts/eval-stamp.ts";
+} from "#eval-stamp";
 
 export type ClassificationSource = "analyser" | "fallback-default";
 
@@ -138,7 +138,7 @@ async function resolveAnalyserPayload(
   }
 
   try {
-    const mod = await import("../../../scripts/eval-analyse.ts");
+    const mod = await import("#eval-analyse");
     const result = await mod.runAnalyser(
       { target: normalizedPath },
       { repoRoot: hostRepoRoot },

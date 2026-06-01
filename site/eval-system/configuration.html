@@ -134,10 +134,10 @@
 #   strategy: declarative      # fallback default when analyser classification unavailable (declarative | code)
 #   codeFramework: vitest      # vitest | jest — applies to all code-strategy targets
 #   model:
-#     id: composer-2.5           # composer-2.5 | opus-4.6 | sonnet
+#     id: composer-2.5           # composer-2.5 | claude-opus-4-8[] | sonnet
 
 # ────────────────────────────────  judge  ────────────────────────────────────
-# judgeModel: opus-4.6
+# judgeModel: claude-opus-4-8[]
 
 # ────────────────────────────  manual checklists  ────────────────────────────
 # manualChecklists:
@@ -169,6 +169,14 @@
 
         <h2 id="field-reference">Field reference</h2>
 
+        <h3 id="host-layout">Host layout</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>hostLayout</code></td><td><code>plugin</code></td><td><code>plugin</code> = lean (bridge to installed plugin). <code>ejected</code> = self-contained vendored runtime under <code>.zoto/eval-system/</code>. Patched automatically by <code>eval:stamp-host-layout</code> and <code>eval:un-eject</code>.</td></tr>
+          </tbody>
+        </table>
+
         <h3 id="discovery">Discovery</h3>
         <table>
           <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
@@ -195,7 +203,7 @@
             <tr><td><code>llm.runtime</code></td><td><code>tsx</code></td><td><code>tsx</code> or <code>node</code> — runner runtime for the LLM backend.</td></tr>
             <tr><td><code>llm.strategy</code></td><td><code>declarative</code></td><td><strong>Fallback default</strong> when analyser classification is unavailable — not the per-target choice. Hybrid scaffolds coexist: non-interactive targets get declarative JSON (<code>evals.json</code> + <code>_llm/runner.ts</code>); interactive targets get code-strategy <code>evals/llm/test_*.test.ts</code>. Per-target backend is chosen at stamp time from analyser <code>requiresInteraction</code>.</td></tr>
             <tr><td><code>llm.codeFramework</code></td><td><code>vitest</code></td><td>Test runner for <strong>all</strong> code-strategy targets: <code>vitest</code> or <code>jest</code>. <strong>Must equal</strong> <code>static.framework</code> when both are TS-based. Changing strategy defaults or reclassification triggers <code>eval:cleanup-stale</code> to remove wrong-backend artefacts per target.</td></tr>
-            <tr><td><code>llm.model.id</code></td><td><code>composer-2.5</code></td><td>Default LLM model — <code>composer-2.5</code> | <code>opus-4.6</code> | <code>sonnet</code>. CLI <code>--model</code> and <code>ZOTO_EVAL_MODEL</code> env var win in that order.</td></tr>
+            <tr><td><code>llm.model.id</code></td><td><code>composer-2.5</code></td><td>Default LLM model — <code>composer-2.5</code> | <code>claude-opus-4-8[]</code> | <code>sonnet</code>. CLI <code>--model</code> and <code>ZOTO_EVAL_MODEL</code> env var win in that order.</td></tr>
           </tbody>
         </table>
 
@@ -203,7 +211,7 @@
         <table>
           <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
           <tbody>
-            <tr><td><code>judgeModel</code></td><td><code>opus-4.6</code></td><td>Model used by <code>/z-eval-judge</code> for adversarial scoring.</td></tr>
+            <tr><td><code>judgeModel</code></td><td><code>claude-opus-4-8[]</code></td><td>Model used by <code>/z-eval-judge</code> for adversarial scoring.</td></tr>
           </tbody>
         </table>
 

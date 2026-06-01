@@ -1,8 +1,7 @@
 {
   "_template_doc": [
     "REFERENCE ONLY — authoring aid. Executable eval JSON is stamped by:",
-    "`pnpm exec tsx scripts/eval-analyse.ts <target-id>` then",
-    "`pnpm exec tsx scripts/eval-stamp.ts <target-id>` (or `pnpm run eval:stamp -- <target-id>` once wired).",
+    "`pnpm run eval:analyse -- <target-id>` then `pnpm run eval:stamp -- <target-id>` (host aliases under `.zoto/eval-system/`; authoring source: `plugins/zoto-eval-system/scripts/`).",
     "Each generated case SHOULD include fixtures (sandbox files) plus expected_filesystem deltas.",
     "Do not ship hand-edited placeholders for production stamped files — run the stamper per target.",
     "Runner case example (advanced TS escape hatch):",

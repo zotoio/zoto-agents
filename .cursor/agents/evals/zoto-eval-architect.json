@@ -5,7 +5,7 @@
     "migrated_from": ".cursor/agents/evals/zoto-eval-architect.test.ts",
     "migrated_at": "2026-05-27T17:21:10.986Z",
     "model_id": "composer-2.5",
-    "judge_model": "opus-4.6",
+    "judge_model": "claude-opus-4-8[]",
     "case_timeout_ms": 180000
   },
   "cases": [
@@ -112,11 +112,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-        "last_updated": "2026-05-29T09:33:23.133Z",
+        "last_updated": "2026-06-01T04:55:08.564Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-          "analysed_at": "2026-05-29T09:33:23.133Z",
+          "analysed_at": "2026-06-01T04:55:08.564Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases steer the architect through layered reviews of zoto-eval-system (architecture, ergonomics, token paths, strategy trade-offs, and documentation) while checking read-only Markdown deliverables under specs/, dual-path grounding, citation discipline, downstream routing to named agents, and structured needs_user_input when work falls outside review."
         }
@@ -138,11 +138,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-        "last_updated": "2026-05-29T09:33:23.133Z",
+        "last_updated": "2026-06-01T04:55:08.564Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-          "analysed_at": "2026-05-29T09:33:23.133Z",
+          "analysed_at": "2026-06-01T04:55:08.564Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases steer the architect through layered reviews of zoto-eval-system (architecture, ergonomics, token paths, strategy trade-offs, and documentation) while checking read-only Markdown deliverables under specs/, dual-path grounding, citation discipline, downstream routing to named agents, and structured needs_user_input when work falls outside review."
         }
@@ -165,11 +165,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-        "last_updated": "2026-05-29T09:33:23.133Z",
+        "last_updated": "2026-06-01T04:55:08.564Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-          "analysed_at": "2026-05-29T09:33:23.133Z",
+          "analysed_at": "2026-06-01T04:55:08.564Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases steer the architect through layered reviews of zoto-eval-system (architecture, ergonomics, token paths, strategy trade-offs, and documentation) while checking read-only Markdown deliverables under specs/, dual-path grounding, citation discipline, downstream routing to named agents, and structured needs_user_input when work falls outside review."
         }
@@ -188,11 +188,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-        "last_updated": "2026-05-29T09:33:23.133Z",
+        "last_updated": "2026-06-01T04:55:08.564Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-          "analysed_at": "2026-05-29T09:33:23.133Z",
+          "analysed_at": "2026-06-01T04:55:08.564Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases steer the architect through layered reviews of zoto-eval-system (architecture, ergonomics, token paths, strategy trade-offs, and documentation) while checking read-only Markdown deliverables under specs/, dual-path grounding, citation discipline, downstream routing to named agents, and structured needs_user_input when work falls outside review."
         }
@@ -215,11 +215,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-        "last_updated": "2026-05-29T09:33:23.133Z",
+        "last_updated": "2026-06-01T04:55:08.564Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-          "analysed_at": "2026-05-29T09:33:23.133Z",
+          "analysed_at": "2026-06-01T04:55:08.564Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases steer the architect through layered reviews of zoto-eval-system (architecture, ergonomics, token paths, strategy trade-offs, and documentation) while checking read-only Markdown deliverables under specs/, dual-path grounding, citation discipline, downstream routing to named agents, and structured needs_user_input when work falls outside review."
         }
@@ -243,11 +243,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-        "last_updated": "2026-05-29T09:33:23.133Z",
+        "last_updated": "2026-06-01T04:55:08.564Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "1308f5b36a5ec8d44d0a7fa684c5594b76e14dbf458b70553307db6745a78829",
-          "analysed_at": "2026-05-29T09:33:23.133Z",
+          "analysed_at": "2026-06-01T04:55:08.564Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases steer the architect through layered reviews of zoto-eval-system (architecture, ergonomics, token paths, strategy trade-offs, and documentation) while checking read-only Markdown deliverables under specs/, dual-path grounding, citation discipline, downstream routing to named agents, and structured needs_user_input when work falls outside review."
         }

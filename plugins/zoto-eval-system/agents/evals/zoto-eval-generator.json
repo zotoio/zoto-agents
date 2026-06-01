@@ -5,7 +5,7 @@
     "migrated_from": "plugins/zoto-eval-system/agents/evals/zoto-eval-generator.test.ts",
     "migrated_at": "2026-05-27T17:21:10.986Z",
     "model_id": "composer-2.5",
-    "judge_model": "opus-4.6",
+    "judge_model": "claude-opus-4-8[]",
     "case_timeout_ms": 180000
   },
   "cases": [
@@ -122,11 +122,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "c8b4448cab2cf98aece23393c0b8d4621aa5f1cace3dce50f23a240630a1bcf2",
-        "last_updated": "2026-05-29T11:52:41.447Z",
+        "last_updated": "2026-06-01T11:42:06.451Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "c8b4448cab2cf98aece23393c0b8d4621aa5f1cace3dce50f23a240630a1bcf2",
-          "analysed_at": "2026-05-29T11:52:41.447Z",
+          "analysed_at": "2026-06-01T11:42:06.451Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The generator agent scaffolds dual static and LLM eval backends from pre-approved `/z-eval-create` lists, runs discovery and post-create drift checks, and surfaces host env or gitignore actions without inline askQuestion. When configuration is unreadable it must return structured `needs_user_input` pointing at `/z-eval-configure`, and it must never overwrite handset eval rows marked `_meta.generated: false`.",
           "fixture_justifications": [
@@ -158,11 +158,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "c8b4448cab2cf98aece23393c0b8d4621aa5f1cace3dce50f23a240630a1bcf2",
-        "last_updated": "2026-05-29T11:52:41.447Z",
+        "last_updated": "2026-06-01T11:42:06.451Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "c8b4448cab2cf98aece23393c0b8d4621aa5f1cace3dce50f23a240630a1bcf2",
-          "analysed_at": "2026-05-29T11:52:41.447Z",
+          "analysed_at": "2026-06-01T11:42:06.451Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The generator agent scaffolds dual static and LLM eval backends from pre-approved `/z-eval-create` lists, runs discovery and post-create drift checks, and surfaces host env or gitignore actions without inline askQuestion. When configuration is unreadable it must return structured `needs_user_input` pointing at `/z-eval-configure`, and it must never overwrite handset eval rows marked `_meta.generated: false`.",
           "fixture_justifications": [
@@ -197,11 +197,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "c8b4448cab2cf98aece23393c0b8d4621aa5f1cace3dce50f23a240630a1bcf2",
-        "last_updated": "2026-05-29T11:52:41.447Z",
+        "last_updated": "2026-06-01T11:42:06.451Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "c8b4448cab2cf98aece23393c0b8d4621aa5f1cace3dce50f23a240630a1bcf2",
-          "analysed_at": "2026-05-29T11:52:41.447Z",
+          "analysed_at": "2026-06-01T11:42:06.451Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The generator agent scaffolds dual static and LLM eval backends from pre-approved `/z-eval-create` lists, runs discovery and post-create drift checks, and surfaces host env or gitignore actions without inline askQuestion. When configuration is unreadable it must return structured `needs_user_input` pointing at `/z-eval-configure`, and it must never overwrite handset eval rows marked `_meta.generated: false`.",
           "fixture_justifications": [

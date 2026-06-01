@@ -2,10 +2,8 @@
   "target_id": "command:sync-plugins",
   "_meta": {
     "generated": true,
-    "migrated_from": ".cursor/commands/evals/sync-plugins.test.ts",
-    "migrated_at": "2026-05-27T17:21:10.986Z",
     "model_id": "composer-2.5",
-    "judge_model": "opus-4.6",
+    "judge_model": "claude-opus-4-8[]",
     "case_timeout_ms": 180000
   },
   "cases": [
@@ -20,7 +18,19 @@
       "assertion_patterns": [
         "/sync-plugins"
       ],
-      "expected_output": "The assistant runs the sync script from the repository root with the full flag, feeds an empty JSON object on stdin per the hook protocol, relays which plugin directories the runner reports as synced, and tells me to reload Cursor so the copies take effect."
+      "expected_output": "The assistant runs the sync script from the repository root with the full flag, feeds an empty JSON object on stdin per the hook protocol, relays which plugin directories the runner reports as synced, and tells me to reload Cursor so the copies take effect.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "ab26adc90822dce4bd0c67a8fdbbba881a2e327a3b7f927491f4fe666592bb6a",
+        "last_updated": "2026-06-01T12:07:45.134Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ab26adc90822dce4bd0c67a8fdbbba881a2e327a3b7f927491f4fe666592bb6a",
+          "analysed_at": "2026-06-01T12:07:45.134Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The sync-plugins command is a non-interactive palette entry that runs the full hook-protocol sync script from the workspace root, then reports which plugin bundles copied and reminds the operator to reload Cursor. Cases cover script invocation with empty stdin, synced-plugin inventory, and reload guidance."
+        }
+      }
     },
     {
       "id": "post-sync-inventory-and-reload-guidance",
@@ -32,7 +42,19 @@
       "assertion_patterns": [
         "plugins/"
       ],
-      "expected_output": "The assistant shares a readable inventory of synced plugin bundles grounded in the workspace layout and closes with reload guidance so refreshed local artefacts load in the IDE."
+      "expected_output": "The assistant shares a readable inventory of synced plugin bundles grounded in the workspace layout and closes with reload guidance so refreshed local artefacts load in the IDE.",
+      "_meta": {
+        "generated": true,
+        "source_hash": "ab26adc90822dce4bd0c67a8fdbbba881a2e327a3b7f927491f4fe666592bb6a",
+        "last_updated": "2026-06-01T12:07:45.134Z",
+        "generated_by": "zoto-create-evals",
+        "primitive_analysis": {
+          "source_hash": "ab26adc90822dce4bd0c67a8fdbbba881a2e327a3b7f927491f4fe666592bb6a",
+          "analysed_at": "2026-06-01T12:07:45.134Z",
+          "analyser_version": "2026.05.26-1",
+          "summary": "The sync-plugins command is a non-interactive palette entry that runs the full hook-protocol sync script from the workspace root, then reports which plugin bundles copied and reminds the operator to reload Cursor. Cases cover script invocation with empty stdin, synced-plugin inventory, and reload guidance."
+        }
+      }
     }
   ]
 }
