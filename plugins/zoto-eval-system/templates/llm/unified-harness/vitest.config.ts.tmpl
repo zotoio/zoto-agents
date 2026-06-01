@@ -1,5 +1,5 @@
 // _meta.generated: true
-// Unified Vitest config: host .cursor eval JSON, skill evals.json, scenarios.
+// Unified Vitest config: LLM JSON evals for commands/agents/hooks (skill evals.json → pytest).
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,12 +21,13 @@ export default defineConfig({
   test: {
     globals: false,
     include: [
-      ".cursor/**/evals/*.json",
-      ".cursor/skills/**/evals/evals.json",
-      "skills/**/evals/evals.json",
+      ".cursor/commands/evals/*.json",
+      ".cursor/agents/evals/*.json",
+      ".cursor/hooks/evals/*.json",
       "plugins/*/commands/evals/*.json",
       "plugins/*/agents/evals/*.json",
       "plugins/*/hooks/evals/*.json",
+      "evals/smoke-static-eval.test.ts",
       "evals/scenarios/*.test.ts",
     ],
     exclude: [
@@ -36,6 +37,7 @@ export default defineConfig({
       "**/_runs/**",
       "**/.zoto/**",
       "**/cache/**",
+      "**/skills/**/evals/evals.json",
       "**/evals/llm/_shared/**",
       "**/evals/scenarios/_*",
       "**/_llm/**",
