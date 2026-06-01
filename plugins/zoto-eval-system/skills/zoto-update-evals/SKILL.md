@@ -123,7 +123,7 @@ Given `<glob>`:
 
 Non-interactive. The check:
 
-1. Runs `pnpm exec tsx scripts/check-analyser-payload-parity.ts` (TS↔Python `AnalyserPayload` parity gate). Drift surfaces under `parity_drift` in the report.
+1. Runs the analyser payload parity gate first (`pnpm run eval:update --check` — `engine/update.ts` invokes `check-analyser-payload-parity.ts` from the resolved plugin in lean mode, or from `.zoto/eval-system/scripts/` when ejected). Drift surfaces under `parity_drift` in the report.
 2. Computes deltas as above.
 3. Emits a single JSON summary line plus per-critical-delta JSON-line stderr entries.
 4. Exits `0` on clean drift + parity, else `config.update.checkExitCodeOnCriticalDrift` (default `2`).
@@ -132,7 +132,7 @@ This mode is wired into subtask 12's orchestrator drift hook; keep `--check` non
 
 ## Surgical-diff invariants
 
-Enforced by the unit suite at `scripts/__tests__/eval-update-guards.test.ts`:
+Enforced by the unit suite at `plugins/zoto-eval-system/tests/eval-update-guards.test.ts`:
 
 - A user-authored case in a mixed `evals.json` is byte-identical (canonical JSON) before and after `--apply`.
 - A generated `*.json` LLM eval lacking the `_meta.generated` envelope is byte-identical before and after `--apply`.

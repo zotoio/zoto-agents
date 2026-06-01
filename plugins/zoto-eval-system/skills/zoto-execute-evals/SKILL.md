@@ -25,7 +25,7 @@ Each run timestamp directory `{evalsDir}/_runs/<ts>/` is produced by the eval or
 ```
 /z-eval-execute                  # static only (pnpm run eval)
 /z-eval-execute --full           # static + LLM (pnpm run eval:full) — requires CURSOR_API_KEY
-/z-eval-execute --model opus-4.6 # same as above, but overrides the default model
+/z-eval-execute --model claude-opus-4-8[] # same as above, but overrides the default model
 ```
 
 ## Workflow
@@ -49,9 +49,7 @@ The runner's precedence is `--model > ZOTO_EVAL_MODEL > config.llm.model.id`.
 
 ### Step 3: Missing CURSOR_API_KEY
 
-The runner imports `dotenv/config`, so `.env` at the repo root is auto-loaded
-into `process.env` at runtime. The executor's pre-flight check must consider
-the key **present** if **either** of the following is true:
+The runner imports `dotenv/config` at startup, and the host repo's stamped `.zoto/eval-system/scripts/eval-bridge.ts` loads `<repoRoot>/.env` before every eval command. Treat the key as **present** if **either** of the following is true:
 
 1. `process.env.CURSOR_API_KEY` is set in the executor's own environment, or
 2. `.env` at the repo root contains an uncommented `CURSOR_API_KEY=<value>`

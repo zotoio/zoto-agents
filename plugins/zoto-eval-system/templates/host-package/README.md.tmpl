@@ -1,0 +1,52 @@
+# Your project
+
+Replace this heading with your repository name and add a one-line description.
+
+This repository is an [Eval System](https://github.com/zoto-agents/zoto-agents) host for static pytest and LLM evals against Cursor primitives. Customize this file for your team; it is stamped at repo root on first init/create when missing and is never overwritten if it already exists.
+
+## Cursor primitives
+
+| Primitive | Location | Notes |
+|-----------|----------|-------|
+| **Skill** | `.cursor/skills/<name>/SKILL.md` | Workflow guidance with trigger phrases in frontmatter |
+| **Rule** | `.cursor/rules/*.mdc` | Style and scope constraints (`globs`, `alwaysApply`) |
+| **Command** | `.cursor/commands/*.md` | User-invoked slash commands |
+| **Agent** | `.cursor/agents/*.md` | Focused subagent definitions |
+| **Hook** | `.cursor/hooks.json` + `.cursor/hooks/*` | Event-driven policy scripts |
+| **AGENTS.md** | repo root | Repo-wide agent instructions ([AGENTS.md](AGENTS.md)) |
+
+### Cross-cutting best practices
+
+1. **Frontmatter is the contract** — `name` + `description` (and for rules: `globs` / `alwaysApply`) drive discovery. Write descriptions in third person with explicit trigger phrases.
+2. **One job per primitive** — Skills teach workflows; rules constrain style; commands orchestrate user-invoked flows; agents run focused sub-tasks; hooks enforce policy at events.
+3. **Commands own `askQuestion`** — Subagents and skills should not prompt directly; return structured `needs_user_input` and let the command resume the Task.
+4. **Keep tokens cheap** — Under ~50 lines for rules; skills should assume the model is capable and only add domain-specific facts.
+5. **Executable hooks** — `chmod +x` hook scripts; verify `jq`/`node` exist in the hook environment; prefer `failClosed: true` for security gates.
+
+### Typical layout
+
+```
+your-repo/
+├── AGENTS.md
+├── README.md
+├── .cursor/
+│   ├── rules/
+│   ├── skills/
+│   ├── commands/
+│   ├── agents/
+│   ├── hooks.json
+│   └── hooks/
+└── .zoto/eval-system/    # Eval System config + manifest
+```
+
+## Eval System
+
+| Command | Purpose |
+|---------|---------|
+| `pnpm run eval` | Static pytest suite |
+| `pnpm run eval:full` | Static + LLM (`CURSOR_API_KEY` in `.env`) |
+| `pnpm run eval:update:check` | Drift check (exit 2 on critical drift) |
+
+Slash commands (requires the zoto-eval-system plugin): `/z-eval-init`, `/z-eval-create`, `/z-eval-execute`, `/z-eval-help`, and related `/z-eval-*` commands.
+
+Run artefacts: `evals/_runs/<timestamp>/` (`report.yml`, `static.yml`, `llm.yml`).

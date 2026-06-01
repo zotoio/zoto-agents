@@ -257,7 +257,7 @@ describe("evalJsonLoader load", () => {
 
     /* Optional metadata fields appear when present in the JSON. */
     expect(code).toContain(`const MODEL_ID = "composer-2.5"`);
-    expect(code).toContain(`const JUDGE_MODEL = "opus-4.6"`);
+    expect(code).toContain(`const JUDGE_MODEL = "claude-opus-4-8[]"`);
     expect(code).toContain(`const CASE_TIMEOUT_MS = 60000`);
   });
 
@@ -450,13 +450,13 @@ describe("renderEvalModule", () => {
         target_id: "command:full",
         cases: [{ id: "c1", prompt: "p", assertions: ["a"] }],
         model_id: "composer-2.5",
-        judge_model: "opus-4.6",
+        judge_model: "claude-opus-4-8[]",
         case_timeout_ms: 60000,
       },
       { harnessModulePath: "/abs/path/to/run-llm-suite.js" },
     );
     expect(code).toContain(`const MODEL_ID = "composer-2.5"`);
-    expect(code).toContain(`const JUDGE_MODEL = "opus-4.6"`);
+    expect(code).toContain(`const JUDGE_MODEL = "claude-opus-4-8[]"`);
     expect(code).toContain(`const CASE_TIMEOUT_MS = 60000`);
     expect(code).toContain(`  modelId: MODEL_ID,`);
     expect(code).toContain(`  judgeModel: JUDGE_MODEL,`);
@@ -471,14 +471,14 @@ describe("renderEvalModule", () => {
         cases: [{ id: "c1", prompt: "p", assertions: ["a"] }],
         _meta: {
           model_id: "composer-2.5",
-          judge_model: "opus-4.6",
+          judge_model: "claude-opus-4-8[]",
           case_timeout_ms: 120000,
         },
       },
       { harnessModulePath: "/abs/path/to/run-llm-suite.js" },
     );
     expect(code).toContain(`const MODEL_ID = "composer-2.5"`);
-    expect(code).toContain(`const JUDGE_MODEL = "opus-4.6"`);
+    expect(code).toContain(`const JUDGE_MODEL = "claude-opus-4-8[]"`);
     expect(code).toContain(`const CASE_TIMEOUT_MS = 120000`);
   });
 

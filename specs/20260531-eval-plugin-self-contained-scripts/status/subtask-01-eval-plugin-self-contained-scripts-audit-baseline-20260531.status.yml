@@ -1,0 +1,67 @@
+schema_version: 1
+subtask_id: "01"
+feature: Eval Plugin Self-Contained Scripts Consolidation
+assigned_agent: zoto-eval-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: 2026-06-01T00:00:00Z
+last_heartbeat: 2026-05-31T22:25:05.081Z
+completed_at: 2026-05-31T22:25:05.081Z
+git_sha: fbfecad15cca5de07f40ec150555f1b8d2fff64c
+checklist:
+  - id: D01
+    text: "`audit/import-graph-baseline.md` — table of every `scripts/eval-*` and plugin script with import targets (`../plugins/…`, `../../../scripts/…`, `../src/…`, etc.)"
+    done: true
+    evidence_path: specs/20260531-eval-plugin-self-contained-scripts/audit/import-graph-baseline.md
+  - id: D02
+    text: "`audit/file-inventory.md` — move list, delete list, keep-at-root list with line counts and last-modified rationale"
+    done: true
+    evidence_path: specs/20260531-eval-plugin-self-contained-scripts/audit/file-inventory.md
+  - id: D03
+    text: "`audit/stale-duplicates.md` — side-by-side note on `eval-discover.ts` and `eval-update.ts` forks vs canonical copies"
+    done: true
+    evidence_path: specs/20260531-eval-plugin-self-contained-scripts/audit/stale-duplicates.md
+  - id: D04
+    text: "`audit/test-inventory.md` — which `scripts/__tests__/*` relocate to plugin vs stay at root"
+    done: true
+    evidence_path: specs/20260531-eval-plugin-self-contained-scripts/audit/test-inventory.md
+  - id: D05
+    text: "Grep baseline captured in audit: `rg '../plugins/zoto-eval-system' scripts/` and `rg '../../../scripts' plugins/zoto-eval-system/`"
+    done: true
+    evidence_path: specs/20260531-eval-plugin-self-contained-scripts/audit/import-graph-baseline.md
+artifacts:
+  - path: specs/20260531-eval-plugin-self-contained-scripts/audit/import-graph-baseline.md
+    kind: created
+    note: Import graph + grep baseline
+  - path: specs/20260531-eval-plugin-self-contained-scripts/audit/file-inventory.md
+    kind: created
+    note: Move/delete/keep inventory (KD-1–KD-9)
+  - path: specs/20260531-eval-plugin-self-contained-scripts/audit/stale-duplicates.md
+    kind: created
+    note: eval-discover and eval-update fork analysis
+  - path: specs/20260531-eval-plugin-self-contained-scripts/audit/test-inventory.md
+    kind: created
+    note: scripts/__tests__ relocation plan
+  - path: specs/20260531-eval-plugin-self-contained-scripts/audit/working-tree-baseline.md
+    kind: created
+    note: Dirty-tree snapshot for subtask 02
+errors: []
+notes: "Audit run on dirty feat/site-updates @ fbfecad; 53 changed paths. Subtask 02 should stash WIP on overlap paths. Grep: 18 files reference plugins/zoto-eval-system under scripts/; 2 plugin files reference ../../../scripts. Broken package.json alias eval:bootstrap-llm-code (missing script)."
+extra:
+  grep_plugins_under_scripts: 18
+  grep_scripts_under_plugin: 2
+  blockers_for_subtask_02: none
+  judge:
+    verdict: partial
+    at: 2026-06-01T12:00:00.000Z
+    notes: "All five audit markdown deliverables exist under audit/ with substantive, cross-verified content. Independent greps confirm 18 scripts/ files reference plugins/zoto-eval-system and 2 plugin paths reference ../../../scripts (engine/update.ts L104/L114; stamp-host-layout.ts rewrite helper). Move/delete/keep lists align with spec KD-1 through KD-9 and Requirements 1–2. Line counts in test-inventory match disk (5300 lines across 10 __tests__ files). DoD gap: audit/ directory is untracked (git status ??) — not committed. Status yml had invalid artifacts shape and empty agent_session_id (corrected by judge for schema validity). Subtask 02 can proceed using audit artefacts; stash overlapping WIP first per working-tree-baseline.md."
+    fix_list:
+      - item: DoD — audit files committed
+        gap: specs/20260531-eval-plugin-self-contained-scripts/audit/ is untracked; no git commits contain the five audit markdown files.
+        recommended_path: specs/20260531-eval-plugin-self-contained-scripts/audit/
+        severity: should_fix
+      - item: Deliverables checklist — working-tree-baseline
+        gap: Sixth deliverable (working-tree-baseline.md) exists on disk and in artifacts but has no checklist id/tick in status.yml (D01–D05 only).
+        recommended_path: specs/20260531-eval-plugin-self-contained-scripts/status/subtask-01-eval-plugin-self-contained-scripts-audit-baseline-20260531.status.yml
+        severity: nice_to_have

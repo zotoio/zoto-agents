@@ -27,9 +27,10 @@ import {
   normaliseContent,
   type EvalCase,
   type EvalFile,
-} from "../scripts/eval-update.js";
+} from "../engine/update.js";
 import { discover, manifestFor } from "../scripts/eval-discover.js";
 import { mergePackageJson } from "../scripts/package-json-merger.js";
+import { stampLeanLayout } from "../scripts/stamp-lean-layout.js";
 
 const PLUGIN_DIR = resolve(import.meta.dirname, "..");
 
@@ -513,8 +514,8 @@ describe("_meta.generated contract", () => {
     expect(/throw new Error\(/.test(raw)).toBe(true);
   });
 
-  it("scripts/eval-update.ts contains literal guard _meta?.generated === true", () => {
-    const raw = readText(join(PLUGIN_DIR, "scripts", "eval-update.ts"));
+  it("engine/update.ts contains literal guard _meta?.generated === true", () => {
+    const raw = readText(join(PLUGIN_DIR, "engine", "update.ts"));
     expect(raw.includes("_meta?.generated === true")).toBe(true);
     expect(/throw new Error\(/.test(raw)).toBe(true);
   });
@@ -618,7 +619,7 @@ describe("Fixture repo — update semantics", () => {
       skillsRoots: ["skills"],
       discoveryTargets: ["skill"],
       llm: { runtime: "tsx", model: { id: "composer-2.5" } },
-      judgeModel: "opus-4.6",
+      judgeModel: "claude-opus-4-8[]",
       manualChecklists: { enabled: false },
       additionalAutomation: [],
       update: {
@@ -830,7 +831,7 @@ describe("Fixture repo — update semantics", () => {
     expect(check.code).toBe(2);
     const removedCritical = check.deltas.find((d) => d.kind === "removed" && d.critical);
     expect(removedCritical).toBeDefined();
-    expect(removedCritical!.reason).toMatch(/removed target with active generated cases/);
+    expect(removedCritical!.reason).toMatch(/removed target with at least one active generated case/);
   });
 
   // Test 21 — `--target` glob uses minimatch on path and id (narrowed drift scope)
@@ -1183,11 +1184,46 @@ describe("JSON-first migration invariants", () => {
     expect(existsSync(obsolete)).toBe(false);
   });
 
+  it("ensureHostFiles upserts root README.md and AGENTS.md idempotently", () => {
+    const t = mkdtempSync(join(tmpdir(), "zoto-ensure-host-docs-"));
+    const mod = join(PLUGIN_DIR, "scripts/ensure-host-env-and-gitignore.ts");
+    try {
+      const first = JSON.parse(
+        execSync(`pnpm exec tsx ${mod} --repo-root ${t}`, {
+          encoding: "utf-8",
+          cwd: REPO_ROOT,
+          timeout: 60_000,
+        }),
+      ) as {
+        readme: { action: string };
+        agentsMd: { action: string };
+      };
+      expect(first.readme.action).toBe("created");
+      expect(first.agentsMd.action).toBe("created");
+      expect(isFile(join(t, "README.md"))).toBe(true);
+      expect(isFile(join(t, "AGENTS.md"))).toBe(true);
+      const second = JSON.parse(
+        execSync(`pnpm exec tsx ${mod} --repo-root ${t}`, {
+          encoding: "utf-8",
+          cwd: REPO_ROOT,
+          timeout: 60_000,
+        }),
+      ) as {
+        readme: { action: string };
+        agentsMd: { action: string };
+      };
+      expect(second.readme.action).toBe("skipped-existing");
+      expect(second.agentsMd.action).toBe("skipped-existing");
+    } finally {
+      rmSync(t, { recursive: true, force: true });
+    }
+  });
+
   it(
     "eval-ensure-host stamps skipped scenario example idempotently",
     () => {
     const t = mkdtempSync(join(tmpdir(), "zoto-eval-ensure-host-"));
-    const script = join(REPO_ROOT, "scripts/eval-ensure-host.ts");
+    const script = join(PLUGIN_DIR, "scripts/eval-ensure-host.ts");
     try {
       const first = execSync(`pnpm exec tsx ${script} --repo-root ${t}`, {
         encoding: "utf-8",
@@ -1195,6 +1231,8 @@ describe("JSON-first migration invariants", () => {
         timeout: 60_000,
       });
       expect(first).toContain("created");
+      expect(first).toContain("readme created");
+      expect(first).toContain("agents-md created");
       expect(first).toContain(SCENARIO_REL_PATH);
       const scenarioPath = join(t, "evals", "scenarios", "_example-multi-primitive.test.ts");
       expect(isFile(scenarioPath)).toBe(true);
@@ -1230,12 +1268,119 @@ describe("package.json merger", () => {
           2,
         ),
       );
-      const base = join(PLUGIN_DIR, "templates", "package-scripts", "base.json");
-      const out = mergePackageJson({ repoRoot: t, basePath: base });
-      expect(out.scripts?.eval).toBeDefined();
-      expect(out.scripts?.["eval:update"]).toBeDefined();
+      const lean = join(PLUGIN_DIR, "templates", "host-package", "lean-package.json");
+      const out = mergePackageJson({
+        packageJsonDir: t,
+        basePath: lean,
+        pruneStaleEvalDevDeps: true,
+        pruneStaleEvalScripts: true,
+      });
+      expect(out.scripts?.eval).toContain("eval-bridge.ts");
+      expect(out.scripts?.["eval:full"]).toContain("eval-bridge.ts");
+      expect(out.scripts?.["eval:discover"]).toBeUndefined();
+      expect(out.scripts?.["eval:update"]).toBeUndefined();
       expect(out.devDependencies?.tsx).toBe("^4.0.0"); // existing wins
-      expect(out.devDependencies?.["@cursor/sdk"]).toBeDefined();
+      expect(out.devDependencies?.dotenv).toBeDefined();
+      expect(out.devDependencies?.["@cursor/sdk"]).toBeUndefined();
+      expect(out.devDependencies?.vitest).toBeUndefined();
+      expect(Object.keys(out.scripts ?? {}).filter((k) => k.startsWith("eval"))).toEqual([
+        "eval",
+        "eval:full",
+      ]);
+    } finally {
+      rmSync(t, { recursive: true, force: true });
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 10. Lean host layout stamper
+// ---------------------------------------------------------------------------
+describe("stampLeanLayout", () => {
+  it("materialises lean layout without vendored runtime", () => {
+    const t = mkdtempSync(join(tmpdir(), "zoto-eval-lean-"));
+    try {
+      writeFileSync(
+        join(t, "package.json"),
+        JSON.stringify({ name: "lean-host", version: "0.0.0", private: true }, null, 2),
+      );
+      mkdirSync(join(t, ".zoto", "eval-system"), { recursive: true });
+      writeFileSync(
+        join(t, ".zoto", "eval-system", "config.yml"),
+        "hostLayout: plugin\n",
+        "utf-8",
+      );
+
+      const result = stampLeanLayout({ repoRoot: t });
+      const evalHome = join(t, ".zoto", "eval-system");
+
+      expect(existsSync(join(evalHome, "scripts", "eval-bridge.ts"))).toBe(true);
+      expect(existsSync(join(t, "scripts", "eval-bridge.ts"))).toBe(false);
+      expect(existsSync(join(evalHome, "cache", "analyser", ".gitkeep"))).toBe(true);
+      expect(existsSync(join(evalHome, ".gitignore"))).toBe(true);
+      expect(existsSync(join(t, "evals", "_runs", ".gitkeep"))).toBe(true);
+
+      expect(existsSync(join(evalHome, "src"))).toBe(false);
+      expect(existsSync(join(evalHome, "engine"))).toBe(false);
+      expect(existsSync(join(evalHome, "templates"))).toBe(false);
+      expect(existsSync(join(evalHome, "scripts", "eval-discover.ts"))).toBe(false);
+      expect(existsSync(join(evalHome, "package.json"))).toBe(true);
+
+      const pkg = loadJson(join(evalHome, "package.json"));
+      expect(pkg.scripts?.eval).toContain("eval-bridge.ts");
+      expect(pkg.scripts?.["eval:full"]).toContain("eval-bridge.ts");
+      expect(pkg.scripts?.["eval:discover"]).toBeUndefined();
+      expect(result.skipped).not.toContain(join(evalHome, "scripts", "eval-bridge.ts"));
+      expect(readText(join(evalHome, "scripts", "eval-bridge.ts"))).toContain("loadDotenv");
+      expect(readText(join(t, ".gitignore"))).toContain(".env");
+      expect(existsSync(join(t, ".env.example"))).toBe(true);
+      expect(existsSync(join(t, "evals", "vitest.config.ts"))).toBe(true);
+      expect(existsSync(join(t, "evals", "llm", "_shared", "vitest-json-loader.ts"))).toBe(true);
+      expect(result.llmHarness.written.length + result.llmHarness.unchanged.length).toBeGreaterThan(0);
+    } finally {
+      rmSync(t, { recursive: true, force: true });
+    }
+  });
+
+  it("upgrades eval-bridge when dotenv loader is missing", () => {
+    const t = mkdtempSync(join(tmpdir(), "zoto-eval-lean-bridge-upgrade-"));
+    try {
+      writeFileSync(
+        join(t, "package.json"),
+        JSON.stringify({ name: "host", version: "0.0.0" }, null, 2),
+      );
+      mkdirSync(join(t, ".zoto", "eval-system", "scripts"), { recursive: true });
+      writeFileSync(
+        join(t, ".zoto", "eval-system", "scripts", "eval-bridge.ts"),
+        "// legacy bridge without dotenv\n",
+        "utf-8",
+      );
+
+      const first = stampLeanLayout({ repoRoot: t });
+      expect(first.skipped).not.toContain(join(t, ".zoto", "eval-system", "scripts", "eval-bridge.ts"));
+      expect(readText(join(t, ".zoto", "eval-system", "scripts", "eval-bridge.ts"))).toContain("loadDotenv");
+    } finally {
+      rmSync(t, { recursive: true, force: true });
+    }
+  });
+
+  it("skips existing eval-bridge unless --force-bridge", () => {
+    const t = mkdtempSync(join(tmpdir(), "zoto-eval-lean-bridge-"));
+    try {
+      writeFileSync(
+        join(t, "package.json"),
+        JSON.stringify({ name: "host", version: "0.0.0" }, null, 2),
+      );
+      mkdirSync(join(t, ".zoto", "eval-system", "scripts"), { recursive: true });
+      const bridgePath = join(t, ".zoto", "eval-system", "scripts", "eval-bridge.ts");
+      writeFileSync(bridgePath, "// loadDotenv\n// operator copy\n", "utf-8");
+
+      const first = stampLeanLayout({ repoRoot: t });
+      expect(first.skipped).toContain(bridgePath);
+      expect(readText(bridgePath)).toBe("// loadDotenv\n// operator copy\n");
+
+      stampLeanLayout({ repoRoot: t, forceBridge: true });
+      expect(readText(bridgePath)).toContain("resolvePluginRoot");
     } finally {
       rmSync(t, { recursive: true, force: true });
     }

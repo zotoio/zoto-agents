@@ -11,6 +11,7 @@ export {
   type EvalLayoutMode,
   type EvalPaths,
   type EvalSystemConfig,
+  type HostLayout,
   type LoadResult,
   type MigrationResult,
 } from "./config-loader.js";

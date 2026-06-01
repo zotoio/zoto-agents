@@ -10,8 +10,16 @@ import {
   type EvalPaths,
 } from "./paths.js";
 
-export type { EvalLayoutMode, EvalPaths };
-export { resolveEvalPaths, resultSchemaPath, analyserSchemaPath, analyserAgentPath, resolveHostRepoRoot } from "./paths.js";
+export type { EvalLayoutMode, EvalPaths, HostLayout };
+export type { ResolveEvalPathsOptions, ResolvePluginRootOptions } from "./paths.js";
+export {
+  resolveEvalPaths,
+  resolvePluginRoot,
+  resultSchemaPath,
+  analyserSchemaPath,
+  analyserAgentPath,
+  resolveHostRepoRoot,
+} from "./paths.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -24,10 +32,12 @@ const TEMPLATE_CONFIG_PATH = join(__dirname, "..", "templates", "config.json");
 
 export type StaticFramework = "pytest" | "vitest" | "jest";
 export type LlmRuntime = "tsx" | "node";
-export type ModelId = "composer-2.5" | "opus-4.6" | "sonnet";
+export type ModelId = "composer-2.5" | "claude-opus-4-8[]" | "sonnet";
 export type DiscoveryTarget = "skill" | "command" | "agent" | "hook" | "cli" | "lib";
+export type HostLayout = "plugin" | "ejected";
 
 export interface EvalSystemConfig {
+  hostLayout: HostLayout;
   evalsDir: string;
   skillsRoots: string[];
   discoveryTargets: DiscoveryTarget[];
@@ -65,6 +75,8 @@ export interface LoadResult {
   mtimeMs: number;
   reloaded: boolean;
   path: string;
+  /** True when `hostLayout` was present in the on-disk YAML (or baseline when config is missing). */
+  hostLayoutExplicit: boolean;
 }
 
 export class ConfigValidationError extends Error {
@@ -181,7 +193,9 @@ export function configPathForRepo(repoRoot: string): string {
 /** Load config and resolve all eval-system paths for the host repo. */
 export function loadEvalPaths(repoRoot: string): EvalPaths {
   const loaded = loadEvalConfig(repoRoot);
-  return resolveEvalPaths(repoRoot, loaded.config, loaded.path);
+  return resolveEvalPaths(repoRoot, loaded.config, loaded.path, {
+    hostLayoutExplicit: loaded.hostLayoutExplicit,
+  });
 }
 
 export function loadEvalConfig(repoRoot: string, prevMtimeMs?: number): LoadResult {
@@ -201,6 +215,7 @@ export function loadEvalConfig(repoRoot: string, prevMtimeMs?: number): LoadResu
       mtimeMs: 0,
       reloaded: false,
       path,
+      hostLayoutExplicit: true,
     };
   }
 
@@ -221,6 +236,8 @@ export function loadEvalConfig(repoRoot: string, prevMtimeMs?: number): LoadResu
     ]);
   }
 
+  const hostLayoutExplicit = isPlainObject(raw) && raw.hostLayout !== undefined;
+
   const merged = deepMerge(
     structuredClone(baseline) as unknown as Record<string, unknown>,
     raw,
@@ -239,5 +256,6 @@ export function loadEvalConfig(repoRoot: string, prevMtimeMs?: number): LoadResu
     mtimeMs,
     reloaded,
     path,
+    hostLayoutExplicit,
   };
 }

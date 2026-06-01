@@ -22,7 +22,7 @@ import {
   computeAnalyserCacheKey,
   normaliseContent,
   type AnalyserPayload,
-} from "../../../scripts/eval-analyse.ts";
+} from "../../../plugins/zoto-eval-system/scripts/eval-analyse.ts";
 import {
   classifyAndStampPluginComponents,
   FALLBACK_OPERATOR_NOTE,
@@ -75,7 +75,7 @@ function mkHostRepo(): string {
       "llm:",
       "  model:",
       "    id: composer-2.5",
-      "judgeModel: opus-4.6",
+      "judgeModel: claude-opus-4-8[]",
       "",
     ].join("\n"),
   );

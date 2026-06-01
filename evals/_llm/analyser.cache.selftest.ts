@@ -25,7 +25,7 @@ import {
   runAnalyser,
   type AnalyserPayload,
   type AnalyserSdk,
-} from "../../scripts/eval-analyse.ts";
+} from "../plugin-script-bridge.ts";
 
 interface ScratchRepo {
   root: string;

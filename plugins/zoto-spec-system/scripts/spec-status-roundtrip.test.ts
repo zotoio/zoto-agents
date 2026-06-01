@@ -63,9 +63,10 @@ extra: {}
 function runRoundtripCli(
   args: string[],
 ): { status: number | null; stderr: string; stdout: string } {
+  const tsxCli = join(PLUGIN_ROOT, "node_modules", "tsx", "dist", "cli.mjs");
   const r = spawnSync(
-    "pnpm",
-    ["exec", "tsx", "scripts/spec-status-roundtrip.ts", ...args],
+    process.execPath,
+    [tsxCli, join(PLUGIN_ROOT, "scripts", "spec-status-roundtrip.ts"), ...args],
     {
       cwd: PLUGIN_ROOT,
       encoding: "utf-8",

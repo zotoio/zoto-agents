@@ -1,20 +1,27 @@
 #!/usr/bin/env tsx
 /**
- * Discover eval targets in a host repository.
+ * Eval discovery helper.
  *
- * Walks the configured discovery roots and emits a manifest-shaped YAML
- * document validated against templates/schema/manifest.schema.json.
+ * Walks the configured `skillsRoots` and `discoveryTargets` from
+ * `.zoto/eval-system/config.yml` and emits a manifest-shaped JSON
+ * payload to stdout. Used by the `zoto-create-evals` and
+ * `zoto-update-evals` skills to inventory covered targets.
  *
- * Usage:
- *   tsx scripts/eval-discover.ts [--config <path>] [--resolve <file>]
+ * Discovery includes `.cursor/commands`, `.cursor/agents`, and workspace
+ * hooks (`.cursor/hooks.json` or `.cursor/hooks/hooks.json`), alongside
+ * `plugins/*` assets and repo-root `upstream-vendor/commands` /
+ * `upstream-vendor/agents` mirrors. Cursor-target IDs default to `command:<name>` /
+ * `agent:<name>`; collisions with plugin IDs use `command:cursor/<name>` /
+ * `agent:cursor/<name>` (listed under `discovery_config.cursor_namespaced_ids`).
+ * Collisions against plugin + upstream roots use `command:upstream-vendor/<name>` /
+ * `agent:upstream-vendor/<name>`.
  *
- * --config      Path to .zoto/eval-system/config.yml. Defaults to
- *               $CWD/.zoto/eval-system/config.yml.
- * --resolve     Resolve a single file path to its target_id(s) and print
- *               the matching target records. Useful for targeted
- *               `/z-eval-update <file>`.
+ * Optional `ignore: string[]` in config supplies repo-relative POSIX globs (minimatch);
+ * matched targets are dropped from output (see `ignored_summary`). If the full path
+ * does not match, the parent directory is also tested so patterns such as
+ * `.cursor/skills/crux-*` apply to `crux-…/<file>` (e.g. `SKILL.md`).
  *
- * Output is YAML on stdout.
+ * Run: pnpm exec tsx scripts/eval-discover.ts [--pretty]
  */
 import {
   existsSync,
@@ -25,21 +32,20 @@ import {
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { join, relative, resolve } from "node:path";
-import { loadEvalConfig } from "../src/config-loader.js";
+import { minimatch } from "minimatch";
+import YAML from "yaml";
+import { loadEvalConfig, loadEvalPaths, resolveHostRepoRoot } from "../src/config-loader.js";
 
-function parseArgs(argv: string[]): { configPath?: string; resolveFile?: string } {
-  const out: { configPath?: string; resolveFile?: string } = {};
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i];
-    if (a === "--config") out.configPath = argv[++i];
-    else if (a === "--resolve") out.resolveFile = argv[++i];
-  }
-  return out;
+const REPO_ROOT = resolveHostRepoRoot();
+/** When set, overrides {@link REPO_ROOT} for programmatic `discover()` calls. */
+let _discoverRepoRootOverride: string | null = null;
+function activeRepoRoot(): string {
+  return _discoverRepoRootOverride ?? REPO_ROOT;
 }
 
-interface Target {
+interface TargetSnapshot {
   id: string;
-  kind: "skill" | "command" | "agent" | "hook" | "cli" | "lib";
+  kind: "skill" | "command" | "agent" | "hook";
   path: string;
   content_hash: string;
   public_surface?: Record<string, unknown>;
@@ -50,196 +56,461 @@ function sha256(s: string): string {
   return createHash("sha256").update(s).digest("hex");
 }
 
-function normalise(s: string): string {
+function normaliseContent(s: string): string {
   return s.replace(/\r\n/g, "\n").replace(/\s+\n/g, "\n").trim();
 }
 
-function listDir(p: string): string[] {
+function loadConfig(): Record<string, unknown> {
   try {
-    return readdirSync(p);
+    return loadEvalConfig(activeRepoRoot()).config as unknown as Record<string, unknown>;
   } catch {
-    return [];
+    return {};
   }
 }
 
-function isDir(p: string): boolean {
-  try {
-    return statSync(p).isDirectory();
-  } catch {
-    return false;
-  }
+function loadIgnorePatterns(config: Record<string, unknown>): string[] {
+  const raw = config.ignore;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((x): x is string => typeof x === "string");
 }
 
-function isFile(p: string): boolean {
-  try {
-    return statSync(p).isFile();
-  } catch {
-    return false;
-  }
+/** Repo-relative POSIX path segment (Windows paths normalised). */
+function toPosixRelPath(repoRelativePath: string): string {
+  return repoRelativePath.split("\\").join("/");
 }
 
-function parseFrontmatter(raw: string): Record<string, string> | null {
-  const m = /^---\n([\s\S]*?)\n---/m.exec(raw);
-  if (!m) return null;
-  const out: Record<string, string> = {};
-  for (const line of m[1].split("\n")) {
-    const i = line.indexOf(":");
-    if (i === -1) continue;
-    out[line.slice(0, i).trim()] = line.slice(i + 1).trim().replace(/^"|"$/g, "");
+/** True if repo-relative POSIX path matches a single ignore minimatch pattern. */
+function pathMatchesGlob(pathPosix: string, pattern: string): boolean {
+  const opts = { dot: true as const };
+  if (minimatch(pathPosix, pattern, opts)) return true;
+  const slash = pathPosix.lastIndexOf("/");
+  if (slash <= 0) return false;
+  const parentDir = pathPosix.slice(0, slash);
+  return minimatch(parentDir, pattern, opts);
+}
+
+/** Drop targets matched by any configured ignore glob; tally per-glob hits on excluded targets. */
+function filterTargetsByIgnores(
+  targets: TargetSnapshot[],
+  ignorePatterns: string[],
+): {
+  filtered: TargetSnapshot[];
+  ignored_summary: {
+    count: number;
+    by_glob: Record<string, number>;
+  };
+} {
+  if (!ignorePatterns.length) {
+    return {
+      filtered: targets,
+      ignored_summary: { count: 0, by_glob: {} },
+    };
+  }
+
+  const byGlob: Record<string, number> = Object.fromEntries(
+    ignorePatterns.map((g) => [g, 0]),
+  );
+  let count = 0;
+  const filtered: TargetSnapshot[] = [];
+
+  for (const t of targets) {
+    const p = toPosixRelPath(t.path);
+    let excluded = false;
+    for (const pattern of ignorePatterns) {
+      if (pathMatchesGlob(p, pattern)) {
+        excluded = true;
+        byGlob[pattern]++;
+      }
+    }
+    if (excluded) count++;
+    else filtered.push(t);
+  }
+
+  return { filtered, ignored_summary: { count, by_glob: byGlob } };
+}
+
+function expandRoot(rootPattern: string): string[] {
+  if (!rootPattern.includes("*")) {
+    const abs = resolve(activeRepoRoot(), rootPattern);
+    return existsSync(abs) && statSync(abs).isDirectory() ? [abs] : [];
+  }
+  const parts = rootPattern.split("/");
+  const idx = parts.indexOf("*");
+  if (idx === -1) {
+    const abs = resolve(activeRepoRoot(), rootPattern);
+    return existsSync(abs) && statSync(abs).isDirectory() ? [abs] : [];
+  }
+  const prefix = resolve(activeRepoRoot(), parts.slice(0, idx).join("/"));
+  const suffix = parts.slice(idx + 1).join("/");
+  if (!existsSync(prefix) || !statSync(prefix).isDirectory()) return [];
+  const out: string[] = [];
+  for (const entry of readdirSync(prefix).sort()) {
+    const candidate = suffix
+      ? join(prefix, entry, suffix)
+      : join(prefix, entry);
+    if (existsSync(candidate) && statSync(candidate).isDirectory()) {
+      out.push(candidate);
+    }
   }
   return out;
 }
 
-export function discover(repoRoot: string, config: Record<string, unknown>): Target[] {
-  const targets: Target[] = [];
-  const seenIds = new Set<string>();
-  const roots = (config.skillsRoots as string[]) ?? [
+function parseFrontmatter(raw: string): Record<string, unknown> {
+  const m = /^---\n([\s\S]*?)\n---/m.exec(raw);
+  if (!m) return {};
+  const lines = m[1].split("\n");
+  const out: Record<string, string> = {};
+  for (const line of lines) {
+    const i = line.indexOf(":");
+    if (i === -1) continue;
+    out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+  }
+  return { frontmatter: out };
+}
+
+function discoverSkills(config: Record<string, unknown>): TargetSnapshot[] {
+  const roots = ((config.skillsRoots as string[]) ?? [
     ".cursor/skills",
     "skills",
     "plugins/*/skills",
-  ];
-  const kinds = (config.discoveryTargets as string[]) ?? [
-    "skill",
-    "command",
-    "agent",
-    "hook",
-  ];
+  ]).flatMap(expandRoot);
 
-  const add = (t: Target): void => {
-    if (seenIds.has(t.id)) return;
-    seenIds.add(t.id);
-    targets.push(t);
-  };
-
-  if (kinds.includes("skill")) {
-    for (const root of expandRoots(repoRoot, roots)) {
-      for (const name of listDir(root)) {
-        const skillDir = join(root, name);
-        if (!isDir(skillDir)) continue;
-        const md = join(skillDir, "SKILL.md");
-        if (!isFile(md)) continue;
-        const raw = readFileSync(md, "utf-8");
-        const fm = parseFrontmatter(raw);
-        const evalsFile = join(skillDir, "evals", "evals.json");
-        add({
-          id: `skill:${name}`,
-          kind: "skill",
-          path: relative(repoRoot, md),
-          content_hash: sha256(normalise(raw)),
-          public_surface: { frontmatter: fm ?? {}, tools: [] },
-          eval_files: isFile(evalsFile) ? [relative(repoRoot, evalsFile)] : [],
-        });
-      }
-    }
-  }
-
-  if (kinds.includes("command")) {
-    const commandRoots = [".cursor/commands", "commands", "plugins"];
-    for (const root of commandRoots) {
-      const abs = join(repoRoot, root);
-      if (!isDir(abs)) continue;
-      walkFiles(abs, (f) => {
-        if (!f.endsWith(".md")) return;
-        const name = f.split("/").pop()!.replace(/\.md$/, "");
-        if (!/^zoto-/.test(name) && !/^\/?commands\//.test(relative(repoRoot, f))) {
-          if (!/commands\//.test(f)) return;
-        }
-        const raw = readFileSync(f, "utf-8");
-        const fm = parseFrontmatter(raw);
-        if (!fm) return;
-        add({
-          id: `command:${name}`,
-          kind: "command",
-          path: relative(repoRoot, f),
-          content_hash: sha256(normalise(raw)),
-          public_surface: { frontmatter: fm, tools: [] },
-          eval_files: [],
-        });
+  const targets: TargetSnapshot[] = [];
+  for (const root of roots) {
+    for (const name of readdirSync(root).sort()) {
+      const skillDir = join(root, name);
+      if (!statSync(skillDir).isDirectory()) continue;
+      const skillMd = join(skillDir, "SKILL.md");
+      if (!existsSync(skillMd)) continue;
+      const raw = readFileSync(skillMd, "utf-8");
+      const evalsPath = join(skillDir, "evals", "evals.json");
+      targets.push({
+        id: `skill:${name}`,
+        kind: "skill",
+        path: relative(activeRepoRoot(), skillMd),
+        content_hash: sha256(normaliseContent(raw)),
+        public_surface: parseFrontmatter(raw),
+        eval_files: existsSync(evalsPath)
+          ? [relative(activeRepoRoot(), evalsPath)]
+          : [],
       });
     }
   }
-
-  if (kinds.includes("agent")) {
-    for (const root of [".cursor/agents", "agents", "plugins"]) {
-      const abs = join(repoRoot, root);
-      if (!isDir(abs)) continue;
-      walkFiles(abs, (f) => {
-        if (!f.endsWith(".md")) return;
-        if (!/agents\//.test(f)) return;
-        const name = f.split("/").pop()!.replace(/\.md$/, "");
-        const raw = readFileSync(f, "utf-8");
-        const fm = parseFrontmatter(raw);
-        if (!fm) return;
-        add({
-          id: `agent:${name}`,
-          kind: "agent",
-          path: relative(repoRoot, f),
-          content_hash: sha256(normalise(raw)),
-          public_surface: { frontmatter: fm, tools: [] },
-          eval_files: [],
-        });
-      });
-    }
-  }
-
-  if (kinds.includes("hook")) {
-    const hookDirs = [".cursor/hooks", "hooks", "plugins"];
-    for (const root of hookDirs) {
-      const abs = join(repoRoot, root);
-      if (!isDir(abs)) continue;
-      walkFiles(abs, (f) => {
-        if (!/hooks\//.test(f)) return;
-        if (!/\.(m?js|ts|py|sh)$/.test(f)) return;
-        const name = f.split("/").pop()!;
-        const raw = readFileSync(f, "utf-8");
-        add({
-          id: `hook:${name}`,
-          kind: "hook",
-          path: relative(repoRoot, f),
-          content_hash: sha256(normalise(raw)),
-          eval_files: [],
-        });
-      });
-    }
-  }
-
   return targets;
 }
 
-function expandRoots(repoRoot: string, roots: string[]): string[] {
-  const out: string[] = [];
-  for (const r of roots) {
-    if (r.includes("*")) {
-      const [prefix] = r.split("*");
-      const prefixAbs = join(repoRoot, prefix);
-      if (!isDir(prefixAbs)) continue;
-      for (const entry of listDir(prefixAbs)) {
-        const candidate = r.replace(/\*/g, entry);
-        const abs = join(repoRoot, candidate);
-        if (isDir(abs)) out.push(abs);
-      }
-    } else {
-      const abs = join(repoRoot, r);
-      if (isDir(abs)) out.push(abs);
+function discoverPluginAssets(
+  kind: "command" | "agent",
+  subdir: "commands" | "agents",
+): TargetSnapshot[] {
+  const pluginsRoot = join(activeRepoRoot(), "plugins");
+  if (!existsSync(pluginsRoot)) return [];
+  const evalLeaf = subdir === "commands" ? "commands" : "agents";
+  const out: TargetSnapshot[] = [];
+  for (const plugin of readdirSync(pluginsRoot).sort()) {
+    const dir = join(pluginsRoot, plugin, subdir);
+    if (!existsSync(dir) || !statSync(dir).isDirectory()) continue;
+    for (const file of readdirSync(dir).sort()) {
+      if (!file.endsWith(".md")) continue;
+      const full = join(dir, file);
+      const raw = readFileSync(full, "utf-8");
+      const base = file.replace(/\.md$/, "");
+      const evalPath = join(pluginsRoot, plugin, "evals", evalLeaf, `${base}.json`);
+      out.push({
+        id: `${kind}:${file.replace(/\.md$/, "")}`,
+        kind,
+        path: relative(activeRepoRoot(), full),
+        content_hash: sha256(normaliseContent(raw)),
+        public_surface: parseFrontmatter(raw),
+        eval_files: existsSync(evalPath)
+          ? [relative(activeRepoRoot(), evalPath)]
+          : [],
+      });
     }
   }
   return out;
 }
 
-function walkFiles(dir: string, cb: (full: string) => void): void {
-  for (const entry of listDir(dir)) {
-    if (entry === "node_modules" || entry === "dist") continue;
-    const full = join(dir, entry);
-    if (isDir(full)) walkFiles(full, cb);
-    else cb(full);
+function discoverUpstreamVendorAssets(
+  kind: "command" | "agent",
+  subdir: "commands" | "agents",
+  occupiedIds: ReadonlySet<string>,
+): { snapshots: TargetSnapshot[]; namespaced_ids: string[] } {
+  const root = join(activeRepoRoot(), "upstream-vendor", subdir);
+  if (!existsSync(root) || !statSync(root).isDirectory()) {
+    return { snapshots: [], namespaced_ids: [] };
   }
+  const evalLeaf = subdir === "commands" ? "commands" : "agents";
+  const snapshots: TargetSnapshot[] = [];
+  const namespaced_ids: string[] = [];
+  const prefix = kind === "command" ? "command" : "agent";
+  for (const file of readdirSync(root).sort()) {
+    if (!file.endsWith(".md")) continue;
+    const full = join(root, file);
+    const raw = readFileSync(full, "utf-8");
+    const base = file.replace(/\.md$/, "");
+    const bareId = `${prefix}:${base}`;
+    const id = occupiedIds.has(bareId)
+      ? `${prefix}:upstream-vendor/${base}`
+      : bareId;
+    if (id !== bareId) namespaced_ids.push(id);
+    const evalPath = join(
+      activeRepoRoot(),
+      "upstream-vendor",
+      "evals",
+      evalLeaf,
+      `${base}.json`,
+    );
+    snapshots.push({
+      id,
+      kind,
+      path: relative(activeRepoRoot(), full),
+      content_hash: sha256(normaliseContent(raw)),
+      public_surface: parseFrontmatter(raw),
+      eval_files: existsSync(evalPath)
+        ? [relative(activeRepoRoot(), evalPath)]
+        : [],
+    });
+  }
+  return { snapshots, namespaced_ids };
 }
 
-function headSha(repoRoot: string): string {
+function discoverHooks(): TargetSnapshot[] {
+  const pluginsRoot = join(activeRepoRoot(), "plugins");
+  if (!existsSync(pluginsRoot)) return [];
+  const out: TargetSnapshot[] = [];
+  for (const plugin of readdirSync(pluginsRoot).sort()) {
+    const hooksJson = join(pluginsRoot, plugin, "hooks", "hooks.json");
+    if (!existsSync(hooksJson)) continue;
+    const raw = readFileSync(hooksJson, "utf-8");
+    const hookEvalPath = join(pluginsRoot, plugin, "evals", "hooks", `${plugin}.json`);
+    out.push({
+      id: `hook:${plugin}`,
+      kind: "hook",
+      path: relative(activeRepoRoot(), hooksJson),
+      content_hash: sha256(normaliseContent(raw)),
+      public_surface: { plugin },
+      eval_files: existsSync(hookEvalPath)
+        ? [relative(activeRepoRoot(), hookEvalPath)]
+        : [],
+    });
+  }
+  return out;
+}
+
+const CURSOR_ROOT = join(activeRepoRoot(), ".cursor");
+
+/** Cursor-root commands/agents/hooks discovery; emits namespaced IDs when they collide with plugin asset IDs — see discovery_config.cursor_namespaced_ids. */
+function discoverCursorAssets(
+  occupiedCommandIds: ReadonlySet<string>,
+  occupiedAgentIds: ReadonlySet<string>,
+): {
+  snapshots: TargetSnapshot[];
+  cursor_namespaced_ids: string[];
+} {
+  const cursor_namespaced_ids: string[] = [];
+  const snapshots: TargetSnapshot[] = [];
+
+  function maybeRecordNamespacedId(bareId: string, id: string): void {
+    if (id !== bareId) cursor_namespaced_ids.push(id);
+  }
+
+  const cmdDir = join(CURSOR_ROOT, "commands");
+  if (existsSync(cmdDir) && statSync(cmdDir).isDirectory()) {
+    for (const file of readdirSync(cmdDir).sort()) {
+      if (!file.endsWith(".md")) continue;
+      const full = join(cmdDir, file);
+      const raw = readFileSync(full, "utf-8");
+      const base = file.replace(/\.md$/, "");
+      const bareId = `command:${base}`;
+      const id = occupiedCommandIds.has(bareId)
+        ? `command:cursor/${base}`
+        : bareId;
+      maybeRecordNamespacedId(bareId, id);
+      const evalPath = join(CURSOR_ROOT, "evals", "commands", `${base}.json`);
+      snapshots.push({
+        id,
+        kind: "command",
+        path: relative(activeRepoRoot(), full),
+        content_hash: sha256(normaliseContent(raw)),
+        public_surface: parseFrontmatter(raw),
+        eval_files: existsSync(evalPath)
+          ? [relative(activeRepoRoot(), evalPath)]
+          : [],
+      });
+    }
+  }
+
+  const agDir = join(CURSOR_ROOT, "agents");
+  if (existsSync(agDir) && statSync(agDir).isDirectory()) {
+    for (const file of readdirSync(agDir).sort()) {
+      if (!file.endsWith(".md")) continue;
+      const full = join(agDir, file);
+      const raw = readFileSync(full, "utf-8");
+      const base = file.replace(/\.md$/, "");
+      const bareId = `agent:${base}`;
+      const id = occupiedAgentIds.has(bareId)
+        ? `agent:cursor/${base}`
+        : bareId;
+      maybeRecordNamespacedId(bareId, id);
+      const evalPath = join(CURSOR_ROOT, "evals", "agents", `${base}.json`);
+      snapshots.push({
+        id,
+        kind: "agent",
+        path: relative(activeRepoRoot(), full),
+        content_hash: sha256(normaliseContent(raw)),
+        public_surface: parseFrontmatter(raw),
+        eval_files: existsSync(evalPath)
+          ? [relative(activeRepoRoot(), evalPath)]
+          : [],
+      });
+    }
+  }
+
+  const hooksNested = join(CURSOR_ROOT, "hooks", "hooks.json");
+  const hooksFlat = join(CURSOR_ROOT, "hooks.json");
+  let hooksPath: string | null = null;
+  if (existsSync(hooksNested)) hooksPath = hooksNested;
+  else if (existsSync(hooksFlat)) hooksPath = hooksFlat;
+  if (hooksPath) {
+    const raw = readFileSync(hooksPath, "utf-8");
+    const hookEvalPath = join(CURSOR_ROOT, "evals", "hooks", "hooks.json");
+    snapshots.push({
+      id: "hook:cursor-workspace",
+      kind: "hook",
+      path: relative(activeRepoRoot(), hooksPath),
+      content_hash: sha256(normaliseContent(raw)),
+      public_surface: { workspace: ".cursor" },
+      eval_files: existsSync(hookEvalPath)
+        ? [relative(activeRepoRoot(), hookEvalPath)]
+        : [],
+    });
+  }
+
+  return { snapshots, cursor_namespaced_ids };
+}
+
+function discoverTargets(
+  config: Record<string, unknown>,
+): {
+  targets: TargetSnapshot[];
+  cursor_namespaced_ids: string[];
+} {
+  const kinds =
+    (config.discoveryTargets as string[] | undefined) ?? ["skill"];
+
+  const pluginCommands =
+    kinds.includes("command") ? discoverPluginAssets("command", "commands") : [];
+  const pluginAgents =
+    kinds.includes("agent") ? discoverPluginAssets("agent", "agents") : [];
+
+  let occupiedCommandIds = new Set(pluginCommands.map((t) => t.id));
+  let occupiedAgentIds = new Set(pluginAgents.map((t) => t.id));
+
+  const { snapshots: uvCommands, namespaced_ids: uvCommandNs } =
+    kinds.includes("command")
+      ? discoverUpstreamVendorAssets("command", "commands", occupiedCommandIds)
+      : { snapshots: [] as TargetSnapshot[], namespaced_ids: [] as string[] };
+  occupiedCommandIds = new Set([
+    ...occupiedCommandIds,
+    ...uvCommands.map((t) => t.id),
+  ]);
+
+  const { snapshots: uvAgents, namespaced_ids: uvAgentNs } = kinds.includes(
+    "agent",
+  )
+    ? discoverUpstreamVendorAssets("agent", "agents", occupiedAgentIds)
+    : { snapshots: [] as TargetSnapshot[], namespaced_ids: [] as string[] };
+  occupiedAgentIds = new Set([...occupiedAgentIds, ...uvAgents.map((t) => t.id)]);
+
+  const needCursor =
+    kinds.includes("command") ||
+    kinds.includes("agent") ||
+    kinds.includes("hook");
+  const { snapshots: cursorSnapshots, cursor_namespaced_ids } = needCursor
+    ? discoverCursorAssets(occupiedCommandIds, occupiedAgentIds)
+    : { snapshots: [] as TargetSnapshot[], cursor_namespaced_ids: [] as string[] };
+
+  const cursorCommands = cursorSnapshots.filter((t) => t.kind === "command");
+  const cursorAgents = cursorSnapshots.filter((t) => t.kind === "agent");
+  const cursorHooks = cursorSnapshots.filter((t) => t.kind === "hook");
+
+  const all: TargetSnapshot[] = [];
+  if (kinds.includes("skill")) all.push(...discoverSkills(config));
+  if (kinds.includes("command")) {
+    all.push(...pluginCommands);
+    all.push(...uvCommands);
+    all.push(...cursorCommands);
+  }
+  if (kinds.includes("agent")) {
+    all.push(...pluginAgents);
+    all.push(...uvAgents);
+    all.push(...cursorAgents);
+  }
+  if (kinds.includes("hook")) {
+    all.push(...discoverHooks());
+    all.push(...cursorHooks);
+  }
+  return {
+    targets: all,
+    cursor_namespaced_ids: [
+      ...cursor_namespaced_ids,
+      ...uvCommandNs,
+      ...uvAgentNs,
+    ],
+  };
+}
+
+function main(): number {
+  const pretty = process.argv.includes("--pretty");
+  const config = loadConfig();
+  const ignorePatterns = loadIgnorePatterns(config);
+  const { targets: rawTargets, cursor_namespaced_ids } = discoverTargets(config);
+  const { filtered: targets, ignored_summary } = filterTargetsByIgnores(
+    rawTargets,
+    ignorePatterns,
+  );
+  const paths = loadEvalPaths(activeRepoRoot());
+  const payload = {
+    schema_version: 1,
+    discovery_config: {
+      discoveryTargets: config.discoveryTargets ?? ["skill"],
+      skillsRoots: config.skillsRoots ?? [".cursor/skills", "skills"],
+      evalsDir: paths.evalsDirRel,
+      layout: paths.layout,
+      additionalAutomation: config.additionalAutomation ?? [],
+      cursorRoot: ".cursor",
+      cursor_namespaced_ids,
+      ignore: ignorePatterns,
+    },
+    ignored_summary,
+    summary: {
+      total: targets.length,
+      by_kind: targets.reduce<Record<string, number>>((acc, t) => {
+        acc[t.kind] = (acc[t.kind] ?? 0) + 1;
+        return acc;
+      }, {}),
+      with_coverage: targets.filter((t) => t.eval_files.length > 0).length,
+    },
+    targets,
+  };
+  console.log(pretty ? JSON.stringify(payload, null, 2) : JSON.stringify(payload));
+  return 0;
+}
+
+export type Target = TargetSnapshot;
+
+/** Programmatic discovery for tests and updater helpers (explicit repo root). */
+export function discover(
+  repoRoot: string,
+  config: Record<string, unknown>,
+): TargetSnapshot[] {
+  const prev = _discoverRepoRootOverride;
+  _discoverRepoRootOverride = repoRoot;
   try {
-    return execSync("git rev-parse HEAD", { cwd: repoRoot }).toString().trim();
-  } catch {
-    return "0000000000000000000000000000000000000000";
+    return discoverTargets(config).targets;
+  } finally {
+    _discoverRepoRootOverride = prev;
   }
 }
 
@@ -249,44 +520,30 @@ export function manifestFor(
   generatedBy: "zoto-create-evals" | "zoto-update-evals",
 ): Record<string, unknown> {
   const now = new Date().toISOString();
+  let gitRef = "unknown";
+  try {
+    gitRef = execSync("git rev-parse HEAD", { cwd: repoRoot }).toString().trim();
+  } catch {
+    /* non-git fixture repos */
+  }
+  const paths = loadEvalPaths(repoRoot);
   return {
     schema_version: 1,
     created_at: now,
     updated_at: now,
-    git_ref: headSha(repoRoot),
+    git_ref: gitRef,
     generated_by: generatedBy,
     discovery_config: {
       discoveryTargets: config.discoveryTargets,
       skillsRoots: config.skillsRoots,
-      evalsDir: config.evalsDir,
+      evalsDir: paths.evalsDirRel,
+      layout: paths.layout,
       additionalAutomation: config.additionalAutomation ?? [],
     },
     targets: discover(repoRoot, config),
   };
 }
 
-async function main(): Promise<number> {
-  const args = parseArgs(process.argv.slice(2));
-  const repoRoot = process.cwd();
-  const { config: typedConfig } = loadEvalConfig(repoRoot);
-  const config = typedConfig as unknown as Record<string, unknown>;
-
-  if (args.resolveFile) {
-    const all = discover(repoRoot, config);
-    const resolved = resolve(repoRoot, args.resolveFile);
-    const hits = all.filter((t) => resolved.endsWith(t.path));
-    console.log(JSON.stringify(hits, null, 2));
-    return 0;
-  }
-
-  const mf = manifestFor(repoRoot, config, "zoto-create-evals");
-  process.stdout.write(JSON.stringify(mf, null, 2) + "\n");
-  return 0;
-}
-
-if (process.argv[1] && process.argv[1].endsWith("eval-discover.ts")) {
-  main().then((c) => process.exit(c), (err) => {
-    console.error(err);
-    process.exit(1);
-  });
+if (process.argv[1]?.endsWith("eval-discover.ts")) {
+  process.exit(main());
 }

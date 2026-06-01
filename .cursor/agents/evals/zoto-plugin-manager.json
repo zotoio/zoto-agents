@@ -5,7 +5,7 @@
     "migrated_from": ".cursor/agents/evals/zoto-plugin-manager.test.ts",
     "migrated_at": "2026-05-27T17:21:10.986Z",
     "model_id": "composer-2.5",
-    "judge_model": "opus-4.6",
+    "judge_model": "claude-opus-4-8[]",
     "case_timeout_ms": 180000
   },
   "cases": [
@@ -24,11 +24,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-        "last_updated": "2026-05-29T09:33:23.257Z",
+        "last_updated": "2026-06-01T04:55:08.629Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-          "analysed_at": "2026-05-29T09:33:23.257Z",
+          "analysed_at": "2026-06-01T04:55:08.629Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Maps each operating mode of zoto-plugin-manager—scaffold-via-zoto-create-plugin with classify-and-stamp eval routing, hardened audits across manifest anatomy hooks and MCP, additive component edits with evaluator discipline, marketplace rehearsal, phased renames—and ties in methodology CRUX authoring Spec-awareness validation choreography and local sync—without documenting AskQuestion or structured needs_user_input hand-offs."
         }
@@ -51,11 +51,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-        "last_updated": "2026-05-29T09:33:23.257Z",
+        "last_updated": "2026-06-01T04:55:08.629Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-          "analysed_at": "2026-05-29T09:33:23.257Z",
+          "analysed_at": "2026-06-01T04:55:08.629Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Maps each operating mode of zoto-plugin-manager—scaffold-via-zoto-create-plugin with classify-and-stamp eval routing, hardened audits across manifest anatomy hooks and MCP, additive component edits with evaluator discipline, marketplace rehearsal, phased renames—and ties in methodology CRUX authoring Spec-awareness validation choreography and local sync—without documenting AskQuestion or structured needs_user_input hand-offs."
         }
@@ -78,11 +78,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-        "last_updated": "2026-05-29T09:33:23.257Z",
+        "last_updated": "2026-06-01T04:55:08.629Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-          "analysed_at": "2026-05-29T09:33:23.257Z",
+          "analysed_at": "2026-06-01T04:55:08.629Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Maps each operating mode of zoto-plugin-manager—scaffold-via-zoto-create-plugin with classify-and-stamp eval routing, hardened audits across manifest anatomy hooks and MCP, additive component edits with evaluator discipline, marketplace rehearsal, phased renames—and ties in methodology CRUX authoring Spec-awareness validation choreography and local sync—without documenting AskQuestion or structured needs_user_input hand-offs."
         }
@@ -104,11 +104,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-        "last_updated": "2026-05-29T09:33:23.257Z",
+        "last_updated": "2026-06-01T04:55:08.629Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-          "analysed_at": "2026-05-29T09:33:23.257Z",
+          "analysed_at": "2026-06-01T04:55:08.629Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Maps each operating mode of zoto-plugin-manager—scaffold-via-zoto-create-plugin with classify-and-stamp eval routing, hardened audits across manifest anatomy hooks and MCP, additive component edits with evaluator discipline, marketplace rehearsal, phased renames—and ties in methodology CRUX authoring Spec-awareness validation choreography and local sync—without documenting AskQuestion or structured needs_user_input hand-offs."
         }
@@ -128,11 +128,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-        "last_updated": "2026-05-29T09:33:23.257Z",
+        "last_updated": "2026-06-01T04:55:08.629Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-          "analysed_at": "2026-05-29T09:33:23.257Z",
+          "analysed_at": "2026-06-01T04:55:08.629Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Maps each operating mode of zoto-plugin-manager—scaffold-via-zoto-create-plugin with classify-and-stamp eval routing, hardened audits across manifest anatomy hooks and MCP, additive component edits with evaluator discipline, marketplace rehearsal, phased renames—and ties in methodology CRUX authoring Spec-awareness validation choreography and local sync—without documenting AskQuestion or structured needs_user_input hand-offs."
         }
@@ -151,11 +151,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-        "last_updated": "2026-05-29T09:33:23.257Z",
+        "last_updated": "2026-06-01T04:55:08.629Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-          "analysed_at": "2026-05-29T09:33:23.257Z",
+          "analysed_at": "2026-06-01T04:55:08.629Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Maps each operating mode of zoto-plugin-manager—scaffold-via-zoto-create-plugin with classify-and-stamp eval routing, hardened audits across manifest anatomy hooks and MCP, additive component edits with evaluator discipline, marketplace rehearsal, phased renames—and ties in methodology CRUX authoring Spec-awareness validation choreography and local sync—without documenting AskQuestion or structured needs_user_input hand-offs."
         }
@@ -177,11 +177,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-        "last_updated": "2026-05-29T09:33:23.257Z",
+        "last_updated": "2026-06-01T04:55:08.629Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-          "analysed_at": "2026-05-29T09:33:23.257Z",
+          "analysed_at": "2026-06-01T04:55:08.629Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Maps each operating mode of zoto-plugin-manager—scaffold-via-zoto-create-plugin with classify-and-stamp eval routing, hardened audits across manifest anatomy hooks and MCP, additive component edits with evaluator discipline, marketplace rehearsal, phased renames—and ties in methodology CRUX authoring Spec-awareness validation choreography and local sync—without documenting AskQuestion or structured needs_user_input hand-offs."
         }
@@ -200,11 +200,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-        "last_updated": "2026-05-29T09:33:23.257Z",
+        "last_updated": "2026-06-01T04:55:08.629Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "002967c9b696c380222c7c6768573de2245a6296e2eed433a43c8721886f5c0b",
-          "analysed_at": "2026-05-29T09:33:23.257Z",
+          "analysed_at": "2026-06-01T04:55:08.629Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Maps each operating mode of zoto-plugin-manager—scaffold-via-zoto-create-plugin with classify-and-stamp eval routing, hardened audits across manifest anatomy hooks and MCP, additive component edits with evaluator discipline, marketplace rehearsal, phased renames—and ties in methodology CRUX authoring Spec-awareness validation choreography and local sync—without documenting AskQuestion or structured needs_user_input hand-offs."
         }

@@ -1,0 +1,67 @@
+schema_version: 1
+subtask_id: "01"
+feature: eval-dual-host-layout
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "New exported function `resolvePluginRoot(repoRoot?: string): string` in `plugins/zoto-eval-system/src/paths.ts`"
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/paths.ts
+  - id: D02
+    text: "Precedence chain implemented and documented: (1) monorepo `plugins/zoto-eval-system/` when present relative to repo root, (2) `ZOTO_EVAL_PLUGIN_ROOT` env override, (3) Cursor plugin install dir (`~/.cursor/plugins/…/zoto-eval-system/` — glob for marketplace versions)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/paths.ts
+  - id: D03
+    text: "Validation: function throws with actionable error if no resolution succeeds"
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/paths.test.ts
+  - id: D04
+    text: Existing `resolvePluginRuntimeRoot()` refactored to delegate to new `resolvePluginRoot()` for the `legacy-root` / non-self-contained case
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/paths.ts
+  - id: D05
+    text: "`EvalPaths` interface updated: add `pluginRootAbs` field pointing to resolved plugin root"
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/paths.ts
+  - id: D06
+    text: Unit tests for all three precedence levels (mock filesystem)
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/paths.test.ts
+  - id: D07
+    text: JSDoc with precedence documentation
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/paths.ts
+artifacts:
+  - path: plugins/zoto-eval-system/src/paths.ts
+    kind: modified
+    note: resolvePluginRoot and pluginRootAbs
+  - path: plugins/zoto-eval-system/src/paths.test.ts
+    kind: modified
+    note: precedence and layout tests
+  - path: plugins/zoto-eval-system/src/config-loader.ts
+    kind: modified
+    note: export resolvePluginRoot
+  - path: plugins/zoto-eval-system/vitest.config.ts
+    kind: modified
+    note: include src tests
+errors: []
+notes: ""
+extra:
+  judge:
+    verdict: verified
+    at: "2026-06-01T14:38:30.000Z"
+    notes: >-
+      Independently confirmed resolvePluginRoot() with monorepo → ZOTO_EVAL_PLUGIN_ROOT →
+      Cursor install precedence (cursorPluginsBases/collectCursorPluginCandidates, Windows APPDATA
+      branch in JSDoc). Semver selection (pickBestCursorCandidate) and mtime fallback covered by
+      unit tests. resolvePluginRuntimeRoot() delegates to resolvePluginRoot() for plugin layout;
+      EvalPaths.pluginRootAbs populated. resolvePluginRoot re-exported from config-loader.ts.
+      vitest run plugins/zoto-eval-system/src/paths.test.ts: 13/13 passed. No linter errors on
+      modified files.
+    fix_list: []
+last_heartbeat: 2026-06-01T04:36:44.292Z
+started_at: 2026-06-01T04:34:28.200Z
+completed_at: 2026-06-01T04:36:44.292Z

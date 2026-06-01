@@ -1,0 +1,93 @@
+schema_version: 1
+subtask_id: "02"
+feature: Eval Plugin Self-Contained Scripts Consolidation
+assigned_agent: zoto-eval-engineer
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "Move (with import rewrites): `eval-analyse.ts`, `eval-stamp.ts`, `eval-orchestrate.ts`, `eval-discover.ts`, `eval-gc.ts`, `eval-cleanup-vendored.ts`, `eval-cleanup-stale.ts`, `check-analyser-payload-parity.ts`, `test.py`"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/
+  - id: D02
+    text: Consolidate `eval-ensure-host.ts` — move root copy into plugin OR align root to delegate to plugin; ensure imports use `../templates/…` not `../plugins/zoto-eval-system/templates/…`
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-ensure-host.ts
+  - id: D03
+    text: Delete `plugins/zoto-eval-system/scripts/eval-discover.ts` stale fork (if not overwritten by move)
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-discover.ts
+  - id: D04
+    text: Delete `plugins/zoto-eval-system/scripts/eval-update.ts` (superseded by `engine/update.ts`)
+    done: true
+    evidence_path: null
+  - id: D05
+    text: All moved scripts import `loadEvalConfig` / `loadEvalPaths` from `../src/config-loader.js`
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/
+  - id: D06
+    text: Engine imports in moved scripts use `../engine/…` (e.g. `analyser-payload.js`, `_user-case-guards.ts`)
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/eval-analyse.ts
+  - id: D07
+    text: "`const REPO_ROOT = resolve(process.cwd())` replaced with `resolveHostRepoRoot()` where host-layout awareness is required (match existing stamper rewrite behaviour)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/
+artifacts:
+  - path: plugins/zoto-eval-system/scripts/eval-analyse.ts
+    kind: created
+    note: Moved from root with import rewrites
+  - path: plugins/zoto-eval-system/scripts/eval-stamp.ts
+    kind: created
+    note: Moved from root with import rewrites
+  - path: plugins/zoto-eval-system/scripts/eval-orchestrate.ts
+    kind: created
+    note: Moved from root with import rewrites
+  - path: plugins/zoto-eval-system/scripts/eval-discover.ts
+    kind: modified
+    note: Replaced stale plugin fork with canonical root copy
+  - path: plugins/zoto-eval-system/scripts/eval-gc.ts
+    kind: created
+    note: Moved from root with import rewrites
+  - path: plugins/zoto-eval-system/scripts/eval-cleanup-vendored.ts
+    kind: created
+    note: Moved from root with import rewrites
+  - path: plugins/zoto-eval-system/scripts/eval-cleanup-stale.ts
+    kind: created
+    note: Moved from root with import rewrites
+  - path: plugins/zoto-eval-system/scripts/check-analyser-payload-parity.ts
+    kind: created
+    note: Moved from root with import rewrites
+  - path: plugins/zoto-eval-system/scripts/test.py
+    kind: created
+    note: Moved from root
+  - path: plugins/zoto-eval-system/scripts/eval-ensure-host.ts
+    kind: created
+    note: Consolidated with ../templates/ path
+  - path: plugins/zoto-eval-system/scripts/eval-update.ts
+    kind: deleted
+    note: Superseded by engine/update.ts
+  - path: plugins/zoto-eval-system/tsconfig.json
+    kind: modified
+    note: Added engine/**/*.ts to include
+errors: []
+notes: |
+  Heartbeat: completed subtask 02.
+  Smoke: `pnpm exec tsx plugins/zoto-eval-system/scripts/eval-discover.ts --pretty | head` exit 0.
+  rg '../plugins/zoto-eval-system' plugins/zoto-eval-system/scripts/ — zero import hits (only comment/rewrite strings in install-local, uninstall-local, stamp-host-layout).
+  tsc --noEmit under plugin tsconfig reports pre-existing engine/update.ts ../../../scripts/ imports (subtask 03 scope) plus unrelated engine CJS/ESM errors; moved scripts compile alongside those.
+  Repo-root script copies intentionally retained per spec (subtask 05 retargets package.json).
+extra:
+  judge:
+    verdict: verified
+    at: "2026-05-31T22:27:13.000Z"
+    notes: |
+      Independently confirmed all nine CLI files plus eval-ensure-host.ts exist under
+      plugins/zoto-eval-system/scripts/ with plugin-relative imports (../src/, ../engine/,
+      ../templates/). eval-update.ts absent; eval-discover.ts matches authoritative 495-line
+      root copy. rg '../plugins/zoto-eval-system' under plugin scripts returns zero import
+      statements (stamp-host-layout rewrite strings only). tsconfig.json includes engine/**/*.ts.
+      Smoke eval-discover --pretty exit 0. tsc reports pre-existing engine/update.ts and
+      unrelated script type errors documented in notes; acceptable per DoD wording.
+    fix_list: []

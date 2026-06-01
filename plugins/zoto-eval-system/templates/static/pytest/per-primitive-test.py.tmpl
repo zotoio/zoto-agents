@@ -1,5 +1,5 @@
 # _meta.generated: True
-"""Per-primitive pytest eval — stamped by ``scripts/eval-stamp.ts``
+"""Per-primitive pytest eval — stamped by ``plugins/zoto-eval-system/scripts/eval-stamp.ts``
 ``stampPytestPerPrimitive`` (subtask 06) when
 ``static.framework === "pytest"``.
 
@@ -13,7 +13,7 @@ Header contract (DO NOT EDIT THE FIRST LINE):
     ``evals/test_user_<slug>.py`` instead.
 
 Source: every assertion below is derived from the analyser payload
-(``AnalyserPayload`` exported by ``scripts/eval-analyse.ts``, subtask 04;
+(``AnalyserPayload`` exported by ``plugins/zoto-eval-system/scripts/eval-analyse.ts``, subtask 04;
 mirrored in ``evals/_llm/types.py`` for Python consumers). Each
 behavioural assertion in the payload becomes one parametrised pytest
 case that asserts the documented intent against the primitive source.
@@ -109,7 +109,7 @@ VAGUE_VOCAB_PATTERN = re.compile(
 def _frontmatter(text: str) -> dict[str, str]:
     """Lightweight YAML-ish frontmatter parser.
 
-    Mirrors ``scripts/eval-discover.ts#parseFrontmatter`` so the static
+    Mirrors ``plugins/zoto-eval-system/scripts/eval-discover.ts#parseFrontmatter`` so the static
     test agrees with the discoverer on what counts as a primitive's
     public surface.
     """

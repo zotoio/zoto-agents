@@ -8,6 +8,9 @@
 # Schema: plugins/zoto-eval-system/templates/schema/config.schema.json
 # =============================================================================
 
+# Active override: lean plugin-dependent layout (runtime from plugins/zoto-eval-system/).
+hostLayout: plugin
+
 
 # ─────────────────────────────  discovery  ───────────────────────────────────
 # evalsDir: evals
@@ -49,7 +52,7 @@ llm:
 
 
 # ────────────────────────────────  judge  ────────────────────────────────────
-judgeModel: opus-4.6
+judgeModel: claude-opus-4-8[]
 
 
 # ────────────────────────────  manual checklists  ────────────────────────────

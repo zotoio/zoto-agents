@@ -1,0 +1,80 @@
+schema_version: 1
+subtask_id: "03"
+feature: Eval Plugin Self-Contained Scripts Consolidation
+assigned_agent: zoto-eval-engineer
+model: composer-2.5-fast
+token_budget: 300000
+state: completed
+checklist:
+  - id: D01
+    text: "`engine/update.ts` imports analyser + stamper from `../scripts/` not `../../../scripts/`"
+    done: true
+    evidence_path: plugins/zoto-eval-system/engine/update.ts
+  - id: D02
+    text: "`engine/update.ts` parity check path references `../scripts/check-analyser-payload-parity.ts` (or equivalent relative path)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/engine/update.ts
+  - id: D03
+    text: "Grep clean: `rg '../../../scripts' plugins/zoto-eval-system/` → zero hits in `.ts` files"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D04
+    text: Update `evals/llm/_shared/zoto-create-plugin-suite.ts` and `.test.ts` imports to plugin script paths
+    done: true
+    evidence_path: evals/llm/_shared/zoto-create-plugin-suite.ts
+  - id: D05
+    text: Update any `evals/_llm/*.ts` smoke files importing root scripts
+    done: true
+    evidence_path: evals/_llm/sandbox.smoke.ts
+  - id: D06
+    text: Resolve circular import risk between `engine/update.ts` and moved scripts (extract shared types to `engine/` or `src/` if needed — minimal extraction only)
+    done: true
+    evidence_path: plugins/zoto-eval-system/engine/update.ts
+artifacts:
+  - path: plugins/zoto-eval-system/engine/update.ts
+    kind: modified
+    note: Retargeted imports to ../scripts/ within plugin tree
+  - path: plugins/zoto-eval-system/scripts/eval-discover.ts
+    kind: modified
+    note: Canonical discover script in plugin scripts/
+  - path: evals/llm/_shared/zoto-create-plugin-suite.ts
+    kind: modified
+    note: Retargeted analyser import to plugin script path
+  - path: evals/llm/_shared/zoto-create-plugin-suite.test.ts
+    kind: modified
+    note: Retargeted test imports to plugin script path
+  - path: evals/_llm/analyser.cache.selftest.ts
+    kind: modified
+    note: Retargeted smoke imports to plugin script path
+  - path: evals/_llm/sandbox.smoke.ts
+    kind: modified
+    note: Retargeted smoke imports to plugin script path
+  - path: plugins/zoto-eval-system/tests/plugin.test.ts
+    kind: modified
+    note: Updated discover import path
+errors: []
+notes: >-
+  tsc reports pre-existing unrelated errors (CJS/import.meta, json-source-map types,
+  eval-stamp hostRepoRoot, ajv construct signatures). Smoke `--check` exit 2 = expected
+  critical drift (3 modified skills). Vitest engine-runner-update-spec04: 24/24 pass.
+  evals/test_*.ts dogfood files: 0 runtime imports of root scripts/ (comments only).
+extra:
+  pytest_dogfood_import_count: 0
+  tsc_preexisting_error_sample: TS1470 import.meta in CommonJS engine modules
+  judge:
+    verdict: verified
+    at: "2026-06-01T08:45:00+10:00"
+    notes: >-
+      Re-verified after executor repaired artifacts[] to {path, kind, note}
+      objects. D01–D02: engine/update.ts imports ../scripts/eval-analyse.ts and
+      eval-stamp.ts; parity resolves ../scripts/check-analyser-payload-parity.ts
+      via import.meta.url. D03: no ../../../scripts import paths; sole rg hit is
+      stamp-host-layout.ts replaceAll migration literal (not a runtime import).
+      D04–D05: dogfood under evals/llm/_shared and evals/_llm import
+      plugins/zoto-eval-system/scripts/*. D06: vitest engine-runner-update-spec04
+      24/24 pass; no repo-root scripts/ imports under plugins/zoto-eval-system/.
+      Pytest dogfood (spec checklist item 6): 0 runtime scripts/eval-* imports in
+      evals/test_*.ts. DoD: tsc -p plugins/zoto-eval-system still exits 2 with
+      pre-existing errors (documented in notes); update.ts --check exit 2 =
+      expected critical skill drift; onStop exit 0 after schema fix.
+    fix_list: []

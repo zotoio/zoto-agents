@@ -23,7 +23,7 @@ Switching `static.framework` is a config-changing operation; this skill produces
 
 ### Advanced (optional): `ignore`
 
-Repos can set `"ignore": []` — an array of **minimatch** glob strings matched against repo-relative POSIX paths (forward slashes only) pointing at primary sources (`SKILL.md`, `commands/*.md`, `agents/*.md`, `hooks/*.json`, etc.). Generators stampers skip ignored targets entirely; **`scripts/eval-cleanup-vendored.ts`** can delete leftover generated eval JSON for those sources. Defaults to **`[]`** (everything eligible). Omit from interactive configure flows unless operators explicitly upstream-vendor assets (`crux-*`, etc.). See `templates/config.json`.
+Repos can set `"ignore": []` — an array of **minimatch** glob strings matched against repo-relative POSIX paths (forward slashes only) pointing at primary sources (`SKILL.md`, `commands/*.md`, `agents/*.md`, `hooks/*.json`, etc.). Generators stampers skip ignored targets entirely; **`pnpm run eval:cleanup-vendored`** (lean: via `tsx .zoto/eval-system/scripts/eval-bridge.ts eval-cleanup-vendored`; ejected: nested alias) can delete leftover generated eval JSON for those sources. Defaults to **`[]`** (everything eligible). Omit from interactive configure flows unless operators explicitly upstream-vendor assets (`crux-*`, etc.). See `templates/config.json`.
 
 Two fields are hard-coded contracts and cannot be disabled:
 
@@ -104,8 +104,8 @@ Fields to write, in order (values come from the payload):
 | 3 | `discoveryTargets` | As selected by the command. |
 | 4 | `static.framework` | `pytest` / `vitest` / `jest`; default `pytest`. |
 | 5 | `llm.runtime` | `tsx` (default) / `node`. |
-| 6 | `llm.model.id` | `composer-2.5` / `opus-4.6` / `sonnet`. |
-| 7 | `judgeModel` | Same options; default `opus-4.6`. |
+| 6 | `llm.model.id` | `composer-2.5` / `claude-opus-4-8[]` / `sonnet`. |
+| 7 | `judgeModel` | Same options; default `claude-opus-4-8[]`. |
 | 8 | `manualChecklists.enabled` | boolean. |
 | 9 | `additionalAutomation` | list. |
 | 10 | `ignore` | Optional glob list (`[]` default). Advanced — upstream-vendored paths to exclude from eval generation/cleanup tooling. |

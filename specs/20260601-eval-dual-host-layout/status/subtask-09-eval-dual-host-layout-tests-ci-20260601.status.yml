@@ -1,0 +1,81 @@
+schema_version: 1
+subtask_id: "09"
+feature: eval-dual-host-layout
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: 2026-06-01T14:48:00Z
+last_heartbeat: 2026-06-01T04:59:36.851Z
+completed_at: 2026-06-01T04:59:36.851Z
+git_sha: fbfecad15cca5de07f40ec150555f1b8d2fff64c
+checklist:
+  - id: D01
+    text: Unit tests for `resolvePluginRoot()` — all three precedence levels + error case
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/paths.test.ts
+  - id: D02
+    text: Unit tests for config loading with `hostLayout` field (both values + omitted)
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/config-loader.test.ts
+  - id: D03
+    text: "Integration test: lean create produces expected minimal file tree"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/dual-host-layout.integration.test.ts
+  - id: D04
+    text: "Integration test: eject produces expected full file tree + primitives"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/dual-host-layout.integration.test.ts
+  - id: D05
+    text: "Integration test: un-eject reverses eject (round-trip)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/dual-host-layout.integration.test.ts
+  - id: D06
+    text: "Integration test: `eval:discover` works in lean mode (monorepo)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/dual-host-layout.integration.test.ts
+  - id: D07
+    text: "Integration test: `eval:update --check` passes post-migration"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/dual-host-layout.integration.test.ts
+  - id: D08
+    text: Verify `paths.test.ts` updated for new `pluginRootAbs` field and resolution logic
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/paths.test.ts
+  - id: D09
+    text: Verify `config-loader.test.ts` updated for `hostLayout` field
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/config-loader.test.ts
+  - id: D10
+    text: Ensure baseline fixtures (`evals/fixtures/baseline/`) reflect lean layout
+    done: true
+    evidence_path: evals/fixtures/baseline/.zoto/eval-system/config.yml
+  - id: D11
+    text: CI continues to pass with all eval:* scripts after migration
+    done: true
+    evidence_path: package.json#eval:update:check
+artifacts:
+  - path: plugins/zoto-eval-system/tests/dual-host-layout.integration.test.ts
+    kind: created
+    note: five dual-host-layout integration cases
+  - path: plugins/zoto-eval-system/templates/baseline-fixtures/.zoto/eval-system/config.yml
+    kind: modified
+    note: lean single-backend config comments
+  - path: evals/fixtures/baseline/.zoto/eval-system/config.yml
+    kind: modified
+    note: re-stamped baseline fixture
+errors: []
+notes: |
+  Judge fix_list (re-spawn): ran `pnpm run eval:update -- --apply --no-analyser` plus targeted applies for skill:zoto-eval-tooling and skill:zoto-create-evals; restored unified `evals/vitest.config.ts` (evalJsonLoader) after stamp overwrote it; fixed malformed JSON in zoto-judge-evals/evals/evals.json. `pnpm run eval:update:check` exits 0 (status clean, 52 targets). zoto-eval-system 199/199 pass; zoto-cursor-top 86/86 pass; full `pnpm test` exits 1 — zoto-spec-system 8 CLI timeout/watch flakes (out of S09 scope).
+extra:
+  judge:
+    verdict: verified
+    at: "2026-06-01T05:01:30Z"
+    notes: >-
+      Re-verification after fix round: paths.test.ts covers monorepo/env/Cursor precedence plus actionable error;
+      config-loader.test.ts covers hostLayout plugin/ejected/omitted/invalid; dual-host-layout.integration.test.ts
+      has five passing cases (lean create, eject+primitives, un-eject round-trip, lean discover, update --check).
+      Baseline fixture evals/fixtures/baseline/.zoto/eval-system/config.yml reflects lean hostLayout comments. pnpm
+      run eval:update:check exits 0 (52 targets, status clean). zoto-eval-system 199/199 pass; targeted S09 vitest
+      36/36 pass. ReadLints clean on test files.
+    fix_list: []

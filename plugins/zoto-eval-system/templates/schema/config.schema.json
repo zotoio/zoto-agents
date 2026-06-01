@@ -5,6 +5,12 @@
   "type": "object",
   "additionalProperties": true,
   "properties": {
+    "hostLayout": {
+      "type": "string",
+      "enum": ["plugin", "ejected"],
+      "default": "plugin",
+      "description": "Active host layout mode. `plugin` resolves engine/scripts/templates from the installed plugin; `ejected` runs a self-contained copy under `.zoto/eval-system/`."
+    },
     "evalsDir": { "type": "string", "minLength": 1, "default": "evals" },
     "skillsRoots": {
       "type": "array",
@@ -41,13 +47,13 @@
         "model": {
           "type": "object",
           "properties": {
-            "id": { "type": "string", "enum": ["composer-2.5", "opus-4.6", "sonnet"], "default": "composer-2.5" }
+            "id": { "type": "string", "enum": ["composer-2.5", "claude-opus-4-8[]", "sonnet"], "default": "composer-2.5" }
           },
           "required": ["id"]
         }
       }
     },
-    "judgeModel": { "type": "string", "enum": ["composer-2.5", "opus-4.6", "sonnet"], "default": "opus-4.6" },
+    "judgeModel": { "type": "string", "enum": ["composer-2.5", "claude-opus-4-8[]", "sonnet"], "default": "claude-opus-4-8[]" },
     "manualChecklists": {
       "type": "object",
       "properties": {

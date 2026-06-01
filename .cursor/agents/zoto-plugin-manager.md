@@ -92,7 +92,7 @@ Markdown files with YAML frontmatter. Required frontmatter: `name`, `description
 ---
 name: my-agent
 description: What this agent does and when to use it.
-model: claude-4.6-opus-high-thinking
+model: claude-opus-4-8[]
 ---
 Agent instructions here...
 ```

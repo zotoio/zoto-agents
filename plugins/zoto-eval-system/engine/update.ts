@@ -101,7 +101,8 @@ import {
   runAnalyser,
   AnalyserError,
   type AnalyserPayload,
-} from "../../../scripts/eval-analyse.ts";
+} from "../scripts/eval-analyse.ts";
+import { discover as discoverTargetsAtRepo } from "../scripts/eval-discover.js";
 import {
   buildStampedLlmCaseRow,
   renderLlmJsonTemplate,
@@ -111,7 +112,9 @@ import {
   stampPytestPerPrimitive,
   stampVitestPerPrimitive,
   type PrimitiveMeta,
-} from "../../../scripts/eval-stamp.ts";
+} from "../scripts/eval-stamp.ts";
+
+const _UPDATE_DIR = dirname(fileURLToPath(import.meta.url));
 
 const REPO_ROOT = resolveHostRepoRoot();
 const ANALYSER_CACHE_DIR_REL = ".zoto/eval-system/cache/analyser";
@@ -200,12 +203,28 @@ export function parseArgs(argv: string[]): ParsedArgs {
   };
 }
 
-function sha256(s: string): string {
+export function sha256(s: string): string {
   return createHash("sha256").update(s).digest("hex");
 }
 
-function normaliseContent(s: string): string {
+export function normaliseContent(s: string): string {
   return s.replace(/\r\n/g, "\n").replace(/\s+\n/g, "\n").trim();
+}
+
+const TARGET_GLOB_OPTS = { dot: true } as const;
+
+/** Minimatch against `target.path` (POSIX) or `target.id`, as documented for `/z-eval-update --target`. */
+export function targetMatchesUpdateGlob(
+  pattern: string,
+  targetPath: string,
+  targetId: string,
+): boolean {
+  if (!pattern) return false;
+  const posixPath = targetPath.replace(/\\/g, "/");
+  return (
+    minimatch(posixPath, pattern, TARGET_GLOB_OPTS) ||
+    minimatch(targetId, pattern, TARGET_GLOB_OPTS)
+  );
 }
 
 function resolveUpdatePaths(repoRoot: string): { manifestPath: string; historyPath: string } {
@@ -642,6 +661,7 @@ export function computeDeltas(
   manifest: Record<string, unknown>,
   current: TargetSnapshot[],
   config: Record<string, unknown>,
+  repoRoot: string = REPO_ROOT,
 ): Delta[] {
   const oldTargets = ((manifest.targets as TargetSnapshot[]) ?? []).reduce<
     Record<string, TargetSnapshot>
@@ -670,7 +690,7 @@ export function computeDeltas(
       );
     } else if (oldT && !newT) {
       const coveredByGenerated = (oldT.eval_files ?? []).some((f) =>
-        containsGenerated(f),
+        containsGenerated(f, repoRoot),
       );
       deltas.push(
         classify(
@@ -706,8 +726,8 @@ export function computeDeltas(
   return deltas;
 }
 
-function containsGenerated(evalFile: string): boolean {
-  const abs = resolve(REPO_ROOT, evalFile);
+function containsGenerated(evalFile: string, repoRoot: string = REPO_ROOT): boolean {
+  const abs = resolve(repoRoot, evalFile);
   if (!existsSync(abs)) {
     return !toolingPhantomEvalCataloguePath(evalFile);
   }
@@ -1371,7 +1391,7 @@ function llmModelIdsFromConfig(config: Record<string, unknown>): {
   const model = (llm.model as Record<string, unknown> | undefined) ?? {};
   const modelId = typeof model.id === "string" ? model.id : "composer-2.5";
   const judgeModel =
-    typeof config.judgeModel === "string" ? config.judgeModel : "opus-4.6";
+    typeof config.judgeModel === "string" ? config.judgeModel : "claude-opus-4-8[]";
   const caseTimeoutMs =
     typeof llm.caseTimeoutMs === "number" ? llm.caseTimeoutMs : 180000;
   return { modelId, judgeModel, caseTimeoutMs };
@@ -1915,11 +1935,34 @@ interface ParityCheckResult {
   detail?: unknown;
 }
 
-/** Same relative path documented for `/z-eval-update --check` (TS↔Python analyser parity). */
-const ANALYSER_PARITY_SCRIPT_REL = join("scripts", "check-analyser-payload-parity.ts");
+/** Plugin-local parity gate (`engine/../scripts/check-analyser-payload-parity.ts`). */
+const ANALYSER_PARITY_SCRIPT_ABS = join(
+  _UPDATE_DIR,
+  "..",
+  "scripts",
+  "check-analyser-payload-parity.ts",
+);
 
-function parityHarnessPresent(repoRoot: string): boolean {
-  return existsSync(join(repoRoot, ANALYSER_PARITY_SCRIPT_REL));
+function parityHarnessPresent(_repoRoot: string): boolean {
+  return existsSync(ANALYSER_PARITY_SCRIPT_ABS);
+}
+
+/** Parity compares TS spec vs `evals/_llm/types.py` — skip on minimal fixture trees. */
+function parityFixturesPresent(repoRoot: string): boolean {
+  return existsSync(join(repoRoot, "evals", "_llm", "types.py"));
+}
+
+function resolveTsxCliForParity(repoRoot: string): string | null {
+  const candidates = [
+    repoRoot,
+    resolve(_UPDATE_DIR, ".."),
+    resolve(_UPDATE_DIR, "../../.."),
+  ];
+  for (const root of candidates) {
+    const tsxCli = join(root, "node_modules", "tsx", "dist", "cli.mjs");
+    if (existsSync(tsxCli)) return tsxCli;
+  }
+  return null;
 }
 
 function analyserParityGateRequired(): boolean {
@@ -1943,28 +1986,31 @@ function runParityCheck(repoRoot: string): ParityCheckResult {
       return {
         status: "error",
         summary:
-          "scripts/check-analyser-payload-parity.ts missing — required for `/z-eval-update --check` when CI/CD is detected or ZOTO_EVAL_CHECK_STRICT_ANALYSER_PARITY=1",
+          "plugins/zoto-eval-system/scripts/check-analyser-payload-parity.ts missing — required for `/z-eval-update --check` when CI/CD is detected or ZOTO_EVAL_CHECK_STRICT_ANALYSER_PARITY=1",
       };
     }
     return { status: "ok", summary: "skipped-no-parity-harness" };
   }
+  if (!parityFixturesPresent(repoRoot)) {
+    return { status: "ok", summary: "skipped-no-parity-fixtures" };
+  }
   try {
-    const scriptAbs = join(repoRoot, ANALYSER_PARITY_SCRIPT_REL);
-    const tsxCli = join(repoRoot, "node_modules", "tsx", "dist", "cli.mjs");
+    const scriptAbs = ANALYSER_PARITY_SCRIPT_ABS;
+    const tsxCli = resolveTsxCliForParity(repoRoot);
     const envBase = {
       ...process.env,
       npm_config_yes: "true",
       COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
     };
     /** Prefer bundled `tsx` so parity runs without `pnpm exec`/`yarn exec` PM friction. */
-    const r = existsSync(tsxCli)
+    const r = tsxCli
       ? spawnSync(process.execPath, [tsxCli, scriptAbs], {
           cwd: repoRoot,
           encoding: "utf-8",
           stdio: ["ignore", "pipe", "pipe"],
           env: envBase,
         })
-      : spawnSync("pnpm", ["exec", "tsx", ANALYSER_PARITY_SCRIPT_REL], {
+      : spawnSync("pnpm", ["exec", "tsx", scriptAbs], {
           cwd: repoRoot,
           encoding: "utf-8",
           stdio: ["ignore", "pipe", "pipe"],
@@ -1992,6 +2038,162 @@ function runParityCheck(repoRoot: string): ParityCheckResult {
   } catch (e) {
     return { status: "error", summary: (e as Error).message };
   }
+}
+
+export interface RunOptions {
+  repoRoot: string;
+  mode: Mode;
+  targetedFile?: string;
+}
+
+function resolveCheckExitCodeOnDrift(repoRoot: string): number {
+  try {
+    const { config: typedConfig } = loadEvalConfig(repoRoot);
+    const config = typedConfig as unknown as Record<string, unknown>;
+    return Number(
+      (config.update as Record<string, unknown> | undefined)?.checkExitCodeOnCriticalDrift ??
+        2,
+    );
+  } catch {
+    return 2;
+  }
+}
+
+/** Programmatic entry for tests and thin CLI wrappers (legacy `eval-update.ts`). */
+export function runUpdate(opts: RunOptions): {
+  code: number;
+  deltas: Delta[];
+  summary: Record<string, unknown>;
+} {
+  if (opts.mode === "check") {
+    const checkParity = runParityCheck(opts.repoRoot);
+    if (checkParity.status !== "ok") {
+      return {
+        code: resolveCheckExitCodeOnDrift(opts.repoRoot),
+        deltas: [],
+        summary: {
+          status: "parity",
+          checked: 0,
+          critical_count: 0,
+          parity_drift: checkParity,
+        },
+      };
+    }
+  }
+
+  const { config: typedConfig } = loadEvalConfig(opts.repoRoot);
+  const config = typedConfig as unknown as Record<string, unknown>;
+  const { manifestPath, historyPath } = resolveUpdatePaths(opts.repoRoot);
+  const exitCodeOnDrift = Number(
+    (config.update as Record<string, unknown> | undefined)?.checkExitCodeOnCriticalDrift ?? 2,
+  );
+
+  const manifest = loadManifestAt(manifestPath);
+  if (!manifest) {
+    if (opts.mode === "check") {
+      return {
+        code: exitCodeOnDrift,
+        deltas: [],
+        summary: {
+          status: "no-manifest",
+          checked: 0,
+          critical_count: 0,
+          parity_drift: null,
+        },
+      };
+    }
+    throw new Error(
+      `missing ${typedConfig.update.manifestPath} — run /z-eval-create first`,
+    );
+  }
+
+  const isTargetedScope =
+    opts.mode === "targeted-dry" || opts.mode === "targeted-apply";
+  const fullCatalog = !isTargetedScope;
+
+  if (fullCatalog) {
+    const dc = manifest.discovery_config;
+    if (!isPlainObject(dc)) {
+      const payload = {
+        status: "missing_manifest_discovery_config",
+        checked: 0,
+        critical_count: 0,
+        parity_drift: null,
+        note: "Full rediscovery uses manifest.discovery_config only; live eval config is not merged for enumeration.",
+      };
+      if (opts.mode === "check") {
+        return { code: exitCodeOnDrift, deltas: [], summary: payload };
+      }
+      throw new Error(JSON.stringify(payload));
+    }
+  }
+
+  const discoveryForEnumerate = (
+    fullCatalog
+      ? (manifest.discovery_config as Record<string, unknown>)
+      : (config as Record<string, unknown>)
+  ) as Record<string, unknown>;
+
+  const canon = readManifestSnapshot(opts.repoRoot);
+  const ignorePatterns = discoveryIgnoreForUpdate(manifest, config, fullCatalog);
+
+  let manifestBaseline = ((manifest.targets as TargetSnapshot[]) ?? []).slice();
+  manifestBaseline = filterTargetsByDiscoveryIgnores(manifestBaseline, ignorePatterns);
+  manifestBaseline = filterTargetsByDiscoveryKinds(
+    manifestBaseline,
+    canon.discoveryTargets,
+  );
+
+  const manifestForDelta = { ...manifest, targets: manifestBaseline };
+  const current = filterTargetsByDiscoveryIgnores(
+    discoverTargetsAtRepo(opts.repoRoot, discoveryForEnumerate),
+    ignorePatterns,
+  );
+  let deltas = computeDeltas(manifestForDelta, current, config, opts.repoRoot);
+
+  if (opts.mode === "targeted-dry" || opts.mode === "targeted-apply") {
+    const glob = opts.targetedFile ?? "";
+    deltas = deltas.filter((d) => targetMatchesUpdateGlob(glob, d.path, d.target_id));
+  }
+
+  const critical = deltas.filter((d) => d.critical);
+
+  if (opts.mode === "check") {
+    const driftBad = critical.length > 0;
+    const summary = {
+      status: driftBad ? "drift" : "clean",
+      checked: current.length,
+      critical_count: critical.length,
+      parity_drift: null,
+    };
+    const code = driftBad ? exitCodeOnDrift : 0;
+    return { code, deltas, summary };
+  }
+
+  if (opts.mode === "rediscovery-dry" || opts.mode === "targeted-dry") {
+    return { code: 0, deltas, summary: { dry_run: true, critical: critical.length } };
+  }
+
+  const newManifest = {
+    schema_version: 1,
+    created_at: manifest.created_at,
+    updated_at: new Date().toISOString(),
+    git_ref: headSha(),
+    generated_by: "zoto-update-evals" as const,
+    discovery_config: manifest.discovery_config,
+    targets: current,
+  };
+  mkdirSync(dirname(manifestPath), { recursive: true });
+  writeFileSync(manifestPath, YAML.stringify(newManifest), "utf-8");
+  appendManifestHistorySnapshot(historyPath, newManifest);
+
+  const summary = {
+    applied: critical.length,
+    added: deltas.filter((d) => d.kind === "added").length,
+    removed: deltas.filter((d) => d.kind === "removed").length,
+    modified: deltas.filter((d) => d.kind === "modified").length,
+  };
+  return { code: 0, deltas, summary };
 }
 
 /* ------------------------------------------------------------------------ */

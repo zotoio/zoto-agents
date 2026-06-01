@@ -1,0 +1,39 @@
+# Agent instructions
+
+Repo-wide guidance for Cursor agents in this repository. File-specific rules live in `.cursor/rules/*.mdc`; workflows in skills and slash commands.
+
+## Project overview
+
+- **Purpose**: Describe your product or library here. This host runs Eval System coverage (static pytest + LLM Vitest JSON evals) against Cursor primitives under `.cursor/`.
+- **Package manager**: Use the package manager declared in `package.json` (pnpm is typical for Eval System hosts).
+- **Eval config**: `.zoto/eval-system/config.yml` (lean layout resolves runtime from the installed zoto-eval-system plugin).
+
+## Commands agents should know
+
+| User intent | Use |
+|-------------|-----|
+| Run static evals | `pnpm run eval` |
+| Run static + LLM evals | `pnpm run eval:full` (needs `CURSOR_API_KEY` in `.env`) |
+| Eval system help | `/z-eval-help` |
+| Scaffold or refresh eval suite | `/z-eval-create`, `/z-eval-update` |
+
+Add rows for your project-specific slash commands, skills, and agents as you adopt them.
+
+## Non-negotiables
+
+1. Minimal diffs — fix the task, avoid drive-by refactors.
+2. Do not commit unless the user explicitly asks.
+3. No secrets in commits; use `.env.example` for documented keys only.
+4. Never rewrite generated eval cases without user consent (`_meta.generated` contract).
+
+## Evals layout
+
+- **Primitives**: `.cursor/skills`, `.cursor/commands`, `.cursor/agents`, `.cursor/hooks`
+- **Static tests**: `evals/test_*.py`
+- **LLM evals**: co-located `evals/*.json` under skills, commands, agents, and hooks (see plugin README for discovery rules)
+- **Runs**: `evals/_runs/<ts>/`
+
+## When stuck
+
+- Eval System docs: `/z-eval-help` or `plugins/zoto-eval-system/README.md` in the plugin install
+- If a hook blocks a shell command, explain the hook message — do not bypass unless the user asks

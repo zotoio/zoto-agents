@@ -28,17 +28,28 @@
     "eval:stamp": "tsx scripts/eval-stamp.ts",
     "eval:baseline-stamp": "tsx scripts/eval-stamp.ts --baseline-only",
     "eval:cleanup-vendored": "tsx scripts/eval-cleanup-vendored.ts",
-    "eval:ensure-host": "tsx scripts/eval-ensure-host.ts"
+    "eval:cleanup-stale": "tsx scripts/eval-cleanup-stale.ts",
+    "eval:cleanup-stale:apply": "tsx scripts/eval-cleanup-stale.ts -- --apply",
+    "eval:analyser-parity-check": "tsx scripts/check-analyser-payload-parity.ts",
+    "eval:static:jest": "NODE_OPTIONS=--experimental-vm-modules jest --config evals/jest.config.ts",
+    "eval:vitest": "vitest run --config evals/vitest.config.ts",
+    "eval:static:vitest": "vitest run --config evals/vitest.config.ts",
+    "eval:ensure-host": "tsx scripts/eval-ensure-host.ts",
+    "eval:stamp-host-layout": "tsx scripts/stamp-host-layout.ts"
   },
   "devDependencies": {
     "@cursor/sdk": "^1.0.12",
+    "@types/js-yaml": "^4.0.9",
     "ajv": "^8.17.0",
     "ajv-formats": "^3.0.1",
     "dotenv": "^17.4.2",
+    "jest": "^30.0.0",
+    "js-yaml": "^4.1.1",
     "json-source-map": "^0.6.1",
     "minimatch": "^10.2.5",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0",
+    "vitest": "^4.1.5",
     "yaml": "^2.6.0"
   }
 }

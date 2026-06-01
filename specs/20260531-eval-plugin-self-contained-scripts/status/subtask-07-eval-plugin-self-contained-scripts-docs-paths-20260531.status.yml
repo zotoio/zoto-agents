@@ -1,0 +1,152 @@
+schema_version: 1
+subtask_id: "07"
+feature: Eval Plugin Self-Contained Scripts Consolidation
+assigned_agent: zoto-eval-architect
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: "2026-05-31T22:42:00Z"
+last_heartbeat: "2026-05-31T22:51:39Z"
+completed_at: "2026-05-31T22:51:39Z"
+git_sha: fbfecad15cca5de07f40ec150555f1b8d2fff64c
+checklist:
+  - id: D01
+    text: "`plugins/zoto-eval-system/README.md` — new or updated section: **Plugin vs host runtime layout** (plugin `scripts/`, `engine/`, `src/` vs stamped `.zoto/eval-system/`)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D02
+    text: "`plugins/zoto-eval-system/CHANGELOG.md` — unreleased entry documenting script consolidation and standalone install fix"
+    done: true
+    evidence_path: plugins/zoto-eval-system/CHANGELOG.md
+  - id: D03
+    text: "Update skills referencing root `scripts/eval-*` as canonical:"
+    done: true
+    evidence_path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+  - id: D04
+    text: 'Update commands/agents that cite `plugins/zoto-eval-system/engine/…` vs `scripts/…` inconsistently — prefer stable wording: "plugin package" for authoring, `.zoto/eval-system/` for host operators'
+    done: true
+    evidence_path: plugins/zoto-eval-system/commands/z-eval-create.md
+  - id: D05
+    text: Template comment headers in `templates/static/**` and `templates/llm/**` referencing `scripts/eval-stamp.ts` — update to `plugins/zoto-eval-system/scripts/eval-stamp.ts` or generic "eval-system stamper" wording
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/static/pytest/per-primitive-test.py.tmpl
+  - id: D06
+    text: "`.cursor/agents/zoto-eval-engineer.md` / `zoto-eval-architect.md` if they prescribe root script paths"
+    done: true
+    evidence_path: .cursor/agents/zoto-eval-architect.md
+artifacts:
+  - path: plugins/zoto-eval-system/README.md
+    kind: modified
+    note: Plugin vs host runtime layout section
+  - path: plugins/zoto-eval-system/CHANGELOG.md
+    kind: modified
+    note: Unreleased Phase 3 consolidation entry
+  - path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+    kind: modified
+    note: Plugin-relative script paths
+  - path: plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md
+    kind: modified
+    note: Plugin-relative script paths
+  - path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
+    kind: modified
+    note: Plugin-relative script paths
+  - path: plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md
+    kind: modified
+    note: Host script path references
+  - path: plugins/zoto-eval-system/templates/static/pytest/per-primitive-test.py.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/static/pytest/conftest.py.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/static/vitest/README.md
+    kind: modified
+    note: Stamper path references
+  - path: plugins/zoto-eval-system/templates/static/vitest/vitest.config.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/static/vitest/setup.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/static/vitest/per-primitive-test.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/static/vitest/reporters/zoto-eval-reporter.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/static/jest/README.md
+    kind: modified
+    note: Stamper path references
+  - path: plugins/zoto-eval-system/templates/static/jest/jest.config.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/static/jest/setup.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/static/jest/per-primitive-test.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/static/jest/reporters/zoto-eval-reporter.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/llm/agent-sdk/README.md.tmpl
+    kind: modified
+    note: Stamper path references
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/jest.config.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/vitest.config.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/sandbox-helpers.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/_shared/case-runner.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/_shared/setup.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/_shared/sdk-bridge.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/_shared/sandbox-helpers.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/_shared/result-yaml-writer.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/_shared/reporters/zoto-llm-reporter.jest.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: plugins/zoto-eval-system/templates/llm/code-cursor-sdk/_shared/reporters/zoto-llm-reporter.vitest.ts.tmpl
+    kind: modified
+    note: Stamper path in template header
+  - path: site/eval-system/design.html
+    kind: modified
+    note: engine/update.ts as canonical updater
+errors: []
+notes: |
+  D04 and D06 required no edits: plugin commands/agents already use stable "plugin package"
+  (plugins/zoto-eval-system/engine|scripts/) wording for authoring and .zoto/eval-system/ for
+  host operators; .cursor/agents/{zoto-eval-engineer,zoto-eval-architect}.md already document the
+  three-layer model (KD-1) with repo-root scripts/ as CI/migration only. site/eval-system/design.html
+  line 199 now names engine/update.ts canonical and marks scripts/eval-update.ts as removed/legacy.
+  Definition of Done greps: scripts/eval-analyse.ts under skills/commands/agents/README.md = 0 bare
+  repo-root hits; scripts/eval-update.ts under site/eval-system/ describes the script as removed
+  (not canonical); CHANGELOG [unreleased] v3 section gained a Phase 3 consolidation + standalone
+  install fix block. Token budget 200000 not exceeded.
+extra:
+  judge:
+    verdict: verified
+    at: "2026-06-01T20:00:00Z"
+    notes: >-
+      Independent verification: README three-layer table (KD-1) present; CHANGELOG [unreleased] v3
+      Phase 3 documents consolidation (KD-1–KD-6) and standalone install fix; skills cite
+      plugins/zoto-eval-system/scripts/ or .zoto/eval-system/scripts/ (zero scripts/eval-analyse.ts
+      under skills/commands/agents/README); commands/agents use plugin-package vs host wording;
+      template stamper headers under templates/static/** and templates/llm/** use
+      plugins/zoto-eval-system/scripts/eval-stamp.ts; .cursor/agents carry KD-1 table;
+      site/eval-system/design.html names engine/update.ts canonical with scripts/eval-update.ts as
+      removed legacy only. All checklist D01–D06 and DoD gates satisfied.
+    fix_list: []

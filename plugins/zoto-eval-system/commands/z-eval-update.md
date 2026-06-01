@@ -22,7 +22,7 @@ Detects when covered AI primitives have changed and presents each proposed eval 
 
 | Flag | Behaviour |
 |------|-----------|
-| `--check` (default for CI) | Drift report only. Runs `pnpm exec tsx scripts/check-analyser-payload-parity.ts` first; surfaces drift in `parity_drift`. Exit `config.update.checkExitCodeOnCriticalDrift` (default 2) on critical drift, else 0. Subtask 12's orchestrator drift hook calls this mode. |
+| `--check` (default for CI) | Drift report only. Runs the analyser payload parity gate first (via `pnpm run eval:update --check` / `engine/update.ts` — plugin script in lean mode, vendored copy when ejected); surfaces drift in `parity_drift`. Exit `config.update.checkExitCodeOnCriticalDrift` (default 2) on critical drift, else 0. Subtask 12's orchestrator drift hook calls this mode. |
 | `--apply` | Per-primitive regeneration. Each drifted primitive triggers `runAnalyser({ invalidate: true })` (LLM) then dispatches to the per-framework / per-strategy stamper. The command runs `askQuestion` per critical drift; the subagent yields decisions via resume. |
 | `--target <glob>` | Restrict scope to a subset of primitives. Glob matches against `target.path` or `target.id` (dot-aware, via minimatch). |
 | `--no-analyser` | Reuse cached payloads from `.zoto/eval-system/cache/analyser/`. **`CI=true` without `--with-analyser` matches this**. With `process.env.CI === "true"` stderr emits `[CI WARNING] skipping fresh primitive analysis in CI; reusing payloads from .zoto/eval-system/cache/analyser/`. Optional escalation: `update.failOnNoAnalyserInCI: true` exits 5 right after that banner. |

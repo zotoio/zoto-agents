@@ -5,7 +5,7 @@
     "migrated_from": "plugins/zoto-eval-system/agents/evals/zoto-eval-configurer.test.ts",
     "migrated_at": "2026-05-27T17:21:10.986Z",
     "model_id": "composer-2.5",
-    "judge_model": "opus-4.6",
+    "judge_model": "claude-opus-4-8[]",
     "case_timeout_ms": 180000
   },
   "cases": [
@@ -134,11 +134,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-        "last_updated": "2026-05-29T11:52:41.412Z",
+        "last_updated": "2026-06-01T04:55:08.332Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analysed_at": "2026-06-01T04:55:08.332Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
         }
@@ -164,11 +164,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-        "last_updated": "2026-05-29T11:52:41.412Z",
+        "last_updated": "2026-06-01T04:55:08.332Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analysed_at": "2026-06-01T04:55:08.332Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
         }
@@ -193,11 +193,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-        "last_updated": "2026-05-29T11:52:41.412Z",
+        "last_updated": "2026-06-01T04:55:08.332Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analysed_at": "2026-06-01T04:55:08.332Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
         }
@@ -222,11 +222,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-        "last_updated": "2026-05-29T11:52:41.412Z",
+        "last_updated": "2026-06-01T04:55:08.332Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analysed_at": "2026-06-01T04:55:08.332Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
         }
@@ -250,11 +250,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-        "last_updated": "2026-05-29T11:52:41.412Z",
+        "last_updated": "2026-06-01T04:55:08.332Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analysed_at": "2026-06-01T04:55:08.332Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
         }
@@ -278,11 +278,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-        "last_updated": "2026-05-29T11:52:41.412Z",
+        "last_updated": "2026-06-01T04:55:08.332Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analysed_at": "2026-06-01T04:55:08.332Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
         }
@@ -307,11 +307,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-        "last_updated": "2026-05-29T11:52:41.412Z",
+        "last_updated": "2026-06-01T04:55:08.332Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analysed_at": "2026-06-01T04:55:08.332Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
         }
@@ -335,11 +335,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-        "last_updated": "2026-05-29T11:52:41.412Z",
+        "last_updated": "2026-06-01T04:55:08.332Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analysed_at": "2026-06-01T04:55:08.332Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
         }
@@ -363,11 +363,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-        "last_updated": "2026-05-29T11:52:41.412Z",
+        "last_updated": "2026-06-01T04:55:08.332Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analysed_at": "2026-06-01T04:55:08.332Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
         }
@@ -391,11 +391,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-        "last_updated": "2026-05-29T11:52:41.412Z",
+        "last_updated": "2026-06-01T04:55:08.332Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "3c7d34b23feb28e76faf928a84a846eb21bab9ab97c5abff569695d91d86b076",
-          "analysed_at": "2026-05-29T11:52:41.412Z",
+          "analysed_at": "2026-06-01T04:55:08.332Z",
           "analyser_version": "2026.05.03-1",
           "summary": "Exercises configure-mode flows driven by pre-collected /z-eval-configure answers plus manifest snapshots: lawful config writes and cleanup_plan emission with correct grouping, staleness stamping, guarded meta flags, structured needs_user_input when inputs break contracts, and a strict prohibition on askQuestion or direct file deletion."
         }

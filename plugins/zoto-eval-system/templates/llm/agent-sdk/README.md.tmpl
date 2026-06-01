@@ -8,7 +8,7 @@ cases (those with `_meta.generated: true`) when covered targets drift.
 ## Layout
 
 - `runner.ts` — discovers cases, validates the enriched shape, runs them, writes `llm.yml` + per-case logs.
-- `update.ts` — surgical diff engine. Mirrors `scripts/eval-update.ts` inside the plugin.
+- `update.ts` — surgical diff engine. Mirrors `plugins/zoto-eval-system/engine/update.ts` inside the plugin.
 - `compare.ts` — emits the `/canvas` hand-off dataset for cross-run analysis.
 - `case.ts` — typed eval-case loader. Owns `validateEnriched(case)`.
 - `_user-case-guards.ts` — canonical `_meta.generated` predicates (subtask 09).
@@ -132,7 +132,7 @@ overwritten by the scaffolder.
 2. `ZOTO_EVAL_MODEL` env var.
 3. `config.llm.model.id` from `.zoto/eval-system/config.yml`.
 
-Allowed ids: `composer-2.5`, `opus-4.6`, `sonnet`.
+Allowed ids: `composer-2.5`, `claude-opus-4-8[]`, `sonnet`.
 
 ## Per-case logs & report
 

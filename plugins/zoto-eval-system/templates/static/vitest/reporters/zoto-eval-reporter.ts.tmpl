@@ -3,7 +3,7 @@
  * Custom vitest reporter for the zoto-eval-system static backend.
  *
  * Stamped at `<host-repo>/evals/reporters/zoto-eval-reporter.ts` by
- * `scripts/eval-stamp.ts#stampVitestPerPrimitive` (subtask 07).
+ * `plugins/zoto-eval-system/scripts/eval-stamp.ts#stampVitestPerPrimitive` (subtask 07).
  *
  * Implements vitest 4.x's `Reporter` interface and emits
  * `evals/_runs/<ts>/static.yml` matching
@@ -18,7 +18,7 @@
  * consumed by both vitest and jest reporters). See that file's header
  * for the full schema-mapping contract.
  *
- * When spawned by `scripts/eval-orchestrate.ts`, honours
+ * When spawned by `plugins/zoto-eval-system/scripts/eval-orchestrate.ts`, honours
  * `ZOTO_EVAL_RUN_ID` / `ZOTO_EVAL_RUN_TS` and `ZOTO_EVAL_RUNS_DIR` so
  * `static.yml` lands beside the orchestrator's `report.yml`.
  */

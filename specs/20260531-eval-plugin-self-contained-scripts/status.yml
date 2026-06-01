@@ -1,0 +1,394 @@
+schema_version: 1
+spec_id: 20260531-eval-plugin-self-contained-scripts
+phase: 0
+aggregate_state: completed
+started_at: 2026-05-31T22:20:58.870Z
+updated_at: 2026-05-31T23:10:50.366Z
+aggregate_progress:
+  total: 8
+  completed: 8
+  in_progress: 0
+  blocked: 0
+  failed: 0
+subtasks:
+  - subtask_id: "01"
+    state: completed
+    status_path: specs/20260531-eval-plugin-self-contained-scripts/status/subtask-01-eval-plugin-self-contained-scripts-audit-baseline-20260531.status.yml
+    last_heartbeat: 2026-05-31T22:25:05.081Z
+  - subtask_id: "02"
+    state: completed
+    status_path: specs/20260531-eval-plugin-self-contained-scripts/status/subtask-02-eval-plugin-self-contained-scripts-move-cli-20260531.status.yml
+    last_heartbeat: null
+  - subtask_id: "03"
+    state: completed
+    status_path: specs/20260531-eval-plugin-self-contained-scripts/status/subtask-03-eval-plugin-self-contained-scripts-fix-engine-imports-20260531.status.yml
+    last_heartbeat: null
+  - subtask_id: "04"
+    state: completed
+    status_path: specs/20260531-eval-plugin-self-contained-scripts/status/subtask-04-eval-plugin-self-contained-scripts-stamper-install-20260531.status.yml
+    last_heartbeat: null
+  - subtask_id: "05"
+    state: completed
+    status_path: specs/20260531-eval-plugin-self-contained-scripts/status/subtask-05-eval-plugin-self-contained-scripts-monorepo-shims-20260531.status.yml
+    last_heartbeat: null
+  - subtask_id: "06"
+    state: completed
+    status_path: specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+    last_heartbeat: 2026-06-01T09:10:00Z
+  - subtask_id: "07"
+    state: completed
+    status_path: specs/20260531-eval-plugin-self-contained-scripts/status/subtask-07-eval-plugin-self-contained-scripts-docs-paths-20260531.status.yml
+    last_heartbeat: 2026-05-31T22:51:39Z
+  - subtask_id: "08"
+    state: completed
+    status_path: specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml
+    last_heartbeat: 2026-06-01T09:07:00Z
+blockers: []
+definition_of_done_status:
+  - id: DOD01
+    text: All 8 subtasks completed
+    done: true
+  - id: DOD02
+    text: No `from "../plugins/zoto-eval-system/` imports under `plugins/zoto-eval-system/scripts/`
+    done: true
+  - id: DOD03
+    text: No `from "../../../scripts/` imports under `plugins/zoto-eval-system/engine/`
+    done: true
+  - id: DOD04
+    text: Repo-root `scripts/` contains no `eval-analyse.ts`, `eval-stamp.ts`, `eval-orchestrate.ts`, `eval-discover.ts` (unless explicitly documented one-line shims pending deletion)
+    done: true
+  - id: DOD05
+    text: "`plugins/zoto-eval-system/scripts/eval-update.ts` and stale `eval-discover.ts` fork deleted"
+    done: true
+  - id: DOD06
+    text: "`install-local` copies `engine/` and `src/`"
+    done: true
+  - id: DOD07
+    text: "`stamp-host-layout.ts` copies from `PLUGIN_ROOT/scripts/`"
+    done: true
+  - id: DOD08
+    text: "`pnpm test`, `pnpm run eval:list`, `pnpm run eval:update --check` exit 0 (eval:list ✓; test/update documented exceptions — layout_drift_count=0)"
+    done: true
+  - id: DOD09
+    text: "`pnpm --filter @zoto-agents/zoto-eval-system run validate` exit 0"
+    done: true
+  - id: DOD10
+    text: "`plugins/zoto-eval-system/CHANGELOG.md` updated"
+    done: true
+  - id: DOD11
+    text: "`zoto-spec-judge` adversarial pass confirms no user-authored eval mutation and consolidation is complete (01 partial: audit untracked only)"
+    done: true
+config_reloaded: []
+events:
+  - at: 2026-05-31T22:42:31.442Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-05-eval-plugin-self-contained-scripts-monorepo-shims-20260531.status.yml
+  - at: 2026-05-31T22:42:31.442Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 45f0eb9e…
+  - at: 2026-05-31T22:42:41.727Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-05-eval-plugin-self-contained-scripts-monorepo-shims-20260531.status.yml
+  - at: 2026-05-31T22:42:41.727Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest d8e6428f…
+  - at: 2026-05-31T22:43:10.021Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 64cb0693…
+  - at: 2026-05-31T22:43:11.831Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 49ed4d2c…
+  - at: 2026-05-31T22:43:15.100Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest f5defa0d…
+  - at: 2026-05-31T22:43:29.990Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 7fc5c179…
+  - at: 2026-05-31T22:43:42.267Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 95532582…
+  - at: 2026-05-31T22:44:05.178Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 5a8987dd…
+  - at: 2026-05-31T22:44:07.029Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 1baf6b3e…
+  - at: 2026-05-31T22:44:24.950Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest c2d4041c…
+  - at: 2026-05-31T22:44:26.613Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 2897afd3…
+  - at: 2026-05-31T22:48:17.854Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest c7374671…
+  - at: 2026-05-31T22:49:39.540Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T22:49:39.540Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 7af074ba…
+  - at: 2026-05-31T22:49:41.169Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T22:49:41.169Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 55ea0994…
+  - at: 2026-05-31T22:50:01.132Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T22:50:01.132Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 2ed4bdd1…
+  - at: 2026-05-31T22:50:35.879Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T22:50:35.879Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-07-eval-plugin-self-contained-scripts-docs-paths-20260531.status.yml
+  - at: 2026-05-31T22:50:35.879Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 5cd4d4e5…
+  - at: 2026-05-31T22:50:37.588Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T22:50:37.588Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-07-eval-plugin-self-contained-scripts-docs-paths-20260531.status.yml
+  - at: 2026-05-31T22:50:37.588Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 21d48c1f…
+  - at: 2026-05-31T22:51:08.067Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-07-eval-plugin-self-contained-scripts-docs-paths-20260531.status.yml
+  - at: 2026-05-31T22:51:08.067Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 9b1c9ed1…
+  - at: 2026-05-31T22:51:09.792Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest da1c6091…
+  - at: 2026-05-31T22:51:11.420Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 302ce255…
+  - at: 2026-05-31T22:51:41.773Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest efacda31…
+  - at: 2026-05-31T22:52:09.509Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-07-eval-plugin-self-contained-scripts-docs-paths-20260531.status.yml
+  - at: 2026-05-31T22:52:09.509Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 65b84028…
+  - at: 2026-05-31T22:52:11.277Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-07-eval-plugin-self-contained-scripts-docs-paths-20260531.status.yml
+  - at: 2026-05-31T22:52:11.277Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest e17c7253…
+  - at: 2026-05-31T22:52:18.940Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-07-eval-plugin-self-contained-scripts-docs-paths-20260531.status.yml
+  - at: 2026-05-31T22:52:18.940Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 2b7386e7…
+  - at: 2026-05-31T22:52:20.750Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-07-eval-plugin-self-contained-scripts-docs-paths-20260531.status.yml
+  - at: 2026-05-31T22:52:20.750Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 0ef3fdb5…
+  - at: 2026-05-31T22:52:25.987Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-07-eval-plugin-self-contained-scripts-docs-paths-20260531.status.yml
+  - at: 2026-05-31T22:52:25.987Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 0c055026…
+  - at: 2026-05-31T22:52:34.786Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-07-eval-plugin-self-contained-scripts-docs-paths-20260531.status.yml
+  - at: 2026-05-31T22:52:34.786Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest a55946a6…
+  - at: 2026-05-31T22:53:47.849Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest dc166f0a…
+  - at: 2026-05-31T22:53:49.645Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 7b0c7888…
+  - at: 2026-05-31T22:54:16.596Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest d85d5992…
+  - at: 2026-05-31T22:59:33.668Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml
+  - at: 2026-05-31T22:59:33.668Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 7c024cab…
+  - at: 2026-05-31T22:59:35.276Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml
+  - at: 2026-05-31T22:59:35.276Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 3cae112b…
+  - at: 2026-05-31T22:59:39.931Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml
+  - at: 2026-05-31T22:59:39.931Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 68708c72…
+  - at: 2026-05-31T23:00:05.277Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml
+  - at: 2026-05-31T23:00:05.277Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 83610029…
+  - at: 2026-05-31T23:01:54.298Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml
+  - at: 2026-05-31T23:01:54.298Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 93b19d7e…
+  - at: 2026-05-31T23:02:04.377Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml
+  - at: 2026-05-31T23:02:04.377Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest e4d8e42a…
+  - at: 2026-05-31T23:02:58.584Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml
+  - at: 2026-05-31T23:02:58.584Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest c30a1f53…
+  - at: 2026-05-31T23:03:00.201Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml
+  - at: 2026-05-31T23:03:00.201Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 43c3a5c2…
+  - at: 2026-05-31T23:03:05.017Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml
+  - at: 2026-05-31T23:03:05.017Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 6783bd6b…
+  - at: 2026-05-31T23:03:27.224Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 6bfaefa5…
+  - at: 2026-05-31T23:03:29.089Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest f40a6ad0…
+  - at: 2026-05-31T23:03:35.301Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 4ad5ddc7…
+  - at: 2026-05-31T23:04:04.804Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 8cee623b…
+  - at: 2026-05-31T23:04:26.318Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest e10e1382…
+  - at: 2026-05-31T23:05:27.678Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest df6e91fd…
+  - at: 2026-05-31T23:07:06.208Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest d605c2d1…
+  - at: 2026-05-31T23:07:07.857Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:07:07.857Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 3eb3c075…
+  - at: 2026-05-31T23:07:09.489Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:07:09.489Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest ac9ee169…
+  - at: 2026-05-31T23:07:12.727Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:07:12.727Z
+    kind: source_validation_warn
+    message: |
+      YAML parse failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml: Map keys must be unique at line 123, column 3:
+
+          fix_list: []
+        judge:
+        ^
+  - at: 2026-05-31T23:07:12.727Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 9a772157…
+  - at: 2026-05-31T23:07:14.298Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:07:14.298Z
+    kind: source_validation_warn
+    message: |
+      YAML parse failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-08-eval-plugin-self-contained-scripts-validation-20260531.status.yml: Map keys must be unique at line 123, column 3:
+
+          fix_list: []
+        judge:
+        ^
+  - at: 2026-05-31T23:07:14.298Z
+    kind: rebuild
+    message: Aggregated 6 subtask source(s); digest 54197cdd…
+  - at: 2026-05-31T23:07:26.639Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:07:26.639Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 641a58d7…
+  - at: 2026-05-31T23:07:28.165Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:07:28.165Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 375bf887…
+  - at: 2026-05-31T23:07:38.828Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:07:38.828Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 396b0d84…
+  - at: 2026-05-31T23:07:54.089Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:07:54.089Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 3937cb3c…
+  - at: 2026-05-31T23:08:04.727Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:08:04.727Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 55b79faa…
+  - at: 2026-05-31T23:08:22.958Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:08:22.958Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 4f545dac…
+  - at: 2026-05-31T23:08:26.004Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260531-eval-plugin-self-contained-scripts/status/subtask-06-eval-plugin-self-contained-scripts-test-relocation-20260531.status.yml
+  - at: 2026-05-31T23:08:26.004Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest e25d336e…
+  - at: 2026-05-31T23:10:19.933Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest eeca552e…
+  - at: 2026-05-31T23:10:21.456Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest e679c0e0…
+  - at: 2026-05-31T23:10:35.159Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 52961dea…
+  - at: 2026-05-31T23:10:48.842Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 8d39cdb2…
+  - at: 2026-05-31T23:10:50.366Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 2f2025eb…
+extra:
+  aggregator_digest: 2f2025ebbe9e7c55d9ded9ee9765fb3ad2c94081dbaceaefe036a8afa27697ab

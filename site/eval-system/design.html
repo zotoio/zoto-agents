@@ -99,6 +99,23 @@
           explicitly — every eval change requires your approval before it is written.
         </p>
 
+        <h2 id="host-layout">Host layout (lean vs ejected)</h2>
+        <p>
+          Greenfield hosts default to <strong>lean</strong> mode (<code>hostLayout: plugin</code>):
+          only repo-specific assets live under <code>.zoto/eval-system/</code> (config, manifest,
+          cache, nested <code>package.json</code>, <code>scripts/eval-bridge.ts</code>). Engine,
+          scripts, and templates resolve from the installed plugin at runtime via the bridge and
+          <code>resolvePluginRoot()</code>.
+        </p>
+        <p>
+          <strong>Ejected</strong> mode (<code>hostLayout: ejected</code>) is opt-in via
+          <code>pnpm run eval:stamp-host-layout</code> — it vendors the full runtime into
+          <code>.zoto/eval-system/</code> and copies eval primitives to
+          <code>.cursor/*/eval-sys/</code>. Reverse with <code>pnpm run eval:un-eject</code>
+          (preserves config, manifest, and eval cases). See the plugin README
+          <em>Plugin vs host runtime layout</em> section for precedence and migration notes.
+        </p>
+
         <h2 id="lifecycle">Lifecycle architecture</h2>
         <figure>
           <img src="../images/diagrams/eval-lifecycle.svg" alt="Eval system lifecycle: init, configure, create, execute, judge, compare across the spine, with update sitting below as a continuous sync loop into create and execute.">
@@ -196,7 +213,7 @@
             <tr><td><code>graders/</code></td><td><code>contains</code>, <code>regex</code>, <code>tool-called</code>, <code>llm-judge</code>.</td></tr>
             <tr><td><code>metrics.ts</code></td><td>Tokens, duration, verbosity, accuracy, confidence.</td></tr>
             <tr><td><code>writer.ts</code></td><td>Schema-valid YAML + per-case logs.</td></tr>
-            <tr><td><code>update.ts</code></td><td>Surgical diff engine (mirror of <code>scripts/eval-update.ts</code>).</td></tr>
+            <tr><td><code>update.ts</code></td><td>Surgical diff engine — canonical implementation at <code>plugins/zoto-eval-system/engine/update.ts</code> (stamped mirror under <code>.zoto/eval-system/engine/update.ts</code>). The legacy standalone <code>scripts/eval-update.ts</code> CLI was removed; use <code>pnpm run eval:update</code> instead.</td></tr>
             <tr><td><code>compare.ts</code></td><td>Emits the <code>/canvas</code> hand-off dataset.</td></tr>
           </tbody>
         </table>

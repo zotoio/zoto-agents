@@ -2,8 +2,11 @@
 /**
  * Install the Eval System plugin locally for development and testing.
  *
- * Copies plugin files to ~/.cursor/plugins/zoto-eval-system/ and registers
- * the plugin in ~/.claude/ config files so Cursor discovers it.
+ * Copies plugin files to every Cursor local install location:
+ *   - ~/.cursor/plugins/zoto-eval-system/
+ *   - ~/.cursor/plugins/local/zoto-eval-system/
+ *
+ * Registers the plugin in ~/.claude/ config files so Cursor discovers it.
  *
  * Usage:
  *   pnpm install-local
@@ -18,6 +21,8 @@ import {
   writeFileSync,
   copyFileSync,
 } from "node:fs";
+import { ensureNativeDeps } from "./ensure-native-deps.js";
+import { installPackageDeps } from "./install-package-deps.js";
 import { dirname, join, resolve } from "node:path";
 import { homedir } from "node:os";
 
@@ -27,7 +32,12 @@ const PLUGIN_ID = `${PLUGIN_NAME}@local`;
 const REPO_ROOT = resolve(import.meta.dirname, "..");
 
 const CURSOR_PLUGINS_DIR = join(homedir(), ".cursor", "plugins");
+/** Primary install dir (install-local / dev dogfood). */
 const INSTALL_DIR = join(CURSOR_PLUGINS_DIR, PLUGIN_NAME);
+/** Nested local bundle dir — also scanned by resolvePluginRoot(); keep in sync. */
+const LOCAL_BUNDLE_DIR = join(CURSOR_PLUGINS_DIR, "local", PLUGIN_NAME);
+
+const INSTALL_TARGETS = [INSTALL_DIR, LOCAL_BUNDLE_DIR] as const;
 
 const CLAUDE_DIR = join(homedir(), ".claude");
 const CLAUDE_PLUGINS_FILE = join(CLAUDE_DIR, "plugins", "installed_plugins.json");
@@ -38,13 +48,15 @@ const PLUGIN_DIRS = [
   "agents",
   "commands",
   "docs",
+  "engine",
   "hooks",
   "rules",
   "skills",
+  "src",
   "templates",
   "scripts",
 ];
-const PLUGIN_FILES = ["CHANGELOG.md", "LICENSE", "README.md"];
+const PLUGIN_FILES = ["CHANGELOG.md", "LICENSE", "README.md", "package.json"];
 
 const dryRun = process.argv.includes("--dry-run");
 
@@ -68,18 +80,18 @@ function writeJson(path: string, data: Record<string, unknown>): void {
   writeFileSync(path, JSON.stringify(data, null, 2) + "\n", "utf-8");
 }
 
-function copyPluginFiles(): void {
+function copyPluginFiles(installDir: string): void {
   if (dryRun) {
-    console.log(`  [dry-run] would remove and recreate ${INSTALL_DIR}`);
+    console.log(`  [dry-run] would remove and recreate ${installDir}`);
   } else {
-    if (existsSync(INSTALL_DIR)) rmSync(INSTALL_DIR, { recursive: true });
-    mkdirSync(INSTALL_DIR, { recursive: true });
+    if (existsSync(installDir)) rmSync(installDir, { recursive: true });
+    mkdirSync(installDir, { recursive: true });
   }
 
   for (const dirName of PLUGIN_DIRS) {
     const src = join(REPO_ROOT, dirName);
     if (existsSync(src)) {
-      const dest = join(INSTALL_DIR, dirName);
+      const dest = join(installDir, dirName);
       if (dryRun) console.log(`  [dry-run] would copy ${src} -> ${dest}`);
       else cpSync(src, dest, { recursive: true });
     }
@@ -88,9 +100,42 @@ function copyPluginFiles(): void {
   for (const fileName of PLUGIN_FILES) {
     const src = join(REPO_ROOT, fileName);
     if (existsSync(src)) {
-      const dest = join(INSTALL_DIR, fileName);
+      const dest = join(installDir, fileName);
       if (dryRun) console.log(`  [dry-run] would copy ${src} -> ${dest}`);
       else copyFileSync(src, dest);
+    }
+  }
+
+  const lockSrc = join(REPO_ROOT, "pnpm-lock.yaml");
+  if (existsSync(lockSrc)) {
+    const lockDest = join(installDir, "pnpm-lock.yaml");
+    if (dryRun) console.log(`  [dry-run] would copy ${lockSrc} -> ${lockDest}`);
+    else copyFileSync(lockSrc, lockDest);
+  }
+}
+
+function installPluginDependencies(installDir: string): void {
+  if (dryRun) {
+    console.log(`  [dry-run] would run pnpm/npm install in ${installDir}`);
+    return;
+  }
+  const result = installPackageDeps({
+    cwd: installDir,
+    pnpmArgs: ["--ignore-workspace"],
+  });
+  if (result.exitCode !== 0) {
+    console.warn(
+      `  Warning: dependency install in ${installDir} exited ${result.exitCode} (${result.attempted.join(" → ")}) — run manually if eval commands fail.`,
+    );
+  } else {
+    console.log(`  Dependencies installed (${result.manager}) in ${installDir}`);
+    const native = ensureNativeDeps({ pluginRoot: installDir });
+    if (native.sqlite3Built) {
+      console.log("  sqlite3 native binding present.");
+    } else if (native.sqlite3Dir) {
+      console.warn(
+        "  Warning: sqlite3 binding still missing — run `npm run install` in the plugin's sqlite3 package.",
+      );
     }
   }
 }
@@ -121,10 +166,14 @@ function registerPlugin(): void {
 
 console.log(`Installing ${PLUGIN_NAME} locally...`);
 console.log(`  Source: ${REPO_ROOT}`);
-console.log(`  Target: ${INSTALL_DIR}`);
 
-copyPluginFiles();
-console.log("  Plugin files copied.");
+for (const target of INSTALL_TARGETS) {
+  console.log(`  Target: ${target}`);
+  copyPluginFiles(target);
+  console.log("  Plugin files copied.");
+  installPluginDependencies(target);
+}
+
 registerPlugin();
 console.log("  Plugin registered in ~/.claude/ config.");
 

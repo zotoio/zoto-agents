@@ -5,7 +5,7 @@
     "migrated_from": "plugins/zoto-eval-system/commands/evals/z-eval-execute.test.ts",
     "migrated_at": "2026-05-27T17:21:10.986Z",
     "model_id": "composer-2.5",
-    "judge_model": "opus-4.6",
+    "judge_model": "claude-opus-4-8[]",
     "case_timeout_ms": 180000
   },
   "cases": [
@@ -109,11 +109,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-        "last_updated": "2026-05-29T11:52:41.371Z",
+        "last_updated": "2026-06-01T04:55:08.162Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analysed_at": "2026-06-01T04:55:08.162Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
         }
@@ -135,11 +135,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-        "last_updated": "2026-05-29T11:52:41.371Z",
+        "last_updated": "2026-06-01T04:55:08.162Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analysed_at": "2026-06-01T04:55:08.162Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
         }
@@ -160,11 +160,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-        "last_updated": "2026-05-29T11:52:41.371Z",
+        "last_updated": "2026-06-01T04:55:08.162Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analysed_at": "2026-06-01T04:55:08.162Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
         }
@@ -189,11 +189,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-        "last_updated": "2026-05-29T11:52:41.371Z",
+        "last_updated": "2026-06-01T04:55:08.162Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analysed_at": "2026-06-01T04:55:08.162Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
         }
@@ -215,11 +215,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-        "last_updated": "2026-05-29T11:52:41.371Z",
+        "last_updated": "2026-06-01T04:55:08.162Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analysed_at": "2026-06-01T04:55:08.162Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
         }
@@ -243,11 +243,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-        "last_updated": "2026-05-29T11:52:41.371Z",
+        "last_updated": "2026-06-01T04:55:08.162Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "970317b5033c253d8ea297ad3e8d8fddca0c19ccd3783e08e18944fccd342a32",
-          "analysed_at": "2026-05-29T11:52:41.371Z",
+          "analysed_at": "2026-06-01T04:55:08.162Z",
           "analyser_version": "2026.05.26-1",
           "summary": "The command verifies eval-system presence first, resolves whether --full workloads may invoke LLMs using command-owned askQuestion when credentials are ambiguous, forwards --model verbatim to the delegated executor, runs the scripted suite through the delegated shell tooling, merges static and LLM rollups beneath evals/_runs, runs eval:update --check afterward, then prints totals plus drift chatter."
         }

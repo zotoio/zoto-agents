@@ -101,7 +101,7 @@ function createStubAgent(): SDKAgent {
 const runCaseOpts = {
   targetId: "agent:test-target",
   modelId: "composer-2.5",
-  judgeModel: "opus-4.6",
+  judgeModel: "claude-opus-4-8[]",
   repoRoot: "/tmp/repo",
   expect: (val: unknown, message?: string) => ({
     toMatch: (re: RegExp) => {
@@ -248,7 +248,7 @@ describe("runRunnerCase dispatch", () => {
     expect(params?.caseId).toBe("runner-noop");
     expect(params?.parameters).toEqual({ expected: "noop" });
     expect(params?.context.modelId).toBe("composer-2.5");
-    expect(params?.context.judgeModel).toBe("opus-4.6");
+    expect(params?.context.judgeModel).toBe("claude-opus-4-8[]");
     expect(typeof params?.context.sdk.createAgent).toBe("function");
     expect(typeof params?.context.sandbox.buildSandbox).toBe("function");
 

@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "eval": "tsx scripts/eval-bridge.ts eval-orchestrate",
+    "eval:full": "tsx scripts/eval-bridge.ts eval-orchestrate -- --full"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "tsx": "^4.19.0"
+  }
+}

@@ -1,0 +1,93 @@
+schema_version: 1
+subtask_id: "08"
+feature: eval-dual-host-layout
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: "2026-06-01T04:48:03Z"
+last_heartbeat: "2026-06-01T04:55:26Z"
+completed_at: "2026-06-01T04:55:26Z"
+git_sha: fbfecad15cca5de07f40ec150555f1b8d2fff64c
+checklist:
+  - id: D01
+    text: 'Update `plugins/zoto-eval-system/README.md` "Plugin vs host runtime layout" section — rewrite the three-layer table to describe: Plugin package (source of truth), Lean host (default), Ejected host (opt-in)'
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D02
+    text: Document resolution precedence chain in README (monorepo → env → Cursor install dir)
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D03
+    text: Document `hostLayout` config field in README Configuration section
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D04
+    text: "Document eject CLI usage: `pnpm run eval:stamp-host-layout` (when, why, what it does)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D05
+    text: "Document un-eject CLI usage: `pnpm run eval:un-eject` (when, why, what it does)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D06
+    text: Document ejected primitives layout (`.cursor/*/eval-sys/`) in README
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D07
+    text: Update `plugins/zoto-eval-system/commands/z-eval-init.md` — mention lean deps install
+    done: true
+    evidence_path: plugins/zoto-eval-system/commands/z-eval-init.md
+  - id: D08
+    text: Update `plugins/zoto-eval-system/commands/z-eval-create.md` — clarify lean-only stamping
+    done: true
+    evidence_path: plugins/zoto-eval-system/commands/z-eval-create.md
+  - id: D09
+    text: Update `plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md` — document lean flow
+    done: true
+    evidence_path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+  - id: D10
+    text: Update `plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md` — ensure script path docs reflect both modes
+    done: true
+    evidence_path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
+  - id: D11
+    text: Add "Migration from ejected to lean" section in README for existing users
+    done: true
+    evidence_path: plugins/zoto-eval-system/README.md
+  - id: D12
+    text: Update CHANGELOG.md with breaking change notice
+    done: true
+    evidence_path: plugins/zoto-eval-system/CHANGELOG.md
+artifacts:
+  - path: plugins/zoto-eval-system/README.md
+    kind: modified
+    note: four-layer layout, precedence, eject/un-eject, migration, hostLayout, scenarios ensure-host dual-mode
+  - path: plugins/zoto-eval-system/CHANGELOG.md
+    kind: modified
+    note: BREAKING dual-mode entry; self-contained section superseded annotation
+  - path: plugins/zoto-eval-system/commands/z-eval-init.md
+    kind: modified
+    note: lean deps pnpm install step
+  - path: plugins/zoto-eval-system/commands/z-eval-create.md
+    kind: modified
+    note: lean-only stamping and lean vs ejected table
+  - path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+    kind: modified
+    note: lean flow, stamp-lean-layout, eject/un-eject operator CLI
+  - path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
+    kind: modified
+    note: eval:stamp allowlist lean/ejected paths, eval:stamp-host-layout, eval:un-eject, host layout modes
+errors: []
+notes: Judge fix pass complete. Dual-mode script resolution documented in zoto-eval-tooling eval:stamp note, README scenarios ensure-host alias/bridge, CHANGELOG self-contained section annotated superseded.
+extra:
+  judge:
+    verdict: verified
+    at: "2026-06-01T05:01:30Z"
+    notes: >-
+      Re-verification after fix round: all 12 deliverables and four DoD gates confirmed on disk. README four-layer
+      table, resolution precedence, hostLayout, eject/un-eject CLIs, ejected primitives, migration section, and
+      eval:ensure-host dual-mode scenario present. CHANGELOG BREAKING dual-mode entry with superseded annotations.
+      z-eval-init/create and zoto-create-evals/zoto-eval-tooling skills document lean flow and dual-mode script
+      resolution (CENTRAL_STAMP_SKILL_ALLOWLIST lean vs ejected paths). No stale single-mode docs outside intentional
+      CHANGELOG archaeology. ReadLints clean on all six modified doc files.
+    fix_list: []

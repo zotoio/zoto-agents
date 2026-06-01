@@ -8,7 +8,8 @@
  *   1. Stamp `.env.example` under the eval home (`.zoto/eval-system/`) if missing.
  *   2. Stamp `.env.example` at the repo root if missing (legacy / shared hosts).
  *   3. Ensure repo-root `.gitignore` excludes `.env` secrets.
- *   4. Copy the skipped multi-primitive scenario example when missing.
+ *   4. Stamp repo-root `README.md` and `AGENTS.md` when missing.
+ *   5. Copy the skipped multi-primitive scenario example when missing.
  *
  * Usage:
  *   pnpm run eval:ensure-host                  # write changes
@@ -26,6 +27,8 @@ const SCENARIO_TEMPLATE_PATH = resolve(
   SCRIPT_DIR,
   "../templates/scenarios/_example-multi-primitive.test.ts.tmpl",
 );
+const README_TEMPLATE_PATH = resolve(SCRIPT_DIR, "../templates/host-package/README.md.tmpl");
+const AGENTS_TEMPLATE_PATH = resolve(SCRIPT_DIR, "../templates/host-package/AGENTS.md.tmpl");
 
 const ENV_EXAMPLE_BODY = `# Eval system — environment variables.
 #
@@ -42,7 +45,7 @@ const ENV_EXAMPLE_BODY = `# Eval system — environment variables.
 CURSOR_API_KEY=
 
 # Optional — overrides \`config.llm.model.id\` for the LLM runner.
-# Allowed: composer-2.5 | opus-4.6 | sonnet
+# Allowed: composer-2.5 | claude-opus-4-8[] | sonnet
 # (CLI flag \`--model <id>\` still wins over this.)
 # ZOTO_EVAL_MODEL=composer-2.5
 `;
@@ -114,6 +117,24 @@ function ensureGitignore(repoRoot: string, dryRun: boolean): string {
   return `${exists ? "appended" : "created"} ${path} (added ${missing.length} line${missing.length === 1 ? "" : "s"})`;
 }
 
+function ensureRootDoc(
+  repoRoot: string,
+  destBasename: string,
+  templatePath: string,
+  dryRun: boolean,
+): string {
+  const path = join(repoRoot, destBasename);
+  if (existsSync(path)) return `skipped-existing ${path}`;
+  if (!existsSync(templatePath)) {
+    return `skipped-missing-template ${templatePath}`;
+  }
+  if (!dryRun) {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, readFileSync(templatePath, "utf-8"), "utf-8");
+  }
+  return `created ${path}`;
+}
+
 function ensureScenarioExample(dryRun: boolean): string {
   const path = SCENARIO_REL_PATH;
   if (existsSync(path)) return `skipped-existing ${path}`;
@@ -133,4 +154,6 @@ console.log(`eval-ensure-host ${opts.dryRun ? "(dry-run) " : ""}in ${opts.repoRo
 console.log(`  eval-home ${ensureEnvExample(EVAL_HOME, opts.dryRun)}`);
 console.log(`  repo-root ${ensureEnvExample(opts.repoRoot, opts.dryRun)}`);
 console.log(`  ${ensureGitignore(opts.repoRoot, opts.dryRun)}`);
-console.log(`  ${ensureScenarioExample(opts.dryRun)}`);
+console.log(`  readme ${ensureRootDoc(opts.repoRoot, "README.md", README_TEMPLATE_PATH, opts.dryRun)}`);
+console.log(`  agents-md ${ensureRootDoc(opts.repoRoot, "AGENTS.md", AGENTS_TEMPLATE_PATH, opts.dryRun)}`);
+console.log(`  scenario ${ensureScenarioExample(opts.dryRun)}`);

@@ -1,0 +1,107 @@
+schema_version: 1
+subtask_id: "05"
+feature: eval-dual-host-layout
+assigned_agent: generalPurpose
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+started_at: "2026-06-01T14:40:00Z"
+last_heartbeat: "2026-06-01T14:50:00Z"
+completed_at: "2026-06-01T14:45:00Z"
+git_sha: fbfecad
+checklist:
+  - id: D01
+    text: "Create `stampEjectedPrimitives()` in `stamp-primitives.ts` (opts object with repoRoot, pluginRoot, layout, dryRun)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-primitives.ts
+  - id: D02
+    text: "On eject, copy all eval agents from plugin (flat-prefix default; nested eval-sys via primitivesLayout nested)"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-primitives.ts
+  - id: D03
+    text: On eject, copy all eval skills from plugin (flat-prefix default; nested via opt-in)
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-primitives.ts
+  - id: D04
+    text: On eject, copy all eval commands from plugin (flat-prefix default; nested via opt-in)
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-primitives.ts
+  - id: D05
+    text: Ensure ejected primitive paths exist (flat-prefix `.cursor/*/eval-sys--*` default; nested `eval-sys/` dirs when opted in)
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/stamp-primitives.test.ts
+  - id: D06
+    text: Add `.cursor/*/eval-sys/` and flat-prefix patterns to host-package `.gitignore` template
+    done: true
+    evidence_path: plugins/zoto-eval-system/templates/host-package/.gitignore
+  - id: D07
+    text: "`stamp-host-layout.ts` calls `stampEjectedPrimitives()` as part of the eject flow"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D08
+    text: Document the primitives layout in the eject CLI's output summary
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+  - id: D09
+    text: "`analyserAgentPath()` checks flat-prefix and nested `.cursor/agents/eval-sys/` before plugin source"
+    done: true
+    evidence_path: plugins/zoto-eval-system/src/paths.ts
+  - id: P0
+    text: "Phase 0 — validate Cursor discovery; record result before stamp logic"
+    done: true
+    evidence_path: specs/20260601-eval-dual-host-layout/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.md
+  - id: FB
+    text: "Phase 0 fail fallback — flat-prefix layout + un-eject cleanup helper"
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-primitives.ts
+  - id: DoD1
+    text: Eject produces primitives under `.cursor/` (flat-prefix default after Phase 0)
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/stamp-primitives.test.ts
+  - id: DoD2
+    text: "`analyserAgentPath()` resolves correctly in ejected mode"
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/stamp-primitives.test.ts
+  - id: DoD3
+    text: No primitives land under `.zoto/eval-system/agents/`
+    done: true
+    evidence_path: plugins/zoto-eval-system/tests/stamp-primitives.test.ts
+  - id: DoD4
+    text: No linter errors in modified files
+    done: true
+    evidence_path: plugins/zoto-eval-system/scripts/stamp-primitives.ts
+artifacts:
+  - path: plugins/zoto-eval-system/scripts/stamp-primitives.ts
+    kind: created
+    note: stampEjectedPrimitives module
+  - path: plugins/zoto-eval-system/tests/stamp-primitives.test.ts
+    kind: created
+    note: targeted primitive stamping tests
+  - path: plugins/zoto-eval-system/scripts/stamp-host-layout.ts
+    kind: modified
+    note: integrate stampEjectedPrimitives and CLI summary
+  - path: plugins/zoto-eval-system/src/paths.ts
+    kind: modified
+    note: analyserAgentPath ejected resolution
+  - path: plugins/zoto-eval-system/templates/host-package/.gitignore
+    kind: modified
+    note: ignore flat-prefix and nested ejected primitives
+errors: []
+notes: |
+  Phase 0 FAILED for nested `.cursor/agents/eval-sys/` discovery (Cursor forum: agents only at top-level; skills need direct `.cursor/skills/<name>/`; commands inconsistent IDE vs CLI). Default layout is flat-prefix (`eval-sys--*`) with nested opt-in via `primitivesLayout: "nested"`. Targeted tests: 6/6 pass in stamp-primitives.test.ts (vitest run 2026-06-01). Judge verified stampEjectedPrimitives, analyserAgentPath, integration, gitignore, no .zoto/agents copy.
+extra:
+  phase0_result: fail-nested-use-flat-prefix
+  default_layout: flat-prefix
+  agent_count: 8
+  skill_count: 9
+  command_count: 13
+  judge:
+    verdict: verified
+    at: "2026-06-01T14:50:00Z"
+    notes: |
+      Independently confirmed stamp-primitives.ts exports stampEjectedPrimitives (8 agents, 9 skills, 13 commands; flat-prefix default, nested opt-in), stamp-host-layout integration and CLI summary, analyserAgentPath flat-then-nested-then-plugin resolution, host-package gitignore for both layouts, ejectedPrimitivesCleanupTargets for un-eject. Phase 0 documented in subtask Execution Notes. vitest tests/stamp-primitives.test.ts 6/6 pass. ReadLints clean on modified files. No .zoto/eval-system/agents/ stamping.
+    fix_list:
+      - item: README flat-prefix documentation
+        gap: Subtask Phase-0-fail branch requires README documentation of flat-prefix layout; only CLI output, module comments, and .gitignore comments cover it today.
+        recommended_path: plugins/zoto-eval-system/README.md
+        severity: should_fix

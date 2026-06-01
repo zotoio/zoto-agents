@@ -45,7 +45,7 @@ import yaml
 # The reporter is stamped from ``_reporter.py.tmpl`` into the host repo
 # as ``_zoto_static_reporter.py`` (a namespaced filename that won't
 # collide with user-authored files under ``evals/``); see
-# ``ensurePytestSupportFiles`` in ``scripts/eval-stamp.ts``.
+# ``ensurePytestSupportFiles`` in ``plugins/zoto-eval-system/scripts/eval-stamp.ts``.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _zoto_static_reporter import (  # type: ignore[import-not-found]  # noqa: E402

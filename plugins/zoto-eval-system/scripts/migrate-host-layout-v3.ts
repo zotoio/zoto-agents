@@ -2,24 +2,18 @@
 /**
  * Migrate a host repo from legacy-root eval layout to v3 self-contained layout.
  *
- * Moves:
+ * Moves legacy host artefacts when present:
  *   evals/              → .zoto/eval-system/evals/
- *   scripts/eval-*.ts    → .zoto/eval-system/scripts/
- *   scripts/test.py       → .zoto/eval-system/scripts/
+ *   scripts/eval-*.ts   → .zoto/eval-system/scripts/  (legacy monorepo dogfood only)
+ *   scripts/test.py     → .zoto/eval-system/scripts/
  *   plugins/zoto-eval-system/{src,templates,engine} → .zoto/eval-system/
  *
- * Then stamps missing runtime assets and strips eval pollution from root package.json.
+ * Then stamps runtime assets from the installed plugin package (`PLUGIN_ROOT`)
+ * and strips eval pollution from root package.json.
  */
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import {
-  stampHostLayout,
-  stripRootEvalPackage,
-  stampRootEvalAliases,
-} from "./stamp-host-layout.js";
-
-const PLUGIN_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+import { stampHostLayout, stripRootEvalPackage } from "./stamp-host-layout.js";
 
 export interface MigrateOptions {
   repoRoot: string;
@@ -57,6 +51,8 @@ function planMigration(repoRoot: string): MigratePlan {
     "eval-orchestrate.ts",
     "eval-gc.ts",
     "eval-cleanup-vendored.ts",
+    "eval-cleanup-stale.ts",
+    "check-analyser-payload-parity.ts",
     "eval-ensure-host.ts",
     "test.py",
   ];
@@ -152,16 +148,11 @@ export function migrateHostLayoutV3(opts: MigrateOptions): {
     repoRoot,
     dryRun,
     forceScripts: !dryRun,
-    zotoAgentsRoot: resolve(PLUGIN_ROOT, "../.."),
   });
 
   const strip = dryRun
     ? { removedScripts: [] as string[], removedDevDeps: [] as string[] }
     : stripRootEvalPackage(repoRoot, false);
-
-  if (!dryRun) {
-    stampRootEvalAliases(repoRoot, false);
-  }
 
   return { plan, stamp, strip };
 }

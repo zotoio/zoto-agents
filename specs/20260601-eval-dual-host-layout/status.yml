@@ -1,0 +1,391 @@
+schema_version: 1
+spec_id: 20260601-eval-dual-host-layout
+phase: 0
+aggregate_state: completed
+started_at: 2026-06-01T04:33:53.804Z
+updated_at: 2026-06-01T05:02:59.945Z
+aggregate_progress:
+  total: 9
+  completed: 9
+  in_progress: 0
+  blocked: 0
+  failed: 0
+subtasks:
+  - subtask_id: "01"
+    state: completed
+    status_path: specs/20260601-eval-dual-host-layout/status/subtask-01-eval-dual-host-layout-plugin-resolution-20260601.status.yml
+    last_heartbeat: 2026-06-01T04:36:44.292Z
+  - subtask_id: "02"
+    state: completed
+    status_path: specs/20260601-eval-dual-host-layout/status/subtask-02-eval-dual-host-layout-config-marker-20260601.status.yml
+    last_heartbeat: 2026-06-01T14:37:00.000Z
+  - subtask_id: "03"
+    state: completed
+    status_path: specs/20260601-eval-dual-host-layout/status/subtask-03-eval-dual-host-layout-lean-create-init-20260601.status.yml
+    last_heartbeat: null
+  - subtask_id: "04"
+    state: completed
+    status_path: specs/20260601-eval-dual-host-layout/status/subtask-04-eval-dual-host-layout-eject-cli-refactor-20260601.status.yml
+    last_heartbeat: 2026-06-01T14:43:12.000Z
+  - subtask_id: "05"
+    state: completed
+    status_path: specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml
+    last_heartbeat: 2026-06-01T14:50:00Z
+  - subtask_id: "06"
+    state: completed
+    status_path: specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+    last_heartbeat: null
+  - subtask_id: "07"
+    state: completed
+    status_path: specs/20260601-eval-dual-host-layout/status/subtask-07-eval-dual-host-layout-un-eject-script-20260601.status.yml
+    last_heartbeat: 2026-06-01T14:52:00Z
+  - subtask_id: "08"
+    state: completed
+    status_path: specs/20260601-eval-dual-host-layout/status/subtask-08-eval-dual-host-layout-docs-readme-20260601.status.yml
+    last_heartbeat: 2026-06-01T04:55:26Z
+  - subtask_id: "09"
+    state: completed
+    status_path: specs/20260601-eval-dual-host-layout/status/subtask-09-eval-dual-host-layout-tests-ci-20260601.status.yml
+    last_heartbeat: 2026-06-01T04:59:36.851Z
+blockers: []
+definition_of_done_status:
+  - id: DOD01
+    text: All subtasks completed
+    done: true
+  - id: DOD02
+    text: All tests passing (the project's test suite)
+    done: true
+  - id: DOD03
+    text: No linter errors in modified files
+    done: true
+  - id: DOD04
+    text: Plugin resolution works across all three precedence levels
+    done: true
+  - id: DOD05
+    text: Lean mode is the default for new repos
+    done: true
+  - id: DOD06
+    text: Eject/un-eject round-trips cleanly
+    done: true
+  - id: DOD07
+    text: zoto-agents monorepo uses lean mode with monorepo resolution
+    done: true
+  - id: DOD08
+    text: Documentation updated
+    done: true
+config_reloaded: []
+events:
+  - at: 2026-06-01T04:42:25.665Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-03-eval-dual-host-layout-lean-create-init-20260601.status.yml
+  - at: 2026-06-01T04:42:25.665Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-04-eval-dual-host-layout-eject-cli-refactor-20260601.status.yml
+  - at: 2026-06-01T04:42:25.665Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 5c7dcd70…
+  - at: 2026-06-01T04:42:33.332Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-03-eval-dual-host-layout-lean-create-init-20260601.status.yml
+  - at: 2026-06-01T04:42:33.332Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-04-eval-dual-host-layout-eject-cli-refactor-20260601.status.yml
+  - at: 2026-06-01T04:42:33.332Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 3e11f847…
+  - at: 2026-06-01T04:42:37.917Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-03-eval-dual-host-layout-lean-create-init-20260601.status.yml
+  - at: 2026-06-01T04:42:37.917Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 11e3eaa2…
+  - at: 2026-06-01T04:42:39.480Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-03-eval-dual-host-layout-lean-create-init-20260601.status.yml
+  - at: 2026-06-01T04:42:39.480Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest e02bca2d…
+  - at: 2026-06-01T04:42:57.753Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 6b767f98…
+  - at: 2026-06-01T04:42:59.286Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest aef60c73…
+  - at: 2026-06-01T04:43:25.167Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+  - at: 2026-06-01T04:43:25.167Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest fc002379…
+  - at: 2026-06-01T04:43:26.685Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+  - at: 2026-06-01T04:43:26.685Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest ff8b82fc…
+  - at: 2026-06-01T04:44:10.820Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml
+  - at: 2026-06-01T04:44:10.820Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+  - at: 2026-06-01T04:44:10.820Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest efac874d…
+  - at: 2026-06-01T04:44:12.342Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml
+  - at: 2026-06-01T04:44:12.342Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+  - at: 2026-06-01T04:44:12.342Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest d7245dca…
+  - at: 2026-06-01T04:44:18.470Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml
+  - at: 2026-06-01T04:44:18.470Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+  - at: 2026-06-01T04:44:18.470Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest ad4fe18d…
+  - at: 2026-06-01T04:45:36.014Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml
+  - at: 2026-06-01T04:45:36.014Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+  - at: 2026-06-01T04:45:36.014Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 73ca85b6…
+  - at: 2026-06-01T04:46:06.704Z
+    kind: source_validation_warn
+    message: |
+      YAML parse failed for specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml: Nested mappings are not allowed in compact mappings at line 18, column 11:
+
+          text: On eject, copy all eval agents from plugin (flat-prefix default; nest…
+                ^
+  - at: 2026-06-01T04:46:06.704Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+  - at: 2026-06-01T04:46:06.704Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 378a8d4b…
+  - at: 2026-06-01T04:46:08.235Z
+    kind: source_validation_warn
+    message: |
+      YAML parse failed for specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml: Nested mappings are not allowed in compact mappings at line 18, column 11:
+
+          text: On eject, copy all eval agents from plugin (flat-prefix default; nest…
+                ^
+  - at: 2026-06-01T04:46:08.235Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+  - at: 2026-06-01T04:46:08.235Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest aea55a38…
+  - at: 2026-06-01T04:46:11.305Z
+    kind: source_validation_warn
+    message: |
+      YAML parse failed for specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml: Nested mappings are not allowed in compact mappings at line 18, column 11:
+
+          text: On eject, copy all eval agents from plugin (flat-prefix default; nest…
+                ^
+  - at: 2026-06-01T04:46:11.305Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+  - at: 2026-06-01T04:46:11.305Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest d5d901de…
+  - at: 2026-06-01T04:46:20.501Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml
+  - at: 2026-06-01T04:46:20.501Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-06-eval-dual-host-layout-dogfood-migration-20260601.status.yml
+  - at: 2026-06-01T04:46:20.501Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 1f4521a2…
+  - at: 2026-06-01T04:46:25.091Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml
+  - at: 2026-06-01T04:46:25.091Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest caa1e60c…
+  - at: 2026-06-01T04:46:26.619Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-05-eval-dual-host-layout-ejected-primitives-20260601.status.yml
+  - at: 2026-06-01T04:46:26.619Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest abfb3321…
+  - at: 2026-06-01T04:46:28.139Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 3c64af72…
+  - at: 2026-06-01T04:46:29.667Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest ea220933…
+  - at: 2026-06-01T04:47:25.115Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-07-eval-dual-host-layout-un-eject-script-20260601.status.yml
+  - at: 2026-06-01T04:47:25.115Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 5b3d63eb…
+  - at: 2026-06-01T04:47:26.655Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-07-eval-dual-host-layout-un-eject-script-20260601.status.yml
+  - at: 2026-06-01T04:47:26.655Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 9d521694…
+  - at: 2026-06-01T04:47:45.131Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-07-eval-dual-host-layout-un-eject-script-20260601.status.yml
+  - at: 2026-06-01T04:47:45.131Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest ea47f188…
+  - at: 2026-06-01T04:49:00.584Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-07-eval-dual-host-layout-un-eject-script-20260601.status.yml
+  - at: 2026-06-01T04:49:00.584Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 52c8032b…
+  - at: 2026-06-01T04:49:03.673Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-07-eval-dual-host-layout-un-eject-script-20260601.status.yml
+  - at: 2026-06-01T04:49:03.673Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-08-eval-dual-host-layout-docs-readme-20260601.status.yml
+  - at: 2026-06-01T04:49:03.673Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 402816b6…
+  - at: 2026-06-01T04:49:05.214Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-07-eval-dual-host-layout-un-eject-script-20260601.status.yml
+  - at: 2026-06-01T04:49:05.214Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-08-eval-dual-host-layout-docs-readme-20260601.status.yml
+  - at: 2026-06-01T04:49:05.214Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest dd89483e…
+  - at: 2026-06-01T04:49:15.993Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-08-eval-dual-host-layout-docs-readme-20260601.status.yml
+  - at: 2026-06-01T04:49:15.993Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest e4a7da1f…
+  - at: 2026-06-01T04:49:17.545Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-08-eval-dual-host-layout-docs-readme-20260601.status.yml
+  - at: 2026-06-01T04:49:17.545Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 2050a210…
+  - at: 2026-06-01T04:50:19.812Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-08-eval-dual-host-layout-docs-readme-20260601.status.yml
+  - at: 2026-06-01T04:50:19.812Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-09-eval-dual-host-layout-tests-ci-20260601.status.yml
+  - at: 2026-06-01T04:50:19.812Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest a3e84bf6…
+  - at: 2026-06-01T04:50:21.339Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-08-eval-dual-host-layout-docs-readme-20260601.status.yml
+  - at: 2026-06-01T04:50:21.339Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-09-eval-dual-host-layout-tests-ci-20260601.status.yml
+  - at: 2026-06-01T04:50:21.339Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest c6b8edb8…
+  - at: 2026-06-01T04:52:30.710Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-08-eval-dual-host-layout-docs-readme-20260601.status.yml
+  - at: 2026-06-01T04:52:30.710Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-09-eval-dual-host-layout-tests-ci-20260601.status.yml
+  - at: 2026-06-01T04:52:30.710Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 04a46017…
+  - at: 2026-06-01T04:52:37.303Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-08-eval-dual-host-layout-docs-readme-20260601.status.yml
+  - at: 2026-06-01T04:52:37.303Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-09-eval-dual-host-layout-tests-ci-20260601.status.yml
+  - at: 2026-06-01T04:52:37.303Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 58b694e5…
+  - at: 2026-06-01T04:52:40.630Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-08-eval-dual-host-layout-docs-readme-20260601.status.yml
+  - at: 2026-06-01T04:52:40.630Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-09-eval-dual-host-layout-tests-ci-20260601.status.yml
+  - at: 2026-06-01T04:52:40.630Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 90e7ed0d…
+  - at: 2026-06-01T04:53:06.950Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-09-eval-dual-host-layout-tests-ci-20260601.status.yml
+  - at: 2026-06-01T04:53:06.950Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 966a5a3d…
+  - at: 2026-06-01T04:53:08.471Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-09-eval-dual-host-layout-tests-ci-20260601.status.yml
+  - at: 2026-06-01T04:53:08.471Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 0408e276…
+  - at: 2026-06-01T04:53:09.998Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-09-eval-dual-host-layout-tests-ci-20260601.status.yml
+  - at: 2026-06-01T04:53:09.998Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest f62497f0…
+  - at: 2026-06-01T04:53:13.056Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260601-eval-dual-host-layout/status/subtask-09-eval-dual-host-layout-tests-ci-20260601.status.yml
+  - at: 2026-06-01T04:53:13.056Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest be04fc8b…
+  - at: 2026-06-01T04:53:37.562Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 8d0fa7b1…
+  - at: 2026-06-01T04:53:39.090Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest ce39a5c1…
+  - at: 2026-06-01T04:55:42.644Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest eb99f3d1…
+  - at: 2026-06-01T04:59:37.134Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest c7a52b6e…
+  - at: 2026-06-01T04:59:41.786Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest de985355…
+  - at: 2026-06-01T04:59:46.479Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 0c63d310…
+  - at: 2026-06-01T05:00:06.787Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest b8e6e0ce…
+  - at: 2026-06-01T05:00:09.913Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 8c0172c5…
+  - at: 2026-06-01T05:00:56.051Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest e21ae5f2…
+  - at: 2026-06-01T05:01:50.333Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 48312664…
+  - at: 2026-06-01T05:02:04.383Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 51227d3e…
+  - at: 2026-06-01T05:02:47.625Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 3b14dc17…
+  - at: 2026-06-01T05:02:59.945Z
+    kind: rebuild
+    message: Aggregated 9 subtask source(s); digest 3f39c608…
+extra:
+  aggregator_digest: 3f39c6089e2a625c142fbc647f2615d315eb4f471b1c229dbcc92be35b57350d

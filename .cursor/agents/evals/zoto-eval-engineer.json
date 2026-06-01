@@ -5,7 +5,7 @@
     "migrated_from": ".cursor/agents/evals/zoto-eval-engineer.test.ts",
     "migrated_at": "2026-05-27T17:21:10.986Z",
     "model_id": "composer-2.5",
-    "judge_model": "opus-4.6",
+    "judge_model": "claude-opus-4-8[]",
     "case_timeout_ms": 180000
   },
   "cases": [
@@ -125,11 +125,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-        "last_updated": "2026-05-29T09:33:23.198Z",
+        "last_updated": "2026-06-01T04:55:08.596Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-          "analysed_at": "2026-05-29T09:33:23.198Z",
+          "analysed_at": "2026-06-01T04:55:08.596Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases task the engineer agent with read-only engine audits, schema and contract tracing, host-repo layout reviews, drift semantics, generated-artefact partition checks, test harness critique, and explicit hand-offs away from architecture or plugin-meta work."
         }
@@ -155,11 +155,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-        "last_updated": "2026-05-29T09:33:23.198Z",
+        "last_updated": "2026-06-01T04:55:08.596Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-          "analysed_at": "2026-05-29T09:33:23.198Z",
+          "analysed_at": "2026-06-01T04:55:08.596Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases task the engineer agent with read-only engine audits, schema and contract tracing, host-repo layout reviews, drift semantics, generated-artefact partition checks, test harness critique, and explicit hand-offs away from architecture or plugin-meta work."
         }
@@ -181,11 +181,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-        "last_updated": "2026-05-29T09:33:23.198Z",
+        "last_updated": "2026-06-01T04:55:08.596Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-          "analysed_at": "2026-05-29T09:33:23.198Z",
+          "analysed_at": "2026-06-01T04:55:08.596Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases task the engineer agent with read-only engine audits, schema and contract tracing, host-repo layout reviews, drift semantics, generated-artefact partition checks, test harness critique, and explicit hand-offs away from architecture or plugin-meta work."
         }
@@ -207,11 +207,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-        "last_updated": "2026-05-29T09:33:23.198Z",
+        "last_updated": "2026-06-01T04:55:08.596Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-          "analysed_at": "2026-05-29T09:33:23.198Z",
+          "analysed_at": "2026-06-01T04:55:08.596Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases task the engineer agent with read-only engine audits, schema and contract tracing, host-repo layout reviews, drift semantics, generated-artefact partition checks, test harness critique, and explicit hand-offs away from architecture or plugin-meta work."
         }
@@ -233,11 +233,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-        "last_updated": "2026-05-29T09:33:23.198Z",
+        "last_updated": "2026-06-01T04:55:08.596Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-          "analysed_at": "2026-05-29T09:33:23.198Z",
+          "analysed_at": "2026-06-01T04:55:08.596Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases task the engineer agent with read-only engine audits, schema and contract tracing, host-repo layout reviews, drift semantics, generated-artefact partition checks, test harness critique, and explicit hand-offs away from architecture or plugin-meta work."
         }
@@ -258,11 +258,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-        "last_updated": "2026-05-29T09:33:23.198Z",
+        "last_updated": "2026-06-01T04:55:08.596Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-          "analysed_at": "2026-05-29T09:33:23.198Z",
+          "analysed_at": "2026-06-01T04:55:08.596Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases task the engineer agent with read-only engine audits, schema and contract tracing, host-repo layout reviews, drift semantics, generated-artefact partition checks, test harness critique, and explicit hand-offs away from architecture or plugin-meta work."
         }
@@ -283,11 +283,11 @@
       "_meta": {
         "generated": true,
         "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-        "last_updated": "2026-05-29T09:33:23.198Z",
+        "last_updated": "2026-06-01T04:55:08.596Z",
         "generated_by": "zoto-create-evals",
         "primitive_analysis": {
           "source_hash": "7b825984f62629c685239e85dfcc623c54fd954f6da0b6cb48f40399d62edae5",
-          "analysed_at": "2026-05-29T09:33:23.198Z",
+          "analysed_at": "2026-06-01T04:55:08.596Z",
           "analyser_version": "2026.05.26-1",
           "summary": "Eval cases task the engineer agent with read-only engine audits, schema and contract tracing, host-repo layout reviews, drift semantics, generated-artefact partition checks, test harness critique, and explicit hand-offs away from architecture or plugin-meta work."
         }

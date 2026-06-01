@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 /**
- * Idempotent host-repo bootstrapper for `.env.example` + `.gitignore`.
+ * Idempotent host-repo bootstrapper for env, gitignore, and root docs.
  *
- * Invoked by `zoto-create-evals` (and re-runnable by operators via
- * `pnpm run eval:ensure-host`). Two responsibilities:
+ * Invoked by `stamp-lean-layout`, `/z-eval-init`, `zoto-create-evals`, and
+ * re-runnable via `pnpm run eval:ensure-host`. Responsibilities:
  *
  *   1. Stamp `.env.example` from `templates/env/.env.example.tmpl` when
  *      the host repo does not already have one. Existing files are
@@ -14,6 +14,8 @@
  *      labelled section if they are missing; existing entries are left
  *      alone so this is safe to re-run after operators have customised
  *      their `.gitignore`.
+ *   3. Stamp repo-root `README.md` and `AGENTS.md` from
+ *      `templates/host-package/*.tmpl` when missing (never overwrite).
  *
  * Outputs a JSON summary on stdout describing what happened. The
  * `--dry-run` flag inspects without writing.
@@ -27,14 +29,23 @@ import { dirname, join, resolve } from "node:path";
 interface CliOptions {
   repoRoot: string;
   templatePath: string;
+  pluginRoot?: string;
   dryRun: boolean;
+}
+
+type RootDocAction = "created" | "skipped-existing" | "skipped-template-missing";
+
+interface RootDocReport {
+  path: string;
+  action: RootDocAction;
+  templatePath: string;
 }
 
 interface RunReport {
   repoRoot: string;
   envExample: {
     path: string;
-    action: "created" | "skipped-existing" | "skipped-template-missing";
+    action: RootDocAction;
     templatePath: string;
   };
   gitignore: {
@@ -42,8 +53,12 @@ interface RunReport {
     action: "created" | "appended" | "no-change";
     addedLines: string[];
   };
+  readme: RootDocReport;
+  agentsMd: RootDocReport;
   dryRun: boolean;
 }
+
+const HOST_PACKAGE_TEMPLATES = join("templates", "host-package");
 
 const GITIGNORE_HEADER = "# zoto-eval-system: keep local secrets out of git";
 const GITIGNORE_LINES: readonly string[] = [
@@ -175,7 +190,38 @@ export function ensureGitignore(opts: {
   };
 }
 
+function defaultPluginRoot(): string {
+  return resolve(import.meta.dirname, "..");
+}
+
+export function ensureRootDoc(opts: {
+  repoRoot: string;
+  pluginRoot: string;
+  destBasename: string;
+  templateBasename: string;
+  dryRun: boolean;
+}): RootDocReport {
+  const destPath = join(opts.repoRoot, opts.destBasename);
+  const templatePath = join(
+    opts.pluginRoot,
+    HOST_PACKAGE_TEMPLATES,
+    opts.templateBasename,
+  );
+  if (existsSync(destPath)) {
+    return { path: destPath, action: "skipped-existing", templatePath };
+  }
+  if (!existsSync(templatePath)) {
+    return { path: destPath, action: "skipped-template-missing", templatePath };
+  }
+  if (!opts.dryRun) {
+    mkdirSync(dirname(destPath), { recursive: true });
+    writeFileSync(destPath, readFileSync(templatePath, "utf-8"), "utf-8");
+  }
+  return { path: destPath, action: "created", templatePath };
+}
+
 export function ensureHostFiles(opts: CliOptions): RunReport {
+  const pluginRoot = opts.pluginRoot ?? defaultPluginRoot();
   const envExample = ensureEnvExample({
     repoRoot: opts.repoRoot,
     templatePath: opts.templatePath,
@@ -185,10 +231,26 @@ export function ensureHostFiles(opts: CliOptions): RunReport {
     repoRoot: opts.repoRoot,
     dryRun: opts.dryRun,
   });
+  const readme = ensureRootDoc({
+    repoRoot: opts.repoRoot,
+    pluginRoot,
+    destBasename: "README.md",
+    templateBasename: "README.md.tmpl",
+    dryRun: opts.dryRun,
+  });
+  const agentsMd = ensureRootDoc({
+    repoRoot: opts.repoRoot,
+    pluginRoot,
+    destBasename: "AGENTS.md",
+    templateBasename: "AGENTS.md.tmpl",
+    dryRun: opts.dryRun,
+  });
   return {
     repoRoot: opts.repoRoot,
     envExample,
     gitignore,
+    readme,
+    agentsMd,
     dryRun: opts.dryRun,
   };
 }
