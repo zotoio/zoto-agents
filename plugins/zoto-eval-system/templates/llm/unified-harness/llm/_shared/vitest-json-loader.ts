@@ -216,6 +216,43 @@ export function isNonSkillEvalJsonPath(absPath: string): boolean {
   return true;
 }
 
+/**
+ * Returns `true` for Cursor-spec skill eval files (`skills/<name>/evals/evals.json`).
+ * These run via the pytest static backend — when Vitest discovers them anyway,
+ * the loader synthesises a skipped suite instead of failing discovery.
+ */
+export function isSkillEvalJsonPath(absPath: string): boolean {
+  if (typeof absPath !== "string" || absPath.length === 0) return false;
+  const normalised = absPath.replace(/\\/g, "/");
+  if (!normalised.endsWith(".json")) return false;
+
+  const segments = normalised.split("/").filter((s) => s.length > 0);
+  if (segments.length < 3) return false;
+
+  const fileName = segments[segments.length - 1];
+  const parentDir = segments[segments.length - 2];
+  if (fileName !== "evals.json" || parentDir !== "evals") return false;
+
+  return segments.slice(0, segments.length - 2).includes("skills");
+}
+
+function synthesiseSkillEvalSkipModule(absPath: string): string {
+  const sourceUrl = pathToFileURL(absPath).href;
+  const label = JSON.stringify(absPath);
+  return [
+    `// @sourceFile: ${absPath}`,
+    `//# sourceURL=${sourceUrl}`,
+    `/* Synthesised by ${PLUGIN_NAME} — skill evals.json uses pytest, not LLM vitest. */`,
+    "",
+    `import { describe, it } from "vitest";`,
+    "",
+    `describe(${label}, () => {`,
+    `  it.skip("skill evals.json runs via pytest static backend, not LLM vitest", () => {});`,
+    `});`,
+    "",
+  ].join("\n");
+}
+
 /* ---------------------------------------------------------------------- */
 /* Module synthesis                                                       */
 /* ---------------------------------------------------------------------- */
@@ -471,14 +508,20 @@ export function evalJsonLoader(opts: EvalJsonLoaderOptions = {}): Plugin {
       if (!source.endsWith(".json")) return null;
       const absPath = resolveSourceToAbsPath(source, importer);
       if (absPath === null) return null;
-      if (!isNonSkillEvalJsonPath(absPath)) return null;
-      return buildVirtualEvalJsonId(absPath);
+      if (isSkillEvalJsonPath(absPath) || isNonSkillEvalJsonPath(absPath)) {
+        return buildVirtualEvalJsonId(absPath);
+      }
+      return null;
     },
 
     async load(id) {
       if (typeof id !== "string" || !id.startsWith(VIRTUAL_PREFIX)) return null;
       const absPath = unwrapVirtualEvalJsonId(id);
       if (absPath === null) return null;
+
+      if (isSkillEvalJsonPath(absPath)) {
+        return synthesiseSkillEvalSkipModule(absPath);
+      }
 
       const parsed = await readEvalJsonFile(absPath);
 

@@ -19,6 +19,7 @@ import {
   buildVirtualEvalJsonId,
   evalJsonLoader,
   isNonSkillEvalJsonPath,
+  isSkillEvalJsonPath,
   renderEvalModule,
   unwrapVirtualEvalJsonId,
 } from "./vitest-json-loader.js";
@@ -112,6 +113,14 @@ describe("isNonSkillEvalJsonPath", () => {
     ).toBe(false);
   });
 
+  it("classifies .cursor/skills evals.json as a skill eval path", () => {
+    expect(
+      isSkillEvalJsonPath(
+        "/repo/.cursor/skills/zoto-create-plugin/evals/evals.json",
+      ),
+    ).toBe(true);
+  });
+
   it("rejects a non-JSON path", () => {
     expect(
       isNonSkillEvalJsonPath(
@@ -172,10 +181,11 @@ describe("evalJsonLoader resolveId", () => {
     );
   });
 
-  it("returns null for a skill evals.json (absolute source)", () => {
-    const abs = "/abs/repo/plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json";
+  it("returns the virtual ID for a skill evals.json (skipped pytest suite)", () => {
+    const abs =
+      "/abs/repo/.cursor/skills/zoto-create-plugin/evals/evals.json";
     const result = callResolve(plugin, abs);
-    expect(result).toBeNull();
+    expect(result).toBe(buildVirtualEvalJsonId(abs));
   });
 
   it("returns null for a non-JSON source", () => {
@@ -227,6 +237,17 @@ describe("evalJsonLoader load", () => {
       "/abs/repo/plugins/foo/commands/evals/sample.json",
     );
     expect(result).toBeNull();
+  });
+
+  it("synthesises a skipped suite for skill evals.json", async () => {
+    const abs =
+      "/abs/repo/.cursor/skills/zoto-create-plugin/evals/evals.json";
+    const virtualId = buildVirtualEvalJsonId(abs);
+    const result = await callLoad(plugin, virtualId);
+    const code = unwrapCode(result);
+    expect(code).toContain("it.skip");
+    expect(code).toContain("pytest static backend");
+    expect(code).not.toContain("defineLlmEval");
   });
 
   it("synthesises a module containing defineLlmEval + targetId for the fixture", async () => {
