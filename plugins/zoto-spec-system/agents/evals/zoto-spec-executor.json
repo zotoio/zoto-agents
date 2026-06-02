@@ -194,7 +194,7 @@
         "files": [
           {
             "path": "workspace/.zoto/spec-system/config.yml",
-            "content": "unitOfWork: initiative\nspecsDir: specs\nworkDir: specs/current\nspec:\n  maxSubtasks: 99\n  parallelLimit: 4\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: true\n    plugin: crux-memory\n"
+            "content": "unitOfWork: initiative\nspecsDir: specs\nworkDir: specs/current\nspec:\n  maxSubtasks: 99\n  parallelLimit: 4\n  adversarialVerification: true\nextensions:\n  memory:\n    enabled: true\n    plugin: example-memory\n"
           }
         ]
       },

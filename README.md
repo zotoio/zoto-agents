@@ -18,6 +18,8 @@ Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 
 - [Node.js](https://nodejs.org/) >= 18
 - [pnpm](https://pnpm.io/) >= 10
+- [Python](https://www.python.org/) 3 with `pytest` (only for `zoto-eval-system` static eval backend)
+- `CURSOR_API_KEY` in `.env` (only for LLM eval runs; see `.env.example`)
 
 ### Setup
 
@@ -41,12 +43,24 @@ Run tests across all plugins:
 pnpm test
 ```
 
+For a small change in one plugin, prefer a scoped run (faster than the full workspace suite):
+
+```bash
+pnpm --filter @zoto-agents/zoto-cursor-top test
+```
+
 ### Validate
 
 Run the official Cursor template validation (marketplace manifest, frontmatter, path references):
 
 ```bash
 pnpm validate-template
+```
+
+Validate skill definitions (required before submit):
+
+```bash
+pnpm validate-skills
 ```
 
 Run per-plugin structural validation:
@@ -100,18 +114,9 @@ zoto-agents/
 ├── pnpm-workspace.yaml       # pnpm workspace definition
 ├── tsconfig.base.json        # Shared TypeScript config
 ├── plugins/
-│   └── zoto-spec-system/
-│       ├── .cursor-plugin/   # Plugin manifest (plugin.json)
-│       ├── agents/           # Agent definitions (markdown + frontmatter)
-│       ├── assets/           # Logo and static assets
-│       ├── commands/         # Command definitions (markdown + frontmatter)
-│       ├── docs/             # Plugin documentation
-│       ├── hooks/            # Hook scripts (TypeScript → compiled JS)
-│       ├── rules/            # Rule files (.mdc + frontmatter)
-│       ├── skills/           # Skill definitions + evals
-│       ├── templates/        # Config templates
-│       ├── scripts/          # Dev scripts (TypeScript)
-│       └── tests/            # Test suite (vitest)
+│   ├── zoto-spec-system/     # Spec planning, judging, execution
+│   ├── zoto-eval-system/     # Static + LLM eval harness
+│   └── zoto-cursor-top/      # Agent monitor CLI
 ```
 
 ## Submission Checklist
@@ -122,6 +127,8 @@ zoto-agents/
 - All frontmatter metadata is present in rule, skill, agent, and command files.
 - Logos are committed and referenced with relative paths.
 - `node scripts/validate-template.mjs` passes.
+- `pnpm validate-skills` passes.
+- `pnpm validate` passes.
 - `pnpm test` passes.
 
 ## License
