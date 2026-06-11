@@ -8,6 +8,7 @@
       "files": [],
       "assertions": [
         "The assistant runs `cursor-top` (interactive mode) or instructs the user to run it",
+        "When `cursor-top` is not on PATH and `dist/cli.js` is missing, the assistant directs the user to run `/zoto-cursor-top-init` once before retrying",
         "The assistant explains the keyboard shortcuts for expand, collapse, and quit",
         "The assistant mentions that each row shows model, repo, start time, and the last 3 log lines",
         "The assistant does not modify any Cursor data directory",
