@@ -23176,3 +23176,3823 @@ targets:
     public_surface:
       workspace: .cursor
     eval_files: []
+---
+schema_version: 1
+created_at: 2026-05-03T07:47:43+00:00
+updated_at: 2026-06-10T14:41:49.764Z
+git_ref: fe0556f3fc4a6e31b26dcc56b30aa4f43f8511f3
+generated_by: zoto-update-evals
+discovery_config:
+  discoveryTargets:
+    - skill
+    - command
+    - agent
+    - hook
+  skillsRoots:
+    - .cursor/skills
+    - skills
+    - plugins/*/skills
+  evalsDir: evals
+  additionalAutomation: []
+  cursorRoot: .cursor
+  cursor_namespaced_ids: []
+  ignore:
+    - .cursor/skills/crux-*
+    - .cursor/commands/crux-*.md
+    - .cursor/agents/crux-cursor-*.md
+    - .cursor/hooks/crux-*
+targets:
+  - id: skill:zoto-create-plugin
+    kind: skill
+    path: .cursor/skills/zoto-create-plugin/SKILL.md
+    content_hash: c07e9af86b978a5372af27bfa8bdcab77dbc45bc2cf0f20047e5467d109eda04
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Guided workflow for scaffolding a new Cursor plugin in this
+          monorepo. Gathers requirements, creates the directory structure,
+          generates all component files (manifest, agents, skills, commands,
+          rules, hooks), adds skill evaluations, registers in the marketplace
+          manifest, and runs validation. Use when creating a new plugin from
+          scratch.
+    eval_files:
+      - .cursor/skills/zoto-create-plugin/evals/evals.json
+  - id: skill:zoto-cursor-top-monitor
+    kind: skill
+    path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
+    content_hash: 15701358f7af93569b2dc2465f2b96221b52b0bdbe16da2d34a2a4e113ea09c7
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-monitor
+        description: Guided workflow for launching and interpreting the cursor-top TUI.
+          Covers process discovery, hierarchy expansion, log tail
+          interpretation, and recommended flags for different scenarios. Use
+          when the user wants to monitor every Cursor agent on their machine in
+          real time, or to capture a snapshot for a report.
+    eval_files:
+      - plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json
+  - id: skill:zoto-advise-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md
+    content_hash: dc0f0d5df56ed5838a642161ce3d71279222ea6372239d18d831b4eec7df989f
+    public_surface:
+      frontmatter:
+        name: zoto-advise-evals
+        description: '"Coverage gap analyser for eval suites. Scans the codebase across
+          five dimensions — trigger-phrase coverage, schema validation,
+          regression baselines, context citation verification, and status
+          checklist completeness — and produces a structured adviser_report with
+          per-target, per-dimension findings and deterministic recommendations.
+          Read-only: never modifies files. Does not call askQuestion — uses
+          needs_user_input at two breakpoints (summary drill-down and action
+          recommendations) for the command to drive via askQuestion and
+          resume."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-advise-evals/evals/evals.json
+  - id: skill:zoto-compare-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-compare-evals/SKILL.md
+    content_hash: b3d19edf80b7f7292542213b6981286b2b79bafaa31d2b507936ea3b729b5b46
+    public_surface:
+      frontmatter:
+        name: zoto-compare-evals
+        description: Cross-run analysis across two or more eval runs driven by
+          **`report.yml`**. Inputs are resolved per run directory under
+          `{evalsDir}/_runs/<ts>/`; per-backend summaries are nested under
+          **`report.static`** and **`report.llm`**. Emits a flat dataset (runs ×
+          cases × dimensions) plus the /canvas hand-off prompt, instructing the
+          host agent to invoke Cursor's built-in /canvas tool. The skill never
+          renders charts itself. Drill-down opens per-case log files. Does not
+          call askQuestion — when a fragment (e.g. `20260503`) matches multiple
+          hourly folders and the Task lacks a disambiguator, emit schema-valid
+          **`needs_user_input`** whose **`options[].label`** lists every full
+          **`{evalsDir}/_runs/<ts>/`** candidate path (`/z-eval-compare`
+          surfaces this without **`askQuestion`**).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-compare-evals/evals/evals.json
+  - id: skill:zoto-configure-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md
+    content_hash: a77f21b7da13bf2da4d4bae1d79c4fe69b5bb740e43752114e867724c0609947
+    public_surface:
+      frontmatter:
+        name: zoto-configure-evals
+        description: Writes .zoto/eval-system/config.yml from field values pre-collected
+          by /z-eval-configure (command-owned askQuestion). Refuses bundled
+          update.preserveUserAuthoredCases:false or update.writeMetaMarker:false
+          (including nested payload mirrors) before any manifest read or config
+          write. Validates against templates/schema/config.schema.json. Diffs
+          the chosen config against the manifest snapshot
+          (discovery_config.static.framework) to produce a cleanup_plan
+          validated against templates/schema/cleanup-plan.schema.json, and
+          stamps _meta.primitive_analysis.invalidate=true on every cached
+          primitive analysis when the static framework changes. The unified LLM
+          eval harness ships one JSON-first co-located eval per target, with no
+          per-repo selector axis — only the static framework matters here. Never
+          calls askQuestion — returns needs_user_input if validation cannot
+          proceed without user clarification.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-configure-evals/evals/evals.json
+  - id: skill:zoto-create-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+    content_hash: a000fce6a4e03731aaf0a5604c097e2f6ab3efa7a780723ef83f5a1c3598b4b7
+    public_surface:
+      frontmatter:
+        name: zoto-create-evals
+        description: Scaffolds static pytest and LLM (@cursor/sdk) eval backends into a
+          host repository, generates eval cases with _meta.generated markers for
+          approved skills/commands/agents/hooks, merges eval scripts into
+          package.json, and writes the persistent manifest plus append-only
+          history. Expects the invoking command to pre-collect approved targets
+          — does not call askQuestion.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json
+  - id: skill:zoto-eval-tooling
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
+    content_hash: 901336b2a1b2431f5b7857e62b8cd9425097f78a81f95b99891cf1047a394af2
+    public_surface:
+      frontmatter:
+        name: zoto-eval-tooling
+        description: Invocation reference for all eval-system CLI commands. Use this
+          skill when you need to run eval scripts — never reference script paths
+          directly; always invoke via the package.json aliases documented here.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json
+  - id: skill:zoto-execute-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md
+    content_hash: f9215ca71cca10db74f78971b9aa416e1fcaf854b26ed956cfa63c3a5ba62fc7
+    public_surface:
+      frontmatter:
+        name: zoto-execute-evals
+        description: Executes eval runs via the host repo's package.json scripts (pnpm
+          run eval, eval:full, eval:llm, eval:judge). Forwards --model to the
+          LLM runner via both a CLI flag and the ZOTO_EVAL_MODEL environment
+          variable. After each run, calls eval:update --check and appends the
+          drift status to the run report as a warn-only line. Does not call
+          askQuestion — credential gaps use needs_user_input for the command.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-execute-evals/evals/evals.json
+  - id: skill:zoto-help-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+    content_hash: 70549869e895808d834e9d20fbb7047f6c034d828e20c2788ad1f1745a2ab0cf
+    public_surface:
+      frontmatter:
+        name: zoto-help-evals
+        description: Project-tailored help for the Eval System plugin. Loads
+          plugins/zoto-eval-system/README.md as the source of truth, inspects
+          current project state (.zoto/eval-system/config.yml, manifest.yml,
+          .env*, evals/_runs/, package.json scripts), and composes an answer
+          that is grounded in the chosen README section, tailored to the host
+          repo's actual configuration and artefacts, and cited with
+          `start:end:path` code references back to the README. Pre-collected
+          `help_context` arrives from the /z-eval-help command (command-owned
+          askQuestion). The skill itself never calls askQuestion — missing
+          context is returned as `needs_user_input`.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json
+  - id: skill:zoto-judge-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-judge-evals/SKILL.md
+    content_hash: ab6eb45f980baf9aa5c161744cd31d3805e56ea4eddee4f3363b37ae5b922146
+    public_surface:
+      frontmatter:
+        name: zoto-judge-evals
+        description: Adversarial judge for eval runs. Identifies weak graders,
+          under-covered assertions, verbosity spikes, and accuracy/confidence
+          regressions. Produces an enriched llm.yml with soft-metric
+          annotations. Does not call askQuestion — handoff to /z-eval-update is
+          expressed as needs_user_input for the command to confirm via
+          askQuestion and resume. Uses the configured judgeModel (default
+          claude-opus-4-8[]).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-judge-evals/evals/evals.json
+  - id: skill:zoto-update-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md
+    content_hash: 8e04894bce247d7877e22fad123a41947921883e9b2279815babea1850c0e225
+    public_surface:
+      frontmatter:
+        name: zoto-update-evals
+        description: '"Diff-aware eval updater. Detects drift between covered targets
+          and generated eval cases for skills and central plugin eval files
+          (commands/agents/hooks), classifies changes as critical or
+          non-critical, and preserves user-authored cases verbatim. Apply-mode
+          regeneration re-invokes the LLM analyser per drifted primitive and
+          dispatches per-framework static stamping plus the single unified LLM
+          regeneration (`regenerateLlm`) (CI defaults to cached analyser
+          payloads unless `--with-analyser`). The `_meta.generated === true`
+          (case) and `// _meta.generated\\: true` (file) contracts are enforced
+          at runtime AND compile time. Supports targeted mode, rediscovery mode,
+          `--no-analyser` / CI cache reuse, and CI `--check` (exit 2 on critical
+          drift)."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-update-evals/evals/evals.json
+  - id: skill:zoto-create-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md
+    content_hash: e79c250ba45437db46c47a717cb2d638fbd65d26be25315de614015a0a6312ce
+    public_surface:
+      frontmatter:
+        name: zoto-create-spec
+        description: Guided workflow for creating engineering specs. Gathers
+          requirements, explores the codebase, proposes a spec structure, and
+          generates spec files under the configured specs directory. Use when
+          planning a new feature, refactor, or multi-step initiative before
+          implementation.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+  - id: skill:zoto-execute-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+    content_hash: dd25ad95a2fd6210c4f72d2652882e070e9e3452f6a7eb4e19691e4c9927b0a4
+    public_surface:
+      frontmatter:
+        name: zoto-execute-spec
+        description: Executes an engineering spec by spawning subagents for each
+          subtask, tracking progress, adversarial verification, and final
+          quality checks. Use when a spec exists under the configured specs
+          directory and is ready for execution.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+  - id: skill:zoto-judge-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md
+    content_hash: 8ec8d8ff317d7c3c4a6a758eacf50e12f5a0165073079f818bf2fa07e822112d
+    public_surface:
+      frontmatter:
+        name: zoto-judge-spec
+        description: Independent assessment of a repository or Spec System engineering
+          specs. Reviews quality, feasibility, completeness, risk, and
+          structure. After producing a spec assessment, offers to apply
+          recommended fixes directly to the spec files. Use to audit a codebase
+          or to assess and improve a spec before running zoto-execute-spec.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
+  - id: command:zoto-cursor-top
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top.md
+    content_hash: ac1bd268646e42da89700ee216833b2dcd751bffcaec92086016e613602ba497
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top
+        description: Open the live updating htop-style CLI that lists every Cursor agent
+          on this machine, with expandable parent-to-subagent hierarchy and
+          scrolling log tails.
+    eval_files: []
+  - id: command:z-eval-advise
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-advise.md
+    content_hash: 72f3ec88f3cfa78d8585d959e2e53e34753900e7f4e1391d68dc706ed591a21e
+    public_surface:
+      frontmatter:
+        name: z-eval-advise
+        description: Pre-hoc eval coverage adviser. Assesses gaps across five dimensions
+          (trigger-phrase, schema, regression, citation, checklist) and
+          recommends actions. Command-owned askQuestion drives multi-turn
+          interaction at two breakpoints (drill-down selection, action
+          recommendations); zoto-eval-adviser subagent surfaces
+          needs_user_input. Hands off accepted recommendations to /z-eval-create
+          or /z-eval-update.
+    eval_files: []
+  - id: command:z-eval-compare
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-compare.md
+    content_hash: be917b53788948c6a6ac4ade9b18eed18fc399211536839495c54c1b115ebaae
+    public_surface:
+      frontmatter:
+        name: z-eval-compare
+        description: Cross-run analysis across two or more runs. When run fragments
+          match multiple `_runs/` folders and the invocation is
+          undifferentiated, the comparer returns `needs_user_input` enumerating
+          candidates — surface that payload verbatim; **do not** run
+          `askQuestion`. Emits flat dataset and /canvas hand-off once paths
+          resolve.
+    eval_files: []
+  - id: command:z-eval-configure
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-configure.md
+    content_hash: cb792ed5d287975e6d5ebbf0d45c3e923ac6bd62eb456a79ea5069402131facb
+    public_surface:
+      frontmatter:
+        name: z-eval-configure
+        description: Writes .zoto/eval-system/config.yml using command-owned askQuestion
+          for every field, then spawns zoto-eval-configurer with pre-collected
+          answers. Diffs the chosen config against the manifest snapshot
+          (discovery_config.static), renders the resulting cleanup_plan via
+          askQuestion, and — only on explicit confirmation — shells out to `pnpm
+          run eval:cleanup-stale` (subtask 03) to delete stale static-framework
+          assets. The LLM backend is JSON-first (co-located
+          `<kind>/evals/<name>.json` with optional `runner` escape hatch) so no
+          strategy-switch prompts are issued. Supports resume when the subagent
+          returns needs_user_input.
+    eval_files: []
+  - id: command:z-eval-create
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-create.md
+    content_hash: 6af19bfa3497af02ee868c1f53a4c3faaf0d0a802cedd0cd445fd96f449f5ba2
+    public_surface:
+      frontmatter:
+        name: z-eval-create
+        description: Scaffold static (pytest) and LLM (@cursor/sdk) eval backends,
+          generate eval cases with _meta.generated markers for approved
+          skills/commands/agents/hooks, and write the persistent manifest.
+          Command pre-collects target checklists via askQuestion before spawning
+          zoto-eval-generator.
+    eval_files: []
+  - id: command:z-eval-execute
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-execute.md
+    content_hash: 63ae39aef8a3507aae5f872f264039691a24a69602a624d605a7d57d6e1bc951
+    public_surface:
+      frontmatter:
+        name: z-eval-execute
+        description: Run the eval suite via the host repo's package.json scripts.
+          Command-owned askQuestion when --full lacks CURSOR_API_KEY;
+          zoto-eval-executor returns needs_user_input if unresolved. --model
+          forwards to LLM runner.
+    eval_files: []
+  - id: command:z-eval-help
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-help.md
+    content_hash: 33b462ca3240318bff8a6f43fdfc28043dfa8a882d7e16540409d01fbd644fcd
+    public_surface:
+      frontmatter:
+        name: z-eval-help
+        description: Section-routed help for the Eval System plugin. Command-owned
+          askQuestion for section selection and follow-ups; zoto-help-evals
+          composes a project-tailored answer anchored on the chosen README
+          section, with mandatory `start:end:path` citations back to the README
+          and any project files it inspected. The skill never calls askQuestion
+          (no subagent askQuestion).
+    eval_files: []
+  - id: command:z-eval-init
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-init.md
+    content_hash: 481399fdf23e89ea6bca7d88e0d57a32c793d9411fb20ac50fda6a76806a3371
+    public_surface:
+      frontmatter:
+        name: z-eval-init
+        description: Initialise the Eval System config at .zoto/eval-system/config.yml
+          with a commented template of all defaults.
+    eval_files: []
+  - id: command:z-eval-judge
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-judge.md
+    content_hash: 7654646bb17b9133a4a1597dfac3a6a804fbb3bff851a593f873cb279f6b0174
+    public_surface:
+      frontmatter:
+        name: z-eval-judge
+        description: Adversarial post-hoc analysis of the most recent eval run.
+          Command-owned askQuestion for handoff to /z-eval-update; judge
+          subagent surfaces needs_user_input. Enriches llm.yml with a judge
+          block.
+    eval_files: []
+  - id: command:z-eval-jump
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-jump.md
+    content_hash: aa55940392f02a56107e1a19b5f43ee7d0e14344b79f8367a4d42df69330f790
+    public_surface:
+      frontmatter:
+        name: z-eval-jump
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-operator
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-operator.md
+    content_hash: 71452a1e19d087b7dc887cc8c6812d9bce718d6bfb6e5b1843d7a982f45b82e3
+    public_surface:
+      frontmatter:
+        name: z-eval-operator
+        description: Operator jump into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-start
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-start.md
+    content_hash: d463e50b0a2e2f7d82480f3a75a662c344d901dd37b4bb1c3e72091bad6b8ae0
+    public_surface:
+      frontmatter:
+        name: z-eval-start
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-update
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-update.md
+    content_hash: 209668cadaa4f5de4fddb0ad5001fa4afc96e0f67488ac0f7fe18d07e693e85b
+    public_surface:
+      frontmatter:
+        name: z-eval-update
+        description: '"Diff-aware eval updater. Re-invokes the LLM analyser per drifted
+          primitive, dispatches per-framework / per-strategy regeneration
+          through hard-coded user-case preservation gates, and appends a
+          manifest snapshot. Command-owned askQuestion per change in apply
+          modes; subagent uses resume. The `_meta.generated` (case) and `//
+          _meta.generated\\: true` (file) contracts are enforced at runtime AND
+          compile time. Targeted, rediscovery, `--no-analyser`, and CI `--check`
+          modes."'
+    eval_files: []
+  - id: command:z-eval-workflow
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-workflow.md
+    content_hash: c4ed66d0bc87eac8ec5ad1fe24011c20f2b65b477e817b0a61ccc08f5f879d96
+    public_surface:
+      frontmatter:
+        name: z-eval-workflow
+        description: Interactive evaluator entry point — command-owned askQuestion maps
+          the operator’s current lifecycle stage to the correct Eval System
+          slash command (configure, scaffold, drift, execute, judge, compare,
+          advise, help) without spawning subagents.
+    eval_files: []
+  - id: command:z-spec-create
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-create.md
+    content_hash: 9dad691b4ec9d07eb9667ef45225181efd1337e646bcfc7953317228826a2681
+    public_surface:
+      frontmatter:
+        name: z-spec-create
+        description: Generate structured engineering specs for complex features and
+          multi-step initiatives.
+    eval_files: []
+  - id: command:z-spec-execute
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-execute.md
+    content_hash: 522f2ce7c52af0336679a0e7bbb570394f467c2a21e526f203b796d9ebd626fd
+    public_surface:
+      frontmatter:
+        name: z-spec-execute
+        description: Execute an engineering spec with guided subagent coordination,
+          progress tracking, and completion verification.
+    eval_files: []
+  - id: command:z-spec-init
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-init.md
+    content_hash: 5a42707b1c19fba70e21d81c6f3cf06b50c9a4f511d6e7bdcccf980624a85185
+    public_surface:
+      frontmatter:
+        name: z-spec-init
+        description: Initialise the Spec System config at .zoto/spec-system/config.yml
+          with a commented template of all defaults.
+    eval_files: []
+  - id: command:z-spec-judge
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-judge.md
+    content_hash: 59c0371ccf1480bdb6eede4aa492504d8acda65a0a60f48a05dddb8bebbd90bc
+    public_surface:
+      frontmatter:
+        name: z-spec-judge
+        description: Independently assess the repository or a specific engineering spec
+          for quality, feasibility, and completeness. For spec assessments,
+          offers to apply recommended fixes directly to spec files.
+    eval_files: []
+  - id: command:sync-plugins
+    kind: command
+    path: .cursor/commands/sync-plugins.md
+    content_hash: e56e7f7f021ea8ba307df39f91b53e36d4dff99eb8f1fd3b291af12269474d5d
+    public_surface:
+      frontmatter:
+        name: sync-plugins
+        description: Force-sync plugin source files to ~/.cursor/plugins/local/
+    eval_files: []
+  - id: command:zoto-create-plugin
+    kind: command
+    path: .cursor/commands/zoto-create-plugin.md
+    content_hash: 92365d4ef5d937dad6da4376751ae1ed5fa2efdf53c0ee5990b5b4174e2a08aa
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Scaffold a new Cursor plugin in this monorepo with guided component
+          selection, validation, and marketplace registration.
+    eval_files: []
+  - id: agent:zoto-cursor-top-troubleshooter
+    kind: agent
+    path: plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md
+    content_hash: 0bfd7b8dae4a7e8af6b5be3084cd37971d39bf590fa88495968d7f801e7a15c0
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-troubleshooter
+        description: Diagnose missing rows, empty log tails, or platform-specific gaps
+          in cursor-top discovery and recommend remediations.
+        model: composer-2.5[]
+    eval_files: []
+  - id: agent:zoto-eval-adviser
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-adviser.md
+    content_hash: 197d697909824afaf30a3d9533c4457902f060e23347bb3f8cc843af2d0dab72
+    public_surface:
+      frontmatter:
+        name: zoto-eval-adviser
+        model: claude-opus-4-8[]
+        description: Assesses eval suite coverage gaps across five dimensions
+          (trigger-phrase coverage, schema validation, regression baselines,
+          citation verification, checklist completeness). Reads
+          skill/command/agent sources and their evals.json files — never reads
+          run artefacts or modifies eval files. Does not call askQuestion —
+          returns needs_user_input at two breakpoints (drill-down selection,
+          action recommendations) for the command to drive via askQuestion and
+          resume.
+    eval_files: []
+  - id: agent:zoto-eval-analyser-subagent
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
+    content_hash: 13f55ef284e5712772a1184414b6f78972d1264daa78f28911d54da0d3673074
+    public_surface:
+      frontmatter:
+        name: zoto-eval-analyser-subagent
+        model: claude-opus-4-8[]
+        description: System prompt for the LLM-driven primitive analyser invoked by
+          `pnpm run eval:analyse`. Not surfaced to humans — driven by the
+          eval-system stamp/update flows via @cursor/sdk. Produces a strict JSON
+          AnalyserPayload (templates/schema/analyser-payload.schema.json) per
+          primitive (skill / command / agent / hook / rule).
+    eval_files: []
+  - id: agent:zoto-eval-comparer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-comparer.md
+    content_hash: e1579b08c2077e07673503d3c9d45bcaaa3ec70838622e304c1c2922a3eabc22
+    public_surface:
+      frontmatter:
+        name: zoto-eval-comparer
+        model: claude-opus-4-8[]
+        description: Cross-run analysis that emits a flat dataset and a /canvas hand-off
+          instruction. The host agent is expected to invoke Cursor's built-in
+          /canvas tool to render the comparison. Skill never renders charts
+          itself. Drilldown opens per-case log files. Does not call askQuestion
+          — when fragments (e.g. `20260503`) match multiple
+          `{evalsDir}/_runs/<ts>/` folders and the prompt did not pin one path
+          per argument, return schema-valid **`needs_user_input`** with each
+          candidate's full **`{evalsDir}/_runs/<ts>/`** path in
+          **`options[].label`**; **`/z-eval-compare`** surfaces that without
+          **`askQuestion`**.
+    eval_files: []
+  - id: agent:zoto-eval-configurer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-configurer.md
+    content_hash: 03f7312a3b39afb26cc983d1b8f3ee8cfae18a545ec690bb87d5bbabf982296f
+    public_surface:
+      frontmatter:
+        name: zoto-eval-configurer
+        model: claude-opus-4-8[]
+        description: Writes .zoto/eval-system/config.yml using the zoto-configure-evals
+          skill. Presents enum-backed fields only through answers pre-collected
+          by the invoking command; never calls askQuestion. Reads the manifest
+          snapshot via plugins/zoto-eval-system/engine/manifest-snapshot.ts,
+          emits a cleanup_plan validated against
+          templates/schema/cleanup-plan.schema.json when static.framework
+          changes, and stamps _meta.primitive_analysis.invalidate=true on every
+          cached primitive analysis after a switch. The unified LLM eval harness
+          ships a single backend shape (one TS-everywhere co-located eval per
+          target) with no per-repo selector axis. Rejects bundled false for
+          update.preserveUserAuthoredCases or update.writeMetaMarker before any
+          config write; rejects configs that violate those contracts.
+    eval_files: []
+  - id: agent:zoto-eval-executor
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-executor.md
+    content_hash: 7f0ed629e61557cfed0c6cc6ae1c51d0f2059b3eb47732c315bb8469643d7a1c
+    public_surface:
+      frontmatter:
+        name: zoto-eval-executor
+        model: claude-opus-4-8[]
+        description: Executes eval runs via the host repo's package.json scripts.
+          Forwards --model to the LLM runner via both a CLI flag and the
+          ZOTO_EVAL_MODEL environment variable. Gates the LLM backend on
+          CURSOR_API_KEY and --full. After every run, calls eval:update --check
+          and appends the drift status to llm.yml as warn-only. Does not call
+          askQuestion — missing credentials or choices are returned as
+          needs_user_input for the command.
+    eval_files: []
+  - id: agent:zoto-eval-generator
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-generator.md
+    content_hash: 14a86ea692695a5743bfd45b139257a8041a5daba7c105f26c746022c8474181
+    public_surface:
+      frontmatter:
+        name: zoto-eval-generator
+        model: claude-opus-4-8[]
+        description: Plans and scaffolds the eval suite for a repository. Uses
+          zoto-create-evals and zoto-configure-evals skills to lay down both
+          pytest and LLM (@cursor/sdk) backends, generate per-target eval cases
+          with _meta.generated markers, and write the persistent manifest plus
+          append-only history. Does not call askQuestion — receives
+          pre-collected answers from the invoking command or returns
+          needs_user_input.
+    eval_files: []
+  - id: agent:zoto-eval-judge
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-judge.md
+    content_hash: a802872245e0918d336460b875b9ef7c3940d993406eeeafb493c472985af719
+    public_surface:
+      frontmatter:
+        name: zoto-eval-judge
+        model: claude-opus-4-8[]
+        description: Adversarial eval judge. Reads the most recent llm.yml and per-case
+          logs, flags weak graders, under-covered assertions, verbosity spikes,
+          and low-confidence cases. Writes a judge block to llm.yml. Does not
+          call askQuestion — returns needs_user_input when handoff to
+          /z-eval-update requires user approval (the command runs askQuestion
+          and resumes).
+    eval_files: []
+  - id: agent:zoto-eval-updater
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-updater.md
+    content_hash: d5dbe917302861f47f3500d4736988b03efc925766425071219e761d38f032fa
+    public_surface:
+      frontmatter:
+        name: zoto-eval-updater
+        model: claude-opus-4-8[]
+        description: '"Diff-aware eval updater. Uses zoto-update-evals to detect drift
+          between covered targets and generated eval cases, re-invokes the LLM
+          analyser per drifted primitive, and dispatches per-framework static
+          regeneration plus the single unified LLM eval regeneration
+          (`regenerateLlm`) through hard-coded user-case preservation gates.
+          Never mutates user-authored cases or user-authored test files — the
+          `_meta.generated === true` (case) and `// _meta.generated\\: true`
+          (file) contracts are enforced at runtime AND compile time. On
+          palette-driven flows or any unexpected apply branch, returns
+          structured `needs_user_input` for the owning command — never
+          `askQuestion` from the subagent."'
+    eval_files: []
+  - id: agent:zoto-spec-executor
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+    content_hash: 62b73f7f5372980ae0a500c3b0264e744c0df69cc1ba6ef67458f1bc4047f1b3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-executor
+        model: composer-2.5[]
+        description: Execution coordination specialist. Executes engineering specs by
+          spawning subagents for each subtask, tracking progress through
+          dependency phases, coordinating adversarial verification, and
+          producing execution reports. Specs are ephemeral coordination
+          artifacts — not ongoing knowledge.
+    eval_files: []
+  - id: agent:zoto-spec-generator
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
+    content_hash: 0cb7fb39e7f410e372bd9f2f8d706d925bea1ccd0efc970a760a35d25e9499f3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-generator
+        model: claude-opus-4-8[]
+        description: Config-driven spec creation specialist. Breaks down complex
+          features into well-defined subtasks with clear deliverables,
+          dependency graphs, and execution phases. Specs are ephemeral
+          coordination artifacts — not ongoing knowledge.
+    eval_files: []
+  - id: agent:zoto-spec-judge
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
+    content_hash: f144935058a14896d7b7492a4584f2e696e5626626343632230813efc9d800c5
+    public_surface:
+      frontmatter:
+        name: zoto-spec-judge
+        model: claude-opus-4-8[]
+        description: Independent quality gate for the Spec System. Performs adversarial
+          verification of subtask deliverables during spec execution
+          (status-pair-only writes; fix-lists routed back to the assigned
+          subagent — never authored by the judge), produces structured
+          assessments of repositories and specs, and (only in Mode 3, only with
+          explicit user approval) offers to apply recommended fixes to spec
+          files. Always runs in a fresh context to avoid bias.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-architect
+    kind: agent
+    path: .cursor/agents/zoto-eval-architect.md
+    content_hash: 71a840d3483c0fe14cbe1604bafbc51b44b283716b2c9e7c5c5185f43de07a41
+    public_surface:
+      frontmatter:
+        name: zoto-eval-architect
+        model: claude-opus-4-8[]
+        description: Eval-system architect specialising in the design, ergonomics,
+          performance, and quality strategy of the `zoto-eval-system` plugin.
+          Deep knowledge of the declarative-vs-code LLM-strategy split, the
+          command/skill/agent layer boundaries, the analyser →
+          declarative-runner / code-stamper → judge pipeline, model precedence,
+          prompt-cost accounting, and developer-ergonomics across the init →
+          configure → create → update → execute → judge → compare → advise
+          lifecycle.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-engineer
+    kind: agent
+    path: .cursor/agents/zoto-eval-engineer.md
+    content_hash: 5f6111c7b000f431c2dde3d1a8740d338628a6649b4e05947a341a47715d8df4
+    public_surface:
+      frontmatter:
+        name: zoto-eval-engineer
+        model: claude-opus-4-8[]
+        description: Eval-system implementation engineer specialising in the code,
+          schemas, contracts, and host-repo application of the
+          `zoto-eval-system` plugin. Deep knowledge of the TypeScript engine,
+          hooks, validation pipeline, the 7 JSON schemas, hard-coded
+          `preserveUserAuthoredCases` / `writeMetaMarker` contracts, drift
+          detection, the `_user-case-guards/` boundary, the manifest format, the
+          `.zoto/eval-system/` host-repo layout, and the `_runs/` artefact tree.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-plugin-manager
+    kind: agent
+    path: .cursor/agents/zoto-plugin-manager.md
+    content_hash: eb8d5c9c66162ac653955044a3a2222a856bbc1016847c9f68d1089b1f3e9162
+    public_surface:
+      frontmatter:
+        name: zoto-plugin-manager
+        model: claude-opus-4-8[]
+        description: Expert at creating, validating, and managing Cursor plugins in this
+          monorepo. Deep knowledge of plugin anatomy (agents, skills, commands,
+          rules, hooks, MCP), the Agent Skills specification, marketplace
+          publishing, skill evaluations, CRUX compression, and monorepo tooling.
+        is_background: "true"
+    eval_files: []
+  - id: hook:zoto-eval-system
+    kind: hook
+    path: plugins/zoto-eval-system/hooks/hooks.json
+    content_hash: 5aede789d6f42e7903d75ee1d9dd7b9d16787575075d8aaffb35a0bc4704aa11
+    public_surface:
+      plugin: zoto-eval-system
+    eval_files: []
+  - id: hook:zoto-spec-system
+    kind: hook
+    path: plugins/zoto-spec-system/hooks/hooks.json
+    content_hash: e12aef7ec0adc9c2f3aa8586611ed33bd222f6a2169df5915cca443e892fa019
+    public_surface:
+      plugin: zoto-spec-system
+    eval_files: []
+  - id: hook:cursor-workspace
+    kind: hook
+    path: .cursor/hooks.json
+    content_hash: 0a8483a7a8b5f97f31998cff0cb714f000896d661f379cc8cf8149bafca7e8f8
+    public_surface:
+      workspace: .cursor
+    eval_files: []
+---
+schema_version: 1
+created_at: 2026-05-03T07:47:43+00:00
+updated_at: 2026-06-10T22:16:02.467Z
+git_ref: fe0556f3fc4a6e31b26dcc56b30aa4f43f8511f3
+generated_by: zoto-update-evals
+discovery_config:
+  discoveryTargets:
+    - skill
+    - command
+    - agent
+    - hook
+  skillsRoots:
+    - .cursor/skills
+    - skills
+    - plugins/*/skills
+  evalsDir: evals
+  additionalAutomation: []
+  cursorRoot: .cursor
+  cursor_namespaced_ids: []
+  ignore:
+    - .cursor/skills/crux-*
+    - .cursor/commands/crux-*.md
+    - .cursor/agents/crux-cursor-*.md
+    - .cursor/hooks/crux-*
+targets:
+  - id: skill:zoto-create-plugin
+    kind: skill
+    path: .cursor/skills/zoto-create-plugin/SKILL.md
+    content_hash: c07e9af86b978a5372af27bfa8bdcab77dbc45bc2cf0f20047e5467d109eda04
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Guided workflow for scaffolding a new Cursor plugin in this
+          monorepo. Gathers requirements, creates the directory structure,
+          generates all component files (manifest, agents, skills, commands,
+          rules, hooks), adds skill evaluations, registers in the marketplace
+          manifest, and runs validation. Use when creating a new plugin from
+          scratch.
+    eval_files:
+      - .cursor/skills/zoto-create-plugin/evals/evals.json
+  - id: skill:zoto-cursor-top-monitor
+    kind: skill
+    path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
+    content_hash: f8e60a03873b944e21bfe182ef94418a12d72887804813dc7b0e5046dc358df1
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-monitor
+        description: Guided workflow for launching and interpreting the cursor-top TUI.
+          Covers process discovery, hierarchy expansion, log tail
+          interpretation, and recommended flags for different scenarios. Use
+          when the user wants to monitor every Cursor agent on their machine in
+          real time, or to capture a snapshot for a report.
+    eval_files:
+      - plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json
+  - id: skill:zoto-advise-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md
+    content_hash: dc0f0d5df56ed5838a642161ce3d71279222ea6372239d18d831b4eec7df989f
+    public_surface:
+      frontmatter:
+        name: zoto-advise-evals
+        description: '"Coverage gap analyser for eval suites. Scans the codebase across
+          five dimensions — trigger-phrase coverage, schema validation,
+          regression baselines, context citation verification, and status
+          checklist completeness — and produces a structured adviser_report with
+          per-target, per-dimension findings and deterministic recommendations.
+          Read-only: never modifies files. Does not call askQuestion — uses
+          needs_user_input at two breakpoints (summary drill-down and action
+          recommendations) for the command to drive via askQuestion and
+          resume."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-advise-evals/evals/evals.json
+  - id: skill:zoto-compare-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-compare-evals/SKILL.md
+    content_hash: b3d19edf80b7f7292542213b6981286b2b79bafaa31d2b507936ea3b729b5b46
+    public_surface:
+      frontmatter:
+        name: zoto-compare-evals
+        description: Cross-run analysis across two or more eval runs driven by
+          **`report.yml`**. Inputs are resolved per run directory under
+          `{evalsDir}/_runs/<ts>/`; per-backend summaries are nested under
+          **`report.static`** and **`report.llm`**. Emits a flat dataset (runs ×
+          cases × dimensions) plus the /canvas hand-off prompt, instructing the
+          host agent to invoke Cursor's built-in /canvas tool. The skill never
+          renders charts itself. Drill-down opens per-case log files. Does not
+          call askQuestion — when a fragment (e.g. `20260503`) matches multiple
+          hourly folders and the Task lacks a disambiguator, emit schema-valid
+          **`needs_user_input`** whose **`options[].label`** lists every full
+          **`{evalsDir}/_runs/<ts>/`** candidate path (`/z-eval-compare`
+          surfaces this without **`askQuestion`**).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-compare-evals/evals/evals.json
+  - id: skill:zoto-configure-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md
+    content_hash: a77f21b7da13bf2da4d4bae1d79c4fe69b5bb740e43752114e867724c0609947
+    public_surface:
+      frontmatter:
+        name: zoto-configure-evals
+        description: Writes .zoto/eval-system/config.yml from field values pre-collected
+          by /z-eval-configure (command-owned askQuestion). Refuses bundled
+          update.preserveUserAuthoredCases:false or update.writeMetaMarker:false
+          (including nested payload mirrors) before any manifest read or config
+          write. Validates against templates/schema/config.schema.json. Diffs
+          the chosen config against the manifest snapshot
+          (discovery_config.static.framework) to produce a cleanup_plan
+          validated against templates/schema/cleanup-plan.schema.json, and
+          stamps _meta.primitive_analysis.invalidate=true on every cached
+          primitive analysis when the static framework changes. The unified LLM
+          eval harness ships one JSON-first co-located eval per target, with no
+          per-repo selector axis — only the static framework matters here. Never
+          calls askQuestion — returns needs_user_input if validation cannot
+          proceed without user clarification.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-configure-evals/evals/evals.json
+  - id: skill:zoto-create-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+    content_hash: a000fce6a4e03731aaf0a5604c097e2f6ab3efa7a780723ef83f5a1c3598b4b7
+    public_surface:
+      frontmatter:
+        name: zoto-create-evals
+        description: Scaffolds static pytest and LLM (@cursor/sdk) eval backends into a
+          host repository, generates eval cases with _meta.generated markers for
+          approved skills/commands/agents/hooks, merges eval scripts into
+          package.json, and writes the persistent manifest plus append-only
+          history. Expects the invoking command to pre-collect approved targets
+          — does not call askQuestion.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json
+  - id: skill:zoto-eval-tooling
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
+    content_hash: 901336b2a1b2431f5b7857e62b8cd9425097f78a81f95b99891cf1047a394af2
+    public_surface:
+      frontmatter:
+        name: zoto-eval-tooling
+        description: Invocation reference for all eval-system CLI commands. Use this
+          skill when you need to run eval scripts — never reference script paths
+          directly; always invoke via the package.json aliases documented here.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json
+  - id: skill:zoto-execute-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md
+    content_hash: f9215ca71cca10db74f78971b9aa416e1fcaf854b26ed956cfa63c3a5ba62fc7
+    public_surface:
+      frontmatter:
+        name: zoto-execute-evals
+        description: Executes eval runs via the host repo's package.json scripts (pnpm
+          run eval, eval:full, eval:llm, eval:judge). Forwards --model to the
+          LLM runner via both a CLI flag and the ZOTO_EVAL_MODEL environment
+          variable. After each run, calls eval:update --check and appends the
+          drift status to the run report as a warn-only line. Does not call
+          askQuestion — credential gaps use needs_user_input for the command.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-execute-evals/evals/evals.json
+  - id: skill:zoto-help-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+    content_hash: 70549869e895808d834e9d20fbb7047f6c034d828e20c2788ad1f1745a2ab0cf
+    public_surface:
+      frontmatter:
+        name: zoto-help-evals
+        description: Project-tailored help for the Eval System plugin. Loads
+          plugins/zoto-eval-system/README.md as the source of truth, inspects
+          current project state (.zoto/eval-system/config.yml, manifest.yml,
+          .env*, evals/_runs/, package.json scripts), and composes an answer
+          that is grounded in the chosen README section, tailored to the host
+          repo's actual configuration and artefacts, and cited with
+          `start:end:path` code references back to the README. Pre-collected
+          `help_context` arrives from the /z-eval-help command (command-owned
+          askQuestion). The skill itself never calls askQuestion — missing
+          context is returned as `needs_user_input`.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json
+  - id: skill:zoto-judge-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-judge-evals/SKILL.md
+    content_hash: ab6eb45f980baf9aa5c161744cd31d3805e56ea4eddee4f3363b37ae5b922146
+    public_surface:
+      frontmatter:
+        name: zoto-judge-evals
+        description: Adversarial judge for eval runs. Identifies weak graders,
+          under-covered assertions, verbosity spikes, and accuracy/confidence
+          regressions. Produces an enriched llm.yml with soft-metric
+          annotations. Does not call askQuestion — handoff to /z-eval-update is
+          expressed as needs_user_input for the command to confirm via
+          askQuestion and resume. Uses the configured judgeModel (default
+          claude-opus-4-8[]).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-judge-evals/evals/evals.json
+  - id: skill:zoto-update-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md
+    content_hash: 8e04894bce247d7877e22fad123a41947921883e9b2279815babea1850c0e225
+    public_surface:
+      frontmatter:
+        name: zoto-update-evals
+        description: '"Diff-aware eval updater. Detects drift between covered targets
+          and generated eval cases for skills and central plugin eval files
+          (commands/agents/hooks), classifies changes as critical or
+          non-critical, and preserves user-authored cases verbatim. Apply-mode
+          regeneration re-invokes the LLM analyser per drifted primitive and
+          dispatches per-framework static stamping plus the single unified LLM
+          regeneration (`regenerateLlm`) (CI defaults to cached analyser
+          payloads unless `--with-analyser`). The `_meta.generated === true`
+          (case) and `// _meta.generated\\: true` (file) contracts are enforced
+          at runtime AND compile time. Supports targeted mode, rediscovery mode,
+          `--no-analyser` / CI cache reuse, and CI `--check` (exit 2 on critical
+          drift)."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-update-evals/evals/evals.json
+  - id: skill:zoto-create-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md
+    content_hash: e79c250ba45437db46c47a717cb2d638fbd65d26be25315de614015a0a6312ce
+    public_surface:
+      frontmatter:
+        name: zoto-create-spec
+        description: Guided workflow for creating engineering specs. Gathers
+          requirements, explores the codebase, proposes a spec structure, and
+          generates spec files under the configured specs directory. Use when
+          planning a new feature, refactor, or multi-step initiative before
+          implementation.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+  - id: skill:zoto-execute-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+    content_hash: dd25ad95a2fd6210c4f72d2652882e070e9e3452f6a7eb4e19691e4c9927b0a4
+    public_surface:
+      frontmatter:
+        name: zoto-execute-spec
+        description: Executes an engineering spec by spawning subagents for each
+          subtask, tracking progress, adversarial verification, and final
+          quality checks. Use when a spec exists under the configured specs
+          directory and is ready for execution.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+  - id: skill:zoto-judge-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md
+    content_hash: 8ec8d8ff317d7c3c4a6a758eacf50e12f5a0165073079f818bf2fa07e822112d
+    public_surface:
+      frontmatter:
+        name: zoto-judge-spec
+        description: Independent assessment of a repository or Spec System engineering
+          specs. Reviews quality, feasibility, completeness, risk, and
+          structure. After producing a spec assessment, offers to apply
+          recommended fixes directly to the spec files. Use to audit a codebase
+          or to assess and improve a spec before running zoto-execute-spec.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
+  - id: command:zoto-cursor-top
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top.md
+    content_hash: 942977d3ccdf25ba4eb865d456e6b8d0b6c7fb896ef7305a7915531b5a54a71d
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top
+        description: Open the live updating htop-style CLI that lists every Cursor agent
+          on this machine, with expandable parent-to-subagent hierarchy and
+          scrolling log tails.
+    eval_files: []
+  - id: command:z-eval-advise
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-advise.md
+    content_hash: 72f3ec88f3cfa78d8585d959e2e53e34753900e7f4e1391d68dc706ed591a21e
+    public_surface:
+      frontmatter:
+        name: z-eval-advise
+        description: Pre-hoc eval coverage adviser. Assesses gaps across five dimensions
+          (trigger-phrase, schema, regression, citation, checklist) and
+          recommends actions. Command-owned askQuestion drives multi-turn
+          interaction at two breakpoints (drill-down selection, action
+          recommendations); zoto-eval-adviser subagent surfaces
+          needs_user_input. Hands off accepted recommendations to /z-eval-create
+          or /z-eval-update.
+    eval_files: []
+  - id: command:z-eval-compare
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-compare.md
+    content_hash: be917b53788948c6a6ac4ade9b18eed18fc399211536839495c54c1b115ebaae
+    public_surface:
+      frontmatter:
+        name: z-eval-compare
+        description: Cross-run analysis across two or more runs. When run fragments
+          match multiple `_runs/` folders and the invocation is
+          undifferentiated, the comparer returns `needs_user_input` enumerating
+          candidates — surface that payload verbatim; **do not** run
+          `askQuestion`. Emits flat dataset and /canvas hand-off once paths
+          resolve.
+    eval_files: []
+  - id: command:z-eval-configure
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-configure.md
+    content_hash: cb792ed5d287975e6d5ebbf0d45c3e923ac6bd62eb456a79ea5069402131facb
+    public_surface:
+      frontmatter:
+        name: z-eval-configure
+        description: Writes .zoto/eval-system/config.yml using command-owned askQuestion
+          for every field, then spawns zoto-eval-configurer with pre-collected
+          answers. Diffs the chosen config against the manifest snapshot
+          (discovery_config.static), renders the resulting cleanup_plan via
+          askQuestion, and — only on explicit confirmation — shells out to `pnpm
+          run eval:cleanup-stale` (subtask 03) to delete stale static-framework
+          assets. The LLM backend is JSON-first (co-located
+          `<kind>/evals/<name>.json` with optional `runner` escape hatch) so no
+          strategy-switch prompts are issued. Supports resume when the subagent
+          returns needs_user_input.
+    eval_files: []
+  - id: command:z-eval-create
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-create.md
+    content_hash: 6af19bfa3497af02ee868c1f53a4c3faaf0d0a802cedd0cd445fd96f449f5ba2
+    public_surface:
+      frontmatter:
+        name: z-eval-create
+        description: Scaffold static (pytest) and LLM (@cursor/sdk) eval backends,
+          generate eval cases with _meta.generated markers for approved
+          skills/commands/agents/hooks, and write the persistent manifest.
+          Command pre-collects target checklists via askQuestion before spawning
+          zoto-eval-generator.
+    eval_files: []
+  - id: command:z-eval-execute
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-execute.md
+    content_hash: 63ae39aef8a3507aae5f872f264039691a24a69602a624d605a7d57d6e1bc951
+    public_surface:
+      frontmatter:
+        name: z-eval-execute
+        description: Run the eval suite via the host repo's package.json scripts.
+          Command-owned askQuestion when --full lacks CURSOR_API_KEY;
+          zoto-eval-executor returns needs_user_input if unresolved. --model
+          forwards to LLM runner.
+    eval_files: []
+  - id: command:z-eval-help
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-help.md
+    content_hash: 33b462ca3240318bff8a6f43fdfc28043dfa8a882d7e16540409d01fbd644fcd
+    public_surface:
+      frontmatter:
+        name: z-eval-help
+        description: Section-routed help for the Eval System plugin. Command-owned
+          askQuestion for section selection and follow-ups; zoto-help-evals
+          composes a project-tailored answer anchored on the chosen README
+          section, with mandatory `start:end:path` citations back to the README
+          and any project files it inspected. The skill never calls askQuestion
+          (no subagent askQuestion).
+    eval_files: []
+  - id: command:z-eval-init
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-init.md
+    content_hash: 481399fdf23e89ea6bca7d88e0d57a32c793d9411fb20ac50fda6a76806a3371
+    public_surface:
+      frontmatter:
+        name: z-eval-init
+        description: Initialise the Eval System config at .zoto/eval-system/config.yml
+          with a commented template of all defaults.
+    eval_files: []
+  - id: command:z-eval-judge
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-judge.md
+    content_hash: 7654646bb17b9133a4a1597dfac3a6a804fbb3bff851a593f873cb279f6b0174
+    public_surface:
+      frontmatter:
+        name: z-eval-judge
+        description: Adversarial post-hoc analysis of the most recent eval run.
+          Command-owned askQuestion for handoff to /z-eval-update; judge
+          subagent surfaces needs_user_input. Enriches llm.yml with a judge
+          block.
+    eval_files: []
+  - id: command:z-eval-jump
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-jump.md
+    content_hash: aa55940392f02a56107e1a19b5f43ee7d0e14344b79f8367a4d42df69330f790
+    public_surface:
+      frontmatter:
+        name: z-eval-jump
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-operator
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-operator.md
+    content_hash: 71452a1e19d087b7dc887cc8c6812d9bce718d6bfb6e5b1843d7a982f45b82e3
+    public_surface:
+      frontmatter:
+        name: z-eval-operator
+        description: Operator jump into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-start
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-start.md
+    content_hash: d463e50b0a2e2f7d82480f3a75a662c344d901dd37b4bb1c3e72091bad6b8ae0
+    public_surface:
+      frontmatter:
+        name: z-eval-start
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-update
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-update.md
+    content_hash: 209668cadaa4f5de4fddb0ad5001fa4afc96e0f67488ac0f7fe18d07e693e85b
+    public_surface:
+      frontmatter:
+        name: z-eval-update
+        description: '"Diff-aware eval updater. Re-invokes the LLM analyser per drifted
+          primitive, dispatches per-framework / per-strategy regeneration
+          through hard-coded user-case preservation gates, and appends a
+          manifest snapshot. Command-owned askQuestion per change in apply
+          modes; subagent uses resume. The `_meta.generated` (case) and `//
+          _meta.generated\\: true` (file) contracts are enforced at runtime AND
+          compile time. Targeted, rediscovery, `--no-analyser`, and CI `--check`
+          modes."'
+    eval_files: []
+  - id: command:z-eval-workflow
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-workflow.md
+    content_hash: c4ed66d0bc87eac8ec5ad1fe24011c20f2b65b477e817b0a61ccc08f5f879d96
+    public_surface:
+      frontmatter:
+        name: z-eval-workflow
+        description: Interactive evaluator entry point — command-owned askQuestion maps
+          the operator’s current lifecycle stage to the correct Eval System
+          slash command (configure, scaffold, drift, execute, judge, compare,
+          advise, help) without spawning subagents.
+    eval_files: []
+  - id: command:z-spec-create
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-create.md
+    content_hash: 9dad691b4ec9d07eb9667ef45225181efd1337e646bcfc7953317228826a2681
+    public_surface:
+      frontmatter:
+        name: z-spec-create
+        description: Generate structured engineering specs for complex features and
+          multi-step initiatives.
+    eval_files: []
+  - id: command:z-spec-execute
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-execute.md
+    content_hash: 522f2ce7c52af0336679a0e7bbb570394f467c2a21e526f203b796d9ebd626fd
+    public_surface:
+      frontmatter:
+        name: z-spec-execute
+        description: Execute an engineering spec with guided subagent coordination,
+          progress tracking, and completion verification.
+    eval_files: []
+  - id: command:z-spec-init
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-init.md
+    content_hash: 5a42707b1c19fba70e21d81c6f3cf06b50c9a4f511d6e7bdcccf980624a85185
+    public_surface:
+      frontmatter:
+        name: z-spec-init
+        description: Initialise the Spec System config at .zoto/spec-system/config.yml
+          with a commented template of all defaults.
+    eval_files: []
+  - id: command:z-spec-judge
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-judge.md
+    content_hash: 59c0371ccf1480bdb6eede4aa492504d8acda65a0a60f48a05dddb8bebbd90bc
+    public_surface:
+      frontmatter:
+        name: z-spec-judge
+        description: Independently assess the repository or a specific engineering spec
+          for quality, feasibility, and completeness. For spec assessments,
+          offers to apply recommended fixes directly to spec files.
+    eval_files: []
+  - id: command:sync-plugins
+    kind: command
+    path: .cursor/commands/sync-plugins.md
+    content_hash: e56e7f7f021ea8ba307df39f91b53e36d4dff99eb8f1fd3b291af12269474d5d
+    public_surface:
+      frontmatter:
+        name: sync-plugins
+        description: Force-sync plugin source files to ~/.cursor/plugins/local/
+    eval_files: []
+  - id: command:zoto-create-plugin
+    kind: command
+    path: .cursor/commands/zoto-create-plugin.md
+    content_hash: 92365d4ef5d937dad6da4376751ae1ed5fa2efdf53c0ee5990b5b4174e2a08aa
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Scaffold a new Cursor plugin in this monorepo with guided component
+          selection, validation, and marketplace registration.
+    eval_files: []
+  - id: agent:zoto-cursor-top-troubleshooter
+    kind: agent
+    path: plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md
+    content_hash: 0bfd7b8dae4a7e8af6b5be3084cd37971d39bf590fa88495968d7f801e7a15c0
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-troubleshooter
+        description: Diagnose missing rows, empty log tails, or platform-specific gaps
+          in cursor-top discovery and recommend remediations.
+        model: composer-2.5[]
+    eval_files: []
+  - id: agent:zoto-eval-adviser
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-adviser.md
+    content_hash: 197d697909824afaf30a3d9533c4457902f060e23347bb3f8cc843af2d0dab72
+    public_surface:
+      frontmatter:
+        name: zoto-eval-adviser
+        model: claude-opus-4-8[]
+        description: Assesses eval suite coverage gaps across five dimensions
+          (trigger-phrase coverage, schema validation, regression baselines,
+          citation verification, checklist completeness). Reads
+          skill/command/agent sources and their evals.json files — never reads
+          run artefacts or modifies eval files. Does not call askQuestion —
+          returns needs_user_input at two breakpoints (drill-down selection,
+          action recommendations) for the command to drive via askQuestion and
+          resume.
+    eval_files: []
+  - id: agent:zoto-eval-analyser-subagent
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
+    content_hash: 13f55ef284e5712772a1184414b6f78972d1264daa78f28911d54da0d3673074
+    public_surface:
+      frontmatter:
+        name: zoto-eval-analyser-subagent
+        model: claude-opus-4-8[]
+        description: System prompt for the LLM-driven primitive analyser invoked by
+          `pnpm run eval:analyse`. Not surfaced to humans — driven by the
+          eval-system stamp/update flows via @cursor/sdk. Produces a strict JSON
+          AnalyserPayload (templates/schema/analyser-payload.schema.json) per
+          primitive (skill / command / agent / hook / rule).
+    eval_files: []
+  - id: agent:zoto-eval-comparer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-comparer.md
+    content_hash: e1579b08c2077e07673503d3c9d45bcaaa3ec70838622e304c1c2922a3eabc22
+    public_surface:
+      frontmatter:
+        name: zoto-eval-comparer
+        model: claude-opus-4-8[]
+        description: Cross-run analysis that emits a flat dataset and a /canvas hand-off
+          instruction. The host agent is expected to invoke Cursor's built-in
+          /canvas tool to render the comparison. Skill never renders charts
+          itself. Drilldown opens per-case log files. Does not call askQuestion
+          — when fragments (e.g. `20260503`) match multiple
+          `{evalsDir}/_runs/<ts>/` folders and the prompt did not pin one path
+          per argument, return schema-valid **`needs_user_input`** with each
+          candidate's full **`{evalsDir}/_runs/<ts>/`** path in
+          **`options[].label`**; **`/z-eval-compare`** surfaces that without
+          **`askQuestion`**.
+    eval_files: []
+  - id: agent:zoto-eval-configurer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-configurer.md
+    content_hash: 03f7312a3b39afb26cc983d1b8f3ee8cfae18a545ec690bb87d5bbabf982296f
+    public_surface:
+      frontmatter:
+        name: zoto-eval-configurer
+        model: claude-opus-4-8[]
+        description: Writes .zoto/eval-system/config.yml using the zoto-configure-evals
+          skill. Presents enum-backed fields only through answers pre-collected
+          by the invoking command; never calls askQuestion. Reads the manifest
+          snapshot via plugins/zoto-eval-system/engine/manifest-snapshot.ts,
+          emits a cleanup_plan validated against
+          templates/schema/cleanup-plan.schema.json when static.framework
+          changes, and stamps _meta.primitive_analysis.invalidate=true on every
+          cached primitive analysis after a switch. The unified LLM eval harness
+          ships a single backend shape (one TS-everywhere co-located eval per
+          target) with no per-repo selector axis. Rejects bundled false for
+          update.preserveUserAuthoredCases or update.writeMetaMarker before any
+          config write; rejects configs that violate those contracts.
+    eval_files: []
+  - id: agent:zoto-eval-executor
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-executor.md
+    content_hash: 7f0ed629e61557cfed0c6cc6ae1c51d0f2059b3eb47732c315bb8469643d7a1c
+    public_surface:
+      frontmatter:
+        name: zoto-eval-executor
+        model: claude-opus-4-8[]
+        description: Executes eval runs via the host repo's package.json scripts.
+          Forwards --model to the LLM runner via both a CLI flag and the
+          ZOTO_EVAL_MODEL environment variable. Gates the LLM backend on
+          CURSOR_API_KEY and --full. After every run, calls eval:update --check
+          and appends the drift status to llm.yml as warn-only. Does not call
+          askQuestion — missing credentials or choices are returned as
+          needs_user_input for the command.
+    eval_files: []
+  - id: agent:zoto-eval-generator
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-generator.md
+    content_hash: 14a86ea692695a5743bfd45b139257a8041a5daba7c105f26c746022c8474181
+    public_surface:
+      frontmatter:
+        name: zoto-eval-generator
+        model: claude-opus-4-8[]
+        description: Plans and scaffolds the eval suite for a repository. Uses
+          zoto-create-evals and zoto-configure-evals skills to lay down both
+          pytest and LLM (@cursor/sdk) backends, generate per-target eval cases
+          with _meta.generated markers, and write the persistent manifest plus
+          append-only history. Does not call askQuestion — receives
+          pre-collected answers from the invoking command or returns
+          needs_user_input.
+    eval_files: []
+  - id: agent:zoto-eval-judge
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-judge.md
+    content_hash: a802872245e0918d336460b875b9ef7c3940d993406eeeafb493c472985af719
+    public_surface:
+      frontmatter:
+        name: zoto-eval-judge
+        model: claude-opus-4-8[]
+        description: Adversarial eval judge. Reads the most recent llm.yml and per-case
+          logs, flags weak graders, under-covered assertions, verbosity spikes,
+          and low-confidence cases. Writes a judge block to llm.yml. Does not
+          call askQuestion — returns needs_user_input when handoff to
+          /z-eval-update requires user approval (the command runs askQuestion
+          and resumes).
+    eval_files: []
+  - id: agent:zoto-eval-updater
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-updater.md
+    content_hash: d5dbe917302861f47f3500d4736988b03efc925766425071219e761d38f032fa
+    public_surface:
+      frontmatter:
+        name: zoto-eval-updater
+        model: claude-opus-4-8[]
+        description: '"Diff-aware eval updater. Uses zoto-update-evals to detect drift
+          between covered targets and generated eval cases, re-invokes the LLM
+          analyser per drifted primitive, and dispatches per-framework static
+          regeneration plus the single unified LLM eval regeneration
+          (`regenerateLlm`) through hard-coded user-case preservation gates.
+          Never mutates user-authored cases or user-authored test files — the
+          `_meta.generated === true` (case) and `// _meta.generated\\: true`
+          (file) contracts are enforced at runtime AND compile time. On
+          palette-driven flows or any unexpected apply branch, returns
+          structured `needs_user_input` for the owning command — never
+          `askQuestion` from the subagent."'
+    eval_files: []
+  - id: agent:zoto-spec-executor
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+    content_hash: 62b73f7f5372980ae0a500c3b0264e744c0df69cc1ba6ef67458f1bc4047f1b3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-executor
+        model: composer-2.5[]
+        description: Execution coordination specialist. Executes engineering specs by
+          spawning subagents for each subtask, tracking progress through
+          dependency phases, coordinating adversarial verification, and
+          producing execution reports. Specs are ephemeral coordination
+          artifacts — not ongoing knowledge.
+    eval_files: []
+  - id: agent:zoto-spec-generator
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
+    content_hash: 0cb7fb39e7f410e372bd9f2f8d706d925bea1ccd0efc970a760a35d25e9499f3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-generator
+        model: claude-opus-4-8[]
+        description: Config-driven spec creation specialist. Breaks down complex
+          features into well-defined subtasks with clear deliverables,
+          dependency graphs, and execution phases. Specs are ephemeral
+          coordination artifacts — not ongoing knowledge.
+    eval_files: []
+  - id: agent:zoto-spec-judge
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
+    content_hash: f144935058a14896d7b7492a4584f2e696e5626626343632230813efc9d800c5
+    public_surface:
+      frontmatter:
+        name: zoto-spec-judge
+        model: claude-opus-4-8[]
+        description: Independent quality gate for the Spec System. Performs adversarial
+          verification of subtask deliverables during spec execution
+          (status-pair-only writes; fix-lists routed back to the assigned
+          subagent — never authored by the judge), produces structured
+          assessments of repositories and specs, and (only in Mode 3, only with
+          explicit user approval) offers to apply recommended fixes to spec
+          files. Always runs in a fresh context to avoid bias.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-architect
+    kind: agent
+    path: .cursor/agents/zoto-eval-architect.md
+    content_hash: 71a840d3483c0fe14cbe1604bafbc51b44b283716b2c9e7c5c5185f43de07a41
+    public_surface:
+      frontmatter:
+        name: zoto-eval-architect
+        model: claude-opus-4-8[]
+        description: Eval-system architect specialising in the design, ergonomics,
+          performance, and quality strategy of the `zoto-eval-system` plugin.
+          Deep knowledge of the declarative-vs-code LLM-strategy split, the
+          command/skill/agent layer boundaries, the analyser →
+          declarative-runner / code-stamper → judge pipeline, model precedence,
+          prompt-cost accounting, and developer-ergonomics across the init →
+          configure → create → update → execute → judge → compare → advise
+          lifecycle.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-engineer
+    kind: agent
+    path: .cursor/agents/zoto-eval-engineer.md
+    content_hash: 5f6111c7b000f431c2dde3d1a8740d338628a6649b4e05947a341a47715d8df4
+    public_surface:
+      frontmatter:
+        name: zoto-eval-engineer
+        model: claude-opus-4-8[]
+        description: Eval-system implementation engineer specialising in the code,
+          schemas, contracts, and host-repo application of the
+          `zoto-eval-system` plugin. Deep knowledge of the TypeScript engine,
+          hooks, validation pipeline, the 7 JSON schemas, hard-coded
+          `preserveUserAuthoredCases` / `writeMetaMarker` contracts, drift
+          detection, the `_user-case-guards/` boundary, the manifest format, the
+          `.zoto/eval-system/` host-repo layout, and the `_runs/` artefact tree.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-plugin-manager
+    kind: agent
+    path: .cursor/agents/zoto-plugin-manager.md
+    content_hash: eb8d5c9c66162ac653955044a3a2222a856bbc1016847c9f68d1089b1f3e9162
+    public_surface:
+      frontmatter:
+        name: zoto-plugin-manager
+        model: claude-opus-4-8[]
+        description: Expert at creating, validating, and managing Cursor plugins in this
+          monorepo. Deep knowledge of plugin anatomy (agents, skills, commands,
+          rules, hooks, MCP), the Agent Skills specification, marketplace
+          publishing, skill evaluations, CRUX compression, and monorepo tooling.
+        is_background: "true"
+    eval_files: []
+  - id: hook:zoto-eval-system
+    kind: hook
+    path: plugins/zoto-eval-system/hooks/hooks.json
+    content_hash: 5aede789d6f42e7903d75ee1d9dd7b9d16787575075d8aaffb35a0bc4704aa11
+    public_surface:
+      plugin: zoto-eval-system
+    eval_files: []
+  - id: hook:zoto-spec-system
+    kind: hook
+    path: plugins/zoto-spec-system/hooks/hooks.json
+    content_hash: e12aef7ec0adc9c2f3aa8586611ed33bd222f6a2169df5915cca443e892fa019
+    public_surface:
+      plugin: zoto-spec-system
+    eval_files: []
+  - id: hook:cursor-workspace
+    kind: hook
+    path: .cursor/hooks.json
+    content_hash: 0a8483a7a8b5f97f31998cff0cb714f000896d661f379cc8cf8149bafca7e8f8
+    public_surface:
+      workspace: .cursor
+    eval_files: []
+---
+schema_version: 1
+created_at: 2026-05-03T07:47:43+00:00
+updated_at: 2026-06-10T22:19:00.282Z
+git_ref: fe0556f3fc4a6e31b26dcc56b30aa4f43f8511f3
+generated_by: zoto-update-evals
+discovery_config:
+  discoveryTargets:
+    - skill
+    - command
+    - agent
+    - hook
+  skillsRoots:
+    - .cursor/skills
+    - skills
+    - plugins/*/skills
+  evalsDir: evals
+  additionalAutomation: []
+  cursorRoot: .cursor
+  cursor_namespaced_ids: []
+  ignore:
+    - .cursor/skills/crux-*
+    - .cursor/commands/crux-*.md
+    - .cursor/agents/crux-cursor-*.md
+    - .cursor/hooks/crux-*
+targets:
+  - id: skill:zoto-create-plugin
+    kind: skill
+    path: .cursor/skills/zoto-create-plugin/SKILL.md
+    content_hash: c07e9af86b978a5372af27bfa8bdcab77dbc45bc2cf0f20047e5467d109eda04
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Guided workflow for scaffolding a new Cursor plugin in this
+          monorepo. Gathers requirements, creates the directory structure,
+          generates all component files (manifest, agents, skills, commands,
+          rules, hooks), adds skill evaluations, registers in the marketplace
+          manifest, and runs validation. Use when creating a new plugin from
+          scratch.
+    eval_files:
+      - .cursor/skills/zoto-create-plugin/evals/evals.json
+  - id: skill:zoto-cursor-top-monitor
+    kind: skill
+    path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
+    content_hash: 0d4ac925fc13105db95fcea9296b549beee01b4b89d50b5c90a59b710dd6a619
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-monitor
+        description: Guided workflow for launching and interpreting the cursor-top TUI.
+          Covers process discovery, hierarchy expansion, log tail
+          interpretation, and recommended flags for different scenarios. Use
+          when the user wants to monitor every Cursor agent on their machine in
+          real time, or to capture a snapshot for a report.
+    eval_files:
+      - plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json
+  - id: skill:zoto-advise-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md
+    content_hash: dc0f0d5df56ed5838a642161ce3d71279222ea6372239d18d831b4eec7df989f
+    public_surface:
+      frontmatter:
+        name: zoto-advise-evals
+        description: '"Coverage gap analyser for eval suites. Scans the codebase across
+          five dimensions — trigger-phrase coverage, schema validation,
+          regression baselines, context citation verification, and status
+          checklist completeness — and produces a structured adviser_report with
+          per-target, per-dimension findings and deterministic recommendations.
+          Read-only: never modifies files. Does not call askQuestion — uses
+          needs_user_input at two breakpoints (summary drill-down and action
+          recommendations) for the command to drive via askQuestion and
+          resume."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-advise-evals/evals/evals.json
+  - id: skill:zoto-compare-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-compare-evals/SKILL.md
+    content_hash: b3d19edf80b7f7292542213b6981286b2b79bafaa31d2b507936ea3b729b5b46
+    public_surface:
+      frontmatter:
+        name: zoto-compare-evals
+        description: Cross-run analysis across two or more eval runs driven by
+          **`report.yml`**. Inputs are resolved per run directory under
+          `{evalsDir}/_runs/<ts>/`; per-backend summaries are nested under
+          **`report.static`** and **`report.llm`**. Emits a flat dataset (runs ×
+          cases × dimensions) plus the /canvas hand-off prompt, instructing the
+          host agent to invoke Cursor's built-in /canvas tool. The skill never
+          renders charts itself. Drill-down opens per-case log files. Does not
+          call askQuestion — when a fragment (e.g. `20260503`) matches multiple
+          hourly folders and the Task lacks a disambiguator, emit schema-valid
+          **`needs_user_input`** whose **`options[].label`** lists every full
+          **`{evalsDir}/_runs/<ts>/`** candidate path (`/z-eval-compare`
+          surfaces this without **`askQuestion`**).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-compare-evals/evals/evals.json
+  - id: skill:zoto-configure-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md
+    content_hash: a77f21b7da13bf2da4d4bae1d79c4fe69b5bb740e43752114e867724c0609947
+    public_surface:
+      frontmatter:
+        name: zoto-configure-evals
+        description: Writes .zoto/eval-system/config.yml from field values pre-collected
+          by /z-eval-configure (command-owned askQuestion). Refuses bundled
+          update.preserveUserAuthoredCases:false or update.writeMetaMarker:false
+          (including nested payload mirrors) before any manifest read or config
+          write. Validates against templates/schema/config.schema.json. Diffs
+          the chosen config against the manifest snapshot
+          (discovery_config.static.framework) to produce a cleanup_plan
+          validated against templates/schema/cleanup-plan.schema.json, and
+          stamps _meta.primitive_analysis.invalidate=true on every cached
+          primitive analysis when the static framework changes. The unified LLM
+          eval harness ships one JSON-first co-located eval per target, with no
+          per-repo selector axis — only the static framework matters here. Never
+          calls askQuestion — returns needs_user_input if validation cannot
+          proceed without user clarification.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-configure-evals/evals/evals.json
+  - id: skill:zoto-create-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+    content_hash: a000fce6a4e03731aaf0a5604c097e2f6ab3efa7a780723ef83f5a1c3598b4b7
+    public_surface:
+      frontmatter:
+        name: zoto-create-evals
+        description: Scaffolds static pytest and LLM (@cursor/sdk) eval backends into a
+          host repository, generates eval cases with _meta.generated markers for
+          approved skills/commands/agents/hooks, merges eval scripts into
+          package.json, and writes the persistent manifest plus append-only
+          history. Expects the invoking command to pre-collect approved targets
+          — does not call askQuestion.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json
+  - id: skill:zoto-eval-tooling
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
+    content_hash: 901336b2a1b2431f5b7857e62b8cd9425097f78a81f95b99891cf1047a394af2
+    public_surface:
+      frontmatter:
+        name: zoto-eval-tooling
+        description: Invocation reference for all eval-system CLI commands. Use this
+          skill when you need to run eval scripts — never reference script paths
+          directly; always invoke via the package.json aliases documented here.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json
+  - id: skill:zoto-execute-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md
+    content_hash: f9215ca71cca10db74f78971b9aa416e1fcaf854b26ed956cfa63c3a5ba62fc7
+    public_surface:
+      frontmatter:
+        name: zoto-execute-evals
+        description: Executes eval runs via the host repo's package.json scripts (pnpm
+          run eval, eval:full, eval:llm, eval:judge). Forwards --model to the
+          LLM runner via both a CLI flag and the ZOTO_EVAL_MODEL environment
+          variable. After each run, calls eval:update --check and appends the
+          drift status to the run report as a warn-only line. Does not call
+          askQuestion — credential gaps use needs_user_input for the command.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-execute-evals/evals/evals.json
+  - id: skill:zoto-help-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+    content_hash: 70549869e895808d834e9d20fbb7047f6c034d828e20c2788ad1f1745a2ab0cf
+    public_surface:
+      frontmatter:
+        name: zoto-help-evals
+        description: Project-tailored help for the Eval System plugin. Loads
+          plugins/zoto-eval-system/README.md as the source of truth, inspects
+          current project state (.zoto/eval-system/config.yml, manifest.yml,
+          .env*, evals/_runs/, package.json scripts), and composes an answer
+          that is grounded in the chosen README section, tailored to the host
+          repo's actual configuration and artefacts, and cited with
+          `start:end:path` code references back to the README. Pre-collected
+          `help_context` arrives from the /z-eval-help command (command-owned
+          askQuestion). The skill itself never calls askQuestion — missing
+          context is returned as `needs_user_input`.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json
+  - id: skill:zoto-judge-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-judge-evals/SKILL.md
+    content_hash: ab6eb45f980baf9aa5c161744cd31d3805e56ea4eddee4f3363b37ae5b922146
+    public_surface:
+      frontmatter:
+        name: zoto-judge-evals
+        description: Adversarial judge for eval runs. Identifies weak graders,
+          under-covered assertions, verbosity spikes, and accuracy/confidence
+          regressions. Produces an enriched llm.yml with soft-metric
+          annotations. Does not call askQuestion — handoff to /z-eval-update is
+          expressed as needs_user_input for the command to confirm via
+          askQuestion and resume. Uses the configured judgeModel (default
+          claude-opus-4-8[]).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-judge-evals/evals/evals.json
+  - id: skill:zoto-update-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md
+    content_hash: 8e04894bce247d7877e22fad123a41947921883e9b2279815babea1850c0e225
+    public_surface:
+      frontmatter:
+        name: zoto-update-evals
+        description: '"Diff-aware eval updater. Detects drift between covered targets
+          and generated eval cases for skills and central plugin eval files
+          (commands/agents/hooks), classifies changes as critical or
+          non-critical, and preserves user-authored cases verbatim. Apply-mode
+          regeneration re-invokes the LLM analyser per drifted primitive and
+          dispatches per-framework static stamping plus the single unified LLM
+          regeneration (`regenerateLlm`) (CI defaults to cached analyser
+          payloads unless `--with-analyser`). The `_meta.generated === true`
+          (case) and `// _meta.generated\\: true` (file) contracts are enforced
+          at runtime AND compile time. Supports targeted mode, rediscovery mode,
+          `--no-analyser` / CI cache reuse, and CI `--check` (exit 2 on critical
+          drift)."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-update-evals/evals/evals.json
+  - id: skill:zoto-create-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md
+    content_hash: e79c250ba45437db46c47a717cb2d638fbd65d26be25315de614015a0a6312ce
+    public_surface:
+      frontmatter:
+        name: zoto-create-spec
+        description: Guided workflow for creating engineering specs. Gathers
+          requirements, explores the codebase, proposes a spec structure, and
+          generates spec files under the configured specs directory. Use when
+          planning a new feature, refactor, or multi-step initiative before
+          implementation.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+  - id: skill:zoto-execute-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+    content_hash: dd25ad95a2fd6210c4f72d2652882e070e9e3452f6a7eb4e19691e4c9927b0a4
+    public_surface:
+      frontmatter:
+        name: zoto-execute-spec
+        description: Executes an engineering spec by spawning subagents for each
+          subtask, tracking progress, adversarial verification, and final
+          quality checks. Use when a spec exists under the configured specs
+          directory and is ready for execution.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+  - id: skill:zoto-judge-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md
+    content_hash: 8ec8d8ff317d7c3c4a6a758eacf50e12f5a0165073079f818bf2fa07e822112d
+    public_surface:
+      frontmatter:
+        name: zoto-judge-spec
+        description: Independent assessment of a repository or Spec System engineering
+          specs. Reviews quality, feasibility, completeness, risk, and
+          structure. After producing a spec assessment, offers to apply
+          recommended fixes directly to the spec files. Use to audit a codebase
+          or to assess and improve a spec before running zoto-execute-spec.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
+  - id: command:zoto-cursor-top
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top.md
+    content_hash: 0c20d0791b4e4d45dc36f9a8dcded82e677baedd7409aa6a7ae36299e19ab6f0
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top
+        description: Open the live updating htop-style CLI that lists every Cursor agent
+          on this machine, with expandable parent-to-subagent hierarchy and
+          scrolling log tails.
+    eval_files: []
+  - id: command:z-eval-advise
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-advise.md
+    content_hash: 72f3ec88f3cfa78d8585d959e2e53e34753900e7f4e1391d68dc706ed591a21e
+    public_surface:
+      frontmatter:
+        name: z-eval-advise
+        description: Pre-hoc eval coverage adviser. Assesses gaps across five dimensions
+          (trigger-phrase, schema, regression, citation, checklist) and
+          recommends actions. Command-owned askQuestion drives multi-turn
+          interaction at two breakpoints (drill-down selection, action
+          recommendations); zoto-eval-adviser subagent surfaces
+          needs_user_input. Hands off accepted recommendations to /z-eval-create
+          or /z-eval-update.
+    eval_files: []
+  - id: command:z-eval-compare
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-compare.md
+    content_hash: be917b53788948c6a6ac4ade9b18eed18fc399211536839495c54c1b115ebaae
+    public_surface:
+      frontmatter:
+        name: z-eval-compare
+        description: Cross-run analysis across two or more runs. When run fragments
+          match multiple `_runs/` folders and the invocation is
+          undifferentiated, the comparer returns `needs_user_input` enumerating
+          candidates — surface that payload verbatim; **do not** run
+          `askQuestion`. Emits flat dataset and /canvas hand-off once paths
+          resolve.
+    eval_files: []
+  - id: command:z-eval-configure
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-configure.md
+    content_hash: cb792ed5d287975e6d5ebbf0d45c3e923ac6bd62eb456a79ea5069402131facb
+    public_surface:
+      frontmatter:
+        name: z-eval-configure
+        description: Writes .zoto/eval-system/config.yml using command-owned askQuestion
+          for every field, then spawns zoto-eval-configurer with pre-collected
+          answers. Diffs the chosen config against the manifest snapshot
+          (discovery_config.static), renders the resulting cleanup_plan via
+          askQuestion, and — only on explicit confirmation — shells out to `pnpm
+          run eval:cleanup-stale` (subtask 03) to delete stale static-framework
+          assets. The LLM backend is JSON-first (co-located
+          `<kind>/evals/<name>.json` with optional `runner` escape hatch) so no
+          strategy-switch prompts are issued. Supports resume when the subagent
+          returns needs_user_input.
+    eval_files: []
+  - id: command:z-eval-create
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-create.md
+    content_hash: 6af19bfa3497af02ee868c1f53a4c3faaf0d0a802cedd0cd445fd96f449f5ba2
+    public_surface:
+      frontmatter:
+        name: z-eval-create
+        description: Scaffold static (pytest) and LLM (@cursor/sdk) eval backends,
+          generate eval cases with _meta.generated markers for approved
+          skills/commands/agents/hooks, and write the persistent manifest.
+          Command pre-collects target checklists via askQuestion before spawning
+          zoto-eval-generator.
+    eval_files: []
+  - id: command:z-eval-execute
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-execute.md
+    content_hash: 63ae39aef8a3507aae5f872f264039691a24a69602a624d605a7d57d6e1bc951
+    public_surface:
+      frontmatter:
+        name: z-eval-execute
+        description: Run the eval suite via the host repo's package.json scripts.
+          Command-owned askQuestion when --full lacks CURSOR_API_KEY;
+          zoto-eval-executor returns needs_user_input if unresolved. --model
+          forwards to LLM runner.
+    eval_files: []
+  - id: command:z-eval-help
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-help.md
+    content_hash: 33b462ca3240318bff8a6f43fdfc28043dfa8a882d7e16540409d01fbd644fcd
+    public_surface:
+      frontmatter:
+        name: z-eval-help
+        description: Section-routed help for the Eval System plugin. Command-owned
+          askQuestion for section selection and follow-ups; zoto-help-evals
+          composes a project-tailored answer anchored on the chosen README
+          section, with mandatory `start:end:path` citations back to the README
+          and any project files it inspected. The skill never calls askQuestion
+          (no subagent askQuestion).
+    eval_files: []
+  - id: command:z-eval-init
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-init.md
+    content_hash: 481399fdf23e89ea6bca7d88e0d57a32c793d9411fb20ac50fda6a76806a3371
+    public_surface:
+      frontmatter:
+        name: z-eval-init
+        description: Initialise the Eval System config at .zoto/eval-system/config.yml
+          with a commented template of all defaults.
+    eval_files: []
+  - id: command:z-eval-judge
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-judge.md
+    content_hash: 7654646bb17b9133a4a1597dfac3a6a804fbb3bff851a593f873cb279f6b0174
+    public_surface:
+      frontmatter:
+        name: z-eval-judge
+        description: Adversarial post-hoc analysis of the most recent eval run.
+          Command-owned askQuestion for handoff to /z-eval-update; judge
+          subagent surfaces needs_user_input. Enriches llm.yml with a judge
+          block.
+    eval_files: []
+  - id: command:z-eval-jump
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-jump.md
+    content_hash: aa55940392f02a56107e1a19b5f43ee7d0e14344b79f8367a4d42df69330f790
+    public_surface:
+      frontmatter:
+        name: z-eval-jump
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-operator
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-operator.md
+    content_hash: 71452a1e19d087b7dc887cc8c6812d9bce718d6bfb6e5b1843d7a982f45b82e3
+    public_surface:
+      frontmatter:
+        name: z-eval-operator
+        description: Operator jump into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-start
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-start.md
+    content_hash: d463e50b0a2e2f7d82480f3a75a662c344d901dd37b4bb1c3e72091bad6b8ae0
+    public_surface:
+      frontmatter:
+        name: z-eval-start
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-update
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-update.md
+    content_hash: 209668cadaa4f5de4fddb0ad5001fa4afc96e0f67488ac0f7fe18d07e693e85b
+    public_surface:
+      frontmatter:
+        name: z-eval-update
+        description: '"Diff-aware eval updater. Re-invokes the LLM analyser per drifted
+          primitive, dispatches per-framework / per-strategy regeneration
+          through hard-coded user-case preservation gates, and appends a
+          manifest snapshot. Command-owned askQuestion per change in apply
+          modes; subagent uses resume. The `_meta.generated` (case) and `//
+          _meta.generated\\: true` (file) contracts are enforced at runtime AND
+          compile time. Targeted, rediscovery, `--no-analyser`, and CI `--check`
+          modes."'
+    eval_files: []
+  - id: command:z-eval-workflow
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-workflow.md
+    content_hash: c4ed66d0bc87eac8ec5ad1fe24011c20f2b65b477e817b0a61ccc08f5f879d96
+    public_surface:
+      frontmatter:
+        name: z-eval-workflow
+        description: Interactive evaluator entry point — command-owned askQuestion maps
+          the operator’s current lifecycle stage to the correct Eval System
+          slash command (configure, scaffold, drift, execute, judge, compare,
+          advise, help) without spawning subagents.
+    eval_files: []
+  - id: command:z-spec-create
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-create.md
+    content_hash: 9dad691b4ec9d07eb9667ef45225181efd1337e646bcfc7953317228826a2681
+    public_surface:
+      frontmatter:
+        name: z-spec-create
+        description: Generate structured engineering specs for complex features and
+          multi-step initiatives.
+    eval_files: []
+  - id: command:z-spec-execute
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-execute.md
+    content_hash: 522f2ce7c52af0336679a0e7bbb570394f467c2a21e526f203b796d9ebd626fd
+    public_surface:
+      frontmatter:
+        name: z-spec-execute
+        description: Execute an engineering spec with guided subagent coordination,
+          progress tracking, and completion verification.
+    eval_files: []
+  - id: command:z-spec-init
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-init.md
+    content_hash: 5a42707b1c19fba70e21d81c6f3cf06b50c9a4f511d6e7bdcccf980624a85185
+    public_surface:
+      frontmatter:
+        name: z-spec-init
+        description: Initialise the Spec System config at .zoto/spec-system/config.yml
+          with a commented template of all defaults.
+    eval_files: []
+  - id: command:z-spec-judge
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-judge.md
+    content_hash: 59c0371ccf1480bdb6eede4aa492504d8acda65a0a60f48a05dddb8bebbd90bc
+    public_surface:
+      frontmatter:
+        name: z-spec-judge
+        description: Independently assess the repository or a specific engineering spec
+          for quality, feasibility, and completeness. For spec assessments,
+          offers to apply recommended fixes directly to spec files.
+    eval_files: []
+  - id: command:sync-plugins
+    kind: command
+    path: .cursor/commands/sync-plugins.md
+    content_hash: e56e7f7f021ea8ba307df39f91b53e36d4dff99eb8f1fd3b291af12269474d5d
+    public_surface:
+      frontmatter:
+        name: sync-plugins
+        description: Force-sync plugin source files to ~/.cursor/plugins/local/
+    eval_files: []
+  - id: command:zoto-create-plugin
+    kind: command
+    path: .cursor/commands/zoto-create-plugin.md
+    content_hash: 92365d4ef5d937dad6da4376751ae1ed5fa2efdf53c0ee5990b5b4174e2a08aa
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Scaffold a new Cursor plugin in this monorepo with guided component
+          selection, validation, and marketplace registration.
+    eval_files: []
+  - id: agent:zoto-cursor-top-troubleshooter
+    kind: agent
+    path: plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md
+    content_hash: 0bfd7b8dae4a7e8af6b5be3084cd37971d39bf590fa88495968d7f801e7a15c0
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-troubleshooter
+        description: Diagnose missing rows, empty log tails, or platform-specific gaps
+          in cursor-top discovery and recommend remediations.
+        model: composer-2.5[]
+    eval_files: []
+  - id: agent:zoto-eval-adviser
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-adviser.md
+    content_hash: 197d697909824afaf30a3d9533c4457902f060e23347bb3f8cc843af2d0dab72
+    public_surface:
+      frontmatter:
+        name: zoto-eval-adviser
+        model: claude-opus-4-8[]
+        description: Assesses eval suite coverage gaps across five dimensions
+          (trigger-phrase coverage, schema validation, regression baselines,
+          citation verification, checklist completeness). Reads
+          skill/command/agent sources and their evals.json files — never reads
+          run artefacts or modifies eval files. Does not call askQuestion —
+          returns needs_user_input at two breakpoints (drill-down selection,
+          action recommendations) for the command to drive via askQuestion and
+          resume.
+    eval_files: []
+  - id: agent:zoto-eval-analyser-subagent
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
+    content_hash: 13f55ef284e5712772a1184414b6f78972d1264daa78f28911d54da0d3673074
+    public_surface:
+      frontmatter:
+        name: zoto-eval-analyser-subagent
+        model: claude-opus-4-8[]
+        description: System prompt for the LLM-driven primitive analyser invoked by
+          `pnpm run eval:analyse`. Not surfaced to humans — driven by the
+          eval-system stamp/update flows via @cursor/sdk. Produces a strict JSON
+          AnalyserPayload (templates/schema/analyser-payload.schema.json) per
+          primitive (skill / command / agent / hook / rule).
+    eval_files: []
+  - id: agent:zoto-eval-comparer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-comparer.md
+    content_hash: e1579b08c2077e07673503d3c9d45bcaaa3ec70838622e304c1c2922a3eabc22
+    public_surface:
+      frontmatter:
+        name: zoto-eval-comparer
+        model: claude-opus-4-8[]
+        description: Cross-run analysis that emits a flat dataset and a /canvas hand-off
+          instruction. The host agent is expected to invoke Cursor's built-in
+          /canvas tool to render the comparison. Skill never renders charts
+          itself. Drilldown opens per-case log files. Does not call askQuestion
+          — when fragments (e.g. `20260503`) match multiple
+          `{evalsDir}/_runs/<ts>/` folders and the prompt did not pin one path
+          per argument, return schema-valid **`needs_user_input`** with each
+          candidate's full **`{evalsDir}/_runs/<ts>/`** path in
+          **`options[].label`**; **`/z-eval-compare`** surfaces that without
+          **`askQuestion`**.
+    eval_files: []
+  - id: agent:zoto-eval-configurer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-configurer.md
+    content_hash: 03f7312a3b39afb26cc983d1b8f3ee8cfae18a545ec690bb87d5bbabf982296f
+    public_surface:
+      frontmatter:
+        name: zoto-eval-configurer
+        model: claude-opus-4-8[]
+        description: Writes .zoto/eval-system/config.yml using the zoto-configure-evals
+          skill. Presents enum-backed fields only through answers pre-collected
+          by the invoking command; never calls askQuestion. Reads the manifest
+          snapshot via plugins/zoto-eval-system/engine/manifest-snapshot.ts,
+          emits a cleanup_plan validated against
+          templates/schema/cleanup-plan.schema.json when static.framework
+          changes, and stamps _meta.primitive_analysis.invalidate=true on every
+          cached primitive analysis after a switch. The unified LLM eval harness
+          ships a single backend shape (one TS-everywhere co-located eval per
+          target) with no per-repo selector axis. Rejects bundled false for
+          update.preserveUserAuthoredCases or update.writeMetaMarker before any
+          config write; rejects configs that violate those contracts.
+    eval_files: []
+  - id: agent:zoto-eval-executor
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-executor.md
+    content_hash: 7f0ed629e61557cfed0c6cc6ae1c51d0f2059b3eb47732c315bb8469643d7a1c
+    public_surface:
+      frontmatter:
+        name: zoto-eval-executor
+        model: claude-opus-4-8[]
+        description: Executes eval runs via the host repo's package.json scripts.
+          Forwards --model to the LLM runner via both a CLI flag and the
+          ZOTO_EVAL_MODEL environment variable. Gates the LLM backend on
+          CURSOR_API_KEY and --full. After every run, calls eval:update --check
+          and appends the drift status to llm.yml as warn-only. Does not call
+          askQuestion — missing credentials or choices are returned as
+          needs_user_input for the command.
+    eval_files: []
+  - id: agent:zoto-eval-generator
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-generator.md
+    content_hash: 14a86ea692695a5743bfd45b139257a8041a5daba7c105f26c746022c8474181
+    public_surface:
+      frontmatter:
+        name: zoto-eval-generator
+        model: claude-opus-4-8[]
+        description: Plans and scaffolds the eval suite for a repository. Uses
+          zoto-create-evals and zoto-configure-evals skills to lay down both
+          pytest and LLM (@cursor/sdk) backends, generate per-target eval cases
+          with _meta.generated markers, and write the persistent manifest plus
+          append-only history. Does not call askQuestion — receives
+          pre-collected answers from the invoking command or returns
+          needs_user_input.
+    eval_files: []
+  - id: agent:zoto-eval-judge
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-judge.md
+    content_hash: a802872245e0918d336460b875b9ef7c3940d993406eeeafb493c472985af719
+    public_surface:
+      frontmatter:
+        name: zoto-eval-judge
+        model: claude-opus-4-8[]
+        description: Adversarial eval judge. Reads the most recent llm.yml and per-case
+          logs, flags weak graders, under-covered assertions, verbosity spikes,
+          and low-confidence cases. Writes a judge block to llm.yml. Does not
+          call askQuestion — returns needs_user_input when handoff to
+          /z-eval-update requires user approval (the command runs askQuestion
+          and resumes).
+    eval_files: []
+  - id: agent:zoto-eval-updater
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-updater.md
+    content_hash: d5dbe917302861f47f3500d4736988b03efc925766425071219e761d38f032fa
+    public_surface:
+      frontmatter:
+        name: zoto-eval-updater
+        model: claude-opus-4-8[]
+        description: '"Diff-aware eval updater. Uses zoto-update-evals to detect drift
+          between covered targets and generated eval cases, re-invokes the LLM
+          analyser per drifted primitive, and dispatches per-framework static
+          regeneration plus the single unified LLM eval regeneration
+          (`regenerateLlm`) through hard-coded user-case preservation gates.
+          Never mutates user-authored cases or user-authored test files — the
+          `_meta.generated === true` (case) and `// _meta.generated\\: true`
+          (file) contracts are enforced at runtime AND compile time. On
+          palette-driven flows or any unexpected apply branch, returns
+          structured `needs_user_input` for the owning command — never
+          `askQuestion` from the subagent."'
+    eval_files: []
+  - id: agent:zoto-spec-executor
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+    content_hash: 62b73f7f5372980ae0a500c3b0264e744c0df69cc1ba6ef67458f1bc4047f1b3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-executor
+        model: composer-2.5[]
+        description: Execution coordination specialist. Executes engineering specs by
+          spawning subagents for each subtask, tracking progress through
+          dependency phases, coordinating adversarial verification, and
+          producing execution reports. Specs are ephemeral coordination
+          artifacts — not ongoing knowledge.
+    eval_files: []
+  - id: agent:zoto-spec-generator
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
+    content_hash: 0cb7fb39e7f410e372bd9f2f8d706d925bea1ccd0efc970a760a35d25e9499f3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-generator
+        model: claude-opus-4-8[]
+        description: Config-driven spec creation specialist. Breaks down complex
+          features into well-defined subtasks with clear deliverables,
+          dependency graphs, and execution phases. Specs are ephemeral
+          coordination artifacts — not ongoing knowledge.
+    eval_files: []
+  - id: agent:zoto-spec-judge
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
+    content_hash: f144935058a14896d7b7492a4584f2e696e5626626343632230813efc9d800c5
+    public_surface:
+      frontmatter:
+        name: zoto-spec-judge
+        model: claude-opus-4-8[]
+        description: Independent quality gate for the Spec System. Performs adversarial
+          verification of subtask deliverables during spec execution
+          (status-pair-only writes; fix-lists routed back to the assigned
+          subagent — never authored by the judge), produces structured
+          assessments of repositories and specs, and (only in Mode 3, only with
+          explicit user approval) offers to apply recommended fixes to spec
+          files. Always runs in a fresh context to avoid bias.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-architect
+    kind: agent
+    path: .cursor/agents/zoto-eval-architect.md
+    content_hash: 71a840d3483c0fe14cbe1604bafbc51b44b283716b2c9e7c5c5185f43de07a41
+    public_surface:
+      frontmatter:
+        name: zoto-eval-architect
+        model: claude-opus-4-8[]
+        description: Eval-system architect specialising in the design, ergonomics,
+          performance, and quality strategy of the `zoto-eval-system` plugin.
+          Deep knowledge of the declarative-vs-code LLM-strategy split, the
+          command/skill/agent layer boundaries, the analyser →
+          declarative-runner / code-stamper → judge pipeline, model precedence,
+          prompt-cost accounting, and developer-ergonomics across the init →
+          configure → create → update → execute → judge → compare → advise
+          lifecycle.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-engineer
+    kind: agent
+    path: .cursor/agents/zoto-eval-engineer.md
+    content_hash: 5f6111c7b000f431c2dde3d1a8740d338628a6649b4e05947a341a47715d8df4
+    public_surface:
+      frontmatter:
+        name: zoto-eval-engineer
+        model: claude-opus-4-8[]
+        description: Eval-system implementation engineer specialising in the code,
+          schemas, contracts, and host-repo application of the
+          `zoto-eval-system` plugin. Deep knowledge of the TypeScript engine,
+          hooks, validation pipeline, the 7 JSON schemas, hard-coded
+          `preserveUserAuthoredCases` / `writeMetaMarker` contracts, drift
+          detection, the `_user-case-guards/` boundary, the manifest format, the
+          `.zoto/eval-system/` host-repo layout, and the `_runs/` artefact tree.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-plugin-manager
+    kind: agent
+    path: .cursor/agents/zoto-plugin-manager.md
+    content_hash: eb8d5c9c66162ac653955044a3a2222a856bbc1016847c9f68d1089b1f3e9162
+    public_surface:
+      frontmatter:
+        name: zoto-plugin-manager
+        model: claude-opus-4-8[]
+        description: Expert at creating, validating, and managing Cursor plugins in this
+          monorepo. Deep knowledge of plugin anatomy (agents, skills, commands,
+          rules, hooks, MCP), the Agent Skills specification, marketplace
+          publishing, skill evaluations, CRUX compression, and monorepo tooling.
+        is_background: "true"
+    eval_files: []
+  - id: hook:zoto-eval-system
+    kind: hook
+    path: plugins/zoto-eval-system/hooks/hooks.json
+    content_hash: 5aede789d6f42e7903d75ee1d9dd7b9d16787575075d8aaffb35a0bc4704aa11
+    public_surface:
+      plugin: zoto-eval-system
+    eval_files: []
+  - id: hook:zoto-spec-system
+    kind: hook
+    path: plugins/zoto-spec-system/hooks/hooks.json
+    content_hash: e12aef7ec0adc9c2f3aa8586611ed33bd222f6a2169df5915cca443e892fa019
+    public_surface:
+      plugin: zoto-spec-system
+    eval_files: []
+  - id: hook:cursor-workspace
+    kind: hook
+    path: .cursor/hooks.json
+    content_hash: 0a8483a7a8b5f97f31998cff0cb714f000896d661f379cc8cf8149bafca7e8f8
+    public_surface:
+      workspace: .cursor
+    eval_files: []
+---
+schema_version: 1
+created_at: 2026-05-03T07:47:43+00:00
+updated_at: 2026-06-10T22:22:33.929Z
+git_ref: fe0556f3fc4a6e31b26dcc56b30aa4f43f8511f3
+generated_by: zoto-update-evals
+discovery_config:
+  discoveryTargets:
+    - skill
+    - command
+    - agent
+    - hook
+  skillsRoots:
+    - .cursor/skills
+    - skills
+    - plugins/*/skills
+  evalsDir: evals
+  additionalAutomation: []
+  cursorRoot: .cursor
+  cursor_namespaced_ids: []
+  ignore:
+    - .cursor/skills/crux-*
+    - .cursor/commands/crux-*.md
+    - .cursor/agents/crux-cursor-*.md
+    - .cursor/hooks/crux-*
+targets:
+  - id: skill:zoto-create-plugin
+    kind: skill
+    path: .cursor/skills/zoto-create-plugin/SKILL.md
+    content_hash: c07e9af86b978a5372af27bfa8bdcab77dbc45bc2cf0f20047e5467d109eda04
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Guided workflow for scaffolding a new Cursor plugin in this
+          monorepo. Gathers requirements, creates the directory structure,
+          generates all component files (manifest, agents, skills, commands,
+          rules, hooks), adds skill evaluations, registers in the marketplace
+          manifest, and runs validation. Use when creating a new plugin from
+          scratch.
+    eval_files:
+      - .cursor/skills/zoto-create-plugin/evals/evals.json
+  - id: skill:zoto-cursor-top-monitor
+    kind: skill
+    path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
+    content_hash: b75c039e72a6c0648e317bd93a3da0b95261171a0e36a0191e7a641a8ea41cc7
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-monitor
+        description: Guided workflow for launching and interpreting the cursor-top TUI.
+          Covers process discovery, hierarchy expansion, log tail
+          interpretation, and recommended flags for different scenarios. Use
+          when the user wants to monitor every Cursor agent on their machine in
+          real time, or to capture a snapshot for a report.
+    eval_files:
+      - plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json
+  - id: skill:zoto-advise-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md
+    content_hash: dc0f0d5df56ed5838a642161ce3d71279222ea6372239d18d831b4eec7df989f
+    public_surface:
+      frontmatter:
+        name: zoto-advise-evals
+        description: '"Coverage gap analyser for eval suites. Scans the codebase across
+          five dimensions — trigger-phrase coverage, schema validation,
+          regression baselines, context citation verification, and status
+          checklist completeness — and produces a structured adviser_report with
+          per-target, per-dimension findings and deterministic recommendations.
+          Read-only: never modifies files. Does not call askQuestion — uses
+          needs_user_input at two breakpoints (summary drill-down and action
+          recommendations) for the command to drive via askQuestion and
+          resume."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-advise-evals/evals/evals.json
+  - id: skill:zoto-compare-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-compare-evals/SKILL.md
+    content_hash: b3d19edf80b7f7292542213b6981286b2b79bafaa31d2b507936ea3b729b5b46
+    public_surface:
+      frontmatter:
+        name: zoto-compare-evals
+        description: Cross-run analysis across two or more eval runs driven by
+          **`report.yml`**. Inputs are resolved per run directory under
+          `{evalsDir}/_runs/<ts>/`; per-backend summaries are nested under
+          **`report.static`** and **`report.llm`**. Emits a flat dataset (runs ×
+          cases × dimensions) plus the /canvas hand-off prompt, instructing the
+          host agent to invoke Cursor's built-in /canvas tool. The skill never
+          renders charts itself. Drill-down opens per-case log files. Does not
+          call askQuestion — when a fragment (e.g. `20260503`) matches multiple
+          hourly folders and the Task lacks a disambiguator, emit schema-valid
+          **`needs_user_input`** whose **`options[].label`** lists every full
+          **`{evalsDir}/_runs/<ts>/`** candidate path (`/z-eval-compare`
+          surfaces this without **`askQuestion`**).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-compare-evals/evals/evals.json
+  - id: skill:zoto-configure-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md
+    content_hash: a77f21b7da13bf2da4d4bae1d79c4fe69b5bb740e43752114e867724c0609947
+    public_surface:
+      frontmatter:
+        name: zoto-configure-evals
+        description: Writes .zoto/eval-system/config.yml from field values pre-collected
+          by /z-eval-configure (command-owned askQuestion). Refuses bundled
+          update.preserveUserAuthoredCases:false or update.writeMetaMarker:false
+          (including nested payload mirrors) before any manifest read or config
+          write. Validates against templates/schema/config.schema.json. Diffs
+          the chosen config against the manifest snapshot
+          (discovery_config.static.framework) to produce a cleanup_plan
+          validated against templates/schema/cleanup-plan.schema.json, and
+          stamps _meta.primitive_analysis.invalidate=true on every cached
+          primitive analysis when the static framework changes. The unified LLM
+          eval harness ships one JSON-first co-located eval per target, with no
+          per-repo selector axis — only the static framework matters here. Never
+          calls askQuestion — returns needs_user_input if validation cannot
+          proceed without user clarification.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-configure-evals/evals/evals.json
+  - id: skill:zoto-create-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+    content_hash: a000fce6a4e03731aaf0a5604c097e2f6ab3efa7a780723ef83f5a1c3598b4b7
+    public_surface:
+      frontmatter:
+        name: zoto-create-evals
+        description: Scaffolds static pytest and LLM (@cursor/sdk) eval backends into a
+          host repository, generates eval cases with _meta.generated markers for
+          approved skills/commands/agents/hooks, merges eval scripts into
+          package.json, and writes the persistent manifest plus append-only
+          history. Expects the invoking command to pre-collect approved targets
+          — does not call askQuestion.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json
+  - id: skill:zoto-eval-tooling
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
+    content_hash: 901336b2a1b2431f5b7857e62b8cd9425097f78a81f95b99891cf1047a394af2
+    public_surface:
+      frontmatter:
+        name: zoto-eval-tooling
+        description: Invocation reference for all eval-system CLI commands. Use this
+          skill when you need to run eval scripts — never reference script paths
+          directly; always invoke via the package.json aliases documented here.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json
+  - id: skill:zoto-execute-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md
+    content_hash: f9215ca71cca10db74f78971b9aa416e1fcaf854b26ed956cfa63c3a5ba62fc7
+    public_surface:
+      frontmatter:
+        name: zoto-execute-evals
+        description: Executes eval runs via the host repo's package.json scripts (pnpm
+          run eval, eval:full, eval:llm, eval:judge). Forwards --model to the
+          LLM runner via both a CLI flag and the ZOTO_EVAL_MODEL environment
+          variable. After each run, calls eval:update --check and appends the
+          drift status to the run report as a warn-only line. Does not call
+          askQuestion — credential gaps use needs_user_input for the command.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-execute-evals/evals/evals.json
+  - id: skill:zoto-help-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+    content_hash: 70549869e895808d834e9d20fbb7047f6c034d828e20c2788ad1f1745a2ab0cf
+    public_surface:
+      frontmatter:
+        name: zoto-help-evals
+        description: Project-tailored help for the Eval System plugin. Loads
+          plugins/zoto-eval-system/README.md as the source of truth, inspects
+          current project state (.zoto/eval-system/config.yml, manifest.yml,
+          .env*, evals/_runs/, package.json scripts), and composes an answer
+          that is grounded in the chosen README section, tailored to the host
+          repo's actual configuration and artefacts, and cited with
+          `start:end:path` code references back to the README. Pre-collected
+          `help_context` arrives from the /z-eval-help command (command-owned
+          askQuestion). The skill itself never calls askQuestion — missing
+          context is returned as `needs_user_input`.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json
+  - id: skill:zoto-judge-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-judge-evals/SKILL.md
+    content_hash: ab6eb45f980baf9aa5c161744cd31d3805e56ea4eddee4f3363b37ae5b922146
+    public_surface:
+      frontmatter:
+        name: zoto-judge-evals
+        description: Adversarial judge for eval runs. Identifies weak graders,
+          under-covered assertions, verbosity spikes, and accuracy/confidence
+          regressions. Produces an enriched llm.yml with soft-metric
+          annotations. Does not call askQuestion — handoff to /z-eval-update is
+          expressed as needs_user_input for the command to confirm via
+          askQuestion and resume. Uses the configured judgeModel (default
+          claude-opus-4-8[]).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-judge-evals/evals/evals.json
+  - id: skill:zoto-update-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md
+    content_hash: 8e04894bce247d7877e22fad123a41947921883e9b2279815babea1850c0e225
+    public_surface:
+      frontmatter:
+        name: zoto-update-evals
+        description: '"Diff-aware eval updater. Detects drift between covered targets
+          and generated eval cases for skills and central plugin eval files
+          (commands/agents/hooks), classifies changes as critical or
+          non-critical, and preserves user-authored cases verbatim. Apply-mode
+          regeneration re-invokes the LLM analyser per drifted primitive and
+          dispatches per-framework static stamping plus the single unified LLM
+          regeneration (`regenerateLlm`) (CI defaults to cached analyser
+          payloads unless `--with-analyser`). The `_meta.generated === true`
+          (case) and `// _meta.generated\\: true` (file) contracts are enforced
+          at runtime AND compile time. Supports targeted mode, rediscovery mode,
+          `--no-analyser` / CI cache reuse, and CI `--check` (exit 2 on critical
+          drift)."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-update-evals/evals/evals.json
+  - id: skill:zoto-create-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md
+    content_hash: e79c250ba45437db46c47a717cb2d638fbd65d26be25315de614015a0a6312ce
+    public_surface:
+      frontmatter:
+        name: zoto-create-spec
+        description: Guided workflow for creating engineering specs. Gathers
+          requirements, explores the codebase, proposes a spec structure, and
+          generates spec files under the configured specs directory. Use when
+          planning a new feature, refactor, or multi-step initiative before
+          implementation.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+  - id: skill:zoto-execute-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+    content_hash: dd25ad95a2fd6210c4f72d2652882e070e9e3452f6a7eb4e19691e4c9927b0a4
+    public_surface:
+      frontmatter:
+        name: zoto-execute-spec
+        description: Executes an engineering spec by spawning subagents for each
+          subtask, tracking progress, adversarial verification, and final
+          quality checks. Use when a spec exists under the configured specs
+          directory and is ready for execution.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+  - id: skill:zoto-judge-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md
+    content_hash: 8ec8d8ff317d7c3c4a6a758eacf50e12f5a0165073079f818bf2fa07e822112d
+    public_surface:
+      frontmatter:
+        name: zoto-judge-spec
+        description: Independent assessment of a repository or Spec System engineering
+          specs. Reviews quality, feasibility, completeness, risk, and
+          structure. After producing a spec assessment, offers to apply
+          recommended fixes directly to the spec files. Use to audit a codebase
+          or to assess and improve a spec before running zoto-execute-spec.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
+  - id: command:zoto-cursor-top
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top.md
+    content_hash: cece1c01ad3fedac8d22e75d37b48e52e79c43fd5eb512cc83f0e39a47f390b3
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top
+        description: Open the live updating htop-style CLI that lists every Cursor agent
+          on this machine, with expandable parent-to-subagent hierarchy and
+          scrolling log tails.
+    eval_files: []
+  - id: command:z-eval-advise
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-advise.md
+    content_hash: 72f3ec88f3cfa78d8585d959e2e53e34753900e7f4e1391d68dc706ed591a21e
+    public_surface:
+      frontmatter:
+        name: z-eval-advise
+        description: Pre-hoc eval coverage adviser. Assesses gaps across five dimensions
+          (trigger-phrase, schema, regression, citation, checklist) and
+          recommends actions. Command-owned askQuestion drives multi-turn
+          interaction at two breakpoints (drill-down selection, action
+          recommendations); zoto-eval-adviser subagent surfaces
+          needs_user_input. Hands off accepted recommendations to /z-eval-create
+          or /z-eval-update.
+    eval_files: []
+  - id: command:z-eval-compare
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-compare.md
+    content_hash: be917b53788948c6a6ac4ade9b18eed18fc399211536839495c54c1b115ebaae
+    public_surface:
+      frontmatter:
+        name: z-eval-compare
+        description: Cross-run analysis across two or more runs. When run fragments
+          match multiple `_runs/` folders and the invocation is
+          undifferentiated, the comparer returns `needs_user_input` enumerating
+          candidates — surface that payload verbatim; **do not** run
+          `askQuestion`. Emits flat dataset and /canvas hand-off once paths
+          resolve.
+    eval_files: []
+  - id: command:z-eval-configure
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-configure.md
+    content_hash: cb792ed5d287975e6d5ebbf0d45c3e923ac6bd62eb456a79ea5069402131facb
+    public_surface:
+      frontmatter:
+        name: z-eval-configure
+        description: Writes .zoto/eval-system/config.yml using command-owned askQuestion
+          for every field, then spawns zoto-eval-configurer with pre-collected
+          answers. Diffs the chosen config against the manifest snapshot
+          (discovery_config.static), renders the resulting cleanup_plan via
+          askQuestion, and — only on explicit confirmation — shells out to `pnpm
+          run eval:cleanup-stale` (subtask 03) to delete stale static-framework
+          assets. The LLM backend is JSON-first (co-located
+          `<kind>/evals/<name>.json` with optional `runner` escape hatch) so no
+          strategy-switch prompts are issued. Supports resume when the subagent
+          returns needs_user_input.
+    eval_files: []
+  - id: command:z-eval-create
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-create.md
+    content_hash: 6af19bfa3497af02ee868c1f53a4c3faaf0d0a802cedd0cd445fd96f449f5ba2
+    public_surface:
+      frontmatter:
+        name: z-eval-create
+        description: Scaffold static (pytest) and LLM (@cursor/sdk) eval backends,
+          generate eval cases with _meta.generated markers for approved
+          skills/commands/agents/hooks, and write the persistent manifest.
+          Command pre-collects target checklists via askQuestion before spawning
+          zoto-eval-generator.
+    eval_files: []
+  - id: command:z-eval-execute
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-execute.md
+    content_hash: 63ae39aef8a3507aae5f872f264039691a24a69602a624d605a7d57d6e1bc951
+    public_surface:
+      frontmatter:
+        name: z-eval-execute
+        description: Run the eval suite via the host repo's package.json scripts.
+          Command-owned askQuestion when --full lacks CURSOR_API_KEY;
+          zoto-eval-executor returns needs_user_input if unresolved. --model
+          forwards to LLM runner.
+    eval_files: []
+  - id: command:z-eval-help
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-help.md
+    content_hash: 33b462ca3240318bff8a6f43fdfc28043dfa8a882d7e16540409d01fbd644fcd
+    public_surface:
+      frontmatter:
+        name: z-eval-help
+        description: Section-routed help for the Eval System plugin. Command-owned
+          askQuestion for section selection and follow-ups; zoto-help-evals
+          composes a project-tailored answer anchored on the chosen README
+          section, with mandatory `start:end:path` citations back to the README
+          and any project files it inspected. The skill never calls askQuestion
+          (no subagent askQuestion).
+    eval_files: []
+  - id: command:z-eval-init
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-init.md
+    content_hash: 481399fdf23e89ea6bca7d88e0d57a32c793d9411fb20ac50fda6a76806a3371
+    public_surface:
+      frontmatter:
+        name: z-eval-init
+        description: Initialise the Eval System config at .zoto/eval-system/config.yml
+          with a commented template of all defaults.
+    eval_files: []
+  - id: command:z-eval-judge
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-judge.md
+    content_hash: 7654646bb17b9133a4a1597dfac3a6a804fbb3bff851a593f873cb279f6b0174
+    public_surface:
+      frontmatter:
+        name: z-eval-judge
+        description: Adversarial post-hoc analysis of the most recent eval run.
+          Command-owned askQuestion for handoff to /z-eval-update; judge
+          subagent surfaces needs_user_input. Enriches llm.yml with a judge
+          block.
+    eval_files: []
+  - id: command:z-eval-jump
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-jump.md
+    content_hash: aa55940392f02a56107e1a19b5f43ee7d0e14344b79f8367a4d42df69330f790
+    public_surface:
+      frontmatter:
+        name: z-eval-jump
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-operator
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-operator.md
+    content_hash: 71452a1e19d087b7dc887cc8c6812d9bce718d6bfb6e5b1843d7a982f45b82e3
+    public_surface:
+      frontmatter:
+        name: z-eval-operator
+        description: Operator jump into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-start
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-start.md
+    content_hash: d463e50b0a2e2f7d82480f3a75a662c344d901dd37b4bb1c3e72091bad6b8ae0
+    public_surface:
+      frontmatter:
+        name: z-eval-start
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-update
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-update.md
+    content_hash: 209668cadaa4f5de4fddb0ad5001fa4afc96e0f67488ac0f7fe18d07e693e85b
+    public_surface:
+      frontmatter:
+        name: z-eval-update
+        description: '"Diff-aware eval updater. Re-invokes the LLM analyser per drifted
+          primitive, dispatches per-framework / per-strategy regeneration
+          through hard-coded user-case preservation gates, and appends a
+          manifest snapshot. Command-owned askQuestion per change in apply
+          modes; subagent uses resume. The `_meta.generated` (case) and `//
+          _meta.generated\\: true` (file) contracts are enforced at runtime AND
+          compile time. Targeted, rediscovery, `--no-analyser`, and CI `--check`
+          modes."'
+    eval_files: []
+  - id: command:z-eval-workflow
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-workflow.md
+    content_hash: c4ed66d0bc87eac8ec5ad1fe24011c20f2b65b477e817b0a61ccc08f5f879d96
+    public_surface:
+      frontmatter:
+        name: z-eval-workflow
+        description: Interactive evaluator entry point — command-owned askQuestion maps
+          the operator’s current lifecycle stage to the correct Eval System
+          slash command (configure, scaffold, drift, execute, judge, compare,
+          advise, help) without spawning subagents.
+    eval_files: []
+  - id: command:z-spec-create
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-create.md
+    content_hash: 9dad691b4ec9d07eb9667ef45225181efd1337e646bcfc7953317228826a2681
+    public_surface:
+      frontmatter:
+        name: z-spec-create
+        description: Generate structured engineering specs for complex features and
+          multi-step initiatives.
+    eval_files: []
+  - id: command:z-spec-execute
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-execute.md
+    content_hash: 522f2ce7c52af0336679a0e7bbb570394f467c2a21e526f203b796d9ebd626fd
+    public_surface:
+      frontmatter:
+        name: z-spec-execute
+        description: Execute an engineering spec with guided subagent coordination,
+          progress tracking, and completion verification.
+    eval_files: []
+  - id: command:z-spec-init
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-init.md
+    content_hash: 5a42707b1c19fba70e21d81c6f3cf06b50c9a4f511d6e7bdcccf980624a85185
+    public_surface:
+      frontmatter:
+        name: z-spec-init
+        description: Initialise the Spec System config at .zoto/spec-system/config.yml
+          with a commented template of all defaults.
+    eval_files: []
+  - id: command:z-spec-judge
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-judge.md
+    content_hash: 59c0371ccf1480bdb6eede4aa492504d8acda65a0a60f48a05dddb8bebbd90bc
+    public_surface:
+      frontmatter:
+        name: z-spec-judge
+        description: Independently assess the repository or a specific engineering spec
+          for quality, feasibility, and completeness. For spec assessments,
+          offers to apply recommended fixes directly to spec files.
+    eval_files: []
+  - id: command:sync-plugins
+    kind: command
+    path: .cursor/commands/sync-plugins.md
+    content_hash: e56e7f7f021ea8ba307df39f91b53e36d4dff99eb8f1fd3b291af12269474d5d
+    public_surface:
+      frontmatter:
+        name: sync-plugins
+        description: Force-sync plugin source files to ~/.cursor/plugins/local/
+    eval_files: []
+  - id: command:zoto-create-plugin
+    kind: command
+    path: .cursor/commands/zoto-create-plugin.md
+    content_hash: 92365d4ef5d937dad6da4376751ae1ed5fa2efdf53c0ee5990b5b4174e2a08aa
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Scaffold a new Cursor plugin in this monorepo with guided component
+          selection, validation, and marketplace registration.
+    eval_files: []
+  - id: agent:zoto-cursor-top-troubleshooter
+    kind: agent
+    path: plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md
+    content_hash: 0bfd7b8dae4a7e8af6b5be3084cd37971d39bf590fa88495968d7f801e7a15c0
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-troubleshooter
+        description: Diagnose missing rows, empty log tails, or platform-specific gaps
+          in cursor-top discovery and recommend remediations.
+        model: composer-2.5[]
+    eval_files: []
+  - id: agent:zoto-eval-adviser
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-adviser.md
+    content_hash: 197d697909824afaf30a3d9533c4457902f060e23347bb3f8cc843af2d0dab72
+    public_surface:
+      frontmatter:
+        name: zoto-eval-adviser
+        model: claude-opus-4-8[]
+        description: Assesses eval suite coverage gaps across five dimensions
+          (trigger-phrase coverage, schema validation, regression baselines,
+          citation verification, checklist completeness). Reads
+          skill/command/agent sources and their evals.json files — never reads
+          run artefacts or modifies eval files. Does not call askQuestion —
+          returns needs_user_input at two breakpoints (drill-down selection,
+          action recommendations) for the command to drive via askQuestion and
+          resume.
+    eval_files: []
+  - id: agent:zoto-eval-analyser-subagent
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
+    content_hash: 13f55ef284e5712772a1184414b6f78972d1264daa78f28911d54da0d3673074
+    public_surface:
+      frontmatter:
+        name: zoto-eval-analyser-subagent
+        model: claude-opus-4-8[]
+        description: System prompt for the LLM-driven primitive analyser invoked by
+          `pnpm run eval:analyse`. Not surfaced to humans — driven by the
+          eval-system stamp/update flows via @cursor/sdk. Produces a strict JSON
+          AnalyserPayload (templates/schema/analyser-payload.schema.json) per
+          primitive (skill / command / agent / hook / rule).
+    eval_files: []
+  - id: agent:zoto-eval-comparer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-comparer.md
+    content_hash: e1579b08c2077e07673503d3c9d45bcaaa3ec70838622e304c1c2922a3eabc22
+    public_surface:
+      frontmatter:
+        name: zoto-eval-comparer
+        model: claude-opus-4-8[]
+        description: Cross-run analysis that emits a flat dataset and a /canvas hand-off
+          instruction. The host agent is expected to invoke Cursor's built-in
+          /canvas tool to render the comparison. Skill never renders charts
+          itself. Drilldown opens per-case log files. Does not call askQuestion
+          — when fragments (e.g. `20260503`) match multiple
+          `{evalsDir}/_runs/<ts>/` folders and the prompt did not pin one path
+          per argument, return schema-valid **`needs_user_input`** with each
+          candidate's full **`{evalsDir}/_runs/<ts>/`** path in
+          **`options[].label`**; **`/z-eval-compare`** surfaces that without
+          **`askQuestion`**.
+    eval_files: []
+  - id: agent:zoto-eval-configurer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-configurer.md
+    content_hash: 03f7312a3b39afb26cc983d1b8f3ee8cfae18a545ec690bb87d5bbabf982296f
+    public_surface:
+      frontmatter:
+        name: zoto-eval-configurer
+        model: claude-opus-4-8[]
+        description: Writes .zoto/eval-system/config.yml using the zoto-configure-evals
+          skill. Presents enum-backed fields only through answers pre-collected
+          by the invoking command; never calls askQuestion. Reads the manifest
+          snapshot via plugins/zoto-eval-system/engine/manifest-snapshot.ts,
+          emits a cleanup_plan validated against
+          templates/schema/cleanup-plan.schema.json when static.framework
+          changes, and stamps _meta.primitive_analysis.invalidate=true on every
+          cached primitive analysis after a switch. The unified LLM eval harness
+          ships a single backend shape (one TS-everywhere co-located eval per
+          target) with no per-repo selector axis. Rejects bundled false for
+          update.preserveUserAuthoredCases or update.writeMetaMarker before any
+          config write; rejects configs that violate those contracts.
+    eval_files: []
+  - id: agent:zoto-eval-executor
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-executor.md
+    content_hash: 7f0ed629e61557cfed0c6cc6ae1c51d0f2059b3eb47732c315bb8469643d7a1c
+    public_surface:
+      frontmatter:
+        name: zoto-eval-executor
+        model: claude-opus-4-8[]
+        description: Executes eval runs via the host repo's package.json scripts.
+          Forwards --model to the LLM runner via both a CLI flag and the
+          ZOTO_EVAL_MODEL environment variable. Gates the LLM backend on
+          CURSOR_API_KEY and --full. After every run, calls eval:update --check
+          and appends the drift status to llm.yml as warn-only. Does not call
+          askQuestion — missing credentials or choices are returned as
+          needs_user_input for the command.
+    eval_files: []
+  - id: agent:zoto-eval-generator
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-generator.md
+    content_hash: 14a86ea692695a5743bfd45b139257a8041a5daba7c105f26c746022c8474181
+    public_surface:
+      frontmatter:
+        name: zoto-eval-generator
+        model: claude-opus-4-8[]
+        description: Plans and scaffolds the eval suite for a repository. Uses
+          zoto-create-evals and zoto-configure-evals skills to lay down both
+          pytest and LLM (@cursor/sdk) backends, generate per-target eval cases
+          with _meta.generated markers, and write the persistent manifest plus
+          append-only history. Does not call askQuestion — receives
+          pre-collected answers from the invoking command or returns
+          needs_user_input.
+    eval_files: []
+  - id: agent:zoto-eval-judge
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-judge.md
+    content_hash: a802872245e0918d336460b875b9ef7c3940d993406eeeafb493c472985af719
+    public_surface:
+      frontmatter:
+        name: zoto-eval-judge
+        model: claude-opus-4-8[]
+        description: Adversarial eval judge. Reads the most recent llm.yml and per-case
+          logs, flags weak graders, under-covered assertions, verbosity spikes,
+          and low-confidence cases. Writes a judge block to llm.yml. Does not
+          call askQuestion — returns needs_user_input when handoff to
+          /z-eval-update requires user approval (the command runs askQuestion
+          and resumes).
+    eval_files: []
+  - id: agent:zoto-eval-updater
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-updater.md
+    content_hash: d5dbe917302861f47f3500d4736988b03efc925766425071219e761d38f032fa
+    public_surface:
+      frontmatter:
+        name: zoto-eval-updater
+        model: claude-opus-4-8[]
+        description: '"Diff-aware eval updater. Uses zoto-update-evals to detect drift
+          between covered targets and generated eval cases, re-invokes the LLM
+          analyser per drifted primitive, and dispatches per-framework static
+          regeneration plus the single unified LLM eval regeneration
+          (`regenerateLlm`) through hard-coded user-case preservation gates.
+          Never mutates user-authored cases or user-authored test files — the
+          `_meta.generated === true` (case) and `// _meta.generated\\: true`
+          (file) contracts are enforced at runtime AND compile time. On
+          palette-driven flows or any unexpected apply branch, returns
+          structured `needs_user_input` for the owning command — never
+          `askQuestion` from the subagent."'
+    eval_files: []
+  - id: agent:zoto-spec-executor
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+    content_hash: 62b73f7f5372980ae0a500c3b0264e744c0df69cc1ba6ef67458f1bc4047f1b3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-executor
+        model: composer-2.5[]
+        description: Execution coordination specialist. Executes engineering specs by
+          spawning subagents for each subtask, tracking progress through
+          dependency phases, coordinating adversarial verification, and
+          producing execution reports. Specs are ephemeral coordination
+          artifacts — not ongoing knowledge.
+    eval_files: []
+  - id: agent:zoto-spec-generator
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
+    content_hash: 0cb7fb39e7f410e372bd9f2f8d706d925bea1ccd0efc970a760a35d25e9499f3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-generator
+        model: claude-opus-4-8[]
+        description: Config-driven spec creation specialist. Breaks down complex
+          features into well-defined subtasks with clear deliverables,
+          dependency graphs, and execution phases. Specs are ephemeral
+          coordination artifacts — not ongoing knowledge.
+    eval_files: []
+  - id: agent:zoto-spec-judge
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
+    content_hash: f144935058a14896d7b7492a4584f2e696e5626626343632230813efc9d800c5
+    public_surface:
+      frontmatter:
+        name: zoto-spec-judge
+        model: claude-opus-4-8[]
+        description: Independent quality gate for the Spec System. Performs adversarial
+          verification of subtask deliverables during spec execution
+          (status-pair-only writes; fix-lists routed back to the assigned
+          subagent — never authored by the judge), produces structured
+          assessments of repositories and specs, and (only in Mode 3, only with
+          explicit user approval) offers to apply recommended fixes to spec
+          files. Always runs in a fresh context to avoid bias.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-architect
+    kind: agent
+    path: .cursor/agents/zoto-eval-architect.md
+    content_hash: 71a840d3483c0fe14cbe1604bafbc51b44b283716b2c9e7c5c5185f43de07a41
+    public_surface:
+      frontmatter:
+        name: zoto-eval-architect
+        model: claude-opus-4-8[]
+        description: Eval-system architect specialising in the design, ergonomics,
+          performance, and quality strategy of the `zoto-eval-system` plugin.
+          Deep knowledge of the declarative-vs-code LLM-strategy split, the
+          command/skill/agent layer boundaries, the analyser →
+          declarative-runner / code-stamper → judge pipeline, model precedence,
+          prompt-cost accounting, and developer-ergonomics across the init →
+          configure → create → update → execute → judge → compare → advise
+          lifecycle.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-engineer
+    kind: agent
+    path: .cursor/agents/zoto-eval-engineer.md
+    content_hash: 5f6111c7b000f431c2dde3d1a8740d338628a6649b4e05947a341a47715d8df4
+    public_surface:
+      frontmatter:
+        name: zoto-eval-engineer
+        model: claude-opus-4-8[]
+        description: Eval-system implementation engineer specialising in the code,
+          schemas, contracts, and host-repo application of the
+          `zoto-eval-system` plugin. Deep knowledge of the TypeScript engine,
+          hooks, validation pipeline, the 7 JSON schemas, hard-coded
+          `preserveUserAuthoredCases` / `writeMetaMarker` contracts, drift
+          detection, the `_user-case-guards/` boundary, the manifest format, the
+          `.zoto/eval-system/` host-repo layout, and the `_runs/` artefact tree.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-plugin-manager
+    kind: agent
+    path: .cursor/agents/zoto-plugin-manager.md
+    content_hash: eb8d5c9c66162ac653955044a3a2222a856bbc1016847c9f68d1089b1f3e9162
+    public_surface:
+      frontmatter:
+        name: zoto-plugin-manager
+        model: claude-opus-4-8[]
+        description: Expert at creating, validating, and managing Cursor plugins in this
+          monorepo. Deep knowledge of plugin anatomy (agents, skills, commands,
+          rules, hooks, MCP), the Agent Skills specification, marketplace
+          publishing, skill evaluations, CRUX compression, and monorepo tooling.
+        is_background: "true"
+    eval_files: []
+  - id: hook:zoto-eval-system
+    kind: hook
+    path: plugins/zoto-eval-system/hooks/hooks.json
+    content_hash: 5aede789d6f42e7903d75ee1d9dd7b9d16787575075d8aaffb35a0bc4704aa11
+    public_surface:
+      plugin: zoto-eval-system
+    eval_files: []
+  - id: hook:zoto-spec-system
+    kind: hook
+    path: plugins/zoto-spec-system/hooks/hooks.json
+    content_hash: e12aef7ec0adc9c2f3aa8586611ed33bd222f6a2169df5915cca443e892fa019
+    public_surface:
+      plugin: zoto-spec-system
+    eval_files: []
+  - id: hook:cursor-workspace
+    kind: hook
+    path: .cursor/hooks.json
+    content_hash: 0a8483a7a8b5f97f31998cff0cb714f000896d661f379cc8cf8149bafca7e8f8
+    public_surface:
+      workspace: .cursor
+    eval_files: []
+---
+schema_version: 1
+created_at: 2026-05-03T07:47:43+00:00
+updated_at: 2026-06-11T13:06:02.392Z
+git_ref: 81a265fdd3ca75e98f3e94219f102bf4fa741f07
+generated_by: zoto-update-evals
+discovery_config:
+  discoveryTargets:
+    - skill
+    - command
+    - agent
+    - hook
+  skillsRoots:
+    - .cursor/skills
+    - skills
+    - plugins/*/skills
+  evalsDir: evals
+  additionalAutomation: []
+  cursorRoot: .cursor
+  cursor_namespaced_ids: []
+  ignore:
+    - .cursor/skills/crux-*
+    - .cursor/commands/crux-*.md
+    - .cursor/agents/crux-cursor-*.md
+    - .cursor/hooks/crux-*
+targets:
+  - id: skill:zoto-create-plugin
+    kind: skill
+    path: .cursor/skills/zoto-create-plugin/SKILL.md
+    content_hash: c07e9af86b978a5372af27bfa8bdcab77dbc45bc2cf0f20047e5467d109eda04
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Guided workflow for scaffolding a new Cursor plugin in this
+          monorepo. Gathers requirements, creates the directory structure,
+          generates all component files (manifest, agents, skills, commands,
+          rules, hooks), adds skill evaluations, registers in the marketplace
+          manifest, and runs validation. Use when creating a new plugin from
+          scratch.
+    eval_files:
+      - .cursor/skills/zoto-create-plugin/evals/evals.json
+  - id: skill:zoto-cursor-top-monitor
+    kind: skill
+    path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
+    content_hash: b75c039e72a6c0648e317bd93a3da0b95261171a0e36a0191e7a641a8ea41cc7
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-monitor
+        description: Guided workflow for launching and interpreting the cursor-top TUI.
+          Covers process discovery, hierarchy expansion, log tail
+          interpretation, and recommended flags for different scenarios. Use
+          when the user wants to monitor every Cursor agent on their machine in
+          real time, or to capture a snapshot for a report.
+    eval_files:
+      - plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json
+  - id: skill:zoto-advise-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md
+    content_hash: dc0f0d5df56ed5838a642161ce3d71279222ea6372239d18d831b4eec7df989f
+    public_surface:
+      frontmatter:
+        name: zoto-advise-evals
+        description: '"Coverage gap analyser for eval suites. Scans the codebase across
+          five dimensions — trigger-phrase coverage, schema validation,
+          regression baselines, context citation verification, and status
+          checklist completeness — and produces a structured adviser_report with
+          per-target, per-dimension findings and deterministic recommendations.
+          Read-only: never modifies files. Does not call askQuestion — uses
+          needs_user_input at two breakpoints (summary drill-down and action
+          recommendations) for the command to drive via askQuestion and
+          resume."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-advise-evals/evals/evals.json
+  - id: skill:zoto-compare-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-compare-evals/SKILL.md
+    content_hash: b3d19edf80b7f7292542213b6981286b2b79bafaa31d2b507936ea3b729b5b46
+    public_surface:
+      frontmatter:
+        name: zoto-compare-evals
+        description: Cross-run analysis across two or more eval runs driven by
+          **`report.yml`**. Inputs are resolved per run directory under
+          `{evalsDir}/_runs/<ts>/`; per-backend summaries are nested under
+          **`report.static`** and **`report.llm`**. Emits a flat dataset (runs ×
+          cases × dimensions) plus the /canvas hand-off prompt, instructing the
+          host agent to invoke Cursor's built-in /canvas tool. The skill never
+          renders charts itself. Drill-down opens per-case log files. Does not
+          call askQuestion — when a fragment (e.g. `20260503`) matches multiple
+          hourly folders and the Task lacks a disambiguator, emit schema-valid
+          **`needs_user_input`** whose **`options[].label`** lists every full
+          **`{evalsDir}/_runs/<ts>/`** candidate path (`/z-eval-compare`
+          surfaces this without **`askQuestion`**).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-compare-evals/evals/evals.json
+  - id: skill:zoto-configure-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md
+    content_hash: a77f21b7da13bf2da4d4bae1d79c4fe69b5bb740e43752114e867724c0609947
+    public_surface:
+      frontmatter:
+        name: zoto-configure-evals
+        description: Writes .zoto/eval-system/config.yml from field values pre-collected
+          by /z-eval-configure (command-owned askQuestion). Refuses bundled
+          update.preserveUserAuthoredCases:false or update.writeMetaMarker:false
+          (including nested payload mirrors) before any manifest read or config
+          write. Validates against templates/schema/config.schema.json. Diffs
+          the chosen config against the manifest snapshot
+          (discovery_config.static.framework) to produce a cleanup_plan
+          validated against templates/schema/cleanup-plan.schema.json, and
+          stamps _meta.primitive_analysis.invalidate=true on every cached
+          primitive analysis when the static framework changes. The unified LLM
+          eval harness ships one JSON-first co-located eval per target, with no
+          per-repo selector axis — only the static framework matters here. Never
+          calls askQuestion — returns needs_user_input if validation cannot
+          proceed without user clarification.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-configure-evals/evals/evals.json
+  - id: skill:zoto-create-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+    content_hash: a000fce6a4e03731aaf0a5604c097e2f6ab3efa7a780723ef83f5a1c3598b4b7
+    public_surface:
+      frontmatter:
+        name: zoto-create-evals
+        description: Scaffolds static pytest and LLM (@cursor/sdk) eval backends into a
+          host repository, generates eval cases with _meta.generated markers for
+          approved skills/commands/agents/hooks, merges eval scripts into
+          package.json, and writes the persistent manifest plus append-only
+          history. Expects the invoking command to pre-collect approved targets
+          — does not call askQuestion.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json
+  - id: skill:zoto-eval-tooling
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
+    content_hash: 901336b2a1b2431f5b7857e62b8cd9425097f78a81f95b99891cf1047a394af2
+    public_surface:
+      frontmatter:
+        name: zoto-eval-tooling
+        description: Invocation reference for all eval-system CLI commands. Use this
+          skill when you need to run eval scripts — never reference script paths
+          directly; always invoke via the package.json aliases documented here.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json
+  - id: skill:zoto-execute-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md
+    content_hash: f9215ca71cca10db74f78971b9aa416e1fcaf854b26ed956cfa63c3a5ba62fc7
+    public_surface:
+      frontmatter:
+        name: zoto-execute-evals
+        description: Executes eval runs via the host repo's package.json scripts (pnpm
+          run eval, eval:full, eval:llm, eval:judge). Forwards --model to the
+          LLM runner via both a CLI flag and the ZOTO_EVAL_MODEL environment
+          variable. After each run, calls eval:update --check and appends the
+          drift status to the run report as a warn-only line. Does not call
+          askQuestion — credential gaps use needs_user_input for the command.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-execute-evals/evals/evals.json
+  - id: skill:zoto-help-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+    content_hash: 70549869e895808d834e9d20fbb7047f6c034d828e20c2788ad1f1745a2ab0cf
+    public_surface:
+      frontmatter:
+        name: zoto-help-evals
+        description: Project-tailored help for the Eval System plugin. Loads
+          plugins/zoto-eval-system/README.md as the source of truth, inspects
+          current project state (.zoto/eval-system/config.yml, manifest.yml,
+          .env*, evals/_runs/, package.json scripts), and composes an answer
+          that is grounded in the chosen README section, tailored to the host
+          repo's actual configuration and artefacts, and cited with
+          `start:end:path` code references back to the README. Pre-collected
+          `help_context` arrives from the /z-eval-help command (command-owned
+          askQuestion). The skill itself never calls askQuestion — missing
+          context is returned as `needs_user_input`.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json
+  - id: skill:zoto-judge-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-judge-evals/SKILL.md
+    content_hash: ab6eb45f980baf9aa5c161744cd31d3805e56ea4eddee4f3363b37ae5b922146
+    public_surface:
+      frontmatter:
+        name: zoto-judge-evals
+        description: Adversarial judge for eval runs. Identifies weak graders,
+          under-covered assertions, verbosity spikes, and accuracy/confidence
+          regressions. Produces an enriched llm.yml with soft-metric
+          annotations. Does not call askQuestion — handoff to /z-eval-update is
+          expressed as needs_user_input for the command to confirm via
+          askQuestion and resume. Uses the configured judgeModel (default
+          claude-opus-4-8[]).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-judge-evals/evals/evals.json
+  - id: skill:zoto-update-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md
+    content_hash: 8e04894bce247d7877e22fad123a41947921883e9b2279815babea1850c0e225
+    public_surface:
+      frontmatter:
+        name: zoto-update-evals
+        description: '"Diff-aware eval updater. Detects drift between covered targets
+          and generated eval cases for skills and central plugin eval files
+          (commands/agents/hooks), classifies changes as critical or
+          non-critical, and preserves user-authored cases verbatim. Apply-mode
+          regeneration re-invokes the LLM analyser per drifted primitive and
+          dispatches per-framework static stamping plus the single unified LLM
+          regeneration (`regenerateLlm`) (CI defaults to cached analyser
+          payloads unless `--with-analyser`). The `_meta.generated === true`
+          (case) and `// _meta.generated\\: true` (file) contracts are enforced
+          at runtime AND compile time. Supports targeted mode, rediscovery mode,
+          `--no-analyser` / CI cache reuse, and CI `--check` (exit 2 on critical
+          drift)."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-update-evals/evals/evals.json
+  - id: skill:zoto-create-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md
+    content_hash: e79c250ba45437db46c47a717cb2d638fbd65d26be25315de614015a0a6312ce
+    public_surface:
+      frontmatter:
+        name: zoto-create-spec
+        description: Guided workflow for creating engineering specs. Gathers
+          requirements, explores the codebase, proposes a spec structure, and
+          generates spec files under the configured specs directory. Use when
+          planning a new feature, refactor, or multi-step initiative before
+          implementation.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+  - id: skill:zoto-execute-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+    content_hash: dd25ad95a2fd6210c4f72d2652882e070e9e3452f6a7eb4e19691e4c9927b0a4
+    public_surface:
+      frontmatter:
+        name: zoto-execute-spec
+        description: Executes an engineering spec by spawning subagents for each
+          subtask, tracking progress, adversarial verification, and final
+          quality checks. Use when a spec exists under the configured specs
+          directory and is ready for execution.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+  - id: skill:zoto-judge-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md
+    content_hash: 8ec8d8ff317d7c3c4a6a758eacf50e12f5a0165073079f818bf2fa07e822112d
+    public_surface:
+      frontmatter:
+        name: zoto-judge-spec
+        description: Independent assessment of a repository or Spec System engineering
+          specs. Reviews quality, feasibility, completeness, risk, and
+          structure. After producing a spec assessment, offers to apply
+          recommended fixes directly to the spec files. Use to audit a codebase
+          or to assess and improve a spec before running zoto-execute-spec.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
+  - id: command:zoto-cursor-top
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top.md
+    content_hash: cece1c01ad3fedac8d22e75d37b48e52e79c43fd5eb512cc83f0e39a47f390b3
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top
+        description: Open the live updating htop-style CLI that lists every Cursor agent
+          on this machine, with expandable parent-to-subagent hierarchy and
+          scrolling log tails.
+    eval_files: []
+  - id: command:z-eval-advise
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-advise.md
+    content_hash: 72f3ec88f3cfa78d8585d959e2e53e34753900e7f4e1391d68dc706ed591a21e
+    public_surface:
+      frontmatter:
+        name: z-eval-advise
+        description: Pre-hoc eval coverage adviser. Assesses gaps across five dimensions
+          (trigger-phrase, schema, regression, citation, checklist) and
+          recommends actions. Command-owned askQuestion drives multi-turn
+          interaction at two breakpoints (drill-down selection, action
+          recommendations); zoto-eval-adviser subagent surfaces
+          needs_user_input. Hands off accepted recommendations to /z-eval-create
+          or /z-eval-update.
+    eval_files: []
+  - id: command:z-eval-compare
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-compare.md
+    content_hash: be917b53788948c6a6ac4ade9b18eed18fc399211536839495c54c1b115ebaae
+    public_surface:
+      frontmatter:
+        name: z-eval-compare
+        description: Cross-run analysis across two or more runs. When run fragments
+          match multiple `_runs/` folders and the invocation is
+          undifferentiated, the comparer returns `needs_user_input` enumerating
+          candidates — surface that payload verbatim; **do not** run
+          `askQuestion`. Emits flat dataset and /canvas hand-off once paths
+          resolve.
+    eval_files: []
+  - id: command:z-eval-configure
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-configure.md
+    content_hash: cb792ed5d287975e6d5ebbf0d45c3e923ac6bd62eb456a79ea5069402131facb
+    public_surface:
+      frontmatter:
+        name: z-eval-configure
+        description: Writes .zoto/eval-system/config.yml using command-owned askQuestion
+          for every field, then spawns zoto-eval-configurer with pre-collected
+          answers. Diffs the chosen config against the manifest snapshot
+          (discovery_config.static), renders the resulting cleanup_plan via
+          askQuestion, and — only on explicit confirmation — shells out to `pnpm
+          run eval:cleanup-stale` (subtask 03) to delete stale static-framework
+          assets. The LLM backend is JSON-first (co-located
+          `<kind>/evals/<name>.json` with optional `runner` escape hatch) so no
+          strategy-switch prompts are issued. Supports resume when the subagent
+          returns needs_user_input.
+    eval_files: []
+  - id: command:z-eval-create
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-create.md
+    content_hash: 6af19bfa3497af02ee868c1f53a4c3faaf0d0a802cedd0cd445fd96f449f5ba2
+    public_surface:
+      frontmatter:
+        name: z-eval-create
+        description: Scaffold static (pytest) and LLM (@cursor/sdk) eval backends,
+          generate eval cases with _meta.generated markers for approved
+          skills/commands/agents/hooks, and write the persistent manifest.
+          Command pre-collects target checklists via askQuestion before spawning
+          zoto-eval-generator.
+    eval_files: []
+  - id: command:z-eval-execute
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-execute.md
+    content_hash: 63ae39aef8a3507aae5f872f264039691a24a69602a624d605a7d57d6e1bc951
+    public_surface:
+      frontmatter:
+        name: z-eval-execute
+        description: Run the eval suite via the host repo's package.json scripts.
+          Command-owned askQuestion when --full lacks CURSOR_API_KEY;
+          zoto-eval-executor returns needs_user_input if unresolved. --model
+          forwards to LLM runner.
+    eval_files: []
+  - id: command:z-eval-help
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-help.md
+    content_hash: 33b462ca3240318bff8a6f43fdfc28043dfa8a882d7e16540409d01fbd644fcd
+    public_surface:
+      frontmatter:
+        name: z-eval-help
+        description: Section-routed help for the Eval System plugin. Command-owned
+          askQuestion for section selection and follow-ups; zoto-help-evals
+          composes a project-tailored answer anchored on the chosen README
+          section, with mandatory `start:end:path` citations back to the README
+          and any project files it inspected. The skill never calls askQuestion
+          (no subagent askQuestion).
+    eval_files: []
+  - id: command:z-eval-init
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-init.md
+    content_hash: 481399fdf23e89ea6bca7d88e0d57a32c793d9411fb20ac50fda6a76806a3371
+    public_surface:
+      frontmatter:
+        name: z-eval-init
+        description: Initialise the Eval System config at .zoto/eval-system/config.yml
+          with a commented template of all defaults.
+    eval_files: []
+  - id: command:z-eval-judge
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-judge.md
+    content_hash: 7654646bb17b9133a4a1597dfac3a6a804fbb3bff851a593f873cb279f6b0174
+    public_surface:
+      frontmatter:
+        name: z-eval-judge
+        description: Adversarial post-hoc analysis of the most recent eval run.
+          Command-owned askQuestion for handoff to /z-eval-update; judge
+          subagent surfaces needs_user_input. Enriches llm.yml with a judge
+          block.
+    eval_files: []
+  - id: command:z-eval-jump
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-jump.md
+    content_hash: aa55940392f02a56107e1a19b5f43ee7d0e14344b79f8367a4d42df69330f790
+    public_surface:
+      frontmatter:
+        name: z-eval-jump
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-operator
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-operator.md
+    content_hash: 71452a1e19d087b7dc887cc8c6812d9bce718d6bfb6e5b1843d7a982f45b82e3
+    public_surface:
+      frontmatter:
+        name: z-eval-operator
+        description: Operator jump into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-start
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-start.md
+    content_hash: d463e50b0a2e2f7d82480f3a75a662c344d901dd37b4bb1c3e72091bad6b8ae0
+    public_surface:
+      frontmatter:
+        name: z-eval-start
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files: []
+  - id: command:z-eval-update
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-update.md
+    content_hash: 209668cadaa4f5de4fddb0ad5001fa4afc96e0f67488ac0f7fe18d07e693e85b
+    public_surface:
+      frontmatter:
+        name: z-eval-update
+        description: '"Diff-aware eval updater. Re-invokes the LLM analyser per drifted
+          primitive, dispatches per-framework / per-strategy regeneration
+          through hard-coded user-case preservation gates, and appends a
+          manifest snapshot. Command-owned askQuestion per change in apply
+          modes; subagent uses resume. The `_meta.generated` (case) and `//
+          _meta.generated\\: true` (file) contracts are enforced at runtime AND
+          compile time. Targeted, rediscovery, `--no-analyser`, and CI `--check`
+          modes."'
+    eval_files: []
+  - id: command:z-eval-workflow
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-workflow.md
+    content_hash: c4ed66d0bc87eac8ec5ad1fe24011c20f2b65b477e817b0a61ccc08f5f879d96
+    public_surface:
+      frontmatter:
+        name: z-eval-workflow
+        description: Interactive evaluator entry point — command-owned askQuestion maps
+          the operator’s current lifecycle stage to the correct Eval System
+          slash command (configure, scaffold, drift, execute, judge, compare,
+          advise, help) without spawning subagents.
+    eval_files: []
+  - id: command:z-spec-create
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-create.md
+    content_hash: 9dad691b4ec9d07eb9667ef45225181efd1337e646bcfc7953317228826a2681
+    public_surface:
+      frontmatter:
+        name: z-spec-create
+        description: Generate structured engineering specs for complex features and
+          multi-step initiatives.
+    eval_files: []
+  - id: command:z-spec-execute
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-execute.md
+    content_hash: 522f2ce7c52af0336679a0e7bbb570394f467c2a21e526f203b796d9ebd626fd
+    public_surface:
+      frontmatter:
+        name: z-spec-execute
+        description: Execute an engineering spec with guided subagent coordination,
+          progress tracking, and completion verification.
+    eval_files: []
+  - id: command:z-spec-init
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-init.md
+    content_hash: 5a42707b1c19fba70e21d81c6f3cf06b50c9a4f511d6e7bdcccf980624a85185
+    public_surface:
+      frontmatter:
+        name: z-spec-init
+        description: Initialise the Spec System config at .zoto/spec-system/config.yml
+          with a commented template of all defaults.
+    eval_files: []
+  - id: command:z-spec-judge
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-judge.md
+    content_hash: 59c0371ccf1480bdb6eede4aa492504d8acda65a0a60f48a05dddb8bebbd90bc
+    public_surface:
+      frontmatter:
+        name: z-spec-judge
+        description: Independently assess the repository or a specific engineering spec
+          for quality, feasibility, and completeness. For spec assessments,
+          offers to apply recommended fixes directly to spec files.
+    eval_files: []
+  - id: command:sync-plugins
+    kind: command
+    path: .cursor/commands/sync-plugins.md
+    content_hash: e56e7f7f021ea8ba307df39f91b53e36d4dff99eb8f1fd3b291af12269474d5d
+    public_surface:
+      frontmatter:
+        name: sync-plugins
+        description: Force-sync plugin source files to ~/.cursor/plugins/local/
+    eval_files: []
+  - id: command:zoto-create-plugin
+    kind: command
+    path: .cursor/commands/zoto-create-plugin.md
+    content_hash: 92365d4ef5d937dad6da4376751ae1ed5fa2efdf53c0ee5990b5b4174e2a08aa
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Scaffold a new Cursor plugin in this monorepo with guided component
+          selection, validation, and marketplace registration.
+    eval_files: []
+  - id: agent:zoto-cursor-top-troubleshooter
+    kind: agent
+    path: plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md
+    content_hash: 0bfd7b8dae4a7e8af6b5be3084cd37971d39bf590fa88495968d7f801e7a15c0
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-troubleshooter
+        description: Diagnose missing rows, empty log tails, or platform-specific gaps
+          in cursor-top discovery and recommend remediations.
+        model: composer-2.5[]
+    eval_files: []
+  - id: agent:zoto-eval-adviser
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-adviser.md
+    content_hash: 197d697909824afaf30a3d9533c4457902f060e23347bb3f8cc843af2d0dab72
+    public_surface:
+      frontmatter:
+        name: zoto-eval-adviser
+        model: claude-opus-4-8[]
+        description: Assesses eval suite coverage gaps across five dimensions
+          (trigger-phrase coverage, schema validation, regression baselines,
+          citation verification, checklist completeness). Reads
+          skill/command/agent sources and their evals.json files — never reads
+          run artefacts or modifies eval files. Does not call askQuestion —
+          returns needs_user_input at two breakpoints (drill-down selection,
+          action recommendations) for the command to drive via askQuestion and
+          resume.
+    eval_files: []
+  - id: agent:zoto-eval-analyser-subagent
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
+    content_hash: 13f55ef284e5712772a1184414b6f78972d1264daa78f28911d54da0d3673074
+    public_surface:
+      frontmatter:
+        name: zoto-eval-analyser-subagent
+        model: claude-opus-4-8[]
+        description: System prompt for the LLM-driven primitive analyser invoked by
+          `pnpm run eval:analyse`. Not surfaced to humans — driven by the
+          eval-system stamp/update flows via @cursor/sdk. Produces a strict JSON
+          AnalyserPayload (templates/schema/analyser-payload.schema.json) per
+          primitive (skill / command / agent / hook / rule).
+    eval_files: []
+  - id: agent:zoto-eval-comparer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-comparer.md
+    content_hash: e1579b08c2077e07673503d3c9d45bcaaa3ec70838622e304c1c2922a3eabc22
+    public_surface:
+      frontmatter:
+        name: zoto-eval-comparer
+        model: claude-opus-4-8[]
+        description: Cross-run analysis that emits a flat dataset and a /canvas hand-off
+          instruction. The host agent is expected to invoke Cursor's built-in
+          /canvas tool to render the comparison. Skill never renders charts
+          itself. Drilldown opens per-case log files. Does not call askQuestion
+          — when fragments (e.g. `20260503`) match multiple
+          `{evalsDir}/_runs/<ts>/` folders and the prompt did not pin one path
+          per argument, return schema-valid **`needs_user_input`** with each
+          candidate's full **`{evalsDir}/_runs/<ts>/`** path in
+          **`options[].label`**; **`/z-eval-compare`** surfaces that without
+          **`askQuestion`**.
+    eval_files: []
+  - id: agent:zoto-eval-configurer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-configurer.md
+    content_hash: 03f7312a3b39afb26cc983d1b8f3ee8cfae18a545ec690bb87d5bbabf982296f
+    public_surface:
+      frontmatter:
+        name: zoto-eval-configurer
+        model: claude-opus-4-8[]
+        description: Writes .zoto/eval-system/config.yml using the zoto-configure-evals
+          skill. Presents enum-backed fields only through answers pre-collected
+          by the invoking command; never calls askQuestion. Reads the manifest
+          snapshot via plugins/zoto-eval-system/engine/manifest-snapshot.ts,
+          emits a cleanup_plan validated against
+          templates/schema/cleanup-plan.schema.json when static.framework
+          changes, and stamps _meta.primitive_analysis.invalidate=true on every
+          cached primitive analysis after a switch. The unified LLM eval harness
+          ships a single backend shape (one TS-everywhere co-located eval per
+          target) with no per-repo selector axis. Rejects bundled false for
+          update.preserveUserAuthoredCases or update.writeMetaMarker before any
+          config write; rejects configs that violate those contracts.
+    eval_files: []
+  - id: agent:zoto-eval-executor
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-executor.md
+    content_hash: 7f0ed629e61557cfed0c6cc6ae1c51d0f2059b3eb47732c315bb8469643d7a1c
+    public_surface:
+      frontmatter:
+        name: zoto-eval-executor
+        model: claude-opus-4-8[]
+        description: Executes eval runs via the host repo's package.json scripts.
+          Forwards --model to the LLM runner via both a CLI flag and the
+          ZOTO_EVAL_MODEL environment variable. Gates the LLM backend on
+          CURSOR_API_KEY and --full. After every run, calls eval:update --check
+          and appends the drift status to llm.yml as warn-only. Does not call
+          askQuestion — missing credentials or choices are returned as
+          needs_user_input for the command.
+    eval_files: []
+  - id: agent:zoto-eval-generator
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-generator.md
+    content_hash: 14a86ea692695a5743bfd45b139257a8041a5daba7c105f26c746022c8474181
+    public_surface:
+      frontmatter:
+        name: zoto-eval-generator
+        model: claude-opus-4-8[]
+        description: Plans and scaffolds the eval suite for a repository. Uses
+          zoto-create-evals and zoto-configure-evals skills to lay down both
+          pytest and LLM (@cursor/sdk) backends, generate per-target eval cases
+          with _meta.generated markers, and write the persistent manifest plus
+          append-only history. Does not call askQuestion — receives
+          pre-collected answers from the invoking command or returns
+          needs_user_input.
+    eval_files: []
+  - id: agent:zoto-eval-judge
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-judge.md
+    content_hash: a802872245e0918d336460b875b9ef7c3940d993406eeeafb493c472985af719
+    public_surface:
+      frontmatter:
+        name: zoto-eval-judge
+        model: claude-opus-4-8[]
+        description: Adversarial eval judge. Reads the most recent llm.yml and per-case
+          logs, flags weak graders, under-covered assertions, verbosity spikes,
+          and low-confidence cases. Writes a judge block to llm.yml. Does not
+          call askQuestion — returns needs_user_input when handoff to
+          /z-eval-update requires user approval (the command runs askQuestion
+          and resumes).
+    eval_files: []
+  - id: agent:zoto-eval-updater
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-updater.md
+    content_hash: d5dbe917302861f47f3500d4736988b03efc925766425071219e761d38f032fa
+    public_surface:
+      frontmatter:
+        name: zoto-eval-updater
+        model: claude-opus-4-8[]
+        description: '"Diff-aware eval updater. Uses zoto-update-evals to detect drift
+          between covered targets and generated eval cases, re-invokes the LLM
+          analyser per drifted primitive, and dispatches per-framework static
+          regeneration plus the single unified LLM eval regeneration
+          (`regenerateLlm`) through hard-coded user-case preservation gates.
+          Never mutates user-authored cases or user-authored test files — the
+          `_meta.generated === true` (case) and `// _meta.generated\\: true`
+          (file) contracts are enforced at runtime AND compile time. On
+          palette-driven flows or any unexpected apply branch, returns
+          structured `needs_user_input` for the owning command — never
+          `askQuestion` from the subagent."'
+    eval_files: []
+  - id: agent:zoto-spec-executor
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+    content_hash: 62b73f7f5372980ae0a500c3b0264e744c0df69cc1ba6ef67458f1bc4047f1b3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-executor
+        model: composer-2.5[]
+        description: Execution coordination specialist. Executes engineering specs by
+          spawning subagents for each subtask, tracking progress through
+          dependency phases, coordinating adversarial verification, and
+          producing execution reports. Specs are ephemeral coordination
+          artifacts — not ongoing knowledge.
+    eval_files: []
+  - id: agent:zoto-spec-generator
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
+    content_hash: 0cb7fb39e7f410e372bd9f2f8d706d925bea1ccd0efc970a760a35d25e9499f3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-generator
+        model: claude-opus-4-8[]
+        description: Config-driven spec creation specialist. Breaks down complex
+          features into well-defined subtasks with clear deliverables,
+          dependency graphs, and execution phases. Specs are ephemeral
+          coordination artifacts — not ongoing knowledge.
+    eval_files: []
+  - id: agent:zoto-spec-judge
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
+    content_hash: f144935058a14896d7b7492a4584f2e696e5626626343632230813efc9d800c5
+    public_surface:
+      frontmatter:
+        name: zoto-spec-judge
+        model: claude-opus-4-8[]
+        description: Independent quality gate for the Spec System. Performs adversarial
+          verification of subtask deliverables during spec execution
+          (status-pair-only writes; fix-lists routed back to the assigned
+          subagent — never authored by the judge), produces structured
+          assessments of repositories and specs, and (only in Mode 3, only with
+          explicit user approval) offers to apply recommended fixes to spec
+          files. Always runs in a fresh context to avoid bias.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-architect
+    kind: agent
+    path: .cursor/agents/zoto-eval-architect.md
+    content_hash: 71a840d3483c0fe14cbe1604bafbc51b44b283716b2c9e7c5c5185f43de07a41
+    public_surface:
+      frontmatter:
+        name: zoto-eval-architect
+        model: claude-opus-4-8[]
+        description: Eval-system architect specialising in the design, ergonomics,
+          performance, and quality strategy of the `zoto-eval-system` plugin.
+          Deep knowledge of the declarative-vs-code LLM-strategy split, the
+          command/skill/agent layer boundaries, the analyser →
+          declarative-runner / code-stamper → judge pipeline, model precedence,
+          prompt-cost accounting, and developer-ergonomics across the init →
+          configure → create → update → execute → judge → compare → advise
+          lifecycle.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-eval-engineer
+    kind: agent
+    path: .cursor/agents/zoto-eval-engineer.md
+    content_hash: 5f6111c7b000f431c2dde3d1a8740d338628a6649b4e05947a341a47715d8df4
+    public_surface:
+      frontmatter:
+        name: zoto-eval-engineer
+        model: claude-opus-4-8[]
+        description: Eval-system implementation engineer specialising in the code,
+          schemas, contracts, and host-repo application of the
+          `zoto-eval-system` plugin. Deep knowledge of the TypeScript engine,
+          hooks, validation pipeline, the 7 JSON schemas, hard-coded
+          `preserveUserAuthoredCases` / `writeMetaMarker` contracts, drift
+          detection, the `_user-case-guards/` boundary, the manifest format, the
+          `.zoto/eval-system/` host-repo layout, and the `_runs/` artefact tree.
+        is_background: "true"
+    eval_files: []
+  - id: agent:zoto-plugin-manager
+    kind: agent
+    path: .cursor/agents/zoto-plugin-manager.md
+    content_hash: eb8d5c9c66162ac653955044a3a2222a856bbc1016847c9f68d1089b1f3e9162
+    public_surface:
+      frontmatter:
+        name: zoto-plugin-manager
+        model: claude-opus-4-8[]
+        description: Expert at creating, validating, and managing Cursor plugins in this
+          monorepo. Deep knowledge of plugin anatomy (agents, skills, commands,
+          rules, hooks, MCP), the Agent Skills specification, marketplace
+          publishing, skill evaluations, CRUX compression, and monorepo tooling.
+        is_background: "true"
+    eval_files: []
+  - id: hook:zoto-eval-system
+    kind: hook
+    path: plugins/zoto-eval-system/hooks/hooks.json
+    content_hash: 5aede789d6f42e7903d75ee1d9dd7b9d16787575075d8aaffb35a0bc4704aa11
+    public_surface:
+      plugin: zoto-eval-system
+    eval_files: []
+  - id: hook:zoto-spec-system
+    kind: hook
+    path: plugins/zoto-spec-system/hooks/hooks.json
+    content_hash: e12aef7ec0adc9c2f3aa8586611ed33bd222f6a2169df5915cca443e892fa019
+    public_surface:
+      plugin: zoto-spec-system
+    eval_files: []
+  - id: hook:cursor-workspace
+    kind: hook
+    path: .cursor/hooks.json
+    content_hash: 0a8483a7a8b5f97f31998cff0cb714f000896d661f379cc8cf8149bafca7e8f8
+    public_surface:
+      workspace: .cursor
+    eval_files: []
+  - id: command:zoto-cursor-top-init
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top-init.md
+    content_hash: c4f25aedf79ccfaba34f1224d24ba6a6975ec8134092310adb6d55d5da041f0f
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-init
+        description: One-time setup after installing the Cursor Top plugin — builds the
+          CLI, installs runtime dependencies, and puts cursor-top on PATH.
+    eval_files: []

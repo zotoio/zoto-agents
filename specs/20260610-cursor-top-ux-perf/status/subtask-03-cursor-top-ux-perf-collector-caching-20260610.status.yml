@@ -1,0 +1,100 @@
+schema_version: 1
+subtask_id: "03"
+feature: cursor-top-ux-perf
+assigned_agent: "generalPurpose (model: `composer-2.5-fast`)"
+model: composer-2.5-fast
+token_budget: 150000
+state: completed
+checklist:
+  - id: D01
+    text: "Persistent collector lifecycle: `src/cli.ts` creates **one** collector before `render()` and reuses it across interactive ticks (including manual `r` refresh). `--once` / `--json` behaviour is unchanged (fresh process → single cold collect; identical output to today)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/cli.ts
+  - id: D02
+    text: "Mtime/size-gated session cache: `readSessionRecords` walk results cached per file — re-`stat` each tick is acceptable, but `readFile` + `JSON.parse` happen only when `(mtimeMs, size)` changed; deleted files drop out of the cache; new files are picked up. Same gating for `repo-url.ts` lookups (`buildSlugPathMap` / `resolveRepoDisplayUrl`) with a sensible TTL."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/discovery/sessions.ts
+  - id: D03
+    text: "Log-tail cache: per `logSource`, cache `{mtimeMs, size, lines}`; each tick stats first and re-reads the 16/64 KB window (`tailFile` / `tailJsonlMessages`, `src/discovery/logs.ts`) only on change. Unchanged files cost one `stat`, zero `open`/`read`."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/discovery/logs.ts
+  - id: D04
+    text: "Composer-model cache: resolved `id → model` results persist for the collector's lifetime (model picker selections are stable per chat); `sqlite3` (`readComposerModels`, `src/discovery/composer-models.ts`) is spawned at most once per tick and **only** when unresolved ids exist; unresolved ids are retried at reduced cadence (e.g. every Nth tick) instead of every tick."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/discovery/collector.ts
+  - id: D05
+    text: "Two-lane cadence: fast lane every tick (`ps` scan for liveness, transcript `stat`s for status derivation, changed-log re-tails); slow lane every N ticks (full session-JSON re-walk, workspace/`agent-transcripts` re-enumeration in `enumerateTranscriptRoots`, sqlite retries, slug-map refresh). Choose and document N (constant or flag — implementer judgment; if a flag, follow `parseArgs` conventions and update HELP/docs)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/discovery/collector.ts
+  - id: D06
+    text: "Bounded fs concurrency: hand-rolled stdlib semaphore limiting the `Promise.all` tail/stat fan-outs in `collect()` (hundreds of parallel `open()`s at tier L today) to a sane limit (e.g. 16–32 concurrent ops)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/discovery/concurrency.ts
+  - id: D07
+    text: "Correctness tests with a counting `FsLike` (reuse `bench/fixtures.ts` from subtask 01): warm tick #2 with zero file changes performs **zero** `readFile`s and produces a snapshot deep-equal to tick #1 (modulo `capturedAt`); touching one transcript invalidates exactly that entry; deleted/new files handled; `--once`/`--json` cold path identical to pre-change behaviour (subtask-01 contract tests green)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/tests/collector-cache.test.ts
+  - id: D08
+    text: "Bench delta recorded: re-run subtask-01 collector benches; append a before/after section to `bench/BASELINE.md` (warm-tick latency + fs-op counts per tier). Target: ≥50% warm-tick latency reduction and ≥80% fewer `readFile` ops at tier L with unchanged files; record actuals and explain any miss."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/bench/BASELINE.md
+  - id: D09
+    text: 'Docs in the same subtask: README (Data sources / Development notes on caching + cadence, plus the "Benchmarks" note in the Development section deferred from subtask 01 — bench script usage and a `bench/BASELINE.md` pointer), CHANGELOG entry; command/skill docs only if a new flag was added (then run `pnpm run eval:update --check`, and `--apply --no-analyser` on critical drift).'
+    done: true
+    evidence_path: plugins/zoto-cursor-top/README.md
+artifacts:
+  - path: plugins/zoto-cursor-top/src/discovery/collector.ts
+    kind: modified
+    note: persistent collector, mtime caches, two-lane cadence, composer/repo caches
+  - path: plugins/zoto-cursor-top/src/discovery/concurrency.ts
+    kind: created
+    note: stdlib semaphore (24 concurrent fs ops)
+  - path: plugins/zoto-cursor-top/src/discovery/sessions.ts
+    kind: modified
+    note: gated session JSON cache, slow-lane walk
+  - path: plugins/zoto-cursor-top/src/discovery/logs.ts
+    kind: modified
+    note: readWindow seam + log-tail cache
+  - path: plugins/zoto-cursor-top/src/discovery/fs.ts
+    kind: modified
+    note: realFs.readWindow implementation
+  - path: plugins/zoto-cursor-top/src/types.ts
+    kind: modified
+    note: FsLike.readWindow, CollectorOptions.slowLaneEvery
+  - path: plugins/zoto-cursor-top/src/cli.ts
+    kind: modified
+    note: persistent collector for interactive TUI
+  - path: plugins/zoto-cursor-top/tests/collector-cache.test.ts
+    kind: created
+    note: warm-tick read counts, invalidation, slow-lane cadence (7 tests)
+  - path: plugins/zoto-cursor-top/bench/BASELINE.md
+    kind: modified
+    note: post-subtask-03 section (tier S measured; M/L deferred to 08)
+  - path: plugins/zoto-cursor-top/bench/quick-warm-metrics.mjs
+    kind: created
+    note: fast warm-tick sampler (no vitest bench loop)
+  - path: plugins/zoto-cursor-top/README.md
+    kind: modified
+    note: caching cadence + benchmarks pointer
+  - path: plugins/zoto-cursor-top/CHANGELOG.md
+    kind: modified
+    note: collector caching entry
+errors: []
+notes: "Resumed 2026-06-11 after interrupted subagent. Tier-S warm tick 2.19ms (−53% vs baseline 4.66ms), warm readFile/readWindow=0. Contracts 17/17 + collector-cache 7/7 pass. eval:update --check clean. M/L full bench deferred per user benchmark-timeout policy (subtask 08)."
+extra:
+  judge:
+    verdict: verified
+    at: 2026-06-11T08:14:00.000Z
+    notes: >-
+      Adversarial verification passed. D01: cli.ts reuses one createCollector() for interactive TUI;
+      loadSnapshot() still cold-collects for --once/--json. D02-D06: mtime/size-gated session+log caches,
+      readWindow tail seam, composer-model cache with slow-lane sqlite retry, DEFAULT_SLOW_LANE_EVERY=5
+      two-lane cadence, concurrency.ts semaphore (24). D07: collector-cache.test.ts 7/7 + contracts.test.ts
+      17/17 (24 total) re-run green. D08: BASELINE.md post-03 section records tier-S warm 2.19ms (−53%),
+      readFile/readWindow=0; M/L warm numbers deferred to subtask 08 per documented benchmark-timeout policy.
+      D09: README caching/cadence + bench pointer; CHANGELOG entry; no new CLI flag. ReadLints clean on
+      discovery files. onStop check exit 0.
+    fix_list: []
+started_at: 2026-06-10T14:44:26.181Z
+last_heartbeat: 2026-06-11T08:14:00.000Z
+completed_at: 2026-06-11T08:12:00.000Z

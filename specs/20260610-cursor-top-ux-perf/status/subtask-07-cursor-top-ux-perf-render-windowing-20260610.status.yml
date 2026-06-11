@@ -1,0 +1,105 @@
+schema_version: 1
+subtask_id: "07"
+feature: cursor-top-ux-perf
+assigned_agent: "generalPurpose (model: `composer-2.5-fast`)"
+model: composer-2.5-fast
+token_budget: 150000
+state: completed
+started_at: "2026-06-11T08:20:00Z"
+last_heartbeat: "2026-06-11T08:32:00Z"
+completed_at: "2026-06-11T08:32:00Z"
+checklist:
+  - id: D01
+    text: "Viewport windowing: compute available body rows from terminal size (Ink `useStdout` → `stdout.rows`/`columns`, with sane non-TTY fallbacks) minus fixed chrome: header line, column header, diagnostics block, event strip (05), filter bar (04), detail pane when open (06 exports its height), footer help. Account for the fact that each agent row may span multiple terminal lines depending on density (row + title + log lines)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/viewport.ts
+  - id: D02
+    text: Scroll window over the flattened row list with a stable scroll offset, selection-follow scrolling (moving selection past the window edge scrolls; selection always visible), and overflow indicators (`↑ N more` / `↓ N more`) when rows are clipped above/below.
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/viewport.ts
+  - id: D03
+    text: "Interplay correctness: window recomputes correctly on expand/collapse (`e`/`c`/arrow keys), filter apply/clear (selection clamping from 04 still holds), detail pane open/close, density changes (02), and terminal resize (Ink re-render on `stdout` resize)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/App.tsx
+  - id: D04
+    text: "Row memoisation: `React.memo` on `Row` with stable props; pass quantised elapsed-time inputs so unchanged rows skip re-render — choose between (a) quantising `now` per row outside the memo boundary or (b) computing the elapsed string in the parent and passing it as a prop. Off-window rows are **not rendered at all** (the map over rows only covers the windowed slice)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/Row.tsx
+  - id: D05
+    text: "Clock-bound re-renders: the 1 s `setNow` interval may only trigger re-rendering of the windowed slice (bounded by viewport height, independent of total node count)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/Tree.tsx
+  - id: D06
+    text: "`--once` / `renderText` unchanged: the plain-text renderer continues to emit the **full** untruncated tree (subtask-01 contracts green) — windowing is interactive-only."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/tests/contracts.test.ts
+  - id: D07
+    text: "Bench delta: extend `bench/render.bench.ts` with a windowed interactive frame-build bench (e.g. flatten + window + per-row format for a 40-row viewport) at tiers M and L; append before/after to `bench/BASELINE.md`. Target: windowed frame-build is O(viewport) — tier-L windowed frame-build time ≤ 1.5× tier M, and both well below the unwindowed full-tree row-build at the same tier; record actuals and explain any miss."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/bench/BASELINE.md
+  - id: D08
+    text: "Tests: windowing maths as pure functions (offset clamping, selection-follow, indicator counts, chrome-height accounting — extract to a testable `src/ui/viewport.ts`), plus `ink-testing-library` scenarios (e.g. 500 visible rows in a 30-row terminal: window renders only the slice + indicators; selection at bottom edge scrolls)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/tests/viewport.test.ts
+  - id: D09
+    text: "Docs in the same subtask: README (scrolling behaviour, indicators), CHANGELOG. Command/skill docs only if user-visible flags change (then eval drift check as in prior subtasks)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/README.md
+artifacts:
+  - path: plugins/zoto-cursor-top/src/ui/viewport.ts
+    kind: created
+    note: chrome accounting, row heights, selection-follow window
+  - path: plugins/zoto-cursor-top/src/ui/Tree.tsx
+    kind: modified
+    note: windowed slice + overflow indicators
+  - path: plugins/zoto-cursor-top/src/ui/Row.tsx
+    kind: modified
+    note: React.memo + startColumn prop
+  - path: plugins/zoto-cursor-top/src/ui/App.tsx
+    kind: modified
+    note: resolveTreeWindow integration, terminalRows test override
+  - path: plugins/zoto-cursor-top/src/ui/format.ts
+    kind: modified
+    note: optional startColumn on formatAgentRowLine
+  - path: plugins/zoto-cursor-top/tests/viewport.test.ts
+    kind: created
+    note: pure viewport maths
+  - path: plugins/zoto-cursor-top/tests/viewport-app.test.tsx
+    kind: created
+    note: ink windowing scenarios
+  - path: plugins/zoto-cursor-top/bench/render.bench.ts
+    kind: modified
+    note: windowed row-build benches M/L
+  - path: plugins/zoto-cursor-top/bench/quick-render-window.mjs
+    kind: created
+    note: one-shot windowed vs full timings
+  - path: plugins/zoto-cursor-top/bench/BASELINE.md
+    kind: modified
+    note: post-subtask-07 section
+errors: []
+notes: "Contracts 17/17; targeted tests 59/59. M/L bench via synthetic snapshots + quick-render-window.mjs (full vitest bench deferred to subtask 08)."
+extra:
+  judge:
+    verdict: verified
+    at: "2026-06-11T08:55:00Z"
+    notes: >-
+      Viewport windowing verified: viewport.ts chrome math, Tree windowed slice,
+      Row React.memo, contracts 17/17, quick-render-window L ratio 0.008× full.
+      filter-app test updated for windowing on resume.
+    fix_list: []
+  definition_of_done:
+    - id: DoD01
+      text: "Code implemented; TUI navigable and correct on small terminals with very large agent trees"
+      done: true
+    - id: DoD02
+      text: "Targeted tests added and passing (viewport maths + ink-testing-library scenarios)"
+      done: true
+    - id: DoD03
+      text: "Subtask-01 contract tests pass unchanged (`--once`/`--json` full output preserved)"
+      done: true
+    - id: DoD04
+      text: "Bench before/after appended to `bench/BASELINE.md` demonstrating viewport-bounded frame cost at tier L"
+      done: true
+    - id: DoD05
+      text: "No linter errors in modified files"
+      done: true

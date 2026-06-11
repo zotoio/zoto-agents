@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-06-01T11:42:06.477Z
-git_ref: fbfecad15cca5de07f40ec150555f1b8d2fff64c
+updated_at: 2026-06-11T13:06:02.392Z
+git_ref: 81a265fdd3ca75e98f3e94219f102bf4fa741f07
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -41,7 +41,7 @@ targets:
   - id: skill:zoto-cursor-top-monitor
     kind: skill
     path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
-    content_hash: 508b9760a799cb727285b40484c9ed5c7885422bacdd097c84419d62201f9a38
+    content_hash: aa8229cf06c7df0ae1356952629ef576313fa36cfa243801236cefb7bf08ccfb
     public_surface:
       frontmatter:
         name: zoto-cursor-top-monitor
@@ -256,7 +256,7 @@ targets:
   - id: command:zoto-cursor-top
     kind: command
     path: plugins/zoto-cursor-top/commands/zoto-cursor-top.md
-    content_hash: 0041371cd74a3e4c241baab987671ade01bd9845a6e98100be2ae5617e4f808e
+    content_hash: cece1c01ad3fedac8d22e75d37b48e52e79c43fd5eb512cc83f0e39a47f390b3
     public_surface:
       frontmatter:
         name: zoto-cursor-top
@@ -264,6 +264,17 @@ targets:
           on this machine, with expandable parent-to-subagent hierarchy and
           scrolling log tails.
     eval_files: []
+  - id: command:zoto-cursor-top-init
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top-init.md
+    content_hash: c4f25aedf79ccfaba34f1224d24ba6a6975ec8134092310adb6d55d5da041f0f
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-init
+        description: One-time setup after installing the Cursor Top plugin — builds the
+          CLI, installs runtime dependencies, and puts cursor-top on PATH.
+    eval_files:
+      - plugins/zoto-cursor-top/commands/evals/zoto-cursor-top-init.json
   - id: command:z-eval-advise
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-advise.md

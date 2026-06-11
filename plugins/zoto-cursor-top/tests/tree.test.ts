@@ -16,6 +16,7 @@ function node(over: Partial<AgentNode>): AgentNode {
     status: "running",
     recentLogs: [],
     logSource: null,
+    tokenUsage: null,
     children: [],
     ...over,
   };

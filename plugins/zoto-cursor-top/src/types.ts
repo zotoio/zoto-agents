@@ -48,12 +48,25 @@ export interface AgentNode {
   repo: string | null;
   /** Absolute start time as a unix epoch in milliseconds. */
   startedAt: number;
+  /**
+   * End instant for the START column. While {@link status} is `running` this
+   * is null and elapsed ticks live. For `idle`, `done`, and other non-running
+   * rows the UI freezes against this timestamp (transcript mtime, transition
+   * time, or last activity).
+   */
+  elapsedEndAt?: number | null;
   /** Current status. */
   status: AgentStatus;
   /** Last N log lines, newest last. */
   recentLogs: string[];
   /** Path to the source file the logs were tailed from, if any. */
   logSource: string | null;
+  /**
+   * Context tokens in use for this composer session (`promptTokenBreakdown
+   * .totalUsedTokens` from `composerData:<id>` in `state.vscdb`), or null
+   * when unknown (process-only rows, missing DB row, lookup failure).
+   */
+  tokenUsage: number | null;
   /** Optional list of child IDs populated by the tree builder. */
   children?: string[];
 }
@@ -121,6 +134,18 @@ export interface CollectorOptions {
    * `sqlite3` child process). Defaults to `defaultComposerModelRunner`.
    */
   composerModelRunner?: import("./discovery/composer-models.js").ComposerModelRunner;
+  /**
+   * Slow-lane interval for the two-lane refresh cadence: every Nth
+   * tick (and tick 1) re-walks session JSON, re-enumerates transcript
+   * roots, retries unresolved composer-model ids, and refreshes the
+   * slug→path map. Fast ticks stat transcripts and re-tail only changed
+   * logs. Default 5.
+   */
+  slowLaneEvery?: number;
+  /** Override `Date.now()` for deterministic tests. */
+  now?: () => number;
+  /** Max concurrent fs operations during collect fan-out (default 24). */
+  fsConcurrency?: number;
 }
 
 /**
@@ -130,10 +155,17 @@ export interface CollectorOptions {
 export interface FsLike {
   readdir(path: string): Promise<string[]>;
   readFile(path: string, enc: "utf8"): Promise<string>;
+  /**
+   * Read `length` bytes starting at `offset`. Used by the log tailer so
+   * windowed reads are observable through the injected fs seam.
+   */
+  readWindow(path: string, offset: number, length: number): Promise<Buffer>;
   stat(path: string): Promise<{
     isDirectory(): boolean;
     isFile(): boolean;
     mtimeMs: number;
+    /** File creation time when the host provides it; used as transcript start. */
+    birthtimeMs?: number;
     size: number;
   }>;
   exists(path: string): Promise<boolean>;

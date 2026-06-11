@@ -1,8 +1,8 @@
 {
   "name": "zoto-cursor-top",
   "displayName": "Cursor Top",
-  "version": "0.1.0",
-  "description": "Live updating htop-style CLI that shows all agents across every Cursor process on this machine, with expandable parent-to-subagent hierarchy and scrolling log lines.",
+  "version": "0.2.0",
+  "description": "Live updating htop-style CLI that shows all agents across every Cursor process on this machine, with expandable parent-to-subagent hierarchy and scrolling log lines. After install, run /zoto-cursor-top-init once to build the CLI and put cursor-top on PATH.",
   "author": {
     "name": "zotoio",
     "email": "plugins@zotoio.com"

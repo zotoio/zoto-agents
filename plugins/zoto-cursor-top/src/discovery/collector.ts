@@ -5,6 +5,14 @@
  * The collector is intentionally pure-ish: every external dependency
  * (process listing, filesystem, time source) can be injected so we can write
  * deterministic tests around the full pipeline.
+ *
+ * A persistent collector instance caches mtime/size-gated session files, log
+ * tails, composer-model lookups, and slug→path maps between ticks. Fast
+ * ticks stat transcripts and re-tail only changed logs; slow ticks (every
+ * {@link DEFAULT_SLOW_LANE_EVERY} refreshes, plus tick 1) re-walk session
+ * JSON, retry unresolved composer ids, and refresh slug maps. Transcript
+ * roots are re-enumerated every tick; the fast lane scans for new transcript
+ * files not yet in the meta cache so fresh chats appear on the next refresh.
  */
 
 import { homedir, platform } from "node:os";
@@ -18,13 +26,19 @@ import type {
 } from "../types.js";
 import {
   defaultComposerModelRunner,
-  readComposerModels,
+  readComposerData,
   type ComposerModelRunner,
 } from "./composer-models.js";
+import {
+  readHookLogModels,
+  type HookLogCacheEntry,
+} from "./hook-log-models.js";
+import { coalesceModelSlug, isPlaceholderModelSlug } from "./model-slug.js";
+import { createSemaphore, type Semaphore } from "./concurrency.js";
 import { realFs } from "./fs.js";
 import { buildHierarchy } from "./hierarchy.js";
 import { tailFile, tailJsonlMessages } from "./logs.js";
-import { resolveCursorPaths } from "./paths.js";
+import { pushMissingSessionRootDiagnostic, resolveCursorPaths } from "./paths.js";
 import {
   defaultPsRunner,
   discoverCursorProcesses,
@@ -32,17 +46,43 @@ import {
   type RawProcess,
 } from "./processes.js";
 import {
-  readSessionRecords,
+  discoverSessionJsonFiles,
+  loadSessionFileRecords,
+  mergeSessionRecords,
   readTranscriptRecords,
+  transcriptRecordFromMeta,
   type SessionRecord,
+  type TranscriptFileMeta,
 } from "./sessions.js";
 import {
   buildSlugPathMap,
   resolveRepoDisplayUrl,
   slugFromAbsolutePath,
+  stripGitHubHost,
 } from "./repo-url.js";
 
 const DEFAULT_LOG_LINES = 3;
+/** Slow-lane cadence: full session walk + root enumeration every N ticks. */
+export const DEFAULT_SLOW_LANE_EVERY = 5;
+const DEFAULT_FS_CONCURRENCY = 24;
+const SLUG_MAP_TTL_MS = 60_000;
+
+interface SessionFileCacheEntry {
+  mtimeMs: number;
+  size: number;
+  records: SessionRecord[];
+}
+
+interface LogTailCacheEntry {
+  mtimeMs: number;
+  size: number;
+  lines: string[];
+}
+
+interface RepoDisplayCacheEntry {
+  mtimeMs: number;
+  display: string | null;
+}
 
 function classifyProcess(p: RawProcess): { kind: AgentKind; label: string } {
   const cmd = p.command;
@@ -71,6 +111,7 @@ function nodeFromProcess(p: RawProcess): AgentNode {
     status: "running",
     recentLogs: [],
     logSource: null,
+    tokenUsage: null,
   };
 }
 
@@ -90,26 +131,223 @@ function nodeFromSession(rec: SessionRecord): AgentNode {
     model: rec.model,
     repo: rec.repo,
     startedAt: rec.startedAt,
+    elapsedEndAt: rec.elapsedEndAt ?? null,
     status: rec.status,
     recentLogs: [],
     logSource: rec.logPath,
+    tokenUsage: null,
   };
 }
 
-/**
- * Merge a session node into an existing process-derived node when their PIDs
- * line up. The session record always wins for label/title/model/repo because
- * it carries richer metadata than the raw command line.
- */
 function mergeSessionIntoProcess(into: AgentNode, from: AgentNode): void {
   into.label = from.label || into.label;
   into.title = from.title || into.title;
-  into.model = from.model ?? into.model;
+  into.model = coalesceModelSlug(into.model, from.model);
   into.repo = from.repo ?? into.repo;
   into.status = from.status !== "unknown" ? from.status : into.status;
   into.startedAt = from.startedAt || into.startedAt;
+  if (from.elapsedEndAt != null) into.elapsedEndAt = from.elapsedEndAt;
   into.logSource = from.logSource ?? into.logSource;
   if (from.parentId) into.parentId = from.parentId;
+}
+
+function pathUnderRoots(path: string, roots: readonly string[]): boolean {
+  for (const root of roots) {
+    if (path === root || path.startsWith(`${root}/`)) return true;
+  }
+  return false;
+}
+
+async function readCachedSessionRecords(
+  fs: FsLike,
+  roots: string[],
+  kind: AgentKind,
+  diagnostics: string[],
+  cache: Map<string, SessionFileCacheEntry>,
+  slowLane: boolean,
+  sem: Semaphore,
+): Promise<SessionRecord[]> {
+  for (const root of roots) {
+    if (!(await fs.exists(root))) {
+      pushMissingSessionRootDiagnostic(diagnostics, root, kind);
+    }
+  }
+
+  if (!slowLane) {
+    const cached: SessionRecord[] = [];
+    for (const [path, entry] of cache) {
+      if (pathUnderRoots(path, roots)) cached.push(...entry.records);
+    }
+    return mergeSessionRecords(cached);
+  }
+
+  const files = await discoverSessionJsonFiles(fs, roots);
+  const seen = new Set<string>();
+  const loaded: SessionRecord[] = [];
+
+  await Promise.all(
+    files.map((file) =>
+      sem.run(async () => {
+        seen.add(file);
+        let st;
+        try {
+          st = await fs.stat(file);
+        } catch {
+          return;
+        }
+        if (!st.isFile()) return;
+        const prev = cache.get(file);
+        if (prev && prev.mtimeMs === st.mtimeMs && prev.size === st.size) {
+          loaded.push(...prev.records);
+          return;
+        }
+        const records = await loadSessionFileRecords(fs, file, kind, diagnostics);
+        cache.set(file, { mtimeMs: st.mtimeMs, size: st.size, records });
+        loaded.push(...records);
+      }),
+    ),
+  );
+
+  for (const path of cache.keys()) {
+    if (pathUnderRoots(path, roots) && !seen.has(path)) cache.delete(path);
+  }
+
+  return mergeSessionRecords(loaded);
+}
+
+async function readCachedTranscriptRecords(
+  fs: FsLike,
+  roots: string[],
+  diagnostics: string[],
+  transcriptMaxAgeMs: number,
+  now: number,
+  metaCache: Map<string, TranscriptFileMeta>,
+  slowLane: boolean,
+  sem: Semaphore,
+): Promise<SessionRecord[]> {
+  if (slowLane || metaCache.size === 0) {
+    const fresh = await readTranscriptRecords(fs, roots, diagnostics, {
+      maxAgeMs: transcriptMaxAgeMs,
+      now: () => now,
+    });
+    metaCache.clear();
+    for (const rec of fresh) {
+      if (!rec.logPath) continue;
+      let st;
+      try {
+        st = await fs.stat(rec.logPath);
+      } catch {
+        continue;
+      }
+      metaCache.set(rec.logPath, {
+        id: rec.id,
+        parentId: rec.parentId,
+        kind: rec.kind,
+        file: rec.logPath,
+        mtimeMs: st.mtimeMs,
+        size: st.size,
+        startedAt: rec.startedAt,
+      });
+    }
+    return fresh;
+  }
+
+  const records: SessionRecord[] = [];
+  const stalePaths: string[] = [];
+
+  await Promise.all(
+    [...metaCache.entries()].map(([path, meta]) =>
+      sem.run(async () => {
+        let st;
+        try {
+          st = await fs.stat(path);
+        } catch {
+          stalePaths.push(path);
+          return;
+        }
+        if (!st.isFile()) {
+          stalePaths.push(path);
+          return;
+        }
+        const ageMs = now - st.mtimeMs;
+        if (ageMs > transcriptMaxAgeMs) {
+          stalePaths.push(path);
+          return;
+        }
+        if (meta.mtimeMs !== st.mtimeMs || meta.size !== st.size) {
+          metaCache.set(path, {
+            ...meta,
+            mtimeMs: st.mtimeMs,
+            size: st.size,
+          });
+        }
+        records.push(
+          transcriptRecordFromMeta(metaCache.get(path)!, now),
+        );
+      }),
+    ),
+  );
+
+  for (const path of stalePaths) metaCache.delete(path);
+
+  const knownPaths = new Set(metaCache.keys());
+  const newRecords = await readTranscriptRecords(fs, roots, diagnostics, {
+    maxAgeMs: transcriptMaxAgeMs,
+    now: () => now,
+    skipLogPaths: knownPaths,
+  });
+  for (const rec of newRecords) {
+    if (!rec.logPath) continue;
+    let st;
+    try {
+      st = await fs.stat(rec.logPath);
+    } catch {
+      continue;
+    }
+    metaCache.set(rec.logPath, {
+      id: rec.id,
+      parentId: rec.parentId,
+      kind: rec.kind,
+      file: rec.logPath,
+      mtimeMs: st.mtimeMs,
+      size: st.size,
+      startedAt: rec.startedAt,
+    });
+    records.push(rec);
+  }
+
+  return records;
+}
+
+async function tailLogCached(
+  fs: FsLike,
+  logSource: string,
+  logLines: number,
+  cache: Map<string, LogTailCacheEntry>,
+  sem: Semaphore,
+): Promise<string[]> {
+  return sem.run(async () => {
+    let st;
+    try {
+      st = await fs.stat(logSource);
+    } catch {
+      cache.delete(logSource);
+      return [];
+    }
+    if (!st.isFile()) {
+      cache.delete(logSource);
+      return [];
+    }
+    const prev = cache.get(logSource);
+    if (prev && prev.mtimeMs === st.mtimeMs && prev.size === st.size) {
+      return prev.lines;
+    }
+    const lines = logSource.endsWith(".jsonl")
+      ? await tailJsonlMessages(logSource, logLines, undefined, fs)
+      : await tailFile(logSource, logLines, undefined, fs);
+    cache.set(logSource, { mtimeMs: st.mtimeMs, size: st.size, lines });
+    return lines;
+  });
 }
 
 export interface Collector {
@@ -124,14 +362,39 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
   const logLines = opts.logTailLines ?? DEFAULT_LOG_LINES;
   const cursorOnly = opts.cursorOnly ?? false;
   const withLogs = opts.withLogs ?? false;
-  const activeOnly = opts.activeOnly ?? true;
   const transcriptMaxAgeMs = opts.transcriptMaxAgeMs ?? 24 * 60 * 60 * 1000;
   const composerModelRunner: ComposerModelRunner =
     opts.composerModelRunner ?? defaultComposerModelRunner;
+  const slowLaneEvery = opts.slowLaneEvery ?? DEFAULT_SLOW_LANE_EVERY;
+  const nowFn = opts.now ?? Date.now;
+  const sem = createSemaphore(opts.fsConcurrency ?? DEFAULT_FS_CONCURRENCY);
   const paths = resolveCursorPaths(home, plat);
+
+  const sessionFileCache = new Map<string, SessionFileCacheEntry>();
+  const transcriptMetaCache = new Map<string, TranscriptFileMeta>();
+  const logTailCache = new Map<string, LogTailCacheEntry>();
+  const composerModelCache = new Map<string, string>();
+  const hookLogCache: HookLogCacheEntry = {
+    path: "",
+    mtimeMs: 0,
+    size: 0,
+    models: new Map(),
+  };
+  const unresolvedComposerIds = new Set<string>();
+  let cachedTranscriptRoots: string[] = [];
+  let cachedSlugPaths: Map<string, string> | null = null;
+  let slugPathsBuiltAt = 0;
+  const repoDisplayCache = new Map<string, RepoDisplayCacheEntry>();
+  let tickCount = 0;
+  let prevSnapshotNodes: Record<string, AgentNode> | null = null;
+  const idleElapsedEndCache = new Map<string, number>();
 
   return {
     async collect(): Promise<AgentSnapshot> {
+      tickCount += 1;
+      const now = nowFn();
+      const slowLane = tickCount === 1 || tickCount % slowLaneEvery === 0;
+
       const diagnostics: string[] = [];
       const processes = await discoverCursorProcesses(psRunner);
       if (processes.length === 0) {
@@ -147,40 +410,56 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
         pidCommands.set(p.pid, p.command);
       }
 
-      const procNodes = processes.map(nodeFromProcess);
+      const procNodes = processes.map((p) => ({
+        ...nodeFromProcess(p),
+        startedAt: now - p.etimeSec * 1000,
+      }));
       const nodesByPid = new Map<number, AgentNode>();
       for (const n of procNodes) if (n.pid != null) nodesByPid.set(n.pid, n);
 
-      const ideRecords = await readSessionRecords(
+      const ideRecords = await readCachedSessionRecords(
         fs,
         paths.dataRoots,
         "ide",
         diagnostics,
+        sessionFileCache,
+        slowLane,
+        sem,
       );
-      const cliRecords = await readSessionRecords(
+      const cliRecords = await readCachedSessionRecords(
         fs,
         paths.cliSessionRoots,
         "cli",
         diagnostics,
+        sessionFileCache,
+        slowLane,
+        sem,
       );
-      const cloudRecords = await readSessionRecords(
+      const cloudRecords = await readCachedSessionRecords(
         fs,
         paths.cloudProjectRoots,
         "cloud",
         diagnostics,
+        sessionFileCache,
+        slowLane,
+        sem,
       );
 
-      // Stop-gap until SQLite session readers land: enumerate per-agent
-      // transcript directories under every workspace in ~/.cursor/projects
-      // and treat each transcript file as a session whose `logPath` is the
-      // file itself. See `readTranscriptRecords` for the rules.
-      const transcriptRoots = await enumerateTranscriptRoots(fs, paths.cloudProjectRoots);
-      paths.agentTranscriptRoots.push(...transcriptRoots);
-      const transcriptRecords = await readTranscriptRecords(
+      cachedTranscriptRoots = await enumerateTranscriptRoots(
         fs,
-        transcriptRoots,
+        paths.cloudProjectRoots,
+        sem,
+      );
+
+      const transcriptRecords = await readCachedTranscriptRecords(
+        fs,
+        cachedTranscriptRoots,
         diagnostics,
-        { maxAgeMs: transcriptMaxAgeMs },
+        transcriptMaxAgeMs,
+        now,
+        transcriptMetaCache,
+        slowLane,
+        sem,
       );
 
       const allRecords = [
@@ -191,110 +470,225 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
       ];
       const sessionNodes = allRecords.map(nodeFromSession);
 
-      const merged: AgentNode[] = [...procNodes];
+      // Merge session metadata into live process rows first, then clone
+      // into `merged` — cloning before merge left stale copies without
+      // logSource / model / title from session JSON.
       const seenIds = new Set(procNodes.map((n) => n.id));
+      const orphanSessions: AgentNode[] = [];
       for (const sNode of sessionNodes) {
-        if (sNode.pid != null && nodesByPid.has(sNode.pid)) {
-          mergeSessionIntoProcess(nodesByPid.get(sNode.pid)!, sNode);
+        const sessionNode = { ...sNode };
+        if (sessionNode.pid != null && nodesByPid.has(sessionNode.pid)) {
+          mergeSessionIntoProcess(nodesByPid.get(sessionNode.pid)!, sessionNode);
           continue;
         }
-        if (!seenIds.has(sNode.id)) {
-          merged.push(sNode);
-          seenIds.add(sNode.id);
+        if (!seenIds.has(sessionNode.id)) {
+          orphanSessions.push(sessionNode);
+          seenIds.add(sessionNode.id);
         }
       }
+
+      const merged: AgentNode[] = [
+        ...procNodes.map((n) => ({ ...n })),
+        ...orphanSessions,
+      ];
 
       await Promise.all(
         merged.map(async (n) => {
           if (!n.logSource) return;
-          n.recentLogs = n.logSource.endsWith(".jsonl")
-            ? await tailJsonlMessages(n.logSource, logLines)
-            : await tailFile(n.logSource, logLines);
+          n.recentLogs = await tailLogCached(
+            fs,
+            n.logSource,
+            logLines,
+            logTailCache,
+            sem,
+          );
         }),
       );
 
-      // Enrich agent / subagent nodes with the model picked in the
-      // Cursor IDE chat picker. Cursor stores the selection in
-      // `<app-data>/User/globalStorage/state.vscdb` keyed by the
-      // chat UUID — which is also the transcript directory name —
-      // so the same map populates both `[AGENT]` and `[SUB]` rows.
-      //
-      // We pass only the ids we actually need (transcript-derived
-      // agent / subagent ids; everything else either has a model
-      // already from session JSON or has no chat-uuid mapping). The
-      // SELECT uses `key IN (...)` against `cursorDiskKV`'s primary
-      // key, which is critical because the real-world DB can grow
-      // to multiple GB and a full `LIKE 'composerData:%'` scan would
-      // exceed the refresh tick budget. Errors (missing DB, missing
-      // `sqlite3` binary, locked file, slow scan) are swallowed by
-      // `readComposerModels`; the renderer then keeps its `-`
-      // placeholder for that row.
       const composerDataRoot = paths.dataRoots[0];
       if (composerDataRoot) {
-        const idsNeedingModel = merged
-          .filter((n) => !n.model && (n.kind === "agent" || n.kind === "subagent"))
+        for (const node of merged) {
+          if (!isPlaceholderModelSlug(node.model)) continue;
+          const cached = composerModelCache.get(node.id);
+          if (cached) node.model = cached;
+        }
+
+        const composerIds = merged
+          .filter((n) => n.kind === "agent" || n.kind === "subagent")
           .map((n) => n.id);
-        if (idsNeedingModel.length > 0) {
-          const composerModels = await readComposerModels(
+
+        const idsNeedingModel = merged
+          .filter(
+            (n) =>
+              (n.kind === "agent" || n.kind === "subagent") &&
+              isPlaceholderModelSlug(n.model) &&
+              (!unresolvedComposerIds.has(n.id) || slowLane),
+          )
+          .map((n) => n.id);
+
+        if (composerIds.length > 0) {
+          const composerData = await readComposerData(
             composerDataRoot,
-            idsNeedingModel,
+            composerIds,
             {
               runner: composerModelRunner,
               exists: (p) => fs.exists(p),
             },
           );
-          if (composerModels.size > 0) {
-            for (const node of merged) {
-              if (node.model) continue;
-              const m = composerModels.get(node.id);
-              if (m) node.model = m;
+          for (const id of idsNeedingModel) {
+            const entry = composerData.get(id);
+            if (entry?.model) {
+              composerModelCache.set(id, entry.model);
+              unresolvedComposerIds.delete(id);
+            } else if (!composerData.has(id)) {
+              unresolvedComposerIds.add(id);
+            }
+          }
+          for (const node of merged) {
+            const entry = composerData.get(node.id);
+            if (!entry) continue;
+            if (entry.tokenUsage != null) node.tokenUsage = entry.tokenUsage;
+            if (
+              isPlaceholderModelSlug(node.model) &&
+              entry.model
+            ) {
+              node.model = entry.model;
             }
           }
         }
       }
 
+      const idsNeedingHookModel = merged
+        .filter(
+          (n) =>
+            isPlaceholderModelSlug(n.model) &&
+            (n.kind === "agent" || n.kind === "subagent"),
+        )
+        .map((n) => n.id);
+      if (idsNeedingHookModel.length > 0 && paths.logRoots.length > 0) {
+        const hookModels = await readHookLogModels(
+          paths.logRoots,
+          idsNeedingHookModel,
+          fs,
+          hookLogCache,
+        );
+        for (const node of merged) {
+          if (!isPlaceholderModelSlug(node.model)) continue;
+          const resolved = hookModels.get(node.id);
+          if (resolved) node.model = resolved;
+        }
+      }
+
       reparentTranscriptChats(merged, pidCommands, pidParents);
 
-      const slugPaths = await buildSlugPathMap(
-        fs,
-        paths.dataRoots[0],
-        pidCommands,
-      );
+      const slugStale =
+        slowLane ||
+        cachedSlugPaths == null ||
+        now - slugPathsBuiltAt > SLUG_MAP_TTL_MS;
+      if (slugStale) {
+        cachedSlugPaths = await buildSlugPathMap(
+          fs,
+          paths.dataRoots[0],
+          pidCommands,
+        );
+        slugPathsBuiltAt = now;
+        repoDisplayCache.clear();
+      }
+
       await Promise.all(
-        merged.map(async (node) => {
-          if (!node.repo) return;
-          const display = await resolveRepoDisplayUrl(fs, node.repo, slugPaths);
-          if (display) node.repo = display;
-        }),
+        merged.map((node) =>
+          sem.run(async () => {
+            if (!node.repo) return;
+            const display = await resolveRepoDisplayCached(
+              fs,
+              node.repo,
+              cachedSlugPaths!,
+              repoDisplayCache,
+              slowLane,
+            );
+            if (display) node.repo = display;
+          }),
+        ),
       );
 
       const built = buildHierarchy({ nodes: merged, pidParents });
       let view = built;
       if (cursorOnly) view = pruneNonCursor(view.nodes, view.roots, diagnostics);
       if (withLogs) view = pruneWithoutLogs(view.nodes, view.roots, diagnostics);
-      if (activeOnly) view = pruneDoneAgents(view.nodes, view.roots, diagnostics);
+      if (opts.activeOnly ?? true) {
+        view = pruneDoneAgents(view.nodes, view.roots, diagnostics);
+      }
+
+      const outNodes: Record<string, AgentNode> = {};
+      for (const [id, node] of Object.entries(view.nodes)) {
+        outNodes[id] = {
+          ...node,
+          recentLogs: [...node.recentLogs],
+          children: node.children ? [...node.children] : undefined,
+        };
+      }
+
+      annotateElapsedEnd(
+        outNodes,
+        prevSnapshotNodes,
+        now,
+        idleElapsedEndCache,
+      );
+      prevSnapshotNodes = outNodes;
 
       return {
-        capturedAt: Date.now(),
-        nodes: view.nodes,
-        roots: view.roots,
-        diagnostics,
+        capturedAt: now,
+        nodes: outNodes,
+        roots: [...view.roots],
+        diagnostics: [...diagnostics],
       };
     },
   };
 }
 
-/**
- * For every `~/.cursor/projects/<workspace>/agent-transcripts/` directory
- * that exists, return its absolute path. The caller feeds these into
- * {@link readTranscriptRecords}.
- *
- * Each input root (`cloudProjectRoots` entry) is expected to be a
- * `~/.cursor/projects/` directory whose children are workspace slugs.
- */
+async function resolveRepoDisplayCached(
+  fs: FsLike,
+  repo: string,
+  slugPaths: Map<string, string>,
+  cache: Map<string, RepoDisplayCacheEntry>,
+  slowLane: boolean,
+): Promise<string | null> {
+  if (/github\.com/i.test(repo)) return stripGitHubHost(repo);
+
+  let workspacePath: string | null = null;
+  if (repo.startsWith("/")) {
+    workspacePath = repo;
+  } else if (slugPaths.has(repo)) {
+    workspacePath = slugPaths.get(repo)!;
+  }
+  if (!workspacePath) return null;
+
+  const configPath = `${workspacePath}/.git/config`;
+  let configMtime = 0;
+  try {
+    const st = await fs.stat(configPath);
+    if (!st.isFile()) return null;
+    configMtime = st.mtimeMs;
+  } catch {
+    return null;
+  }
+
+  const prev = cache.get(repo);
+  if (!slowLane && prev && prev.mtimeMs === configMtime) {
+    return prev.display;
+  }
+
+  // Caller already holds a semaphore slot (merged.map → sem.run). Do not nest
+  // sem.run here — with fsConcurrency slots all busy, inner acquires deadlock.
+  const display = await resolveRepoDisplayUrl(fs, repo, slugPaths);
+  cache.set(repo, { mtimeMs: configMtime, display });
+  return display;
+}
+
 async function enumerateTranscriptRoots(
   fs: FsLike,
   projectRoots: string[],
+  sem: Semaphore,
 ): Promise<string[]> {
   const out: string[] = [];
   for (const projectsRoot of projectRoots) {
@@ -305,23 +699,47 @@ async function enumerateTranscriptRoots(
     } catch {
       continue;
     }
-    for (const slug of workspaces) {
-      const candidate = `${projectsRoot}/${slug}/agent-transcripts`;
-      if (await fs.exists(candidate)) out.push(candidate);
-    }
+    await Promise.all(
+      workspaces.map((slug) =>
+        sem.run(async () => {
+          const candidate = `${projectsRoot}/${slug}/agent-transcripts`;
+          if (await fs.exists(candidate)) out.push(candidate);
+        }),
+      ),
+    );
   }
   return out;
 }
 
-/**
- * Prune any subtree whose root is `kind: "unknown"`. Descendants of a
- * Cursor-kind root are kept regardless of their own kind so the user can
- * still see helper bash / node shells that the IDE itself spawned.
- *
- * The diagnostic list gains a one-liner with the count when pruning
- * actually drops something — useful when the user wonders why their
- * unrelated terminal sessions disappeared from the view.
- */
+function annotateElapsedEnd(
+  nodes: Record<string, AgentNode>,
+  prev: Record<string, AgentNode> | null,
+  now: number,
+  endCache: Map<string, number>,
+): void {
+  const seen = new Set<string>();
+  for (const [id, node] of Object.entries(nodes)) {
+    seen.add(id);
+    if (node.status === "running") {
+      endCache.delete(id);
+      node.elapsedEndAt = null;
+      continue;
+    }
+    if (node.elapsedEndAt != null) {
+      endCache.set(id, node.elapsedEndAt);
+      continue;
+    }
+    const prevStatus = prev?.[id]?.status;
+    if (prevStatus === "running" || !endCache.has(id)) {
+      endCache.set(id, now);
+    }
+    node.elapsedEndAt = endCache.get(id)!;
+  }
+  for (const id of endCache.keys()) {
+    if (!seen.has(id)) endCache.delete(id);
+  }
+}
+
 function pruneNonCursor(
   nodes: Record<string, AgentNode>,
   roots: string[],
@@ -359,25 +777,25 @@ function pruneNonCursor(
   return { nodes: out, roots: keptRoots };
 }
 
-/**
- * Keep only nodes that produced readable agent output, plus the ancestor
- * chain of any such node so the surviving rows still hang under their
- * parents in the tree.
- *
- * The roll-up rule is: a node survives if it has at least one tailed log
- * line OR one of its descendants does. Children arrays are rewritten to
- * drop pruned ids so the renderer doesn't emit phantom rows.
- */
 function pruneWithoutLogs(
   nodes: Record<string, AgentNode>,
   roots: string[],
   diagnostics: string[],
 ): { nodes: Record<string, AgentNode>; roots: string[] } {
-  // Phase 1 — bottom-up walk to mark surviving ids. Recursive helper is
-  // fine here because the depth is bounded by the process tree.
   const survives = new Set<string>();
-  const hasOwnLogs = (id: string): boolean =>
-    (nodes[id]?.recentLogs?.length ?? 0) > 0;
+  const hasOwnLogs = (id: string): boolean => {
+    const node = nodes[id];
+    if (!node) return false;
+    if ((node.recentLogs?.length ?? 0) > 0) return true;
+    // Transcript-backed chats exist before the first message is flushed.
+    if (
+      node.logSource?.endsWith(".jsonl") &&
+      (node.kind === "agent" || node.kind === "subagent")
+    ) {
+      return true;
+    }
+    return false;
+  };
 
   const visit = (id: string): boolean => {
     const node = nodes[id];
@@ -417,19 +835,6 @@ function pruneWithoutLogs(
   return { nodes: out, roots: keptRoots };
 }
 
-/**
- * Drop nodes whose status is `"done"` and whose subtree contains no
- * active descendant (running / waiting / idle / error / unknown).
- *
- * Subagents are treated more strictly: a subagent with `status === "done"`
- * is ALWAYS dropped, even if it has surviving descendants. That mirrors
- * the user-facing rule "only render SUBs that are not done" — done subs
- * never appear, regardless of grandchildren. Non-subagent nodes still
- * obey the roll-up rule so a done parent that hosts a live child is
- * kept and the tree stays navigable.
- *
- * Equivalent to passing `--active-only` (the default) on the CLI.
- */
 function pruneDoneAgents(
   nodes: Record<string, AgentNode>,
   roots: string[],
@@ -440,10 +845,6 @@ function pruneDoneAgents(
   const visit = (id: string): boolean => {
     const node = nodes[id];
     if (!node) return false;
-    // Strict rule for subagents: status === "done" → drop, no
-    // ancestor-preservation. Subs are leaves in practice; this keeps
-    // the rule simple to reason about even when sub-of-sub chains
-    // appear in the data.
     if (node.kind === "subagent" && node.status === "done") return false;
     let kept = node.status !== "done";
     for (const childId of node.children ?? []) {
@@ -473,36 +874,6 @@ function pruneDoneAgents(
   return { nodes: out, roots: keptRoots };
 }
 
-/**
- * Re-parent transcript-derived chat sessions so they appear under their
- * owning Cursor IDE OS process instead of as standalone roots.
- *
- * Transcript records are minted from
- * `~/.cursor/projects/<workspace>/agent-transcripts/<chat-uuid>/…` and
- * have no PID — Cursor doesn't write one to the message-stream files.
- * Before this step, the hierarchy looks like:
- *
- *   pid:1234 (Cursor IDE)        ← OS process tree
- *   chat-uuid (IDE transcript)   ← parallel root
- *     └─ sub-uuid (Task)
- *
- * The user-facing rule is "subagents belong under the IDE process",
- * so we walk the merged node list, find every parent transcript chat
- * (kind="ide", pid==null, parentId==null), and re-parent it onto a
- * Cursor IDE PID root. Matching strategy:
- *
- *   1. Prefer an IDE PID whose command line contains the workspace
- *      slug (we de-slugify "home-andrewv-git-cursor-foo" back to a
- *      path fragment and substring-match against the command). This
- *      keeps multi-window setups correctly partitioned.
- *   2. Fall back to the earliest-started Cursor IDE PID root. With a
- *      single-window setup (the common case) that's the only IDE
- *      root, so all chats hang under it.
- *
- * Subagents follow automatically: they already have `parentId` set
- * to their parent chat, and `buildHierarchy` chains them under once
- * the chat itself sits inside the PID tree.
- */
 function reparentTranscriptChats(
   nodes: AgentNode[],
   pidCommands: Map<number, string>,
@@ -528,12 +899,6 @@ function reparentTranscriptChats(
   }
 }
 
-/**
- * A PID is a root within the captured process table when its PPID is
- * not itself a captured PID. We can't rely on PPID === 1 because the
- * collector only sees Cursor-flavoured processes — the actual init
- * parent is usually filtered out.
- */
 function isPidRoot(pid: number, pidParents: Map<number, number>): boolean {
   const ppid = pidParents.get(pid);
   if (ppid == null) return true;
@@ -548,9 +913,6 @@ function pickIdeOwner(
   if (candidates.length === 0) return null;
   if (candidates.length === 1) return candidates[0]!;
   if (chat.repo) {
-    // Workspace slugs look like "home-andrewv-git-cursor-foo"; match the
-    // owning IDE window by comparing slug encodings of paths embedded in
-    // each process command. Handles hyphenated directory names correctly.
     for (const cand of candidates) {
       const cmd = pidCommands.get(cand.pid!) ?? "";
       for (const m of cmd.matchAll(/(?:\/[\w.@+-]+)+/g)) {

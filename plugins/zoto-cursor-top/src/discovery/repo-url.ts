@@ -1,6 +1,6 @@
 /**
- * Resolve Cursor workspace slugs and local paths to a compact GitHub URL
- * suitable for the REPO column (github.com/owner/repo).
+ * Resolve Cursor workspace slugs and local paths to a compact GitHub slug
+ * suitable for the REPO column (`owner/repo`).
  *
  * Cursor encodes absolute workspace paths as slugs by stripping the leading
  * slash and replacing path separators with hyphens, e.g.
@@ -50,27 +50,38 @@ export function parseGitConfigOrigin(content: string): string | null {
 }
 
 /**
- * Normalise a git remote URL to github.com/owner/repo for display.
+ * Normalise a git remote URL to owner/repo for display.
  * Returns null when the remote is not a GitHub URL.
  */
 export function normalizeGitHubDisplayUrl(remote: string): string | null {
   const trimmed = remote.trim().replace(/\/$/, "");
   // git@github.com:owner/repo.git
   const ssh = trimmed.match(/^git@github\.com:([^/]+)\/(.+?)(?:\.git)?$/i);
-  if (ssh) return `github.com/${ssh[1]}/${ssh[2]!.replace(/\.git$/, "")}`;
+  if (ssh) return `${ssh[1]}/${ssh[2]!.replace(/\.git$/, "")}`;
   // https://github.com/owner/repo.git
   const https = trimmed.match(
     /^https?:\/\/github\.com\/([^/]+)\/(.+?)(?:\.git)?(?:\/.*)?$/i,
   );
-  if (https) return `github.com/${https[1]}/${https[2]!.replace(/\.git$/, "")}`;
+  if (https) return `${https[1]}/${https[2]!.replace(/\.git$/, "")}`;
   // ssh://git@github.com/owner/repo.git
   const sshProto = trimmed.match(
     /^ssh:\/\/git@github\.com\/([^/]+)\/(.+?)(?:\.git)?$/i,
   );
   if (sshProto) {
-    return `github.com/${sshProto[1]}/${sshProto[2]!.replace(/\.git$/, "")}`;
+    return `${sshProto[1]}/${sshProto[2]!.replace(/\.git$/, "")}`;
   }
   return null;
+}
+
+/** Remove a legacy `github.com/` prefix from stored display values. */
+export function stripGitHubHost(display: string): string {
+  return display.replace(/^github\.com\//i, "");
+}
+
+/** Plain-text value for the REPO column (`owner/repo`, slug, or path). */
+export function formatRepoDisplay(repo: string | null | undefined): string {
+  if (!repo) return "-";
+  return stripGitHubHost(repo);
 }
 
 /** Read .git/config under repoPath and return a GitHub display URL. */
@@ -159,7 +170,7 @@ export async function resolveRepoDisplayUrl(
   slugPaths: Map<string, string>,
 ): Promise<string | null> {
   if (!repo) return null;
-  if (/github\.com/i.test(repo)) return repo;
+  if (/github\.com/i.test(repo)) return stripGitHubHost(repo);
 
   let workspacePath: string | null = null;
   if (repo.startsWith("/")) {

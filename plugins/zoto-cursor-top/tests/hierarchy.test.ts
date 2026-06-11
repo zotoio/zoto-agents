@@ -16,6 +16,7 @@ function node(over: Partial<AgentNode>): AgentNode {
     status: "running",
     recentLogs: [],
     logSource: null,
+    tokenUsage: null,
     ...over,
   };
 }
@@ -56,7 +57,7 @@ describe("buildHierarchy", () => {
     expect(result.nodes.ghost!.parentId).toBeNull();
   });
 
-  it("sorts roots and children by start time", () => {
+  it("sorts active roots by start time ascending", () => {
     const result = buildHierarchy({
       nodes: [
         node({ id: "a", startedAt: 30 }),
@@ -66,6 +67,28 @@ describe("buildHierarchy", () => {
       pidParents: new Map(),
     });
     expect(result.roots).toEqual(["b", "c", "a"]);
+  });
+
+  it("lists done roots newest-first after active agents", () => {
+    const result = buildHierarchy({
+      nodes: [
+        node({ id: "live", startedAt: 100, status: "running" }),
+        node({
+          id: "old-done",
+          startedAt: 10,
+          status: "done",
+          elapsedEndAt: 50,
+        }),
+        node({
+          id: "new-done",
+          startedAt: 200,
+          status: "done",
+          elapsedEndAt: 300,
+        }),
+      ],
+      pidParents: new Map(),
+    });
+    expect(result.roots).toEqual(["live", "new-done", "old-done"]);
   });
 
   it("does not link a node to itself when PID and PPID match", () => {

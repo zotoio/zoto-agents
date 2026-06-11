@@ -4,6 +4,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   extractMessageSnippets,
+  finalizeMessageSnippets,
+  formatUserPromptText,
   splitLines,
   stripRedactionMarkers,
   tailFile,
@@ -114,6 +116,44 @@ describe("extractMessageSnippets", () => {
     expect(out[1]).toBe("assistant: Shell pnpm test");
   });
 
+  it("keeps the newest user prompt when assistant lines fill the tail", () => {
+    const lines = [
+      "{garbage}",
+      JSON.stringify({
+        role: "user",
+        message: { content: [{ type: "text", text: "ship the feature" }] },
+      }),
+      ...["a", "b", "c"].map((s) =>
+        JSON.stringify({
+          role: "assistant",
+          message: { content: [{ type: "text", text: s }] },
+        }),
+      ),
+    ].join("\n");
+    expect(extractMessageSnippets(lines, 2)).toEqual([
+      "user: ship the feature",
+      "assistant: c",
+    ]);
+  });
+
+  it("unwraps <user_query> blocks in user messages", () => {
+    const lines = [
+      "{partial",
+      JSON.stringify({
+        role: "user",
+        message: {
+          content: [
+            {
+              type: "text",
+              text: "<user_query>\nhello there\n</user_query>",
+            },
+          ],
+        },
+      }),
+    ].join("\n");
+    expect(extractMessageSnippets(lines, 1)).toEqual(["user: hello there"]);
+  });
+
   it("returns the last N snippets when more events are present", () => {
     const lines = [
       "{garbage}",
@@ -152,11 +192,28 @@ describe("tailJsonlMessages", () => {
     ];
     writeFileSync(file, lines.join("\n") + "\n");
     const tail = await tailJsonlMessages(file, 2);
-    expect(tail).toEqual(["assistant: second", "assistant: third"]);
+    expect(tail).toEqual(["user: first", "assistant: third"]);
   });
 
   it("returns [] for a missing file", async () => {
     expect(await tailJsonlMessages("/no/such/transcript.jsonl", 3)).toEqual([]);
+  });
+});
+
+describe("finalizeMessageSnippets", () => {
+  it("injects the latest user line when it would fall outside a short tail", () => {
+    expect(
+      finalizeMessageSnippets(
+        ["user: one", "assistant: two", "assistant: three"],
+        2,
+      ),
+    ).toEqual(["user: one", "assistant: three"]);
+  });
+});
+
+describe("formatUserPromptText", () => {
+  it("extracts inner text from user_query wrappers", () => {
+    expect(formatUserPromptText("<user_query>\nhi\n</user_query>")).toBe("hi");
   });
 });
 

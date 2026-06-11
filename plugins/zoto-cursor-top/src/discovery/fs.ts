@@ -10,12 +10,23 @@ import type { FsLike } from "../types.js";
 export const realFs: FsLike = {
   readdir: (path) => nodeFs.readdir(path),
   readFile: (path, enc) => nodeFs.readFile(path, enc),
+  readWindow: async (path, offset, length) => {
+    const handle = await nodeFs.open(path, "r");
+    try {
+      const buffer = Buffer.alloc(length);
+      const { bytesRead } = await handle.read(buffer, 0, length, offset);
+      return bytesRead === length ? buffer : buffer.subarray(0, bytesRead);
+    } finally {
+      await handle.close().catch(() => undefined);
+    }
+  },
   stat: async (path) => {
     const s = await nodeFs.stat(path);
     return {
       isDirectory: () => s.isDirectory(),
       isFile: () => s.isFile(),
       mtimeMs: s.mtimeMs,
+      birthtimeMs: s.birthtimeMs,
       size: s.size,
     };
   },

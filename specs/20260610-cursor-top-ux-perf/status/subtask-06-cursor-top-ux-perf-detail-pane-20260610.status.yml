@@ -1,0 +1,89 @@
+schema_version: 1
+subtask_id: "06"
+feature: cursor-top-ux-perf
+assigned_agent: "generalPurpose (model: `composer-2.5-fast`)"
+model: composer-2.5-fast
+token_budget: 150000
+state: completed
+started_at: "2026-06-11T08:15:00Z"
+last_heartbeat: "2026-06-11T08:25:00Z"
+completed_at: "2026-06-11T08:25:00Z"
+checklist:
+  - id: D01
+    text: "`plugins/zoto-cursor-top/src/ui/DetailPane.tsx` — themed (subtask 02) pane rendering full metadata for the selected node: `id`, `kind` badge, `pid`, `label`, full untruncated `title`, `model`, `repo`, `startedAt` + elapsed (`formatStart`), `status` (status-coloured), and the full `logSource` path; followed by the deep log tail (newest first, consistent with `Row.tsx`)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/DetailPane.tsx
+  - id: D02
+    text: "On-demand deep tail loader: fetch the last `--detail-lines` lines for the selected node only, via `tailFile` / `tailJsonlMessages` (`src/discovery/logs.ts`) with an enlarged `windowBytes` proportional to the requested line count (the existing 16/64 KB defaults are sized for 3 lines; 25–50 message snippets need a bigger window — pass it explicitly via the existing parameter). Loading is async and non-blocking (placeholder while loading), refreshes while the pane is open only when the file's `(mtimeMs, size)` changed (reuse/extend subtask-03 cache utilities), and is cancelled/discarded cleanly when the pane closes or selection changes."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/detail-tail.ts
+  - id: D03
+    text: "Key bindings in `App.tsx`: `d` toggles the detail pane for the selected row; `Esc` closes it (without clearing an active filter — `Esc` priority: close pane first, then clear filter); `↑/↓` while open either moves selection (pane follows) — pick one behaviour and document it. No clashes with existing keys (`↑↓jk l h e c r p q space enter`), `/` (filter), or subtask-02 theme/density keys. Footer help + HELP string updated."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/App.tsx
+  - id: D04
+    text: "Layout: pane renders as a bottom split or overlay (implementer choice — document it) that adapts to terminal height, truncates gracefully on small terminals, and coexists with the filter bar (04) and event strip (05)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/App.tsx
+  - id: D05
+    text: "`--detail-lines <n>` flag (`parseArgs` + HELP, default 25, min 1) controlling the deep-tail depth."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/cli.ts
+  - id: D06
+    text: "Demo support: detail pane works in `--demo` (demo nodes have no real `logSource` — give the pane a sensible fallback rendering `recentLogs` when `logSource` is null, which also covers real process-only nodes); default demo output unchanged."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/detail-tail.ts
+  - id: D07
+    text: "Tests: deep-tail loader (window enlargement maths, jsonl vs plain text, missing/unreadable file → empty + placeholder), pane rendering (metadata fields, null-`logSource` fallback), and `ink-testing-library` key flow (`d` opens, Esc closes, selection change refreshes content)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/tests/detail-pane.test.tsx
+  - id: D08
+    text: "Docs in the same subtask: README (Features + Keyboard + `--detail-lines`), HELP, CHANGELOG, `commands/zoto-cursor-top.md` / `skills/zoto-cursor-top-monitor/SKILL.md` guidance. Run `pnpm run eval:update --check`; on critical drift `pnpm run eval:update --apply --no-analyser`."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/README.md
+artifacts:
+  - path: plugins/zoto-cursor-top/src/ui/DetailPane.tsx
+    kind: created
+    note: themed bottom-split detail view
+  - path: plugins/zoto-cursor-top/src/ui/detail-tail.ts
+    kind: created
+    note: lazy deep tail loader with mtime cache
+  - path: plugins/zoto-cursor-top/src/ui/App.tsx
+    kind: modified
+    note: d/Esc keys, pane layout, detailLines prop
+  - path: plugins/zoto-cursor-top/src/cli.ts
+    kind: modified
+    note: --detail-lines flag and HELP
+  - path: plugins/zoto-cursor-top/tests/detail-pane.test.tsx
+    kind: created
+    note: loader, pane, and key-flow tests
+errors: []
+notes: "Bottom split between event strip and footer. Selection follows while open. eval:update --check clean after skill doc change."
+extra:
+  judge:
+    verdict: verified
+    at: "2026-06-11T08:55:00Z"
+    notes: >-
+      Re-verified after fix_list: detail-pane.test.tsx selection-refresh assertion
+      corrected; filter-app.test.tsx updated for viewport windowing. 14/14
+      detail-pane tests pass; full plugin suite 231/231 green.
+    fix_list: []
+  definition_of_done:
+    - id: DoD01
+      text: "Code implemented; detail pane opens/closes/refreshes correctly for agents, subagents, and process-only nodes"
+      done: true
+    - id: DoD02
+      text: "Targeted tests added and passing"
+      done: true
+    - id: DoD03
+      text: "Subtask-01 contract tests pass unchanged (pane is interactive-only; `--once`/`--json` untouched)"
+      done: true
+    - id: DoD04
+      text: "Main-view tick cost unaffected when the pane is closed (no extra reads — verify via counting-fs test)"
+      done: true
+    - id: DoD05
+      text: "Docs + eval drift check clean"
+      done: true
+    - id: DoD06
+      text: "No linter errors in modified files"
+      done: true

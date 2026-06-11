@@ -13,6 +13,7 @@
  */
 
 import { basename, join } from "node:path";
+import { pushMissingSessionRootDiagnostic } from "./paths.js";
 import type { AgentKind, AgentStatus, FsLike } from "../types.js";
 
 export interface SessionRecord {
@@ -28,6 +29,11 @@ export interface SessionRecord {
   model: string | null;
   repo: string | null;
   startedAt: number;
+  /**
+   * End instant for elapsed / date display. Set for non-running transcripts
+   * (idle + done) from file mtime; collector may also freeze live rows.
+   */
+  elapsedEndAt?: number | null;
   status: AgentStatus;
   /** Absolute path of the log file to tail, if known. */
   logPath: string | null;
@@ -79,6 +85,76 @@ function parseTimestamp(raw: unknown): number | null {
   if (typeof raw === "string") {
     const n = Date.parse(raw);
     if (!Number.isNaN(n)) return n;
+  }
+  return null;
+}
+
+/** Bytes read from the start of a transcript when resolving conversation start. */
+const TRANSCRIPT_HEAD_BYTES = 8 * 1024;
+
+/**
+ * Best-effort conversation start for an agent-transcript JSONL file.
+ *
+ * Order: first event timestamp in the file head, else file birthtime (when
+ * available and not after mtime), else mtime as a last resort.
+ */
+export async function resolveTranscriptStartedAt(
+  fs: FsLike,
+  file: string,
+  stat: { mtimeMs: number; birthtimeMs?: number; size?: number },
+): Promise<number> {
+  let size = stat.size;
+  if (size == null) {
+    try {
+      size = (await fs.stat(file)).size;
+    } catch {
+      size = 0;
+    }
+  }
+  const readLen = Math.min(size, TRANSCRIPT_HEAD_BYTES);
+  if (readLen > 0) {
+    try {
+      const head = (await fs.readWindow(file, 0, readLen)).toString("utf8");
+      const fromEvent = firstTimestampInJsonlHead(head);
+      if (fromEvent != null) return fromEvent;
+    } catch {
+      /* fall through */
+    }
+  }
+  const birth = stat.birthtimeMs;
+  if (
+    birth != null &&
+    Number.isFinite(birth) &&
+    birth > 0 &&
+    birth <= stat.mtimeMs
+  ) {
+    return birth;
+  }
+  return stat.mtimeMs;
+}
+
+function timestampFromTranscriptEvent(parsed: unknown): number | null {
+  if (!parsed || typeof parsed !== "object") return null;
+  const obj = parsed as Record<string, unknown>;
+  return parseTimestamp(
+    obj.timestamp ??
+      obj.createdAt ??
+      obj.created_at ??
+      obj.time ??
+      obj.ts,
+  );
+}
+
+function firstTimestampInJsonlHead(text: string): number | null {
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    try {
+      const ts = timestampFromTranscriptEvent(JSON.parse(trimmed));
+      if (ts != null) return ts;
+    } catch {
+      continue;
+    }
   }
   return null;
 }
@@ -268,6 +344,81 @@ async function walkJson(
 }
 
 /**
+ * Walk a directory tree (bounded depth) and yield every JSON file path. Used
+ * to find session metadata regardless of the exact layout Cursor chose. Common
+ * non-session directories and configuration files are skipped so we do not
+ * accidentally treat an editor settings file or a plugin manifest as an agent
+ * session.
+ */
+export async function discoverSessionJsonFiles(
+  fs: FsLike,
+  roots: string[],
+  maxDepth = 4,
+): Promise<string[]> {
+  const files: string[] = [];
+  for (const root of roots) {
+    if (!(await fs.exists(root))) continue;
+    await walkJson(fs, root, maxDepth, files);
+  }
+  return files;
+}
+
+/**
+ * Parse one session JSON/JSONL file into zero or more records.
+ */
+export async function loadSessionFileRecords(
+  fs: FsLike,
+  file: string,
+  kind: AgentKind,
+  diagnostics: string[],
+): Promise<SessionRecord[]> {
+  const out: SessionRecord[] = [];
+  let text: string;
+  try {
+    text = await fs.readFile(file, "utf8");
+  } catch (err) {
+    diagnostics.push(`unreadable: ${file} (${(err as Error).message})`);
+    return out;
+  }
+
+  if (file.endsWith(".jsonl")) {
+    for (const line of text.split("\n")) {
+      const t = line.trim();
+      if (!t) continue;
+      try {
+        const rec = recordFromJson(JSON.parse(t), file, kind);
+        if (rec) out.push(rec);
+      } catch {
+        /* skip malformed line */
+      }
+    }
+  } else {
+    try {
+      const parsed = JSON.parse(text) as unknown;
+      if (Array.isArray(parsed)) {
+        for (const item of parsed) {
+          const rec = recordFromJson(item, file, kind);
+          if (rec) out.push(rec);
+        }
+      } else {
+        const rec = recordFromJson(parsed, file, kind);
+        if (rec) out.push(rec);
+      }
+    } catch {
+      /* skip malformed file */
+    }
+  }
+  return out;
+}
+
+/** Last-write-wins merge of session records by id. */
+export function mergeSessionRecords(records: SessionRecord[]): SessionRecord[] {
+  const byId = new Map<string, SessionRecord>();
+  for (const rec of records) byId.set(rec.id, rec);
+  return Array.from(byId.values());
+}
+
+/**
  * Read every JSON or JSONL session file under the given roots. JSONL files
  * are treated as a series of records and merged - last write wins per id.
  *
@@ -280,55 +431,18 @@ export async function readSessionRecords(
   diagnostics: string[],
   maxDepth = 4,
 ): Promise<SessionRecord[]> {
-  const files: string[] = [];
   for (const root of roots) {
     if (!(await fs.exists(root))) {
-      diagnostics.push(`missing: ${root} (kind=${kind})`);
-      continue;
+      pushMissingSessionRootDiagnostic(diagnostics, root, kind);
     }
-    await walkJson(fs, root, maxDepth, files);
   }
 
-  const byId = new Map<string, SessionRecord>();
+  const files = await discoverSessionJsonFiles(fs, roots, maxDepth);
+  const all: SessionRecord[] = [];
   for (const file of files) {
-    let text: string;
-    try {
-      text = await fs.readFile(file, "utf8");
-    } catch (err) {
-      diagnostics.push(`unreadable: ${file} (${(err as Error).message})`);
-      continue;
-    }
-
-    if (file.endsWith(".jsonl")) {
-      for (const line of text.split("\n")) {
-        const t = line.trim();
-        if (!t) continue;
-        try {
-          const rec = recordFromJson(JSON.parse(t), file, kind);
-          if (rec) byId.set(rec.id, rec);
-        } catch {
-          /* skip malformed line */
-        }
-      }
-    } else {
-      try {
-        const parsed = JSON.parse(text) as unknown;
-        if (Array.isArray(parsed)) {
-          for (const item of parsed) {
-            const rec = recordFromJson(item, file, kind);
-            if (rec) byId.set(rec.id, rec);
-          }
-        } else {
-          const rec = recordFromJson(parsed, file, kind);
-          if (rec) byId.set(rec.id, rec);
-        }
-      } catch {
-        /* skip malformed file */
-      }
-    }
+    all.push(...(await loadSessionFileRecords(fs, file, kind, diagnostics)));
   }
-
-  return Array.from(byId.values());
+  return mergeSessionRecords(all);
 }
 
 export interface ReadTranscriptOptions {
@@ -344,6 +458,12 @@ export interface ReadTranscriptOptions {
    * deterministic.
    */
   now?: () => number;
+  /**
+   * Skip transcript files whose path is in this set. Used by the
+   * collector's fast lane to discover only chats created since the
+   * last full walk without re-statting every known file.
+   */
+  skipLogPaths?: ReadonlySet<string>;
 }
 
 /**
@@ -361,9 +481,13 @@ export interface ReadTranscriptOptions {
  * workspace slug.
  *
  * Status is derived from the file's mtime:
- *   * mtime within 60 s   → "running" (transcript is actively appended)
- *   * mtime within 5 min  → "idle"
+ *   * mtime within 5 min  → "running" (transcript is actively appended)
+ *   * mtime within 30 min → "idle"
  *   * older               → "done"
+ *
+ * {@link startedAt} is the conversation start (file birthtime or the first
+ * event timestamp in the JSONL head). While `idle`, {@link elapsedEndAt} is
+ * the last-write mtime so the START column shows full conversation duration.
  *
  * Files older than `opts.maxAgeMs` are dropped entirely so the live
  * view only surfaces recently-active chats.
@@ -380,6 +504,7 @@ export async function readTranscriptRecords(
 ): Promise<SessionRecord[]> {
   const now = opts.now ? opts.now() : Date.now();
   const maxAgeMs = opts.maxAgeMs ?? Number.POSITIVE_INFINITY;
+  const skip = opts.skipLogPaths;
   const records: SessionRecord[] = [];
   for (const root of roots) {
     if (!(await fs.exists(root))) {
@@ -409,21 +534,21 @@ export async function readTranscriptRecords(
         parentStat = null;
       }
       if (parentStat && parentStat.isFile()) {
+        if (skip?.has(parentFile)) continue;
         const ageMs = now - parentStat.mtimeMs;
         if (ageMs <= maxAgeMs) {
-          // Transcripts are minted as kind="agent" (the chat session
-          // running inside an IDE window). The collector's
-          // reparentTranscriptChats step then hangs each `agent` row
-          // under its owning Cursor IDE PID so the UI shows the
-          // process → agent → subagent ladder.
-          records.push(buildTranscriptRecord({
-            id: dirName,
-            parentId: null,
-            kind: "agent",
-            file: parentFile,
-            mtimeMs: parentStat.mtimeMs,
-            now,
-          }));
+          records.push(
+            await buildTranscriptRecord(fs, {
+              id: dirName,
+              parentId: null,
+              kind: "agent",
+              file: parentFile,
+              mtimeMs: parentStat.mtimeMs,
+              birthtimeMs: parentStat.birthtimeMs,
+              size: parentStat.size,
+              now,
+            }),
+          );
         }
       }
       const subagentsDir = join(agentDir, "subagents");
@@ -443,17 +568,22 @@ export async function readTranscriptRecords(
           continue;
         }
         if (!subStat.isFile()) continue;
+        if (skip?.has(subFull)) continue;
         const ageMs = now - subStat.mtimeMs;
         if (ageMs > maxAgeMs) continue;
         const subId = subFile.replace(/\.jsonl$/, "");
-        records.push(buildTranscriptRecord({
-          id: subId,
-          parentId: dirName,
-          kind: "subagent",
-          file: subFull,
-          mtimeMs: subStat.mtimeMs,
-          now,
-        }));
+        records.push(
+          await buildTranscriptRecord(fs, {
+            id: subId,
+            parentId: dirName,
+            kind: "subagent",
+            file: subFull,
+            mtimeMs: subStat.mtimeMs,
+            birthtimeMs: subStat.birthtimeMs,
+            size: subStat.size,
+            now,
+          }),
+        );
       }
     }
   }
@@ -466,7 +596,36 @@ interface TranscriptRecordInput {
   kind: AgentKind;
   file: string;
   mtimeMs: number;
+  birthtimeMs?: number;
+  size?: number;
   now: number;
+}
+
+/** Metadata cached between ticks; status is recomputed from mtime each collect. */
+export interface TranscriptFileMeta {
+  id: string;
+  parentId: string | null;
+  kind: AgentKind;
+  file: string;
+  mtimeMs: number;
+  size: number;
+  /** Conversation start — resolved once when the file enters the cache. */
+  startedAt: number;
+}
+
+export function transcriptRecordFromMeta(
+  meta: TranscriptFileMeta,
+  now: number,
+): SessionRecord {
+  return buildTranscriptRecordSync({
+    id: meta.id,
+    parentId: meta.parentId,
+    kind: meta.kind,
+    file: meta.file,
+    mtimeMs: meta.mtimeMs,
+    startedAt: meta.startedAt,
+    now,
+  });
 }
 
 // Cursor flushes per-agent transcripts periodically (~5–30 min for an
@@ -476,7 +635,21 @@ interface TranscriptRecordInput {
 const STATUS_RUNNING_MS = 5 * 60_000;
 const STATUS_IDLE_MS = 30 * 60_000;
 
-function buildTranscriptRecord(input: TranscriptRecordInput): SessionRecord {
+async function buildTranscriptRecord(
+  fs: FsLike,
+  input: TranscriptRecordInput,
+): Promise<SessionRecord> {
+  const startedAt = await resolveTranscriptStartedAt(fs, input.file, {
+    mtimeMs: input.mtimeMs,
+    birthtimeMs: input.birthtimeMs,
+    size: input.size,
+  });
+  return buildTranscriptRecordSync({ ...input, startedAt });
+}
+
+function buildTranscriptRecordSync(
+  input: TranscriptRecordInput & { startedAt: number },
+): SessionRecord {
   // The transcript directory chain encodes the workspace: the file path
   // looks like `<…>/projects/<workspace-slug>/agent-transcripts/<uuid>/<…>`.
   // Surface the workspace slug as `repo` so the user can tell which
@@ -499,7 +672,8 @@ function buildTranscriptRecord(input: TranscriptRecordInput): SessionRecord {
     title: "",
     model: null,
     repo: workspaceSlug,
-    startedAt: input.mtimeMs,
+    startedAt: input.startedAt,
+    elapsedEndAt: status === "running" ? null : input.mtimeMs,
     status,
     logPath: input.file,
     sourcePath: input.file,

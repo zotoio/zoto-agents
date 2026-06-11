@@ -31,22 +31,22 @@
 # ──────────────────────────────  subagents  ──────────────────────────────────
 # Per-role token budgets and optional model overrides. Roles inherit from
 # `default` when their tokenBudget / model is omitted.
-# subagents:
-#   default:
-#     tokenBudget: 200000
-#     # model: gpt-5.2
-#   generator:
-#     tokenBudget: 250000
-#     # model: claude-opus-4-7-thinking-xhigh
-#   executor:
-#     tokenBudget: 180000
-#     # model: gpt-5.2-codex-high-fast
-#   judge:
-#     tokenBudget: 300000
-#     # model: gpt-5.2-codex-high-fast
-#   subtask:
-#     tokenBudget: 150000
-#     # model: gpt-5.2
+subagents:
+  default:
+    tokenBudget: 200000
+    model: composer-2.5-fast
+  generator:
+    tokenBudget: 250000
+    model: composer-2.5-fast
+  executor:
+    tokenBudget: 180000
+    model: composer-2.5-fast
+  judge:
+    tokenBudget: 300000
+    model: composer-2.5-fast
+  subtask:
+    tokenBudget: 150000
+    model: composer-2.5-fast
 
 
 # ──────────────────────────────  aggregator  ─────────────────────────────────

@@ -15,12 +15,14 @@
  */
 
 import { open } from "node:fs/promises";
+import type { FsLike } from "../types.js";
 
 const DEFAULT_WINDOW_BYTES = 16 * 1024;
 // Transcripts can be megabytes long with very long lines (full file
 // contents pasted into the conversation). 64 KB picks up several rounds
 // of dialogue without making the refresh loop heavy.
-const TRANSCRIPT_WINDOW_BYTES = 64 * 1024;
+/** Exported for detail-pane window sizing (`computeDetailWindowBytes`). */
+export const TRANSCRIPT_WINDOW_BYTES = 64 * 1024;
 
 /**
  * Tail the last `n` lines of a file. Returns an empty array on any error so
@@ -30,7 +32,22 @@ export async function tailFile(
   path: string,
   n: number,
   windowBytes: number = DEFAULT_WINDOW_BYTES,
+  fs?: FsLike,
 ): Promise<string[]> {
+  if (fs) {
+    try {
+      const stat = await fs.stat(path);
+      if (!stat.isFile()) return [];
+      const size = stat.size;
+      if (size === 0) return [];
+      const readLen = Math.min(size, windowBytes);
+      const buffer = await fs.readWindow(path, size - readLen, readLen);
+      return splitLines(buffer.toString("utf8"), n);
+    } catch {
+      return [];
+    }
+  }
+
   let handle;
   try {
     handle = await open(path, "r");
@@ -88,7 +105,22 @@ export async function tailJsonlMessages(
   path: string,
   n: number,
   windowBytes: number = TRANSCRIPT_WINDOW_BYTES,
+  fs?: FsLike,
 ): Promise<string[]> {
+  if (fs) {
+    try {
+      const stat = await fs.stat(path);
+      if (!stat.isFile()) return [];
+      const size = stat.size;
+      if (size === 0) return [];
+      const readLen = Math.min(size, windowBytes);
+      const buffer = await fs.readWindow(path, size - readLen, readLen);
+      return extractMessageSnippets(buffer.toString("utf8"), n);
+    } catch {
+      return [];
+    }
+  }
+
   let handle;
   try {
     handle = await open(path, "r");
@@ -139,7 +171,22 @@ export function extractMessageSnippets(text: string, n: number): string[] {
     const snippet = snippetFromMessage(parsed);
     if (snippet) snippets.push(snippet);
   }
-  return snippets.slice(-n);
+  return finalizeMessageSnippets(snippets, n);
+}
+
+/**
+ * Return the last `n` snippets but always retain the newest user prompt when
+ * one exists in the parsed window. Busy agents emit many assistant/tool
+ * lines that would otherwise push the user's query out of a short tail.
+ */
+export function finalizeMessageSnippets(snippets: string[], n: number): string[] {
+  const limit = Math.max(1, n);
+  if (snippets.length === 0) return [];
+  const tail = snippets.slice(-limit);
+  const lastUser = [...snippets].reverse().find((s) => s.startsWith("user:"));
+  if (!lastUser || tail.includes(lastUser)) return tail;
+  if (tail.length < limit) return [lastUser, ...tail];
+  return [lastUser, ...tail.slice(1)];
 }
 
 /**
@@ -168,7 +215,9 @@ function snippetFromMessage(parsed: unknown): string | null {
       if (block.type === "text") {
         const t = block.text;
         if (typeof t === "string") {
-          const cleaned = stripRedactionMarkers(t);
+          const cleaned = stripRedactionMarkers(
+            role === "user" ? formatUserPromptText(t) : t,
+          );
           if (cleaned) textParts.push(cleaned);
         }
       } else if (block.type === "tool_use") {
@@ -177,13 +226,22 @@ function snippetFromMessage(parsed: unknown): string | null {
       }
     }
   } else if (typeof content === "string") {
-    const cleaned = stripRedactionMarkers(content);
+    const cleaned = stripRedactionMarkers(
+      role === "user" ? formatUserPromptText(content) : content,
+    );
     if (cleaned) textParts.push(cleaned);
   }
 
   const body = composeSnippetBody(textParts, toolParts);
   if (!body) return null;
   return `${role}: ${truncate(body.replace(/\s+/g, " ").trim(), MAX_SNIPPET_LEN)}`;
+}
+
+/** Pull the inner text from Cursor's `<user_query>` wrapper when present. */
+export function formatUserPromptText(text: string): string {
+  const match = text.match(/<user_query>\s*([\s\S]*?)\s*<\/user_query>/i);
+  if (match?.[1]) return match[1].trim();
+  return text;
 }
 
 /** Remove Cursor's transcript redaction placeholders from visible text. */

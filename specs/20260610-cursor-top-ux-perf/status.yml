@@ -1,0 +1,270 @@
+schema_version: 1
+spec_id: 20260610-cursor-top-ux-perf
+phase: 0
+aggregate_state: completed
+started_at: 2026-06-10T13:52:51.263Z
+updated_at: 2026-06-10T22:53:18.317Z
+aggregate_progress:
+  total: 8
+  completed: 8
+  in_progress: 0
+  blocked: 0
+  failed: 0
+subtasks:
+  - subtask_id: "01"
+    state: completed
+    status_path: specs/20260610-cursor-top-ux-perf/status/subtask-01-cursor-top-ux-perf-baseline-bench-contracts-20260610.status.yml
+    last_heartbeat: 2026-06-10T14:45:06.458Z
+  - subtask_id: "02"
+    state: completed
+    status_path: specs/20260610-cursor-top-ux-perf/status/subtask-02-cursor-top-ux-perf-theme-density-20260610.status.yml
+    last_heartbeat: 2026-06-10T14:55:40.982Z
+  - subtask_id: "03"
+    state: completed
+    status_path: specs/20260610-cursor-top-ux-perf/status/subtask-03-cursor-top-ux-perf-collector-caching-20260610.status.yml
+    last_heartbeat: 2026-06-11T08:14:00.000Z
+  - subtask_id: "04"
+    state: completed
+    status_path: specs/20260610-cursor-top-ux-perf/status/subtask-04-cursor-top-ux-perf-filter-search-20260610.status.yml
+    last_heartbeat: null
+  - subtask_id: "05"
+    state: completed
+    status_path: specs/20260610-cursor-top-ux-perf/status/subtask-05-cursor-top-ux-perf-status-events-20260610.status.yml
+    last_heartbeat: null
+  - subtask_id: "06"
+    state: completed
+    status_path: specs/20260610-cursor-top-ux-perf/status/subtask-06-cursor-top-ux-perf-detail-pane-20260610.status.yml
+    last_heartbeat: 2026-06-11T08:25:00Z
+  - subtask_id: "07"
+    state: completed
+    status_path: specs/20260610-cursor-top-ux-perf/status/subtask-07-cursor-top-ux-perf-render-windowing-20260610.status.yml
+    last_heartbeat: 2026-06-11T08:32:00Z
+  - subtask_id: "08"
+    state: completed
+    status_path: specs/20260610-cursor-top-ux-perf/status/subtask-08-cursor-top-ux-perf-integration-verification-20260610.status.yml
+    last_heartbeat: 2026-06-11T08:55:00Z
+blockers: []
+definition_of_done_status:
+  - id: DOD01
+    text: All 8 subtasks completed and adversarially verified
+    done: true
+  - id: DOD02
+    text: "All hard constraints preserved: no native deps, macOS/Linux/Windows parity, stable default `--once`/`--json`/`--demo` output, backward-compatible JSON snapshot shape"
+    done: true
+  - id: DOD03
+    text: Contract tests from subtask 01 pass unchanged at spec completion
+    done: true
+  - id: DOD04
+    text: "`bench/BASELINE.md` contains baseline + post-03 + post-07 + final (08) measurements demonstrating per-tick discovery and render improvements at the 1k-agent tier"
+    done: true
+  - id: DOD05
+    text: "Plugin test suite green: `pnpm --filter @zoto-agents/zoto-cursor-top test`"
+    done: true
+  - id: DOD06
+    text: "Monorepo gates green: `node scripts/validate-template.mjs`, `node scripts/validate-skills.mjs`, `pnpm test` (per-package signal), `pnpm run eval:update --check`"
+    done: true
+  - id: DOD07
+    text: No linter errors in modified files
+    done: true
+  - id: DOD08
+    text: README, CHANGELOG (0.2.0), command/skill/rule/agent docs reflect all new flags, keys, and behaviour
+    done: true
+config_reloaded: []
+events:
+  - at: 2026-06-10T13:52:51.263Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 3d2ea62f…
+  - at: 2026-06-10T13:52:52.812Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 1a40ad82…
+  - at: 2026-06-10T14:01:25.692Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 7e37ddb5…
+  - at: 2026-06-10T14:01:27.205Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 5c905f3f…
+  - at: 2026-06-10T14:17:32.665Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 086d51b5…
+  - at: 2026-06-10T14:20:21.791Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 9aa471e7…
+  - at: 2026-06-10T14:22:31.560Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 65c550e8…
+  - at: 2026-06-10T14:22:46.735Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 0d48b2d6…
+  - at: 2026-06-10T14:22:48.244Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 7f5974e7…
+  - at: 2026-06-10T14:27:13.732Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 265893e0…
+  - at: 2026-06-10T14:30:05.949Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest f503df8c…
+  - at: 2026-06-10T14:30:07.461Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest bb8e233f…
+  - at: 2026-06-10T14:30:16.516Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest f3a2b46c…
+  - at: 2026-06-10T14:32:55.024Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 8e5ce731…
+  - at: 2026-06-10T14:33:14.647Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 03ae6470…
+  - at: 2026-06-10T14:37:22.228Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 4b20aa48…
+  - at: 2026-06-10T14:38:05.324Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260610-cursor-top-ux-perf/status/subtask-02-cursor-top-ux-perf-theme-density-20260610.status.yml
+  - at: 2026-06-10T14:38:05.324Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 6304e6f0…
+  - at: 2026-06-10T14:38:14.768Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest deb1c070…
+  - at: 2026-06-10T14:39:26.244Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest b0e17262…
+  - at: 2026-06-10T14:39:52.169Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest e39c552e…
+  - at: 2026-06-10T14:41:58.721Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 7380e043…
+  - at: 2026-06-10T14:41:58.844Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 986e7137…
+  - at: 2026-06-10T14:42:01.755Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 5ce36acf…
+  - at: 2026-06-10T14:42:03.388Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260610-cursor-top-ux-perf/status/subtask-02-cursor-top-ux-perf-theme-density-20260610.status.yml
+  - at: 2026-06-10T14:42:03.388Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest b69785c8…
+  - at: 2026-06-10T14:42:04.785Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260610-cursor-top-ux-perf/status/subtask-02-cursor-top-ux-perf-theme-density-20260610.status.yml
+  - at: 2026-06-10T14:42:04.785Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest f6c5fbc7…
+  - at: 2026-06-10T14:42:22.934Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260610-cursor-top-ux-perf/status/subtask-02-cursor-top-ux-perf-theme-density-20260610.status.yml
+  - at: 2026-06-10T14:42:22.934Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 7f6ae067…
+  - at: 2026-06-10T14:42:24.446Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260610-cursor-top-ux-perf/status/subtask-02-cursor-top-ux-perf-theme-density-20260610.status.yml
+  - at: 2026-06-10T14:42:24.446Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest fcb18388…
+  - at: 2026-06-10T14:42:27.471Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260610-cursor-top-ux-perf/status/subtask-02-cursor-top-ux-perf-theme-density-20260610.status.yml
+  - at: 2026-06-10T14:42:27.471Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 130cf9af…
+  - at: 2026-06-10T14:42:33.518Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 3af2afa2…
+  - at: 2026-06-10T14:42:33.619Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 833ddad3…
+  - at: 2026-06-10T14:42:36.546Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 248c4459…
+  - at: 2026-06-10T14:43:32.687Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest d47efc8f…
+  - at: 2026-06-10T14:43:35.727Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest c8b6e774…
+  - at: 2026-06-10T14:43:52.869Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 8fab5212…
+  - at: 2026-06-10T14:44:08.289Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest c837a37e…
+  - at: 2026-06-10T14:44:11.391Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 18a7c2bb…
+  - at: 2026-06-10T14:44:26.528Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 1e4a8d9f…
+  - at: 2026-06-10T14:44:46.192Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 9e1d22dc…
+  - at: 2026-06-10T14:44:46.204Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 50a2aa74…
+  - at: 2026-06-10T14:44:52.240Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 2a26e192…
+  - at: 2026-06-10T14:44:55.271Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 26b9b69b…
+  - at: 2026-06-10T14:45:07.383Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest a0678f0c…
+  - at: 2026-06-10T14:51:06.375Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 3b231aee…
+  - at: 2026-06-10T14:51:06.437Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest d0d7cb21…
+  - at: 2026-06-10T14:51:32.075Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260610-cursor-top-ux-perf/status/subtask-02-cursor-top-ux-perf-theme-density-20260610.status.yml
+  - at: 2026-06-10T14:51:32.075Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest 36fa6464…
+  - at: 2026-06-10T14:51:32.148Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260610-cursor-top-ux-perf/status/subtask-02-cursor-top-ux-perf-theme-density-20260610.status.yml
+  - at: 2026-06-10T14:51:32.148Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest d7973bca…
+  - at: 2026-06-10T14:52:15.922Z
+    kind: source_validation_warn
+    message: Schema validation failed for specs/20260610-cursor-top-ux-perf/status/subtask-02-cursor-top-ux-perf-theme-density-20260610.status.yml
+  - at: 2026-06-10T14:52:15.922Z
+    kind: rebuild
+    message: Aggregated 7 subtask source(s); digest c481cf0e…
+  - at: 2026-06-10T14:52:18.946Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest cada58af…
+  - at: 2026-06-10T14:52:19.030Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 3a73bd38…
+  - at: 2026-06-10T14:52:41.628Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest f11d5daa…
+  - at: 2026-06-10T14:54:54.799Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 99e693be…
+  - at: 2026-06-10T14:54:54.948Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest ca0057a1…
+  - at: 2026-06-10T14:54:57.830Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest d53ce2b1…
+  - at: 2026-06-10T14:55:15.982Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 685b61ec…
+  - at: 2026-06-10T14:55:41.774Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest 515f014d…
+  - at: 2026-06-10T22:53:18.317Z
+    kind: rebuild
+    message: Aggregated 8 subtask source(s); digest d8250559…
+extra:
+  aggregator_digest: d8250559f5d4cb3f8e56d6e1c989c201716eef9b09a358a7825fceaece449e0a

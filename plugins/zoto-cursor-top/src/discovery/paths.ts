@@ -4,9 +4,10 @@
  *
  * All paths are advisory; callers must tolerate missing directories because
  * the layout varies by Cursor version and which surfaces (IDE / CLI / Cloud)
- * the user has actually run. Missing roots are surfaced via the
- * collector's `diagnostics` array (see `readSessionRecords`) rather than
- * being silently ignored.
+ * the user has actually run. Unexpected missing roots are surfaced via the
+ * collector's `diagnostics` array (see `readSessionRecords`). Known-absent
+ * legacy JSON roots are still walked but omit `missing:` noise — see
+ * {@link isSilentOptionalSessionRoot}.
  *
  * Linux note: Cursor 2026.05 moved per-agent state into SQLite databases
  * (`~/.cursor/chats/<hash>/<chat-uuid>/store.db`,
@@ -74,8 +75,7 @@ export function resolveCursorPaths(
   const dotCursor = join(home, ".cursor");
   // Legacy: pre-2026 Cursor builds wrote flat JSON session records here.
   // Kept for cross-version compatibility even though Linux 2026.05
-  // creates none of them — the JSON walker now reports each missing
-  // entry as a `diagnostics[]` line so the user is not left guessing.
+  // creates none of them on most installs.
   dataRoots.push(join(dotCursor, "agents"));
   dataRoots.push(join(dotCursor, "sessions"));
   cliSessionRoots.push(join(dotCursor, "cli", "chats"));
@@ -96,4 +96,35 @@ export function resolveCursorPaths(
     cloudProjectRoots,
     agentTranscriptRoots,
   };
+}
+
+const SILENT_OPTIONAL_CURSOR_SUFFIXES = [
+  "agents",
+  "sessions",
+  "cli/chats",
+  "cli/sessions",
+] as const;
+
+/**
+ * Legacy flat-JSON session roots that modern Cursor often omits. We still
+ * walk them when present but skip `missing:` diagnostics when absent.
+ */
+export function isSilentOptionalSessionRoot(root: string): boolean {
+  const normalized = root.replace(/\\/g, "/");
+  const marker = "/.cursor/";
+  const idx = normalized.indexOf(marker);
+  if (idx === -1) return false;
+  const suffix = normalized.slice(idx + marker.length);
+  return (SILENT_OPTIONAL_CURSOR_SUFFIXES as readonly string[]).includes(
+    suffix,
+  );
+}
+
+export function pushMissingSessionRootDiagnostic(
+  diagnostics: string[],
+  root: string,
+  kind: string,
+): void {
+  if (isSilentOptionalSessionRoot(root)) return;
+  diagnostics.push(`missing: ${root} (kind=${kind})`);
 }

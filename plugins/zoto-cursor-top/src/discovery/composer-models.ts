@@ -36,6 +36,7 @@
 import { execFile } from "node:child_process";
 import { join } from "node:path";
 import { promisify } from "node:util";
+import { isPlaceholderModelSlug } from "./model-slug.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -72,6 +73,41 @@ export const defaultComposerModelRunner: ComposerModelRunner = async ({
   return stdout;
 };
 
+/** Model slug + context token count from one `composerData:` row. */
+export interface ComposerData {
+  model: string | null;
+  tokenUsage: number | null;
+}
+
+/**
+ * Parse pipe-separated `id|model|tokens` rows from
+ * {@link buildComposerDataSql}. Legacy `id|model` rows (no tokens field)
+ * are still accepted.
+ */
+export function parseComposerDataOutput(stdout: string): Map<string, ComposerData> {
+  const out = new Map<string, ComposerData>();
+  for (const raw of stdout.split("\n")) {
+    const line = raw.trim();
+    if (!line) continue;
+    const parts = line.split("|");
+    if (parts.length < 2) continue;
+    const id = parts[0]!.trim();
+    if (!id) continue;
+    const modelRaw = parts[1]!.trim();
+    const model =
+      modelRaw && !isPlaceholderModelSlug(modelRaw) ? modelRaw : null;
+    let tokenUsage: number | null = null;
+    const tokensRaw = parts[2]?.trim();
+    if (tokensRaw) {
+      const n = Number(tokensRaw);
+      if (Number.isFinite(n) && n >= 0) tokenUsage = Math.floor(n);
+    }
+    if (!model && tokenUsage == null) continue;
+    out.set(id, { model, tokenUsage });
+  }
+  return out;
+}
+
 /**
  * Parse the pipe-separated output of {@link buildComposerModelSql} into
  * a map from chat UUID to model slug. Blank lines and lines without a
@@ -80,14 +116,8 @@ export const defaultComposerModelRunner: ComposerModelRunner = async ({
  */
 export function parseComposerModelOutput(stdout: string): Map<string, string> {
   const out = new Map<string, string>();
-  for (const raw of stdout.split("\n")) {
-    const line = raw.trim();
-    if (!line) continue;
-    const sep = line.indexOf("|");
-    if (sep < 0) continue;
-    const id = line.slice(0, sep).trim();
-    const model = line.slice(sep + 1).trim();
-    if (id && model) out.set(id, model);
+  for (const [id, data] of parseComposerDataOutput(stdout)) {
+    if (data.model) out.set(id, data.model);
   }
   return out;
 }
@@ -106,16 +136,21 @@ export function resolveStateDbPath(dataRoot: string): string {
  * spawning sqlite3 at all.
  */
 export function buildComposerModelSql(ids: readonly string[]): string | null {
+  return buildComposerDataSql(ids);
+}
+
+/** SQL for model slug and `promptTokenBreakdown.totalUsedTokens` per chat id. */
+export function buildComposerDataSql(ids: readonly string[]): string | null {
   const safe = ids.filter((id) => SAFE_ID_PATTERN.test(id));
   if (safe.length === 0) return null;
   const keys = safe.map((id) => `'composerData:${id}'`).join(", ");
   return `SELECT
   substr(key, length('composerData:')+1) AS id,
-  json_extract(value, '$.modelConfig.modelName') AS model
+  json_extract(value, '$.modelConfig.modelName') AS model,
+  json_extract(value, '$.promptTokenBreakdown.totalUsedTokens') AS tokens
 FROM cursorDiskKV
 WHERE key IN (${keys})
-  AND json_valid(value)
-  AND json_extract(value, '$.modelConfig.modelName') IS NOT NULL;`;
+  AND json_valid(value);`;
 }
 
 export interface ReadComposerModelsOptions {
@@ -142,20 +177,33 @@ export interface ReadComposerModelsOptions {
  * Callers should treat the empty map as "no models known" and leave
  * the existing `model: null` defaults on each node.
  */
-export async function readComposerModels(
+export async function readComposerData(
   dataRoot: string,
   ids: readonly string[],
   opts: ReadComposerModelsOptions = {},
-): Promise<Map<string, string>> {
-  const sql = buildComposerModelSql(ids);
+): Promise<Map<string, ComposerData>> {
+  const sql = buildComposerDataSql(ids);
   if (!sql) return new Map();
   const runner = opts.runner ?? defaultComposerModelRunner;
   const dbPath = resolveStateDbPath(dataRoot);
   if (opts.exists && !(await opts.exists(dbPath))) return new Map();
   try {
     const stdout = await runner({ dbPath, sql });
-    return parseComposerModelOutput(stdout);
+    return parseComposerDataOutput(stdout);
   } catch {
     return new Map();
   }
+}
+
+export async function readComposerModels(
+  dataRoot: string,
+  ids: readonly string[],
+  opts: ReadComposerModelsOptions = {},
+): Promise<Map<string, string>> {
+  const data = await readComposerData(dataRoot, ids, opts);
+  const out = new Map<string, string>();
+  for (const [id, entry] of data) {
+    if (entry.model) out.set(id, entry.model);
+  }
+  return out;
 }

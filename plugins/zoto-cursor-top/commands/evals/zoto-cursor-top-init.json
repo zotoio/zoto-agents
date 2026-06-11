@@ -1,0 +1,82 @@
+{
+  "target_id": "command:zoto-cursor-top-init",
+  "_meta": {
+    "generated": true,
+    "model_id": "composer-2.5",
+    "judge_model": "opus-4.6",
+    "case_timeout_ms": 180000
+  },
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/zoto-cursor-top-init",
+      "assertions": [
+        "After `/zoto-cursor-top-init`, the assistant delegates to `scripts/install-local.ts` (via `pnpm install-local`, `pnpm exec tsx scripts/install-local.ts`, or `npx -y tsx scripts/install-local.ts`) instead of hand-rolling copy or symlink steps.",
+        "The workflow includes building `dist/cli.js` when missing, installing runtime dependencies with `npm install --omit=dev`, and registering the plugin under `~/.cursor/plugins/zoto-cursor-top/`.",
+        "The confirmation names the install directory, the `cursor-top` symlink path when created, a reminder to restart Cursor, and `cursor-top --help` (or `cursor-top --demo`) as verification.",
+        "The assistant does not launch the interactive cursor-top TUI from this init command."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "c4f25aedf79ccfaba34f1224d24ba6a6975ec8134092310adb6d55d5da041f0f",
+        "last_updated": "2026-06-11T00:00:00.000Z",
+        "generated_by": "manual-ci-drift-fix",
+        "primitive_analysis": {
+          "source_hash": "c4f25aedf79ccfaba34f1224d24ba6a6975ec8134092310adb6d55d5da041f0f",
+          "analysed_at": "2026-06-11T00:00:00.000Z",
+          "analyser_version": "manual",
+          "summary": "One-time setup command that delegates to install-local.ts for build, runtime deps, plugin registration, and PATH symlink; supports --dry-run, --no-symlink, and --bin-dir.",
+          "requiresInteraction": false,
+          "interactionStyle": "none"
+        }
+      },
+      "expected_output": "The assistant runs the canonical installer from the resolved plugin root and prints a short success summary with install path, symlink, restart reminder, and a verification command—without opening the TUI."
+    },
+    {
+      "id": 2,
+      "prompt": "/zoto-cursor-top-init --dry-run",
+      "assertions": [
+        "After `/zoto-cursor-top-init --dry-run`, forwarded arguments include `--dry-run` so install-local previews steps without writing files or symlinks.",
+        "The assistant still resolves the plugin root in the documented order and does not mutate `~/.cursor/plugins/zoto-cursor-top/` on this run."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "c4f25aedf79ccfaba34f1224d24ba6a6975ec8134092310adb6d55d5da041f0f",
+        "last_updated": "2026-06-11T00:00:00.000Z",
+        "generated_by": "manual-ci-drift-fix",
+        "primitive_analysis": {
+          "source_hash": "c4f25aedf79ccfaba34f1224d24ba6a6975ec8134092310adb6d55d5da041f0f",
+          "analysed_at": "2026-06-11T00:00:00.000Z",
+          "analyser_version": "manual",
+          "summary": "One-time setup command that delegates to install-local.ts for build, runtime deps, plugin registration, and PATH symlink; supports --dry-run, --no-symlink, and --bin-dir.",
+          "requiresInteraction": false,
+          "interactionStyle": "none"
+        }
+      },
+      "expected_output": "The assistant previews install-local steps and reports what would happen without performing the install."
+    },
+    {
+      "id": 3,
+      "prompt": "/zoto-cursor-top-init --no-symlink",
+      "assertions": [
+        "After `/zoto-cursor-top-init --no-symlink`, the delegated install-local invocation includes `--no-symlink`.",
+        "Closing guidance explains how to run cursor-top from the plugin directory or add a bin dir manually when no PATH symlink is created."
+      ],
+      "_meta": {
+        "generated": true,
+        "source_hash": "c4f25aedf79ccfaba34f1224d24ba6a6975ec8134092310adb6d55d5da041f0f",
+        "last_updated": "2026-06-11T00:00:00.000Z",
+        "generated_by": "manual-ci-drift-fix",
+        "primitive_analysis": {
+          "source_hash": "c4f25aedf79ccfaba34f1224d24ba6a6975ec8134092310adb6d55d5da041f0f",
+          "analysed_at": "2026-06-11T00:00:00.000Z",
+          "analyser_version": "manual",
+          "summary": "One-time setup command that delegates to install-local.ts for build, runtime deps, plugin registration, and PATH symlink; supports --dry-run, --no-symlink, and --bin-dir.",
+          "requiresInteraction": false,
+          "interactionStyle": "none"
+        }
+      },
+      "expected_output": "The assistant completes install-local without creating a PATH symlink and documents how to invoke cursor-top afterward."
+    }
+  ]
+}

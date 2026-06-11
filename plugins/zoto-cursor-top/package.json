@@ -1,6 +1,6 @@
 {
   "name": "@zoto-agents/zoto-cursor-top",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Live updating htop-style CLI that shows all agents across every Cursor process on this machine, with expandable parent-to-subagent hierarchy.",
   "type": "module",
@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
+    "bench": "vitest bench --run",
     "test:watch": "vitest",
     "validate": "tsx scripts/validate-plugin.ts",
     "start": "tsx src/cli.ts",
