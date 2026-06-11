@@ -12,6 +12,8 @@ describe("App", () => {
         load={async () => initial}
         initial={initial}
         intervalMs={5000}
+        terminalRows={60}
+        terminalColumns={160}
       />,
     );
     const frame = lastFrame() ?? "";
@@ -30,6 +32,8 @@ describe("App", () => {
         load={async () => initial}
         initial={initial}
         intervalMs={5000}
+        terminalRows={60}
+        terminalColumns={160}
       />,
     );
     stdin.write("\u001B[B"); // down to second root

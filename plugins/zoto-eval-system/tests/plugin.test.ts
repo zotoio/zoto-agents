@@ -1167,7 +1167,12 @@ describe("JSON-first migration invariants", () => {
     const raw = readText(cfgPath);
     expect(raw).toContain("evalJsonLoader");
     expect(raw).toContain("plugins/*/agents/evals/*.json");
-    expect(raw).not.toContain("skills/**/evals/evals.json");
+    const includeStart = raw.indexOf("include:");
+    const excludeStart = raw.indexOf("exclude:");
+    expect(includeStart).toBeGreaterThan(-1);
+    expect(excludeStart).toBeGreaterThan(includeStart);
+    const includeBlock = raw.slice(includeStart, excludeStart);
+    expect(includeBlock).not.toContain("skills/**/evals/evals.json");
     expect(raw).toContain("**/skills/**/evals/evals.json");
     const loaderPath = join(REPO_ROOT, "evals", "llm", "_shared", "vitest-json-loader.ts");
     expect(isFile(loaderPath)).toBe(true);

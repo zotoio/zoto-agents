@@ -21,6 +21,7 @@ const ROOTS: Array<Omit<AgentNode, "recentLogs">> = [
     startedAt: Date.now() - 1000 * 60 * 14,
     status: "running",
     logSource: null,
+    tokenUsage: null,
     children: ["ide-1-sub-explore", "ide-1-sub-impl"],
   },
   {
@@ -35,6 +36,7 @@ const ROOTS: Array<Omit<AgentNode, "recentLogs">> = [
     startedAt: Date.now() - 1000 * 60 * 7,
     status: "waiting",
     logSource: null,
+    tokenUsage: null,
     children: [],
   },
   {
@@ -49,6 +51,7 @@ const ROOTS: Array<Omit<AgentNode, "recentLogs">> = [
     startedAt: Date.now() - 1000 * 60 * 32,
     status: "running",
     logSource: null,
+    tokenUsage: null,
     children: ["cloud-1-sub-explore", "cloud-1-sub-impl", "cloud-1-sub-debug"],
   },
 ];
@@ -66,6 +69,7 @@ const SUBS: Array<Omit<AgentNode, "recentLogs">> = [
     startedAt: Date.now() - 1000 * 60 * 12,
     status: "running",
     logSource: null,
+    tokenUsage: 45_200,
   },
   {
     id: "ide-1-sub-impl",
@@ -79,6 +83,7 @@ const SUBS: Array<Omit<AgentNode, "recentLogs">> = [
     startedAt: Date.now() - 1000 * 60 * 9,
     status: "running",
     logSource: null,
+    tokenUsage: 12_800,
   },
   {
     id: "cloud-1-sub-explore",
@@ -92,6 +97,7 @@ const SUBS: Array<Omit<AgentNode, "recentLogs">> = [
     startedAt: Date.now() - 1000 * 60 * 30,
     status: "done",
     logSource: null,
+    tokenUsage: 8_700,
   },
   {
     id: "cloud-1-sub-impl",
@@ -105,6 +111,7 @@ const SUBS: Array<Omit<AgentNode, "recentLogs">> = [
     startedAt: Date.now() - 1000 * 60 * 22,
     status: "running",
     logSource: null,
+    tokenUsage: 63_400,
   },
   {
     id: "cloud-1-sub-debug",
@@ -118,6 +125,7 @@ const SUBS: Array<Omit<AgentNode, "recentLogs">> = [
     startedAt: Date.now() - 1000 * 60 * 4,
     status: "waiting",
     logSource: null,
+    tokenUsage: 3_100,
   },
 ];
 

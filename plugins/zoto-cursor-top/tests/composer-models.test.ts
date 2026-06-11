@@ -1,11 +1,43 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  buildComposerDataSql,
   buildComposerModelSql,
+  parseComposerDataOutput,
   parseComposerModelOutput,
+  readComposerData,
   readComposerModels,
   resolveStateDbPath,
   type ComposerModelRunner,
 } from "../src/discovery/composer-models.js";
+
+describe("parseComposerDataOutput", () => {
+  it("parses id|model|tokens triples", () => {
+    const out = parseComposerDataOutput(
+      "chat-1|claude-opus-4-7|94613\nsub-1|composer-2.5-fast|3100\n",
+    );
+    expect(out.get("chat-1")).toEqual({
+      model: "claude-opus-4-7",
+      tokenUsage: 94613,
+    });
+    expect(out.get("sub-1")).toEqual({
+      model: "composer-2.5-fast",
+      tokenUsage: 3100,
+    });
+  });
+
+  it("accepts token-only rows when model is a placeholder", () => {
+    const out = parseComposerDataOutput("chat-1|default|45200\n");
+    expect(out.get("chat-1")).toEqual({ model: null, tokenUsage: 45200 });
+  });
+
+  it("accepts legacy id|model pairs without tokens", () => {
+    const out = parseComposerDataOutput("chat-1|claude-opus-4-7\n");
+    expect(out.get("chat-1")).toEqual({
+      model: "claude-opus-4-7",
+      tokenUsage: null,
+    });
+  });
+});
 
 describe("parseComposerModelOutput", () => {
   it("parses pipe-separated id/model pairs", () => {
@@ -40,6 +72,13 @@ describe("parseComposerModelOutput", () => {
     );
     expect([...out.entries()]).toEqual([["def", "gpt-5.5"]]);
   });
+
+  it("drops placeholder picker values such as default", () => {
+    const out = parseComposerModelOutput(
+      ["chat-1|default", "chat-2|composer-2.5-fast"].join("\n"),
+    );
+    expect([...out.entries()]).toEqual([["chat-2", "composer-2.5-fast"]]);
+  });
 });
 
 describe("resolveStateDbPath", () => {
@@ -47,6 +86,14 @@ describe("resolveStateDbPath", () => {
     expect(resolveStateDbPath("/home/u/.config/Cursor")).toBe(
       "/home/u/.config/Cursor/User/globalStorage/state.vscdb",
     );
+  });
+});
+
+describe("buildComposerDataSql", () => {
+  it("extracts model and promptTokenBreakdown.totalUsedTokens", () => {
+    const sql = buildComposerDataSql(["uuid-1"]);
+    expect(sql).toContain("promptTokenBreakdown.totalUsedTokens");
+    expect(sql).toContain("'composerData:uuid-1'");
   });
 });
 
@@ -83,6 +130,20 @@ describe("buildComposerModelSql", () => {
 
   it("returns null when every id is unsafe", () => {
     expect(buildComposerModelSql(["evil'", "bad;", "\n"])).toBeNull();
+  });
+});
+
+describe("readComposerData", () => {
+  it("returns model and token usage from the runner output", async () => {
+    const runner: ComposerModelRunner = async () =>
+      "uuid-1|claude-opus-4-7|1200\n";
+    const out = await readComposerData("/home/u/.config/Cursor", ["uuid-1"], {
+      runner,
+    });
+    expect(out.get("uuid-1")).toEqual({
+      model: "claude-opus-4-7",
+      tokenUsage: 1200,
+    });
   });
 });
 

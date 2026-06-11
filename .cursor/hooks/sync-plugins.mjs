@@ -16,12 +16,20 @@ import {
   existsSync,
   lstatSync,
   mkdirSync,
+  mkdtempSync,
   readdirSync,
   rmSync,
   statSync,
 } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
-import { homedir } from "node:os";
+
+import {
+  ensurePluginBuilt,
+  pathTriggersPluginBuild,
+} from "../../plugins/zoto-cursor-top/scripts/ensure-build.mjs";
+import { ensureRuntimeDeps } from "../../plugins/zoto-cursor-top/scripts/install-runtime-deps.mjs";
+import { symlinkCursorTop } from "../../plugins/zoto-cursor-top/scripts/symlink-binary.mjs";
 
 const REPO_ROOT = resolve(import.meta.dirname, "..", "..");
 const PLUGINS_SRC = join(REPO_ROOT, "plugins");
@@ -38,6 +46,17 @@ const SYNCABLE_DIRS = new Set([
   "templates",
 ]);
 const SYNCABLE_FILES = new Set(["CHANGELOG.md", "LICENSE", "README.md"]);
+
+/** Extra payload for plugins that ship a CLI binary (cursor-top). */
+const PLUGIN_EXTRA_SYNC = {
+  "zoto-cursor-top": {
+    dirs: ["bin", "dist", "scripts", "assets"],
+    files: ["package.json"],
+  },
+};
+
+const CURSOR_TOP_PLUGIN = "zoto-cursor-top";
+const CURSOR_TOP_BINARY = "bin/cursor-top.mjs";
 
 function respond(obj = {}) {
   process.stdout.write(JSON.stringify(obj) + "\n");
@@ -78,21 +97,45 @@ function clearSymlinkIfPresent(installDir) {
   }
 }
 
-function isSyncable(relPath) {
+function pluginExtraSync(pluginName) {
+  return PLUGIN_EXTRA_SYNC[pluginName] ?? null;
+}
+
+function isSyncable(relPath, pluginName) {
   const top = relPath.split(sep)[0];
-  return SYNCABLE_DIRS.has(top) || SYNCABLE_FILES.has(relPath);
+  if (SYNCABLE_DIRS.has(top) || SYNCABLE_FILES.has(relPath)) return true;
+  const extra = pluginExtraSync(pluginName);
+  if (!extra) return false;
+  return extra.dirs.includes(top) || extra.files.includes(relPath);
 }
 
 function fullSyncPlugin(pluginName) {
   const pluginSrc = join(PLUGINS_SRC, pluginName);
   const installDir = join(CURSOR_LOCAL, pluginName);
+  const extra = pluginExtraSync(pluginName);
+  const preservedNodeModules = join(installDir, "node_modules");
 
   clearSymlinkIfPresent(installDir);
+
+  let nodeModulesBackup = null;
+  if (extra && existsSync(preservedNodeModules)) {
+    nodeModulesBackup = mkdtempSync(join(tmpdir(), "zoto-sync-nm-"));
+    cpSync(preservedNodeModules, join(nodeModulesBackup, "node_modules"), {
+      recursive: true,
+    });
+  }
 
   if (existsSync(installDir)) {
     rmSync(installDir, { recursive: true });
   }
   mkdirSync(installDir, { recursive: true });
+
+  if (nodeModulesBackup) {
+    cpSync(join(nodeModulesBackup, "node_modules"), preservedNodeModules, {
+      recursive: true,
+    });
+    rmSync(nodeModulesBackup, { recursive: true, force: true });
+  }
 
   for (const dir of SYNCABLE_DIRS) {
     const src = join(pluginSrc, dir);
@@ -106,6 +149,59 @@ function fullSyncPlugin(pluginName) {
       copyFileSync(src, join(installDir, file));
     }
   }
+
+  if (extra) {
+    for (const dirName of extra.dirs) {
+      const src = join(pluginSrc, dirName);
+      if (existsSync(src)) {
+        cpSync(src, join(installDir, dirName), { recursive: true });
+      }
+    }
+    for (const fileName of extra.files) {
+      const src = join(pluginSrc, fileName);
+      if (existsSync(src)) {
+        copyFileSync(src, join(installDir, fileName));
+      }
+    }
+  }
+}
+
+function buildCursorTopPlugin() {
+  const pluginSrc = join(PLUGINS_SRC, CURSOR_TOP_PLUGIN);
+  return ensurePluginBuilt(pluginSrc, { silent: true });
+}
+
+function copyCursorTopBuildArtifacts(pluginSrc, installDir) {
+  for (const dirName of ["dist", "bin"]) {
+    const src = join(pluginSrc, dirName);
+    if (!existsSync(src)) continue;
+    const dest = join(installDir, dirName);
+    if (existsSync(dest)) rmSync(dest, { recursive: true, force: true });
+    cpSync(src, dest, { recursive: true });
+  }
+}
+
+function finalizeCursorTopAfterSync(pluginName, installDir) {
+  if (pluginName !== CURSOR_TOP_PLUGIN) return;
+  ensureRuntimeDeps(installDir);
+  const binaryPath = join(installDir, CURSOR_TOP_BINARY);
+  symlinkCursorTop(binaryPath);
+}
+
+/**
+ * Rebuild and push dist/bin when a source file under zoto-cursor-top changes.
+ * Returns true when handled (incremental hook should still run syncFile for
+ * other syncable paths).
+ */
+function maybeRebuildCursorTopFromEdit(absPath) {
+  const pluginSrc = join(PLUGINS_SRC, CURSOR_TOP_PLUGIN);
+  if (!pathTriggersPluginBuild(absPath, pluginSrc)) return false;
+  buildCursorTopPlugin();
+  const installDir = join(CURSOR_LOCAL, CURSOR_TOP_PLUGIN);
+  mkdirSync(installDir, { recursive: true });
+  copyCursorTopBuildArtifacts(pluginSrc, installDir);
+  finalizeCursorTopAfterSync(CURSOR_TOP_PLUGIN, installDir);
+  return true;
 }
 
 function syncFile(absPath) {
@@ -118,7 +214,7 @@ function syncFile(absPath) {
   const pluginName = parts[0];
   const relInPlugin = parts.slice(1).join(sep);
 
-  if (!isSyncable(relInPlugin)) return false;
+  if (!isSyncable(relInPlugin, pluginName)) return false;
   if (!existsSync(join(PLUGINS_SRC, pluginName, ".cursor-plugin", "plugin.json"))) return false;
 
   const src = join(PLUGINS_SRC, pluginName, relInPlugin);
@@ -145,15 +241,27 @@ const mode = process.argv[2];
 if (mode === "--full") {
   await readStdin();
   const plugins = discoverPlugins();
+  if (plugins.includes(CURSOR_TOP_PLUGIN)) {
+    buildCursorTopPlugin();
+  }
   for (const name of plugins) {
     fullSyncPlugin(name);
+    finalizeCursorTopAfterSync(name, join(CURSOR_LOCAL, name));
   }
   respond();
 } else if (mode === "--incremental") {
   const input = await readStdin();
   const filePath = input?.file_path;
   if (filePath) {
-    syncFile(resolve(filePath));
+    const absPath = resolve(filePath);
+    maybeRebuildCursorTopFromEdit(absPath);
+    if (syncFile(absPath)) {
+      const relToPlugins = relative(PLUGINS_SRC, absPath);
+      if (relToPlugins && !relToPlugins.startsWith("..")) {
+        const pluginName = relToPlugins.split(sep)[0];
+        finalizeCursorTopAfterSync(pluginName, join(CURSOR_LOCAL, pluginName));
+      }
+    }
   }
   respond();
 } else {

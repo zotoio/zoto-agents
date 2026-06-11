@@ -3,6 +3,7 @@ import {
   readSessionRecords,
   readTranscriptRecords,
   recordFromJson,
+  resolveTranscriptStartedAt,
 } from "../src/discovery/sessions.js";
 import type { FsLike } from "../src/types.js";
 
@@ -121,6 +122,7 @@ describe("readSessionRecords", () => {
         if (typeof v === "string") return v;
         throw new Error(`no file: ${path}`);
       },
+      readWindow: async () => Buffer.alloc(0),
       stat: async (path) => {
         const v = tree[path];
         const isDir = Array.isArray(v);
@@ -147,6 +149,7 @@ describe("readSessionRecords", () => {
     const fs: FsLike = {
       readdir: async () => [],
       readFile: async () => "",
+      readWindow: async () => Buffer.alloc(0),
       stat: async () => ({
         isDirectory: () => false,
         isFile: () => false,
@@ -166,6 +169,34 @@ describe("readSessionRecords", () => {
     expect(
       diagnostics.some((d) => d.includes("missing: /no/such/root (kind=cli)")),
     ).toBe(true);
+  });
+
+  it("omits missing diagnostics for optional legacy JSON roots", async () => {
+    const home = "/home/test";
+    const fs: FsLike = {
+      readdir: async () => [],
+      readFile: async () => "",
+      readWindow: async () => Buffer.alloc(0),
+      stat: async () => ({
+        isDirectory: () => false,
+        isFile: () => false,
+        mtimeMs: 0,
+        size: 0,
+      }),
+      exists: async () => false,
+    };
+    const diagnostics: string[] = [];
+    await readSessionRecords(
+      fs,
+      [
+        `${home}/.cursor/sessions`,
+        `${home}/.cursor/cli/chats`,
+        `${home}/.cursor/cli/sessions`,
+      ],
+      "cli",
+      diagnostics,
+    );
+    expect(diagnostics).toEqual([]);
   });
 });
 
@@ -192,6 +223,7 @@ describe("readTranscriptRecords", () => {
         return node?.kind === "dir" ? node.entries : [];
       },
       readFile: async () => "",
+      readWindow: async () => Buffer.alloc(0),
       stat: async (path) => {
         const node = tree[path];
         const isDir = node?.kind === "dir";
@@ -229,6 +261,7 @@ describe("readTranscriptRecords", () => {
     const fs: FsLike = {
       readdir: async () => [],
       readFile: async () => "",
+      readWindow: async () => Buffer.alloc(0),
       stat: async () => ({
         isDirectory: () => false,
         isFile: () => false,
@@ -243,5 +276,127 @@ describe("readTranscriptRecords", () => {
     expect(
       diagnostics.some((d) => d.includes("missing: /no/such/root (kind=transcript)")),
     ).toBe(true);
+  });
+
+  it("skipLogPaths omits already-known transcript files", async () => {
+    const root = "/home/u/.cursor/projects/ws/agent-transcripts";
+    const parentUuid = "00000000-1111-2222-3333-444444444444";
+    const newUuid = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff";
+    const parentDir = `${root}/${parentUuid}`;
+    const parentFile = `${parentDir}/${parentUuid}.jsonl`;
+    const newDir = `${root}/${newUuid}`;
+    const newFile = `${newDir}/${newUuid}.jsonl`;
+
+    const tree: Record<string, { kind: "dir"; entries: string[] } | { kind: "file" }> = {
+      [root]: { kind: "dir", entries: [parentUuid, newUuid] },
+      [parentDir]: { kind: "dir", entries: [`${parentUuid}.jsonl`] },
+      [parentFile]: { kind: "file" },
+      [newDir]: { kind: "dir", entries: [`${newUuid}.jsonl`] },
+      [newFile]: { kind: "file" },
+    };
+    const fs: FsLike = {
+      readdir: async (path) => {
+        const node = tree[path];
+        return node?.kind === "dir" ? node.entries : [];
+      },
+      readFile: async () => "",
+      readWindow: async () => Buffer.alloc(0),
+      stat: async (path) => {
+        const node = tree[path];
+        const isDir = node?.kind === "dir";
+        const isFile = node?.kind === "file";
+        return {
+          isDirectory: () => isDir,
+          isFile: () => isFile,
+          mtimeMs: 1_700_000_000_000,
+          size: 100,
+        };
+      },
+      exists: async (path) => path in tree,
+    };
+
+    const records = await readTranscriptRecords(fs, [root], [], {
+      skipLogPaths: new Set([parentFile]),
+    });
+    expect(records.map((r) => r.id)).toEqual([newUuid]);
+  });
+
+  it("idle transcripts show full conversation duration, not a fixed 5m cap", async () => {
+    const now = 1_800_000_000_000;
+    const startedAt = now - 45 * 60_000;
+    const lastActiveAt = now - 12 * 60_000;
+    const root = "/home/u/.cursor/projects/ws/agent-transcripts";
+    const uuid = "11111111-2222-3333-4444-555555555555";
+    const parentDir = `${root}/${uuid}`;
+    const parentFile = `${parentDir}/${uuid}.jsonl`;
+    const content = [
+      JSON.stringify({
+        role: "user",
+        message: { content: [{ type: "text", text: "hello" }] },
+      }),
+    ].join("\n");
+
+    const fs: FsLike = {
+      readdir: async (path) => {
+        if (path === root) return [uuid];
+        if (path === parentDir) return [`${uuid}.jsonl`];
+        return [];
+      },
+      readFile: async () => content,
+      readWindow: async (path, offset, length) => {
+        if (path !== parentFile || offset !== 0) return Buffer.alloc(0);
+        return Buffer.from(content.slice(0, length), "utf8");
+      },
+      stat: async (path) => ({
+        isDirectory: () => path === root || path === parentDir,
+        isFile: () => path === parentFile,
+        mtimeMs: lastActiveAt,
+        birthtimeMs: startedAt,
+        size: Buffer.byteLength(content, "utf8"),
+      }),
+      exists: async (path) =>
+        path === root || path === parentDir || path === parentFile,
+    };
+
+    const records = await readTranscriptRecords(fs, [root], [], {
+      now: () => now,
+    });
+    expect(records).toHaveLength(1);
+    const rec = records[0]!;
+    expect(rec.status).toBe("idle");
+    expect(rec.startedAt).toBe(startedAt);
+    expect(rec.elapsedEndAt).toBe(lastActiveAt);
+    expect(rec.elapsedEndAt! - rec.startedAt).toBe(33 * 60_000);
+  });
+
+  it("resolveTranscriptStartedAt prefers event timestamps over birthtime", async () => {
+    const file = "/tmp/chat.jsonl";
+    const eventTs = 1_700_000_000_000;
+    const line = JSON.stringify({
+      role: "user",
+      timestamp: eventTs,
+      message: { content: [{ type: "text", text: "hi" }] },
+    });
+    const fs: FsLike = {
+      readdir: async () => [],
+      readFile: async () => line,
+      readWindow: async (_path, offset, length) =>
+        Buffer.from(line.slice(offset, offset + length), "utf8"),
+      stat: async () => ({
+        isDirectory: () => false,
+        isFile: () => true,
+        mtimeMs: eventTs + 60_000,
+        birthtimeMs: eventTs - 60_000,
+        size: line.length,
+      }),
+      exists: async () => true,
+    };
+    await expect(
+      resolveTranscriptStartedAt(fs, file, {
+        mtimeMs: eventTs + 60_000,
+        birthtimeMs: eventTs - 60_000,
+        size: line.length,
+      }),
+    ).resolves.toBe(eventTs);
   });
 });

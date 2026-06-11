@@ -1,0 +1,75 @@
+schema_version: 1
+subtask_id: "08"
+feature: cursor-top-ux-perf
+assigned_agent: "generalPurpose (model: `composer-2.5-fast`)"
+model: composer-2.5-fast
+token_budget: 200000
+state: completed
+checklist:
+  - id: D01
+    text: "Full test + validation gates green, with outputs captured in the Work Log: `pnpm --filter @zoto-agents/zoto-cursor-top test` (canonical per-package signal), `node scripts/validate-template.mjs`, `node scripts/validate-skills.mjs`, and the monorepo `pnpm test` (if the single parallel invocation flakes on unrelated CLI-integration timeouts, fall back to per-package runs and note it — do not chase unrelated flakes)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/tests/
+  - id: D02
+    text: "Eval coherence: `pnpm run eval:update --check` exits 0. If subtasks left critical drift on `skill:zoto-cursor-top-monitor`, `command:zoto-cursor-top`, or `agent:zoto-cursor-top-troubleshooter`, run `pnpm run eval:update --apply --no-analyser` (cached analyser payloads; never `--with-analyser` — it is network-dependent and can hang) and re-check. `skills/zoto-cursor-top-monitor/evals/evals.json` still contains ≥ 2 valid cases."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json
+  - id: D03
+    text: "Final benchmark run: execute the full bench suite and append a consolidated **before/after table** (baseline → post-03 → post-07 → final) to `bench/BASELINE.md` covering warm-tick collector latency, fs-op counts, and windowed frame-build cost at tiers S/M/L, summarising the realised gains of subtasks 03 + 07."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/bench/BASELINE.md
+  - id: D04
+    text: "Hard-constraint re-verification with evidence: (1) `package.json` dependency diff shows **no new runtime dependencies** (and none native anywhere); (2) subtask-01 contract tests pass on the final tree — default `--once`/`--json`/`--demo` outputs stable, `AgentSnapshot` shape backward compatible with all new flags additive; (3) interactive features degrade gracefully in non-TTY contexts (auto-promote to `--once` still intact in `applyNonTtyDefaults`)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/tests/contracts.test.ts
+  - id: D05
+    text: "Cross-platform parity audit: a written checklist (in the Work Log / execution report) walking every changed code path against `darwin` / `linux` / `win32`: `paths.ts` roots, `processes.ts` PowerShell branch + fixtures, terminal-size and resize handling (07), colour/`NO_COLOR` handling (02), BEL emission (05), path rendering (06). Windows-specific parse fixtures updated where new parsing landed."
+    done: true
+    evidence_path: specs/20260610-cursor-top-ux-perf/execution-report-cursor-top-ux-perf-20260610.md
+  - id: D06
+    text: "Docs coherence pass: README Features / Usage / Keyboard sections present every new flag (`--theme`, `--density`, `--filter`, `--detail-lines`, `--bell`, plus any cadence flag from 03) and key binding exactly as implemented (cross-check against `HELP` in `src/cli.ts` and `useInput` in `App.tsx`); `commands/zoto-cursor-top.md`, `skills/zoto-cursor-top-monitor/SKILL.md`, `rules/zoto-cursor-top.mdc`, and `agents/zoto-cursor-top-troubleshooter.md` updated consistently (troubleshooter gains the new flags/diagnostics in its playbook)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/README.md
+  - id: D07
+    text: "Release metadata: CHANGELOG.md consolidated `[0.2.0]` entry (Added/Changed/Performance subsections); version bumped to `0.2.0` in `plugins/zoto-cursor-top/package.json`, `.cursor-plugin/plugin.json`, and the hard-coded version string in `src/cli.ts` (`zoto-cursor-top 0.1.0`); add a `--version` output assertion to `cli.test.ts` (none exists today) pinned to `zoto-cursor-top 0.2.0`."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/cli.ts
+  - id: D08
+    text: "Execution-report inputs: a per-constraint outcomes summary (no native deps / parity / stable modes / JSON compat / balanced UX-features-performance delivery) with evidence pointers, ready for the executor's execution report."
+    done: true
+    evidence_path: specs/20260610-cursor-top-ux-perf/execution-report-cursor-top-ux-perf-20260610.md
+artifacts:
+  - path: plugins/zoto-cursor-top/src/cli.ts
+    kind: modified
+    note: CLI_VERSION export + 0.2.0 --version output
+  - path: plugins/zoto-cursor-top/tests/cli.test.ts
+    kind: modified
+    note: CLI_VERSION assertion
+  - path: plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md
+    kind: modified
+    note: filter/detail/bell diagnostics
+  - path: plugins/zoto-cursor-top/bench/BASELINE.md
+    kind: modified
+    note: consolidated before/after table
+  - path: plugins/zoto-cursor-top/CHANGELOG.md
+    kind: modified
+    note: released [0.2.0] section
+errors: []
+notes: >-
+  Gates: cursor-top 231/231 tests, validate-plugin 27/27, validate-template PASS,
+  validate-skills 13/13, eval:update --check clean. Root pnpm test: one
+  pre-existing zoto-eval-system failure (unrelated). Bench: quick-warm-metrics S +
+  quick-render-window S/M/L only (no full vitest bench at tier L). Parity audit in
+  execution report.
+extra:
+  judge:
+    verdict: verified
+    at: "2026-06-11T08:55:00Z"
+    notes: >-
+      Integration subtask verified on resume: all gates green for cursor-top package;
+      consolidated BASELINE table committed; 0.2.0 version consistent; troubleshooter
+      updated; contracts 17/17; no new runtime deps (ink/react unchanged).
+    fix_list: []
+started_at: "2026-06-11T08:50:00Z"
+last_heartbeat: "2026-06-11T08:55:00Z"
+completed_at: "2026-06-11T08:55:00Z"

@@ -8,6 +8,14 @@ alwaysApply: false
 The `cursor-top` CLI is a read-only observer. Agents that interact with it
 must respect the following conventions.
 
+## First-time setup
+
+Marketplace installs do not include a built CLI. Before invoking
+`/zoto-cursor-top` or shelling out to `cursor-top`, ensure init has run:
+`/zoto-cursor-top-init` (or `pnpm install-local` from a monorepo checkout).
+Gate with `command -v cursor-top` or
+`~/.cursor/plugins/zoto-cursor-top/dist/cli.js`.
+
 ## Data sources
 
 `cursor-top` discovers agents from three sources, in priority order:
@@ -45,7 +53,25 @@ session metadata is missing `parentId`. The
 | `e` / `c` | expand / collapse all |
 | `r` | force refresh (works even while paused) |
 | `p` / space | pause / resume auto-refresh |
+| `t` | cycle colour theme |
+| `y` | cycle layout density |
+| `i` | toggle lifecycle events + `!` diagnostics strip (default off) |
+| `o` | toggle log tail order (default oldest-first) |
+| `?` | toggle in-app help (keyboard + `!` diagnostics) |
 | `q` | quit |
+
+## Themes and density
+
+- **Themes** (`--theme <name>` or `t` key): `default`, `mono`, `high-contrast`,
+  `ocean`, `forest`, `sunset`, `solarized`, `dracula`, `party`, `kawaii`,
+  `cyber`, `retro`, `wizard`. The last five add optional `decor` (emoji titles,
+  kind glyphs, status glyphs) in `src/ui/theme.ts`. Later UI features must
+  consume theme tokens instead of hard-coding Ink colours. `NO_COLOR` (non-empty)
+  forces `mono`. Themes never apply to `--once` / `--json`.
+- **Density** (`--density <level>` or `y` key): `compact` (row only), `cozy`
+  (row + title), `comfortable` (row + title + log tail; default). Gating lives
+  in `densityShowsTitle` / `densityShowsLogs` (`theme.ts`) and is shared by
+  `Row.tsx` and `render-text.ts`.
 
 ## Output modes
 

@@ -3,6 +3,7 @@ import {
   buildSlugPathMap,
   decodeWorkspaceFolderUri,
   extractAbsolutePaths,
+  formatRepoDisplay,
   normalizeGitHubDisplayUrl,
   parseGitConfigOrigin,
   resolveGitHubRepoUrl,
@@ -43,18 +44,24 @@ describe("parseGitConfigOrigin", () => {
 describe("normalizeGitHubDisplayUrl", () => {
   it("normalises SSH remotes", () => {
     expect(normalizeGitHubDisplayUrl("git@github.com:zotoio/zoto-agents.git")).toBe(
-      "github.com/zotoio/zoto-agents",
+      "zotoio/zoto-agents",
     );
   });
 
   it("normalises HTTPS remotes", () => {
     expect(
       normalizeGitHubDisplayUrl("https://github.com/zotoio/zoto-agents.git"),
-    ).toBe("github.com/zotoio/zoto-agents");
+    ).toBe("zotoio/zoto-agents");
   });
 
   it("returns null for non-GitHub hosts", () => {
     expect(normalizeGitHubDisplayUrl("git@gitlab.com:acme/widget.git")).toBeNull();
+  });
+
+  it("strips legacy github.com prefixes for display", () => {
+    expect(formatRepoDisplay("github.com/zotoio/zoto-agents")).toBe("zotoio/zoto-agents");
+    expect(formatRepoDisplay("zotoio/zoto-agents")).toBe("zotoio/zoto-agents");
+    expect(formatRepoDisplay(null)).toBe("-");
   });
 });
 
@@ -79,6 +86,7 @@ describe("resolveGitHubRepoUrl", () => {
         }
         throw new Error(`unexpected read: ${path}`);
       },
+      readWindow: async () => Buffer.alloc(0),
       stat: async () => ({
         isDirectory: () => false,
         isFile: () => true,
@@ -88,7 +96,7 @@ describe("resolveGitHubRepoUrl", () => {
       exists: async (path) => path.endsWith(".git/config"),
     };
     const url = await resolveGitHubRepoUrl(fs, "/home/andrewv/git/cursor/zoto-agents");
-    expect(url).toBe("github.com/zotoio/zoto-agents");
+    expect(url).toBe("zotoio/zoto-agents");
   });
 });
 
@@ -108,6 +116,7 @@ describe("buildSlugPathMap", () => {
         }
         throw new Error(`unexpected read: ${path}`);
       },
+      readWindow: async () => Buffer.alloc(0),
       stat: async () => ({
         isDirectory: () => false,
         isFile: () => true,

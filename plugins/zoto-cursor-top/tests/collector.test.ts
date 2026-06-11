@@ -5,6 +5,7 @@ import type { FsLike } from "../src/types.js";
 const emptyFs: FsLike = {
   readdir: async () => [],
   readFile: async () => "",
+  readWindow: async () => Buffer.alloc(0),
   stat: async () => ({
     isDirectory: () => false,
     isFile: () => false,
@@ -30,6 +31,11 @@ function makeFs(tree: Record<string, string | string[]>): FsLike {
       const v = tree[path];
       if (typeof v === "string") return v;
       throw new Error(`no file: ${path}`);
+    },
+    readWindow: async (path, offset, length) => {
+      const v = tree[path];
+      if (typeof v !== "string") return Buffer.alloc(0);
+      return Buffer.from(v, "utf8").subarray(offset, offset + length);
     },
     stat: async (path) => {
       const v = tree[path];
@@ -274,6 +280,7 @@ describe("createCollector", () => {
     const fs: FsLike = {
       readdir: async (path) => tree[path]?.entries ?? [],
       readFile: async () => "",
+      readWindow: async () => Buffer.alloc(100),
       stat: async (path) => {
         const node = tree[path];
         const isDir = !!node?.isDir;
@@ -306,6 +313,149 @@ describe("createCollector", () => {
     expect(snap.roots).not.toContain(chatUuid);
   });
 
+  it("discovers a new transcript on the next fast-lane tick", async () => {
+    const projects = "/home/test/.cursor/projects";
+    const workspaceSlug = "home-andrewv-git-cursor-zoto-agents";
+    const firstUuid = "00000000-1111-2222-3333-444444444444";
+    const newUuid = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff";
+    const transcriptDir = `${projects}/${workspaceSlug}/agent-transcripts`;
+    const now = Date.now();
+    const dir = (entries: string[]) => ({ entries, isDir: true });
+    const file = () => ({ entries: [] as string[], isDir: false });
+    const tree: Record<string, { entries: string[]; isDir: boolean }> = {
+      [projects]: dir([workspaceSlug]),
+      [`${projects}/${workspaceSlug}`]: dir(["agent-transcripts"]),
+      [transcriptDir]: dir([firstUuid]),
+      [`${transcriptDir}/${firstUuid}`]: dir([`${firstUuid}.jsonl`]),
+      [`${transcriptDir}/${firstUuid}/${firstUuid}.jsonl`]: file(),
+    };
+    const fs: FsLike = {
+      readdir: async (path) => tree[path]?.entries ?? [],
+      readFile: async () => "",
+      readWindow: async () => Buffer.alloc(0),
+      stat: async (path) => {
+        const node = tree[path];
+        const isDir = !!node?.isDir;
+        const isFile = !!node && !node.isDir;
+        return {
+          isDirectory: () => isDir,
+          isFile: () => isFile,
+          mtimeMs: now,
+          size: isFile ? 0 : 100,
+        };
+      },
+      exists: async (path) => path in tree,
+    };
+    const collector = createCollector({
+      psRunner: async () =>
+        `100 1 02:00 /Applications/Cursor.app/Contents/MacOS/Cursor /home/andrewv/git/cursor/zoto-agents`,
+      fs,
+      platform: "linux",
+      homeDir: "/home/test",
+      withLogs: true,
+      cursorOnly: true,
+    });
+
+    const snap1 = await collector.collect();
+    expect(snap1.nodes[firstUuid]).toBeDefined();
+    expect(snap1.nodes[newUuid]).toBeUndefined();
+
+    tree[transcriptDir] = dir([firstUuid, newUuid]);
+    tree[`${transcriptDir}/${newUuid}`] = dir([`${newUuid}.jsonl`]);
+    tree[`${transcriptDir}/${newUuid}/${newUuid}.jsonl`] = file();
+
+    const snap2 = await collector.collect();
+    expect(snap2.nodes[newUuid]).toBeDefined();
+  });
+
+  it("--with-logs keeps transcript-backed chats before the first log line", async () => {
+    const projects = "/home/test/.cursor/projects";
+    const workspaceSlug = "home-andrewv-git-cursor-zoto-agents";
+    const chatUuid = "00000000-1111-2222-3333-444444444444";
+    const transcriptDir = `${projects}/${workspaceSlug}/agent-transcripts`;
+    const chatDir = `${transcriptDir}/${chatUuid}`;
+    const chatFile = `${chatDir}/${chatUuid}.jsonl`;
+    const now = Date.now();
+    const dir = (entries: string[]) => ({ entries, isDir: true });
+    const file = () => ({ entries: [] as string[], isDir: false });
+    const tree: Record<string, { entries: string[]; isDir: boolean }> = {
+      [projects]: dir([workspaceSlug]),
+      [`${projects}/${workspaceSlug}`]: dir(["agent-transcripts"]),
+      [transcriptDir]: dir([chatUuid]),
+      [chatDir]: dir([`${chatUuid}.jsonl`]),
+      [chatFile]: file(),
+    };
+    const fs: FsLike = {
+      readdir: async (path) => tree[path]?.entries ?? [],
+      readFile: async () => "",
+      readWindow: async () => Buffer.alloc(0),
+      stat: async (path) => {
+        const node = tree[path];
+        const isDir = !!node?.isDir;
+        const isFile = !!node && !node.isDir;
+        return {
+          isDirectory: () => isDir,
+          isFile: () => isFile,
+          mtimeMs: now,
+          size: 0,
+        };
+      },
+      exists: async (path) => path in tree,
+    };
+    const collector = createCollector({
+      withLogs: true,
+      cursorOnly: true,
+      psRunner: async () =>
+        `100 1 02:00 /Applications/Cursor.app/Contents/MacOS/Cursor /home/andrewv/git/cursor/zoto-agents`,
+      fs,
+      platform: "linux",
+      homeDir: "/home/test",
+    });
+    const snap = await collector.collect();
+    expect(snap.nodes[chatUuid]).toBeDefined();
+    expect(snap.nodes[chatUuid]!.recentLogs).toEqual([]);
+  });
+
+  it("does not deadlock when many nodes resolve repo URLs under low fsConcurrency", async () => {
+    const N = 40;
+    const sessions = "/home/test/.cursor/sessions";
+    const tree: Record<string, string | string[]> = {};
+    const sessionFiles: string[] = [];
+    for (let i = 0; i < N; i++) {
+      const id = `agent-${i}`;
+      const proj = `/home/test/proj-${i}`;
+      sessionFiles.push(`${id}.json`);
+      tree[`${sessions}/${id}.json`] = JSON.stringify({
+        sessionId: id,
+        status: "running",
+        repo: proj,
+      });
+      tree[proj] = [];
+      tree[`${proj}/.git/config`] =
+        `[remote "origin"]\nurl = https://github.com/org/repo-${i}.git\n`;
+    }
+    tree[sessions] = sessionFiles;
+
+    const collector = createCollector({
+      psRunner: async () => "",
+      fs: makeFs(tree),
+      withLogs: false,
+      activeOnly: false,
+      cursorOnly: false,
+      fsConcurrency: 2,
+      homeDir: "/home/test",
+      platform: "linux",
+    });
+
+    const snap = await Promise.race([
+      collector.collect(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("collect timed out")), 5000),
+      ),
+    ]);
+    expect(Object.keys(snap.nodes).length).toBe(N);
+  });
+
   it("--no-active-only surfaces done sessions for post-mortem inspection", async () => {
     const sessions = "/home/test/.cursor/sessions";
     const fs = makeFs({
@@ -330,5 +480,36 @@ describe("createCollector", () => {
     });
     const snap = await collector.collect();
     expect(Object.keys(snap.nodes).sort()).toEqual(["alive", "done-leaf"]);
+  });
+
+  it("reads activeOnly from opts on each collect so the TUI can toggle mid-session", async () => {
+    const sessions = "/home/test/.cursor/sessions";
+    const fs = makeFs({
+      [sessions]: ["alive.json", "done-leaf.json"],
+      [`${sessions}/alive.json`]: JSON.stringify({
+        sessionId: "alive",
+        model: "claude-opus-4.7",
+        status: "running",
+      }),
+      [`${sessions}/done-leaf.json`]: JSON.stringify({
+        sessionId: "done-leaf",
+        model: "claude-opus-4.7",
+        status: "done",
+      }),
+    });
+    const opts = {
+      activeOnly: true,
+      psRunner: async () => "",
+      fs,
+      platform: "linux" as const,
+      homeDir: "/home/test",
+    };
+    const collector = createCollector(opts);
+    const pruned = await collector.collect();
+    expect(Object.keys(pruned.nodes)).toEqual(["alive"]);
+
+    opts.activeOnly = false;
+    const full = await collector.collect();
+    expect(Object.keys(full.nodes).sort()).toEqual(["alive", "done-leaf"]);
   });
 });

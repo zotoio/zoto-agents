@@ -870,6 +870,7 @@ function checkSpecDir(specDir, opts) {
   const specStatusYml = join3(abs, "status.yml");
   if (existsSync3(specStatusYml)) {
     result.checked += 1;
+    let specRootData;
     try {
       const raw = readFileSync3(specStatusYml, "utf-8");
       const data = YAML3.parse(raw);
@@ -881,6 +882,8 @@ function checkSpecDir(specDir, opts) {
           path: specStatusYml,
           message: `spec-root status.yml failed schema validation: ${JSON.stringify(v.errors)}`
         });
+      } else {
+        specRootData = data;
       }
     } catch (e) {
       result.issues.push({
@@ -889,6 +892,21 @@ function checkSpecDir(specDir, opts) {
         path: specStatusYml,
         message: `spec-root status.yml could not be parsed: ${e instanceof Error ? e.message : String(e)}`
       });
+    }
+    if (specRootData && specRootData.aggregate_state === "completed") {
+      const dodItems = specRootData.definition_of_done_status;
+      if (Array.isArray(dodItems)) {
+        const unchecked = dodItems.filter((d) => !d.done).map((d) => d.id);
+        if (unchecked.length > 0) {
+          result.issues.push({
+            severity: "critical",
+            kind: "completed_with_open_dod",
+            path: specStatusYml,
+            message: `aggregate_state: completed but Definition of Done items still unchecked: ${unchecked.join(", ")}`
+          });
+          result.hasCritical = true;
+        }
+      }
     }
   }
   return result;

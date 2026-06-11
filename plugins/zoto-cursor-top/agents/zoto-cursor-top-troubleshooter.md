@@ -43,6 +43,16 @@ user expects to see. Use this agent when:
    - Empty logs -> the session metadata did not contain a `logPath`. Suggest
      `cursor-top --lines 0` to hide the empty line slots, or report the
      Cursor version so the path mapping can be updated.
+   - **Filtered tree looks empty** -> the user may have an active filter.
+     Suggest clearing with **`Esc`** (when the filter bar is open) or
+     re-running without `--filter`. For one-shot checks use
+     `cursor-top --json --once` without filter flags.
+   - **Detail pane shows no logs** -> demo nodes have no real `logSource`;
+     use `--demo` and press **`d`** to see `recentLogs` fallback, or on real
+     sessions try `--detail-lines 40` for a deeper tail.
+   - **No audible alert on completion** -> `--bell` is opt-in and TTY-only;
+     it rings on finished/failed events in the interactive TUI, not in
+     `--once` / `--json` mode.
    - Subagents at root -> the session metadata is missing `parentId` and the
      subagent does not have its own PID. Suggest the user upgrade Cursor or
      report a sample session file.

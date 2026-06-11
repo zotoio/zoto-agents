@@ -1,0 +1,75 @@
+schema_version: 1
+subtask_id: "05"
+feature: cursor-top-ux-perf
+assigned_agent: "generalPurpose (model: `composer-2.5-fast`)"
+model: composer-2.5-fast
+token_budget: 150000
+state: completed
+checklist:
+  - id: D01
+    text: "`plugins/zoto-cursor-top/src/events.ts` — pure module: `diffSnapshots(prev, next, now)` returning `AgentEvent[]` (`{id, label, title, kind, from, to, at}`) for: status transitions to `done` (**finished**), to `error` (**failed**), to `waiting` (**blocked / needs input**), new node appeared, and node **vanished** between snapshots. Vanish semantics: with the default `--active-only` prune (`pruneDoneAgents`, `src/discovery/collector.ts`), an agent that finishes disappears from the next snapshot rather than transitioning to `done` — a vanished node whose last-known status was running/waiting/idle must be reported as **finished**, not silently dropped."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/events.ts
+  - id: D02
+    text: "App integration (`App.tsx`): maintain an event ring buffer (cap ~50) fed by `diffSnapshots` on every snapshot replacement (auto tick **and** manual `r` refresh); render the most recent 3–5 events as a themed event strip (e.g. `✓ Task(explore) finished · 12s ago`, `✗ chat failed`, `⏸ main waiting`) using subtask-02 theme tokens and relative times via `formatDuration` (`src/ui/format.ts`)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/App.tsx
+  - id: D03
+    text: "Transient row highlights: rows whose status changed within the last ~5 s render highlighted (theme accent — colour/bold, not `inverse`, which is reserved for selection in `Row.tsx`); the highlight expires using the existing 1 s `now` clock in `App.tsx` without adding extra timers."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/ui/Row.tsx
+  - id: D04
+    text: "`--bell` flag (`parseArgs` + HELP, default off): writes BEL (`\\u0007`) to stdout/stderr on **finished** / **failed** events only (not waiting), at most one BEL per tick regardless of event count."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/src/cli.ts
+  - id: D05
+    text: "TUI-only guarantee: no `events` field added to `AgentSnapshot` / `--json`; `--once` output unchanged. Record this as a deliberate non-goal in README (future additive extension)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/README.md
+  - id: D06
+    text: "Tests: `diffSnapshots` unit coverage (each transition class, appear, vanish-as-finished, no-event on identical snapshots, id-stability across prunes), ring-buffer capping, and `ink-testing-library` App-level test driving two injected snapshots through the `load` prop and asserting the strip + highlight render; `--bell` gating logic unit-tested (BEL emission isolated behind a small injectable writer)."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/tests/events.test.ts
+  - id: D07
+    text: "Docs in the same subtask: README (Features + event strip explanation + `--bell`), HELP string, CHANGELOG, `commands/zoto-cursor-top.md` / `skills/zoto-cursor-top-monitor/SKILL.md` if flag guidance changes. Run `pnpm run eval:update --check`; on critical drift `pnpm run eval:update --apply --no-analyser`."
+    done: true
+    evidence_path: plugins/zoto-cursor-top/README.md
+artifacts:
+  - path: plugins/zoto-cursor-top/src/events.ts
+    kind: created
+    note: Pure diffSnapshots + ring buffer + bell helpers
+  - path: plugins/zoto-cursor-top/tests/events.test.ts
+    kind: created
+    note: Unit tests for diffSnapshots, ring buffer, bell gating
+  - path: plugins/zoto-cursor-top/tests/events-app.test.tsx
+    kind: created
+    note: Ink App tests for event strip and bell
+errors: []
+notes: |
+  Targeted vitest: 55 passed (events.test.ts, events-app.test.tsx, app.test.tsx, cli.test.ts, contracts.test.ts 17/17).
+  eval:update --check clean after skill doc drift resolved.
+extra:
+  dod:
+    code_functional: true
+    targeted_tests: true
+    contracts_17_17: true
+    vanish_active_only_test: true
+    docs_eval_clean: true
+    linter_clean: true
+  judge:
+    verdict: verified
+    at: "2026-06-11T08:21:00+10:00"
+    notes: |
+      Independently confirmed events.ts diffSnapshots (finished/failed/waiting/appeared,
+      vanish-as-finished for running/waiting/idle), App ring buffer + themed strip (4 events),
+      Row accent/bold highlights via changedAt + 1s now clock, --bell gated to TTY with injectable
+      writer, AgentSnapshot JSON shape untouched, README non-goal documented. Targeted vitest 55/55;
+      contracts 17/17; eval:update --check clean; no linter errors on modified files.
+    fix_list:
+      - item: D06
+        gap: >-
+          events-app.test.tsx first case asserts the event strip only; it does not verify row
+          highlight rendering despite the test title and D06 wording (highlight behaviour is
+          covered by events.test.ts unit helpers + Tree→Row wiring).
+        recommended_path: plugins/zoto-cursor-top/tests/events-app.test.tsx
+        severity: nice_to_have
