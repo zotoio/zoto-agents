@@ -97,6 +97,8 @@ export interface AppProps {
   terminalRows?: number;
   /** Override terminal column count for table layout (tests). */
   terminalColumns?: number;
+  /** When true, skip the empty-state animation (demo always has data). */
+  demo?: boolean;
 }
 
 /**
@@ -122,6 +124,7 @@ export function App({
   detailFs,
   terminalRows: terminalRowsOverride,
   terminalColumns: terminalColumnsOverride,
+  demo = false,
 }: AppProps): React.JSX.Element {
   const { exit } = useApp();
   const { stdout } = useStdout();
@@ -668,7 +671,7 @@ export function App({
       <Box flexDirection="column" flexGrow={1}>
         {helpOpen ? (
           <HelpPane theme={theme} diagnostics={displaySnapshot.diagnostics} />
-        ) : visible.length === 0 ? (
+        ) : visible.length === 0 && !demo ? (
           <EmptyState
             theme={theme}
             terminalColumns={terminalColumns}

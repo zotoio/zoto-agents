@@ -376,6 +376,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
       bell: opts.bell && process.stdout.isTTY === true,
       detailLines: opts.detailLines,
       persistPrefs: true,
+      demo: opts.demo,
     }),
     { alternateScreen: true },
   );
