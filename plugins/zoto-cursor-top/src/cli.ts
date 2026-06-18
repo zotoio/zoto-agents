@@ -354,8 +354,10 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
     ...opts,
     activeOnly: startupPrefs.activeOnly,
   });
-  const collector = createCollector(collectorOpts);
-  const load = (): Promise<AgentSnapshot> => collector.collect();
+  const collector = opts.demo ? null : createCollector(collectorOpts);
+  const load = opts.demo
+    ? (): Promise<AgentSnapshot> => Promise.resolve(demoSnapshot(opts.logLines))
+    : (): Promise<AgentSnapshot> => collector!.collect();
 
   // Alternate screen (like top/htop): fresh viewport on start, primary
   // scrollback restored on quit — no history wipe.
