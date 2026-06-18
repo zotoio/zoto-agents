@@ -5,6 +5,7 @@ import {
   agentBodyIndent,
   DEFAULT_TERMINAL_COLUMNS,
   formatAgentRowLine,
+  formatCategoryRowLine,
   formatLogBodyForRow,
   formatLogTailPrefix,
   orderLogsForDisplay,
@@ -22,6 +23,7 @@ import {
   type Density,
   type Theme,
 } from "./theme.js";
+import { isCategoryId } from "./categories.js";
 
 export interface RowProps {
   node: AgentNode;
@@ -75,6 +77,24 @@ export function Row({
   terminalColumns,
   statusHighlighted = false,
 }: RowProps): React.JSX.Element {
+  const isCategory = isCategoryId(node.id);
+
+  if (isCategory) {
+    const childCount = node.children?.length ?? 0;
+    const rowLine = formatCategoryRowLine(node, expanded, childCount, layout);
+    return (
+      <Box flexDirection="column">
+        <Text
+          inverse={selected && theme.selection.inverse}
+          bold={true}
+          color={theme.header}
+        >
+          {rowLine}
+        </Text>
+      </Box>
+    );
+  }
+
   const bodyIndent = agentBodyIndent(depth, layout);
   const showTitle = densityShowsTitle(density) && Boolean(node.title);
   const showLogs = densityShowsLogs(density);

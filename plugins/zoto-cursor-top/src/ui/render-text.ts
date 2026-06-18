@@ -12,6 +12,7 @@ import {
   computeRowColumnLayout,
   DEFAULT_TERMINAL_COLUMNS,
   formatAgentRowLine,
+  formatCategoryRowLine,
   formatLogTailLine,
   formatStartForNode,
   headerRow,
@@ -27,6 +28,11 @@ import {
   densityShowsTitle,
   type Density,
 } from "./theme.js";
+import {
+  groupByCategory,
+  categoryCounts,
+  isCategoryId,
+} from "./categories.js";
 
 export interface RenderTextOptions {
   /**
@@ -40,6 +46,8 @@ export interface RenderTextOptions {
   terminalColumns?: number;
   /** Log tail order (default oldest-first). */
   logOrder?: LogScrollOrder;
+  /** Apply category grouping (default true). Set false to preserve legacy flat output. */
+  grouped?: boolean;
 }
 
 export function renderText(
@@ -51,17 +59,19 @@ export function renderText(
   const logOrder = opts.logOrder ?? DEFAULT_LOG_SCROLL_ORDER;
   const showTitle = densityShowsTitle(density);
   const showLogs = densityShowsLogs(density);
-  const expanded = new Set(Object.keys(snapshot.nodes));
-  const visible = flattenVisible(snapshot, expanded);
-  const layoutRows = visible
+  const grouped = opts.grouped !== false ? groupByCategory(snapshot) : snapshot;
+  const expanded = new Set(Object.keys(grouped.nodes));
+  const visible = flattenVisible(grouped, expanded);
+  const nonCatRows = visible.filter(({ id }) => !isCategoryId(id));
+  const layoutRows = nonCatRows
     .map(({ id, depth }) => {
-      const node = snapshot.nodes[id];
+      const node = grouped.nodes[id];
       if (!node) return null;
       return {
         node,
         depth,
         startColumn: formatStartForNode(node, now),
-        nodes: snapshot.nodes,
+        nodes: grouped.nodes,
       };
     })
     .filter((row): row is NonNullable<typeof row> => row != null);
@@ -81,25 +91,33 @@ export function renderText(
   });
   const lines: string[] = [];
 
+  const catCounts = categoryCounts(snapshot);
   const totals = summarise(snapshot);
   lines.push(
-    `cursor-top  ·  ${totals.processes} processes · ${totals.roots} roots · ${totals.subs} subagents`,
+    `cursor-top  ·  ${catCounts["cat:ide"]} IDE · ${catCounts["cat:cli"]} CLI · ${catCounts["cat:cloud"]} Cloud · ${totals.subs} subagents`,
   );
   lines.push("");
   lines.push(headerRow(layout));
   lines.push("-".repeat(terminalColumns));
 
   for (const { id, depth } of visible) {
-    const node = snapshot.nodes[id];
+    const node = grouped.nodes[id];
     if (!node) continue;
     const hasChildren = (node.children?.length ?? 0) > 0;
+
+    if (isCategoryId(id)) {
+      const childCount = node.children?.length ?? 0;
+      lines.push(formatCategoryRowLine(node, true, childCount, layout));
+      continue;
+    }
+
     const bodyIndent = agentBodyIndent(depth, layout);
     lines.push(
       formatAgentRowLine(node, depth, now, {
         expanded: hasChildren,
         hasChildren,
         layout,
-        nodes: snapshot.nodes,
+        nodes: grouped.nodes,
       }),
     );
     if (showTitle && node.title) {
@@ -111,6 +129,11 @@ export function renderText(
         lines.push(formatLogTailLine(depth, line, logBodyMax, layout));
       }
     }
+  }
+
+  if (visible.length === 0) {
+    lines.push("");
+    lines.push("  No active agents");
   }
 
   if (snapshot.diagnostics.length > 0) {

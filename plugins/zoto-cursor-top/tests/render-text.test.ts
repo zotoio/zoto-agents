@@ -72,7 +72,7 @@ describe("renderText layout + badges", () => {
   });
 
   it("keeps every row's columns aligned with the header and blanks the PID for child rows", () => {
-    const out = renderText(snap());
+    const out = renderText(snap(), undefined, { grouped: false });
     // Depth 0 IDE row: `[IDE]` + 2-pad + " " sep + 6-wide PID + " " sep + label.
     expect(out).toMatch(/^\[IDE\] {3} {5}1 ▼ Cursor IDE/m);
     // Depth 1 AGENT row: badge is exactly 7 chars, PID slot blanked
@@ -84,7 +84,7 @@ describe("renderText layout + badges", () => {
   });
 
   it("aligns log lines under the AGENT column and shifts them per depth", () => {
-    const out = renderText(snap());
+    const out = renderText(snap(), undefined, { grouped: false });
     // Depth 1 → AGENT column (15) + 2-space label indent + 2 (chevron slot).
     expect(out).toMatch(/^ {19}log: assistant: hello$/m);
     // Depth 2 → AGENT column + 4-space label indent + 2.

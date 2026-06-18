@@ -128,17 +128,20 @@ describe("contract: --demo snapshot shape", () => {
 
   it("demo composition is stable (roots, node ids, diagnostics)", () => {
     const snap = demoSnapshot(3);
-    expect(snap.roots).toEqual(["ide-1", "cli-1", "cloud-1"]);
+    expect(snap.roots).toEqual(["ide-1", "ide-2", "cli-1", "cli-2", "cloud-1", "cloud-2"]);
     expect(Object.keys(snap.nodes).sort()).toEqual(
       [
         "ide-1",
         "ide-1-sub-explore",
         "ide-1-sub-impl",
+        "ide-2",
         "cli-1",
+        "cli-2",
         "cloud-1",
         "cloud-1-sub-explore",
         "cloud-1-sub-impl",
         "cloud-1-sub-debug",
+        "cloud-2",
       ].sort(),
     );
     expect(snap.diagnostics).toEqual([
@@ -351,11 +354,11 @@ function fixedRenderSnapshot(): {
 }
 
 describe("contract: renderText structure (fixed clock)", () => {
-  it("renders the exact frozen frame for a fixed snapshot", () => {
+  it("renders the exact frozen frame for a fixed snapshot (ungrouped)", () => {
     const { snap, ide, chat, sub, cli } = fixedRenderSnapshot();
     const layout = contractLayout(snap, NOW);
     const expected = [
-      "cursor-top  ·  2 processes · 2 roots · 2 subagents",
+      "cursor-top  ·  1 IDE · 1 CLI · 0 Cloud · 2 subagents",
       "",
       headerRow(layout),
       "-".repeat(CONTRACT_TERMINAL_COLUMNS),
@@ -373,7 +376,7 @@ describe("contract: renderText structure (fixed clock)", () => {
       "",
       "! demo diagnostic line",
     ].join("\n") + "\n";
-    expect(renderText(snap, NOW, { terminalColumns: CONTRACT_TERMINAL_COLUMNS })).toBe(
+    expect(renderText(snap, NOW, { terminalColumns: CONTRACT_TERMINAL_COLUMNS, grouped: false })).toBe(
       expected,
     );
   });
@@ -394,7 +397,7 @@ describe("contract: renderText structure (fixed clock)", () => {
     expect(header.indexOf("STATUS")).toBe(statusStart);
     expect(header.lastIndexOf("TOKENS")).toBe(tokensStart);
 
-    const lines = renderText(snap, NOW, { terminalColumns: CONTRACT_TERMINAL_COLUMNS })
+    const lines = renderText(snap, NOW, { terminalColumns: CONTRACT_TERMINAL_COLUMNS, grouped: false })
       .split("\n")
       .filter((line) => line.startsWith("["));
     for (const line of lines) {
@@ -406,13 +409,13 @@ describe("contract: renderText structure (fixed clock)", () => {
   it("emits no ANSI terminal-control characters", () => {
     const { snap } = fixedRenderSnapshot();
     // eslint-disable-next-line no-control-regex
-    expect(/\x1B/.test(renderText(snap, NOW))).toBe(false);
+    expect(/\x1B/.test(renderText(snap, NOW, { grouped: false }))).toBe(false);
   });
 
   it("freezes row layout fragments (badges, chevrons, elapsed, truncation)", () => {
     const { snap } = fixedRenderSnapshot();
     const layout = contractLayout(snap, NOW);
-    const lines = renderText(snap, NOW, { terminalColumns: CONTRACT_TERMINAL_COLUMNS }).split("\n");
+    const lines = renderText(snap, NOW, { terminalColumns: CONTRACT_TERMINAL_COLUMNS, grouped: false }).split("\n");
     expect(lines[4]).toMatch(/^\[IDE\]\s+100 ▼ Cursor IDE\s+/);
     expect(lines[4]).toContain("(14m00s)");
     expect(lines[4]).toContain("running");
@@ -436,7 +439,7 @@ describe("contract: renderText structure (fixed clock)", () => {
   it("orders per-row log lines oldest-first by default", () => {
     const { snap } = fixedRenderSnapshot();
     const layout = contractLayout(snap, NOW);
-    const lines = renderText(snap, NOW, { terminalColumns: CONTRACT_TERMINAL_COLUMNS }).split("\n");
+    const lines = renderText(snap, NOW, { terminalColumns: CONTRACT_TERMINAL_COLUMNS, grouped: false }).split("\n");
     const logLines = lines.filter((l) => l.trimStart().startsWith("log: "));
     expect(logLines[0]).toBe(formatLogTailLine(1, "assistant: oldest line", 100, layout));
     expect(logLines[1]).toBe(formatLogTailLine(1, "user: middle line", 100, layout));
