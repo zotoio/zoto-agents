@@ -63,6 +63,8 @@ export interface CliOptions {
   bell: boolean;
   /** Deep log tail line count for the detail pane (TUI only; default 25). */
   detailLines: number;
+  /** Enable Cloud Agents API integration (requires CURSOR_API_KEY env var). */
+  cloudApi: boolean;
 }
 
 const HELP = `cursor-top - live updating htop for every Cursor agent on this machine
@@ -127,6 +129,11 @@ Options:
   --detail-lines <n>    Lines to tail in the detail pane when you press d
                         (default 25, minimum 1). Interactive TUI only; does
                         not change the per-row --lines tail in the tree.
+  --cloud-api           Query the Cursor Cloud Agents API for remote agents
+                        (default on; requires CURSOR_API_KEY env var).
+                        Agents discovered via the API appear under the
+                        Cloud Agents category with no local PID.
+  --no-cloud-api        Disable Cloud Agents API queries (local only).
   --no-auto-once        Force interactive TUI even when stdout is not a TTY
                         (default: non-TTY contexts auto-promote to --once)
   -h, --help            Show this help and exit
@@ -172,6 +179,7 @@ export function parseArgs(argv: string[]): CliOptions {
     filter: "",
     bell: false,
     detailLines: 25,
+    cloudApi: true,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]!;
@@ -247,6 +255,12 @@ export function parseArgs(argv: string[]): CliOptions {
         if (v) opts.detailLines = Math.max(1, Number.parseInt(v, 10) || 25);
         break;
       }
+      case "--cloud-api":
+        opts.cloudApi = true;
+        break;
+      case "--no-cloud-api":
+        opts.cloudApi = false;
+        break;
       case "-h":
       case "--help":
         opts.help = true;
@@ -303,6 +317,7 @@ function buildCollectorOptions(opts: CliOptions) {
       opts.transcriptMaxAgeHours > 0
         ? opts.transcriptMaxAgeHours * 60 * 60 * 1000
         : Number.POSITIVE_INFINITY,
+    cloudApi: opts.cloudApi ? {} : (false as const),
   };
 }
 

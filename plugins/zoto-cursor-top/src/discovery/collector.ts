@@ -60,6 +60,7 @@ import {
   slugFromAbsolutePath,
   stripGitHubHost,
 } from "./repo-url.js";
+import { fetchCloudAgents, type CloudApiOptions } from "./cloud-api.js";
 
 const DEFAULT_LOG_LINES = 3;
 /** Slow-lane cadence: full session walk + root enumeration every N ticks. */
@@ -370,6 +371,7 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
   const sem = createSemaphore(opts.fsConcurrency ?? DEFAULT_FS_CONCURRENCY);
   const paths = resolveCursorPaths(home, plat);
 
+  const cloudApiOpts: CloudApiOptions | false = opts.cloudApi ?? {};
   const sessionFileCache = new Map<string, SessionFileCacheEntry>();
   const transcriptMetaCache = new Map<string, TranscriptFileMeta>();
   const logTailCache = new Map<string, LogTailCacheEntry>();
@@ -388,6 +390,7 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
   let tickCount = 0;
   let prevSnapshotNodes: Record<string, AgentNode> | null = null;
   const idleElapsedEndCache = new Map<string, number>();
+  let cachedCloudApiNodes: AgentNode[] = [];
 
   return {
     async collect(): Promise<AgentSnapshot> {
@@ -462,6 +465,15 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
         sem,
       );
 
+      // Cloud API: fetch remote cloud agents on slow-lane ticks
+      if (cloudApiOpts !== false && slowLane) {
+        try {
+          cachedCloudApiNodes = await fetchCloudAgents(cloudApiOpts);
+        } catch {
+          // keep previous cache on failure
+        }
+      }
+
       const allRecords = [
         ...ideRecords,
         ...cliRecords,
@@ -487,9 +499,16 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
         }
       }
 
+      // Merge cloud API nodes, deduplicating against locally-discovered nodes
+      const cloudApiNodes = cachedCloudApiNodes.filter(
+        (n) => !seenIds.has(n.id),
+      );
+      for (const n of cloudApiNodes) seenIds.add(n.id);
+
       const merged: AgentNode[] = [
         ...procNodes.map((n) => ({ ...n })),
         ...orphanSessions,
+        ...cloudApiNodes,
       ];
 
       await Promise.all(
