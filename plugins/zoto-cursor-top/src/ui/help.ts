@@ -12,7 +12,7 @@ export const INTERACTIVE_KEYBINDS: KeybindHelp[] = [
   { keys: "↑/↓ or j/k", description: "move selection" },
   { keys: "→/Enter/l", description: "expand selected node" },
   { keys: "←/h", description: "collapse selected node" },
-  { keys: "e / c", description: "expand / collapse all" },
+  { keys: "e / c", description: "expand / collapse all (c resets CLI/Cloud categories to collapsed)" },
   { keys: "r", description: "force refresh (works while paused)" },
   { keys: "p / space", description: "pause / resume auto-refresh" },
   { keys: "t", description: "cycle colour theme" },

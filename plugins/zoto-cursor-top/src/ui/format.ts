@@ -524,6 +524,39 @@ export function formatAgentRowLine(
   ]);
 }
 
+/**
+ * Category header row: `▼ CLI Sessions (3)` spanning the full width.
+ * Renders as a section separator rather than a data row.
+ */
+export function formatCategoryRowLine(
+  node: AgentNode,
+  expanded: boolean,
+  childCount: number,
+  layout: RowColumnLayout,
+): string {
+  const chevron = expanded ? "▼" : "▶";
+  const countStr = childCount > 0 ? ` (${childCount})` : "";
+  const label = `${chevron} ${node.label}${countStr}`;
+  const totalWidth =
+    layout.kind +
+    1 +
+    layout.pid +
+    1 +
+    layout.agent +
+    2 +
+    layout.model +
+    2 +
+    layout.repo +
+    2 +
+    layout.start +
+    2 +
+    layout.status +
+    1 +
+    layout.tokens;
+  const line = label.padEnd(totalWidth);
+  return line;
+}
+
 /** Indent for title / log body lines under the AGENT column at a given depth. */
 export function agentBodyIndent(
   depth: number,

@@ -15,6 +15,14 @@ import { filterSnapshot } from "../filter.js";
 import type { AgentNode, AgentSnapshot, FsLike } from "../types.js";
 import { Tree, flattenVisible } from "./Tree.js";
 import { DetailPane, DetailPaneGone } from "./DetailPane.js";
+import { EmptyState } from "./EmptyState.js";
+import {
+  groupByCategory,
+  categoryCounts,
+  defaultCategoryExpansion,
+  isCategoryId,
+  type CategoryId,
+} from "./categories.js";
 import {
   computeDetailPaneHeight,
   loadDetailTail,
@@ -89,6 +97,8 @@ export interface AppProps {
   terminalRows?: number;
   /** Override terminal column count for table layout (tests). */
   terminalColumns?: number;
+  /** When true, skip the empty-state animation (demo always has data). */
+  demo?: boolean;
 }
 
 /**
@@ -114,6 +124,7 @@ export function App({
   detailFs,
   terminalRows: terminalRowsOverride,
   terminalColumns: terminalColumnsOverride,
+  demo = false,
 }: AppProps): React.JSX.Element {
   const { exit } = useApp();
   const { stdout } = useStdout();
@@ -124,7 +135,12 @@ export function App({
 
   const [snapshot, setSnapshot] = useState<AgentSnapshot>(initial);
   const [expanded, setExpanded] = useState<Set<string>>(
-    () => new Set(initial.roots),
+    () => {
+      const catDefaults = defaultCategoryExpansion();
+      const s = new Set(initial.roots);
+      for (const id of catDefaults) s.add(id);
+      return s;
+    },
   );
   const [selectedId, setSelectedId] = useState<string | null>(
     initial.roots[0] ?? null,
@@ -200,7 +216,11 @@ export function App({
     () => filterSnapshot(snapshot, filterCommitted),
     [snapshot, filterCommitted],
   );
-  const displaySnapshot = filterResult.snapshot;
+  const categorisedSnapshot = useMemo(
+    () => groupByCategory(filterResult.snapshot),
+    [filterResult.snapshot],
+  );
+  const displaySnapshot = categorisedSnapshot;
   const filterActive = filterCommitted.trim().length > 0;
 
   const visible = useMemo(
@@ -559,7 +579,7 @@ export function App({
       return;
     }
     if (input === "c") {
-      setExpanded(new Set());
+      setExpanded(defaultCategoryExpansion());
       return;
     }
     // "t" / "y" cycle theme / density. "d" + Esc reserved for detail pane.
@@ -608,7 +628,8 @@ export function App({
     });
   };
 
-  const totals = useMemo(() => summarise(displaySnapshot), [displaySnapshot]);
+  const totals = useMemo(() => summarise(snapshot), [snapshot]);
+  const catCounts = useMemo(() => categoryCounts(snapshot), [snapshot]);
 
   // Surface theme/density in the status line only when they deviate from
   // the defaults, so the default frame stays exactly as it always was.
@@ -639,7 +660,7 @@ export function App({
           ) : null}
         </Box>
         <Text dimColor={theme.dim}>
-          {`${totals.processes} processes · ${totals.roots} roots · ${totals.subs} subagents · refresh ${paused ? "paused" : `${intervalMs}ms`}${themeSuffix}${densitySuffix}${infoSuffix}${logOrderSuffix}${activeOnlySuffix}`}
+          {`${catCounts["cat:ide"]} IDE · ${catCounts["cat:cli"]} CLI · ${catCounts["cat:cloud"]} Cloud · ${totals.subs} subagents · refresh ${paused ? "paused" : `${intervalMs}ms`}${themeSuffix}${densitySuffix}${infoSuffix}${logOrderSuffix}${activeOnlySuffix}`}
         </Text>
       </Box>
       <Box>
@@ -650,6 +671,12 @@ export function App({
       <Box flexDirection="column" flexGrow={1}>
         {helpOpen ? (
           <HelpPane theme={theme} diagnostics={displaySnapshot.diagnostics} />
+        ) : visible.length === 0 && !demo ? (
+          <EmptyState
+            theme={theme}
+            terminalColumns={terminalColumns}
+            terminalRows={terminalRows}
+          />
         ) : (
           <Tree
             snapshot={displaySnapshot}

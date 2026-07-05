@@ -146,6 +146,13 @@ export interface CollectorOptions {
   now?: () => number;
   /** Max concurrent fs operations during collect fan-out (default 24). */
   fsConcurrency?: number;
+  /**
+   * Cloud Agents API options. When a `CURSOR_API_KEY` env var is present
+   * (or `cloudApi.apiKey` is set), the collector queries the Cursor Cloud
+   * Agents REST API on slow-lane ticks to discover remote cloud agents.
+   * Set to `false` to disable entirely.
+   */
+  cloudApi?: import("./discovery/cloud-api.js").CloudApiOptions | false;
 }
 
 /**
