@@ -12,6 +12,7 @@
  */
 
 import type { AgentNode, AgentStatus } from "../types.js";
+import { sanitizeDisplayText } from "./sanitize.js";
 
 const API_BASE = "https://api.cursor.com/v1";
 
@@ -64,7 +65,10 @@ function mapRunStatus(apiStatus: ApiRun["status"]): AgentStatus {
 
 function repoFromAgent(agent: ApiAgent, run?: ApiRun): string | null {
   const branch = run?.git?.branches?.[0];
-  if (branch?.repoUrl) return branch.repoUrl;
+  if (branch?.repoUrl) {
+    const repo = sanitizeDisplayText(branch.repoUrl);
+    return repo || null;
+  }
   return null;
 }
 
@@ -117,8 +121,10 @@ export async function fetchCloudAgents(
       let run: ApiRun | undefined;
       if (agent.latestRunId) {
         try {
+          const agentId = encodeURIComponent(agent.id);
+          const runId = encodeURIComponent(agent.latestRunId);
           const res = await doFetch(
-            `${base}/agents/${agent.id}/runs/${agent.latestRunId}`,
+            `${base}/agents/${agentId}/runs/${runId}`,
             { headers, signal: AbortSignal.timeout(10_000) },
           );
           if (res.ok) {
@@ -132,16 +138,19 @@ export async function fetchCloudAgents(
       const status = run ? mapRunStatus(run.status) : "running";
       const startedAt = new Date(agent.createdAt).getTime();
       const repo = repoFromAgent(agent, run);
+      const label = sanitizeDisplayText(agent.name) || "Cloud Agent";
       const resultSnippet = run?.result
-        ? run.result.slice(0, 120)
+        ? sanitizeDisplayText(run.result).slice(0, 120)
         : "";
+      const logSource = agent.url ? sanitizeDisplayText(agent.url) || null : null;
+      const id = sanitizeDisplayText(agent.id) || "unknown";
 
       nodes.push({
-        id: `cloud-api:${agent.id}`,
+        id: `cloud-api:${id}`,
         parentId: null,
         kind: "cloud",
         pid: null,
-        label: agent.name || "Cloud Agent",
+        label,
         title: resultSnippet,
         model: null,
         repo,
@@ -151,7 +160,7 @@ export async function fetchCloudAgents(
           : undefined,
         status,
         recentLogs: resultSnippet ? [`result: ${resultSnippet}`] : [],
-        logSource: agent.url ?? null,
+        logSource,
         tokenUsage: null,
       });
     }),
