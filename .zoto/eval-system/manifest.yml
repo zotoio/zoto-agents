@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-06-11T13:06:02.392Z
-git_ref: 81a265fdd3ca75e98f3e94219f102bf4fa741f07
+updated_at: 2026-08-23T22:37:19.849Z
+git_ref: f2c830fc13aba19a6cce3f8885720c9705701965
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -41,7 +41,7 @@ targets:
   - id: skill:zoto-cursor-top-monitor
     kind: skill
     path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
-    content_hash: aa8229cf06c7df0ae1356952629ef576313fa36cfa243801236cefb7bf08ccfb
+    content_hash: 0db56164985ea643566806e36395852b4746a685b2570c96bc48697e023182d2
     public_surface:
       frontmatter:
         name: zoto-cursor-top-monitor
