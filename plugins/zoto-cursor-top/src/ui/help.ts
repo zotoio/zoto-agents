@@ -71,6 +71,13 @@ export const DIAGNOSTIC_HELP: DiagnosticHelp[] = [
     body: "Nothing matched the process scan. Try --demo for a synthetic preview.",
   },
   {
+    match: "usage:",
+    title: "! usage: <error>",
+    body:
+      "Billed COST needs CURSOR_ANALYTICS_API_KEY or CURSOR_API_KEY plus email. " +
+      "Use cursor-top tail, or pass --no-usage-api.",
+  },
+  {
     match: "unreadable:",
     title: "! unreadable: <path>",
     body:

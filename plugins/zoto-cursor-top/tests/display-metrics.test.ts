@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  displayCostUsd,
   displayModelSlug,
   displayTokenUsage,
+  snapshotHasCost,
+  sumSubtreeCostUsd,
   sumSubtreeTokenUsage,
 } from "../src/ui/display-metrics.js";
 import type { AgentNode } from "../src/types.js";
@@ -91,5 +94,33 @@ describe("display-metrics rollups", () => {
       chat: node({ id: "chat", model: "default" }),
     };
     expect(displayModelSlug(nodes.chat!, nodes)).toBe(null);
+  });
+
+  it("rolls billed cost across descendants and detects COST-column data", () => {
+    const nodes: Record<string, AgentNode> = {
+      ide: node({
+        id: "ide",
+        kind: "ide",
+        pid: 1,
+        children: ["chat"],
+      }),
+      chat: node({
+        id: "chat",
+        parentId: "ide",
+        costUsd: 0.4,
+        children: ["sub"],
+      }),
+      sub: node({
+        id: "sub",
+        kind: "subagent",
+        parentId: "chat",
+        costUsd: 0.25,
+      }),
+    };
+    expect(sumSubtreeCostUsd("ide", nodes)).toBeCloseTo(0.65);
+    expect(displayCostUsd(nodes.ide!, nodes)).toBeCloseTo(0.65);
+    expect(displayCostUsd(nodes.sub!, nodes)).toBe(0.25);
+    expect(snapshotHasCost(nodes)).toBe(true);
+    expect(snapshotHasCost({ bare: node({ id: "bare" }) })).toBe(false);
   });
 });

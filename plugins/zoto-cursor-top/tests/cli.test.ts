@@ -122,6 +122,14 @@ describe("parseArgs --detail-lines", () => {
   });
 });
 
+describe("parseArgs --usage-api", () => {
+  it("defaults usageApi to true and accepts --no-usage-api", () => {
+    expect(parseArgs([]).usageApi).toBe(true);
+    expect(parseArgs(["--no-usage-api"]).usageApi).toBe(false);
+    expect(parseArgs(["--no-usage-api", "--usage-api"]).usageApi).toBe(true);
+  });
+});
+
 describe("CLI_VERSION", () => {
   it("matches package semver for --version output", () => {
     expect(CLI_VERSION).toBe("0.2.0");

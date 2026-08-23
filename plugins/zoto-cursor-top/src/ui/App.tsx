@@ -32,6 +32,7 @@ import {
   computeRowColumnLayout,
   DEFAULT_LOG_SCROLL_ORDER,
   DEFAULT_TERMINAL_COLUMNS,
+  formatCostUsd,
   formatStartForNode,
   headerRow,
   type LogScrollOrder,
@@ -630,6 +631,10 @@ export function App({
 
   const totals = useMemo(() => summarise(snapshot), [snapshot]);
   const catCounts = useMemo(() => categoryCounts(snapshot), [snapshot]);
+  const billedSuffix =
+    snapshot.usage != null
+      ? ` · ${formatCostUsd(snapshot.usage.totalCostUsd, 0).trim()}`
+      : "";
 
   // Surface theme/density in the status line only when they deviate from
   // the defaults, so the default frame stays exactly as it always was.
@@ -660,7 +665,7 @@ export function App({
           ) : null}
         </Box>
         <Text dimColor={theme.dim}>
-          {`${catCounts["cat:ide"]} IDE · ${catCounts["cat:cli"]} CLI · ${catCounts["cat:cloud"]} Cloud · ${totals.subs} subagents · refresh ${paused ? "paused" : `${intervalMs}ms`}${themeSuffix}${densitySuffix}${infoSuffix}${logOrderSuffix}${activeOnlySuffix}`}
+          {`${catCounts["cat:ide"]} IDE · ${catCounts["cat:cli"]} CLI · ${catCounts["cat:cloud"]} Cloud · ${totals.subs} subagents${billedSuffix} · refresh ${paused ? "paused" : `${intervalMs}ms`}${themeSuffix}${densitySuffix}${infoSuffix}${logOrderSuffix}${activeOnlySuffix}`}
         </Text>
       </Box>
       <Box>

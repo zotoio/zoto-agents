@@ -55,6 +55,17 @@ TYPE     PID  AGENT                                MODEL              REPO      
   from Cursor's `composerData` store (`promptTokenBreakdown.totalUsedTokens`),
   formatted in thousands with one decimal (`1.2k`, `94.6k`). Process-only rows
   show `-` when no composer session exists.
+- **Billed cost (analytics key).** When `CURSOR_ANALYTICS_API_KEY` (Admin
+  `read:e`) or `CURSOR_API_KEY` is set and the current-user email can be
+  resolved, a **COST** column appears with the conversation's billed USD
+  total. Conversations still in flight sum unique requests; if the API
+  rewrites an in-flight request as tokens grow, that request's latest
+  totals replace the previous ones instead of stacking. The header shows
+  the lookback-window spend. Pass `--no-usage-api` to disable. Without a
+  key the default layout is unchanged.
+- **Usage tail.** `cursor-top tail` live-tails billed requests for the
+  current user (`-n`, `-f`/`--follow`, `-p`/`--prompt`, `--json`,
+  `--hours`, `--email`). Same auth as the COST column.
 - **Log tail display (TUI + `--once`).** Log lines default to **oldest-first**
   (chronological). Press **`o`** to toggle newest-first. Both toggles persist in
   `~/.zoto/cursor-top.json`.
@@ -151,6 +162,8 @@ cursor-top --density compact  # agent row lines only (no title/log tail)
 cursor-top --filter "status:running repo:app"  # narrow tree (TUI + --once/--json)
 cursor-top --bell         # ring terminal bell on finished / failed events (TUI only)
 cursor-top --detail-lines 40  # deep tail depth for the d-key detail pane (TUI only)
+cursor-top tail -n 20     # last 20 billed requests (analytics API key)
+cursor-top tail -f        # follow billed usage
 cursor-top --help         # show all flags
 ```
 
@@ -161,6 +174,8 @@ cursor-top --help         # show all flags
 | `--filter "<query>"` | _(none)_ | Filter by scoped tokens (`repo:`, `model:`, `status:`) and/or free text (AND-combined, case-insensitive). Pre-seeds the interactive filter; applies to `--once` and `--json` before output. |
 | `--bell` | off | Ring the terminal bell on finished / failed lifecycle events in the interactive TUI only (at most one bell per refresh tick). Ignored for `--once`, `--json`, and non-TTY stdout. |
 | `--detail-lines <n>` | `25` | Deep log tail depth for the **`d`** detail pane (minimum 1). Interactive TUI only; does not change per-row **`--lines`** tails. |
+| `--usage-api` / `--no-usage-api` | on | Join billed USD from `/teams/filtered-usage-events` when an analytics key is present. `--no-usage-api` hides the COST column. |
+| `tail [options]` | — | Subcommand: live-tail billed usage events. See `cursor-top tail --help`. |
 
 ### Keyboard
 
@@ -206,6 +221,7 @@ This plugin also registers:
 | `~/.cursor/cli/` | `cursor-agent` CLI session metadata |
 | `~/.cursor/projects/<workspace>/` | Cloud Agent VM in-flight agents |
 | Log files referenced from each session record | Last 3 lines per agent |
+| `POST /teams/filtered-usage-events` (when `CURSOR_ANALYTICS_API_KEY` or `CURSOR_API_KEY` is set) | Billed COST per conversation and `cursor-top tail` |
 
 Every data source is optional: the CLI tolerates missing directories and
 emits diagnostics rather than crashing.
@@ -221,6 +237,9 @@ every refresh tick (including manual `r`). Each tick:
 - **Slow lane** (tick 1 and every 5th tick) — re-walk session JSON, refresh
   workspace/`agent-transcripts` enumeration, retry unresolved composer-model
   ids, refresh slug maps.
+- **Usage lane** (tick 1, then every 15s when an analytics key is present) —
+  poll billed usage events and restamp conversation totals. Fast ticks reuse
+  the last successful join.
 
 Session files, log tails, and composer lookups are cached between ticks;
 unchanged sources cost `stat` only (no `readFile` / `readWindow`). Fs work

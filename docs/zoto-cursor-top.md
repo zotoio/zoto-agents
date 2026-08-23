@@ -9,6 +9,7 @@ A live, `htop`-style CLI that lists **every Cursor agent on the current machine*
 - **Cross-process visibility** — Cursor IDE, `cursor-agent` CLI, and Cloud Agent VM exec daemons in one view.
 - **Parent / subagent hierarchy** — subagents spawned via the `Task` tool nest under their parent in a collapsible tree.
 - **Three output modes** — interactive TUI, `--once` for a one-shot frame, and `--json` for machine-readable snapshots.
+- **Usage tail + billed cost** — `cursor-top tail` live-tails billed requests; the TUI shows a COST column when `CURSOR_ANALYTICS_API_KEY` is set. In-flight chats sum unique requests.
 - **No native deps** — works on macOS, Linux, and Windows using only `ps` / PowerShell and the standard library.
 
 ## Usage
@@ -20,6 +21,8 @@ cursor-top --once         # render one frame to stdout and exit
 cursor-top --json         # emit one snapshot as JSON and exit
 cursor-top --interval 500 # refresh every 500ms (minimum 200ms)
 cursor-top --lines 5      # tail 5 log lines per agent (default 3)
+cursor-top tail -n 20     # last 20 billed requests (analytics API key)
+cursor-top tail -f        # follow billed usage
 ```
 
 ## Read more

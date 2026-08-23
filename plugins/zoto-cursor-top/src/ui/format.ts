@@ -6,6 +6,7 @@
 import type { AgentKind, AgentNode, AgentStatus } from "../types.js";
 import { formatRepoDisplay } from "../discovery/repo-url.js";
 import {
+  displayCostUsd,
   displayModelSlug,
   displayTokenUsage,
 } from "./display-metrics.js";
@@ -56,6 +57,7 @@ export const COL_MIN = {
   start: 18,
   status: 7,
   tokens: 6,
+  cost: 7,
 } as const;
 
 /** Upper bounds for non-flex columns when the terminal is very wide. */
@@ -86,9 +88,6 @@ const BASE_COLUMN_GAP = 1;
 /** Extra trailing space after MODEL, REPO, START, and STATUS before the next column. */
 const COLUMN_EXTRA_PAD = 1;
 
-/** Total inter-column gap width for layout budgeting (7 base + 4 extra pads). */
-const COLUMN_GAPS = 7 * BASE_COLUMN_GAP + 4 * COLUMN_EXTRA_PAD;
-
 const ROW_COLUMN_FIELDS = [
   "kind",
   "pid",
@@ -98,19 +97,42 @@ const ROW_COLUMN_FIELDS = [
   "start",
   "status",
   "tokens",
+  "cost",
 ] as const;
 
-function columnGapAfter(field: (typeof ROW_COLUMN_FIELDS)[number]): number {
-  if (field === "model" || field === "repo" || field === "start" || field === "status") {
+type RowColumnField = (typeof ROW_COLUMN_FIELDS)[number];
+
+function rowColumnFields(showCost: boolean): readonly RowColumnField[] {
+  return showCost ? ROW_COLUMN_FIELDS : ROW_COLUMN_FIELDS.slice(0, -1);
+}
+
+function columnGaps(showCost: boolean): number {
+  const fields = rowColumnFields(showCost);
+  let gaps = 0;
+  for (let i = 0; i < fields.length - 1; i++) {
+    gaps += columnGapAfter(fields[i]!, showCost);
+  }
+  return gaps;
+}
+
+function columnGapAfter(field: RowColumnField, showCost = false): number {
+  if (
+    field === "model" ||
+    field === "repo" ||
+    field === "start" ||
+    field === "status" ||
+    (field === "tokens" && showCost)
+  ) {
     return BASE_COLUMN_GAP + COLUMN_EXTRA_PAD;
   }
   return BASE_COLUMN_GAP;
 }
 
-function joinRowColumns(cells: readonly string[]): string {
+function joinRowColumns(cells: readonly string[], showCost = false): string {
+  const fields = rowColumnFields(showCost);
   let out = cells[0] ?? "";
   for (let i = 1; i < cells.length; i++) {
-    out += " ".repeat(columnGapAfter(ROW_COLUMN_FIELDS[i - 1]!)) + cells[i];
+    out += " ".repeat(columnGapAfter(fields[i - 1]!, showCost)) + cells[i];
   }
   return out;
 }
@@ -125,6 +147,9 @@ export interface RowColumnLayout {
   start: number;
   status: number;
   tokens: number;
+  /** 0 when the COST column is hidden (no analytics data on this frame). */
+  cost: number;
+  showCost: boolean;
 }
 
 /** @deprecated Use {@link COL_MIN} / {@link computeRowColumnLayout}. */
@@ -297,22 +322,14 @@ export function rowPrefixWidth(layout: RowColumnLayout): number {
 
 /** Start column index for each field — useful for alignment tests. */
 export function rowColumnStarts(layout: RowColumnLayout): number[] {
-  const widths = [
-    layout.kind,
-    layout.pid,
-    layout.agent,
-    layout.model,
-    layout.repo,
-    layout.start,
-    layout.status,
-    layout.tokens,
-  ];
+  const fields = rowColumnFields(layout.showCost);
+  const widths = fields.map((field) => layout[field]);
   const starts: number[] = [];
   let at = 0;
   for (let i = 0; i < widths.length; i++) {
     starts.push(at);
     if (i < widths.length - 1) {
-      at += widths[i]! + columnGapAfter(ROW_COLUMN_FIELDS[i]!);
+      at += widths[i]! + columnGapAfter(fields[i]!, layout.showCost);
     }
   }
   return starts;
@@ -368,7 +385,8 @@ function startColumnWidth(rows: ReadonlyArray<RowColumnLayoutInput>, theme?: The
 /** Total rendered width of a table row line for the given layout. */
 export function rowLineDisplayWidth(layout: RowColumnLayout): number {
   const starts = rowColumnStarts(layout);
-  return starts[7]! + layout.tokens;
+  const last = layout.showCost ? layout.cost : layout.tokens;
+  return starts[starts.length - 1]! + last;
 }
 
 /**
@@ -390,6 +408,29 @@ export function computeFitContentTerminalWidth(
  * Derive fixed + flexible column widths for the current terminal. Extra
  * horizontal space goes to the AGENT column; REPO keeps a modest minimum.
  */
+function rowsHaveCost(rows: ReadonlyArray<RowColumnLayoutInput>): boolean {
+  return rows.some((row) => {
+    if (row.nodes) return displayCostUsd(row.node, row.nodes) != null;
+    return row.node.costUsd != null || row.node.usage?.costUsd != null;
+  });
+}
+
+function costColumnWidth(
+  rows: ReadonlyArray<RowColumnLayoutInput>,
+  theme?: Theme,
+): number {
+  let max = Math.max(COL_MIN.cost, "COST".length);
+  const header = theme?.decor?.columnHeaders?.cost;
+  if (header) max = Math.max(max, displayWidth(header));
+  for (const row of rows) {
+    const value = row.nodes
+      ? displayCostUsd(row.node, row.nodes)
+      : (row.node.costUsd ?? row.node.usage?.costUsd ?? null);
+    max = Math.max(max, formatCostUsd(value, 0).trim().length);
+  }
+  return max;
+}
+
 export function computeRowColumnLayout(
   terminalWidth: number,
   rows: ReadonlyArray<RowColumnLayoutInput> = [],
@@ -401,6 +442,9 @@ export function computeRowColumnLayout(
   const tokens = COL_MIN.tokens;
   const status = minStatusColumnWidth(rows, theme);
   const start = startColumnWidth(rows, theme);
+  const showCost = rowsHaveCost(rows);
+  const cost = showCost ? costColumnWidth(rows, theme) : 0;
+  const gaps = columnGaps(showCost);
 
   if (options?.fitContent) {
     return {
@@ -412,6 +456,8 @@ export function computeRowColumnLayout(
       start,
       status,
       tokens,
+      cost,
+      showCost,
     };
   }
 
@@ -420,7 +466,7 @@ export function computeRowColumnLayout(
   const model = Math.min(COL_MAX.model, modelContentWidth(rows));
   const repoContent = repoContentWidth(rows);
 
-  const fixed = kind + pid + model + start + status + tokens + COLUMN_GAPS;
+  const fixed = kind + pid + model + start + status + tokens + cost + gaps;
   const flexBudget = width - fixed;
 
   const agentMin = COL_MIN.agent;
@@ -443,7 +489,7 @@ export function computeRowColumnLayout(
     agent = Math.max(8, flexBudget - repo);
   }
 
-  return { kind, pid, agent, model, repo, start, status, tokens };
+  return { kind, pid, agent, model, repo, start, status, tokens, cost, showCost };
 }
 
 /** Format context token count as thousands with one decimal (`1.2k`, `0.3k`). */
@@ -457,13 +503,28 @@ export function formatTokenUsageK(
   return `${(tokens / 1000).toFixed(1)}k`.padStart(width);
 }
 
+/** Format billed USD for the COST column (`$1.23`, `<$0.01`, `-`). */
+export function formatCostUsd(
+  value: number | null | undefined,
+  width: number = COL_MIN.cost,
+): string {
+  if (value == null || !Number.isFinite(value) || value < 0) {
+    return width > 0 ? "-".padStart(width) : "-";
+  }
+  let text: string;
+  if (value === 0) text = "$0.00";
+  else if (value < 0.01) text = "<$0.01";
+  else text = `$${value.toFixed(2)}`;
+  return width > 0 ? padDisplay(text, width, "right") : text;
+}
+
 /** Column header line shared by the Ink TUI and `--once` text renderer. */
 export function headerRow(
   layout: RowColumnLayout = computeRowColumnLayout(DEFAULT_TERMINAL_COLUMNS),
   theme?: Theme,
 ): string {
   const h = theme?.decor?.columnHeaders;
-  return joinRowColumns([
+  const cells = [
     padDisplay(h?.type ?? "TYPE", layout.kind),
     padDisplay(h?.pid ?? "PID", layout.pid, "right"),
     padDisplay(h?.agent ?? "AGENT", layout.agent),
@@ -472,7 +533,11 @@ export function headerRow(
     padDisplay(h?.start ?? "START (elapsed)", layout.start),
     padDisplay(h?.status ?? "STATUS", layout.status),
     padDisplay(h?.tokens ?? "TOKENS", layout.tokens, "right"),
-  ]);
+  ];
+  if (layout.showCost) {
+    cells.push(padDisplay(h?.cost ?? "COST", layout.cost, "right"));
+  }
+  return joinRowColumns(cells, layout.showCost);
 }
 
 /**
@@ -512,7 +577,7 @@ export function formatAgentRowLine(
   const tokens = opts.nodes
     ? displayTokenUsage(node, opts.nodes)
     : node.tokenUsage;
-  return joinRowColumns([
+  const cells = [
     paddedKindBadge(node.kind, theme),
     padColumn(pid, layout.pid, "right"),
     padColumn(label, layout.agent),
@@ -521,7 +586,14 @@ export function formatAgentRowLine(
     padColumn(startCol, layout.start),
     formatStatusColumn(node.status, layout.status, theme),
     formatTokenUsageK(tokens, layout.tokens),
-  ]);
+  ];
+  if (layout.showCost) {
+    const cost = opts.nodes
+      ? displayCostUsd(node, opts.nodes)
+      : (node.costUsd ?? node.usage?.costUsd ?? null);
+    cells.push(formatCostUsd(cost, layout.cost));
+  }
+  return joinRowColumns(cells, layout.showCost);
 }
 
 /**
@@ -552,7 +624,8 @@ export function formatCategoryRowLine(
     2 +
     layout.status +
     1 +
-    layout.tokens;
+    layout.tokens +
+    (layout.showCost ? 2 + layout.cost : 0);
   const line = label.padEnd(totalWidth);
   return line;
 }

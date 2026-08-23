@@ -32,6 +32,7 @@ export interface ThemeDecor {
     start: string;
     status: string;
     tokens: string;
+    cost: string;
   }>;
 }
 

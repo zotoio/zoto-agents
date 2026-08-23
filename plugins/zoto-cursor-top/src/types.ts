@@ -67,8 +67,28 @@ export interface AgentNode {
    * when unknown (process-only rows, missing DB row, lookup failure).
    */
   tokenUsage: number | null;
+  /**
+   * Billed USD total for this conversation from
+   * `/teams/filtered-usage-events` when an analytics API key is available.
+   * In-flight chats sum unique requests (latest rewrite of each request
+   * wins) so the figure climbs as new model calls complete.
+   */
+  costUsd?: number | null;
+  /** Billed request rollup that produced {@link costUsd}. */
+  usage?: AgentUsage | null;
   /** Optional list of child IDs populated by the tree builder. */
   children?: string[];
+}
+
+/** Per-conversation billed usage attached when an analytics key is present. */
+export interface AgentUsage {
+  costUsd: number;
+  requestCount: number;
+  inTokens: number;
+  writeTokens: number;
+  readTokens: number;
+  outTokens: number;
+  lastEventAt: number;
 }
 
 /** Snapshot delivered to the UI on each refresh tick. */
@@ -80,6 +100,19 @@ export interface AgentSnapshot {
   roots: string[];
   /** Diagnostic messages, e.g. unreadable paths or permission errors. */
   diagnostics: string[];
+  /**
+   * Window-level billed usage when an analytics API key resolved. Additive —
+   * omitted when the usage client is disabled or identity/fetch failed.
+   */
+  usage?: SnapshotUsage;
+}
+
+/** Snapshot-level billed-usage summary (lookback window, not the visible tree). */
+export interface SnapshotUsage {
+  email: string;
+  windowHours: number;
+  totalCostUsd: number;
+  requestCount: number;
 }
 
 export interface CollectorOptions {
@@ -153,6 +186,13 @@ export interface CollectorOptions {
    * Set to `false` to disable entirely.
    */
   cloudApi?: import("./discovery/cloud-api.js").CloudApiOptions | false;
+  /**
+   * Billed-usage API options. When a `CURSOR_ANALYTICS_API_KEY` or
+   * `CURSOR_API_KEY` is present, the collector polls
+   * `/teams/filtered-usage-events` (throttled) and stamps `costUsd` on
+   * matching conversation rows. Set to `false` to disable.
+   */
+  usageApi?: import("./discovery/usage-events.js").UsageApiOptions | false;
 }
 
 /**

@@ -18,4 +18,12 @@ describe("diagnosticExplanation", () => {
     );
     expect(activeOnly?.match).toBe("--active-only:");
   });
+
+  it("explains billed-usage diagnostics", () => {
+    const usage = diagnosticExplanation(
+      "usage: could not resolve current-user email; pass --email or set CURSOR_USAGE_EMAIL",
+    );
+    expect(usage?.match).toBe("usage:");
+    expect(usage?.body).toContain("CURSOR_ANALYTICS_API_KEY");
+  });
 });

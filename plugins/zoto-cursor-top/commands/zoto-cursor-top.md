@@ -27,6 +27,8 @@ agents are expandable to reveal their subagents.
 /zoto-cursor-top --filter "status:running"  - Narrow tree (TUI + --once/--json)
 /zoto-cursor-top --bell                   - Ring terminal bell on finished / failed events (TUI only)
 /zoto-cursor-top --detail-lines 40        - Deep log tail for the d-key detail pane (TUI only)
+/zoto-cursor-top tail -n 20               - Last 20 billed requests (analytics API key)
+/zoto-cursor-top tail -f                  - Follow billed usage
 ```
 
 ### Filter / search
@@ -146,6 +148,9 @@ When this command is invoked:
 - **`--filter "<query>"`**: Narrow the agent tree by repo, model, status, or
   free text. Useful with `--once` / `--json` in agent shells for scripted
   snapshots. Pre-seeds the interactive filter when opening the live TUI.
+- **`tail`**: Live-tail billed usage events. Requires `CURSOR_ANALYTICS_API_KEY`
+  (Admin `read:e`) or `CURSOR_API_KEY` plus a resolvable email. Forward remaining
+  `$ARGUMENTS` after `tail` to `cursor-top tail`.
 - **Other flags**: Pass `$ARGUMENTS` straight through to the CLI.
 
 ### What happens

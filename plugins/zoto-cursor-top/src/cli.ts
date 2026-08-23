@@ -36,6 +36,7 @@ import {
   type Density,
 } from "./ui/theme.js";
 import type { AgentSnapshot } from "./types.js";
+import { runUsageTail } from "./usage-tail.js";
 
 /** Semver string printed by `--version` (keep in sync with package.json). */
 export const CLI_VERSION = "0.2.0";
@@ -65,6 +66,11 @@ export interface CliOptions {
   detailLines: number;
   /** Enable Cloud Agents API integration (requires CURSOR_API_KEY env var). */
   cloudApi: boolean;
+  /**
+   * Join billed costs from `/teams/filtered-usage-events` when an analytics
+   * API key is available (default on).
+   */
+  usageApi: boolean;
 }
 
 const HELP = `cursor-top - live updating htop for every Cursor agent on this machine
@@ -134,10 +140,21 @@ Options:
                         Agents discovered via the API appear under the
                         Cloud Agents category with no local PID.
   --no-cloud-api        Disable Cloud Agents API queries (local only).
+  --usage-api           Join billed USD costs from the team usage API
+                        (default on; requires CURSOR_ANALYTICS_API_KEY or
+                        CURSOR_API_KEY plus a resolvable email). In-flight
+                        conversations show the running total across requests.
+  --no-usage-api        Disable billed-usage polling (no COST column).
   --no-auto-once        Force interactive TUI even when stdout is not a TTY
                         (default: non-TTY contexts auto-promote to --once)
   -h, --help            Show this help and exit
   -v, --version         Show CLI version and exit
+
+Subcommands:
+  tail [options]        Live-tail billed usage events for the current user
+                        (see cursor-top tail --help). Requires an analytics
+                        API key. Conversations in flight are listed per
+                        request; the TUI COST column sums those requests.
 
 Keyboard (interactive mode):
   ↑/↓ or j/k    move selection
@@ -180,6 +197,7 @@ export function parseArgs(argv: string[]): CliOptions {
     bell: false,
     detailLines: 25,
     cloudApi: true,
+    usageApi: true,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]!;
@@ -261,6 +279,12 @@ export function parseArgs(argv: string[]): CliOptions {
       case "--no-cloud-api":
         opts.cloudApi = false;
         break;
+      case "--usage-api":
+        opts.usageApi = true;
+        break;
+      case "--no-usage-api":
+        opts.usageApi = false;
+        break;
       case "-h":
       case "--help":
         opts.help = true;
@@ -318,10 +342,15 @@ function buildCollectorOptions(opts: CliOptions) {
         ? opts.transcriptMaxAgeHours * 60 * 60 * 1000
         : Number.POSITIVE_INFINITY,
     cloudApi: opts.cloudApi ? {} : (false as const),
+    usageApi: opts.usageApi ? {} : (false as const),
   };
 }
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<number> {
+  if (argv[0] === "tail") {
+    return runUsageTail(argv.slice(1));
+  }
+
   const opts = applyNonTtyDefaults(parseArgs(argv));
   const themeFromCli = argvNamesFlag(argv, "--theme");
   const densityFromCli = argvNamesFlag(argv, "--density");

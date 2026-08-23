@@ -38,6 +38,18 @@
         "The assistant notes that demo data is not coming from real Cursor processes",
         "The assistant does not require the user to start a Cursor session first"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "I have a Cursor analytics API key and I want to watch billed request costs as they come in — last twenty lines, then keep following. Also, will cursor-top show spend on chats that are still running?",
+      "expected_output": "The assistant runs `cursor-top tail -n 20 -f` (or equivalent clustered flags) and explains that the TUI COST column sums unique requests on in-flight conversations when the analytics key is available.",
+      "files": [],
+      "assertions": [
+        "The assistant invokes `cursor-top tail` with a follow flag and a 20-line count",
+        "The assistant mentions CURSOR_ANALYTICS_API_KEY or CURSOR_API_KEY as the auth requirement",
+        "The assistant explains that in-flight conversations show a running billed total across requests",
+        "The assistant does not claim demo mode is required for billed usage"
+      ]
     }
   ]
 }

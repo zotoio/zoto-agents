@@ -80,6 +80,9 @@ session metadata is missing `parentId`. The
 - `--json` - one snapshot as JSON, then exit (use this for any
   programmatic consumer).
 - `--demo` - synthetic fixture for screenshots and onboarding.
+- `tail` - billed usage event stream (`CURSOR_ANALYTICS_API_KEY` or
+  `CURSOR_API_KEY`). In-flight conversations in the TUI COST column sum
+  unique requests (latest rewrite of each request wins).
 
 ## What not to do
 

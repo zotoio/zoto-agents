@@ -193,6 +193,7 @@ describe("DetailPane rendering", () => {
     expect(frame).toContain("composer-2.5-fast");
     expect(frame).toContain("org/repo");
     expect(frame).toContain("status: running");
+    expect(frame).not.toContain("cost:");
     expect(frame).toContain("/tmp/chat.jsonl");
     expect(frame.indexOf("one")).toBeLessThan(frame.indexOf("three"));
     unmount();
@@ -227,6 +228,34 @@ describe("DetailPane rendering", () => {
     const frame = lastFrame() ?? "";
     expect(frame).toContain("(none — using row tail)");
     expect(frame).toContain("assistant: working on it");
+    unmount();
+  });
+
+  it("shows billed cost and request count when analytics data is attached", () => {
+    const node = sampleNode({
+      costUsd: 0.42,
+      usage: {
+        costUsd: 0.42,
+        requestCount: 3,
+        inTokens: 1200,
+        writeTokens: 0,
+        readTokens: 0,
+        outTokens: 400,
+        lastEventAt: Date.UTC(2026, 5, 10, 12, 5, 0),
+      },
+    });
+    const { lastFrame, unmount } = render(
+      <DetailPane
+        node={node}
+        now={Date.now()}
+        theme={DEFAULT_THEME}
+        tailLines={[]}
+        tailLoading={false}
+      />,
+    );
+    const frame = lastFrame() ?? "";
+    expect(frame).toContain("cost: $0.42");
+    expect(frame).toContain("3 req");
     unmount();
   });
 });
