@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`cursor-top tail`** live-tails billed Cursor usage events from
+  `POST /teams/filtered-usage-events` (`-n`, `-f`, `-p`, `--json`, `--hours`,
+  `--email`). Requires `CURSOR_ANALYTICS_API_KEY` (Admin `read:e`) or
+  `CURSOR_API_KEY` plus a resolvable email.
+- **Billed COST column** in the TUI / `--once` table when an analytics key
+  is available. In-flight conversations show the running total across unique
+  requests (a rewritten in-flight request replaces its previous totals
+  instead of stacking). The header prints the lookback-window spend.
+  `--no-usage-api` disables the client. Default output is unchanged when no
+  key is configured.
+
 - Five playful TUI themes with emoji badges, status glyphs, and funky titles:
   `party`, `kawaii`, `cyber`, `retro`, and `wizard`. Decor applies in the
   interactive TUI only; `--once` / `--json` stay plain ASCII.

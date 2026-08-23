@@ -204,6 +204,30 @@ describe("renderText non-TTY fit-content columns", () => {
     });
   });
 
+  it("adds COST and a billed header total when analytics usage is present", () => {
+    const snapshot = snap();
+    snapshot.nodes["chat-a"]!.costUsd = 1.2;
+    snapshot.nodes["chat-a"]!.usage = {
+      costUsd: 1.2,
+      requestCount: 2,
+      inTokens: 800,
+      writeTokens: 0,
+      readTokens: 0,
+      outTokens: 100,
+      lastEventAt: FIXED_NOW,
+    };
+    snapshot.usage = {
+      email: "dev@example.com",
+      windowHours: 24,
+      totalCostUsd: 1.2,
+      requestCount: 2,
+    };
+    const out = renderText(snapshot, FIXED_NOW, { terminalColumns: 160, grouped: false });
+    expect(out).toContain(" · $1.20");
+    expect(out).toContain("COST");
+    expect(out).toContain("$1.20");
+  });
+
   it("respects an explicit terminalColumns override in non-TTY contexts", () => {
     const snapshot = snap();
     snapshot.nodes["chat-a"]!.model = "claude-fable-5-thinking-max-extra-long";

@@ -61,6 +61,20 @@ import {
   stripGitHubHost,
 } from "./repo-url.js";
 import { fetchCloudAgents, type CloudApiOptions } from "./cloud-api.js";
+import {
+  DEFAULT_TUI_USAGE_HOURS,
+  DEFAULT_USAGE_INTERVAL_MS,
+  applyUsageToNodes,
+  aggregateByConversation,
+  fetchUsageEvents,
+  isUsageApiAvailable,
+  resolveUsageIdentity,
+  sumConversationUsage,
+  type ConversationUsage,
+  type UsageApiOptions,
+  type UsageIdentity,
+} from "./usage-events.js";
+import type { SnapshotUsage } from "../types.js";
 
 const DEFAULT_LOG_LINES = 3;
 /** Slow-lane cadence: full session walk + root enumeration every N ticks. */
@@ -372,6 +386,7 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
   const paths = resolveCursorPaths(home, plat);
 
   const cloudApiOpts: CloudApiOptions | false = opts.cloudApi ?? {};
+  const usageApiOpts = resolveUsageApiOpts(opts.usageApi);
   const sessionFileCache = new Map<string, SessionFileCacheEntry>();
   const transcriptMetaCache = new Map<string, TranscriptFileMeta>();
   const logTailCache = new Map<string, LogTailCacheEntry>();
@@ -391,6 +406,11 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
   let prevSnapshotNodes: Record<string, AgentNode> | null = null;
   const idleElapsedEndCache = new Map<string, number>();
   let cachedCloudApiNodes: AgentNode[] = [];
+  let cachedUsageByConversation = new Map<string, ConversationUsage>();
+  let cachedSnapshotUsage: SnapshotUsage | undefined;
+  let usageIdentity: UsageIdentity | null | undefined;
+  let lastUsageFetchAt = 0;
+  let usageDiagnostic: string | null = null;
 
   return {
     async collect(): Promise<AgentSnapshot> {
@@ -472,6 +492,14 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
         } catch {
           // keep previous cache on failure
         }
+      }
+
+      if (usageApiOpts !== false) {
+        await refreshUsageCache({
+          opts: usageApiOpts,
+          now,
+          transcriptMaxAgeMs,
+        });
       }
 
       const allRecords = [
@@ -584,6 +612,10 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
             (n.kind === "agent" || n.kind === "subagent"),
         )
         .map((n) => n.id);
+      if (usageApiOpts !== false && cachedUsageByConversation.size > 0) {
+        applyUsageToNodes(merged, cachedUsageByConversation);
+      }
+
       if (idsNeedingHookModel.length > 0 && paths.logRoots.length > 0) {
         const hookModels = await readHookLogModels(
           paths.logRoots,
@@ -655,14 +687,79 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
       );
       prevSnapshotNodes = outNodes;
 
+      if (usageDiagnostic) diagnostics.push(usageDiagnostic);
+
       return {
         capturedAt: now,
         nodes: outNodes,
         roots: [...view.roots],
         diagnostics: [...diagnostics],
+        ...(cachedSnapshotUsage ? { usage: cachedSnapshotUsage } : {}),
       };
     },
   };
+
+  async function refreshUsageCache(args: {
+    opts: UsageApiOptions;
+    now: number;
+    transcriptMaxAgeMs: number;
+  }): Promise<void> {
+    const minInterval = args.opts.minIntervalMs ?? DEFAULT_USAGE_INTERVAL_MS;
+    if (lastUsageFetchAt > 0 && args.now - lastUsageFetchAt < minInterval) {
+      return;
+    }
+    const env = args.opts.env ?? process.env;
+    if (!args.opts.apiKey && !isUsageApiAvailable(env)) {
+      return;
+    }
+
+    const hours =
+      args.opts.hours ??
+      (Number.isFinite(args.transcriptMaxAgeMs) &&
+      args.transcriptMaxAgeMs > 0 &&
+      args.transcriptMaxAgeMs < Number.POSITIVE_INFINITY
+        ? Math.max(1, Math.round(args.transcriptMaxAgeMs / (60 * 60 * 1000)))
+        : DEFAULT_TUI_USAGE_HOURS);
+
+    try {
+      if (usageIdentity === undefined) {
+        usageIdentity = await resolveUsageIdentity(args.opts);
+      }
+      if (!usageIdentity) return;
+      const events = await fetchUsageEvents({
+        ...args.opts,
+        usageKey: usageIdentity.usageKey,
+        email: usageIdentity.email,
+        hours,
+        now: args.now,
+        limit: 1000,
+      });
+      cachedUsageByConversation = aggregateByConversation(events);
+      const totals = sumConversationUsage(cachedUsageByConversation);
+      cachedSnapshotUsage = {
+        email: usageIdentity.email,
+        windowHours: hours,
+        totalCostUsd: totals.totalCostUsd,
+        requestCount: totals.requestCount,
+      };
+      lastUsageFetchAt = args.now;
+      usageDiagnostic = null;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      usageDiagnostic = `usage: ${message}`;
+      lastUsageFetchAt = args.now;
+      if (usageIdentity === undefined) usageIdentity = null;
+    }
+  }
+}
+
+function resolveUsageApiOpts(
+  usageApi: CollectorOptions["usageApi"],
+): UsageApiOptions | false {
+  if (usageApi === false) return false;
+  if (usageApi) return usageApi;
+  if (process.env.VITEST) return false;
+  return {};
 }
 
 async function resolveRepoDisplayCached(

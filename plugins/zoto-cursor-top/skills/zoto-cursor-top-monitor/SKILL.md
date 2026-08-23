@@ -53,6 +53,8 @@ Monorepo developers can instead run
 | Find by repo or model | `--filter "repo:my-app model:claude"` | Scoped tokens AND-combine with free text. |
 | Audible completion signal | `--bell` | Terminal bell on finished / failed events (TUI only). |
 | Deep log context in detail pane | `--detail-lines 40` | Default 25; press **`d`** on a row (TUI only). |
+| Live-tail billed usage | `tail -n 20` / `tail -f` | Needs `CURSOR_ANALYTICS_API_KEY` (or `CURSOR_API_KEY`) plus email. |
+| Hide billed COST column | `--no-usage-api` | Default is on; COST only appears when the analytics key resolves. |
 
 ### Step 2: Launch
 
@@ -63,6 +65,8 @@ cursor-top --once          # snapshot, formatted
 cursor-top --json --once   # snapshot, JSON
 cursor-top --theme ocean --density compact  # accent palette + compact rows
 cursor-top --demo --json --filter "status:running"  # filtered JSON snapshot
+cursor-top tail -n 20          # last 20 billed requests
+cursor-top tail -f             # follow billed usage
 ```
 
 If `cursor-top` is not on `PATH` after init, prefer re-running

@@ -3,6 +3,7 @@ import {
   computeFitContentTerminalWidth,
   computeRowColumnLayout,
   formatAgentRowLine,
+  formatCostUsd,
   formatDuration,
   formatLogTailLine,
   formatStart,
@@ -292,5 +293,41 @@ describe("computeRowColumnLayout", () => {
     expect(line.trimEnd().endsWith("94.6k")).toBe(true);
     expect(headerRow(layout)).toContain("TOKENS");
     expect(formatRepoDisplay(longRepo)).toBe(longRepo);
+  });
+
+  it("hides COST until a row has billed usage, then aligns the column", () => {
+    const without = computeRowColumnLayout(120, [
+      { node: node({}), depth: 0, startColumn: "19:20:43 (6m07s)" },
+    ]);
+    expect(without.showCost).toBe(false);
+    expect(headerRow(without)).not.toContain("COST");
+
+    const withCost = computeRowColumnLayout(140, [
+      {
+        node: node({ costUsd: 1.23, tokenUsage: 1500 }),
+        depth: 0,
+        startColumn: "19:20:43 (6m07s)",
+      },
+    ]);
+    expect(withCost.showCost).toBe(true);
+    const header = headerRow(withCost);
+    expect(header).toContain("TOKENS");
+    expect(header).toContain("COST");
+    const line = formatAgentRowLine(node({ costUsd: 1.23, tokenUsage: 1500 }), 0, Date.now(), {
+      layout: withCost,
+      startColumn: "19:20:43 (6m07s)",
+    });
+    expect(line).toContain("$1.23");
+    const starts = rowColumnStarts(withCost);
+    expect(header.slice(starts[8], starts[8]! + withCost.cost).trim()).toBe("COST");
+  });
+});
+
+describe("formatCostUsd", () => {
+  it("formats billed amounts and falls back to a dash", () => {
+    expect(formatCostUsd(null, 0)).toBe("-");
+    expect(formatCostUsd(0, 0)).toBe("$0.00");
+    expect(formatCostUsd(0.004, 0)).toBe("<$0.01");
+    expect(formatCostUsd(2.5, 0)).toBe("$2.50");
   });
 });

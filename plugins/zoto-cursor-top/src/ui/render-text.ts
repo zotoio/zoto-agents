@@ -13,6 +13,7 @@ import {
   DEFAULT_TERMINAL_COLUMNS,
   formatAgentRowLine,
   formatCategoryRowLine,
+  formatCostUsd,
   formatLogTailLine,
   formatStartForNode,
   headerRow,
@@ -93,8 +94,12 @@ export function renderText(
 
   const catCounts = categoryCounts(snapshot);
   const totals = summarise(snapshot);
+  const billed =
+    snapshot.usage != null
+      ? ` · ${formatCostUsd(snapshot.usage.totalCostUsd, 0).trim()}`
+      : "";
   lines.push(
-    `cursor-top  ·  ${catCounts["cat:ide"]} IDE · ${catCounts["cat:cli"]} CLI · ${catCounts["cat:cloud"]} Cloud · ${totals.subs} subagents`,
+    `cursor-top  ·  ${catCounts["cat:ide"]} IDE · ${catCounts["cat:cli"]} CLI · ${catCounts["cat:cloud"]} Cloud · ${totals.subs} subagents${billed}`,
   );
   lines.push("");
   lines.push(headerRow(layout));

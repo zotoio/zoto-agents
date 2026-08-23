@@ -513,3 +513,105 @@ describe("createCollector", () => {
     expect(Object.keys(full.nodes).sort()).toEqual(["alive", "done-leaf"]);
   });
 });
+
+describe("collector billed-usage join", () => {
+  it("sums unique requests onto matching conversations and replaces in-flight rewrites", async () => {
+    const sessions = "/home/test/.cursor/sessions";
+    const fs = makeFs({
+      [sessions]: ["chat.json"],
+      [`${sessions}/chat.json`]: JSON.stringify({
+        sessionId: "conv-1",
+        model: "composer-2.5",
+        status: "running",
+        title: "Ship usage tail",
+      }),
+    });
+
+    let generation = 0;
+    const fetchFn: typeof fetch = async () => {
+      generation += 1;
+      const usageEvents =
+        generation === 1
+          ? [
+              {
+                timestamp: 1_000,
+                conversationId: "conv-1",
+                model: "composer-2.5",
+                chargedCents: 10,
+                id: "req-1",
+                tokenUsage: { inputTokens: 100 },
+              },
+              {
+                timestamp: 2_000,
+                conversationId: "conv-1",
+                model: "composer-2.5",
+                chargedCents: 30,
+                id: "req-2",
+                tokenUsage: { inputTokens: 200 },
+              },
+            ]
+          : [
+              {
+                timestamp: 1_500,
+                conversationId: "conv-1",
+                model: "composer-2.5",
+                chargedCents: 18,
+                id: "req-1",
+                tokenUsage: { inputTokens: 180 },
+              },
+              {
+                timestamp: 2_000,
+                conversationId: "conv-1",
+                model: "composer-2.5",
+                chargedCents: 30,
+                id: "req-2",
+                tokenUsage: { inputTokens: 200 },
+              },
+              {
+                timestamp: 3_000,
+                conversationId: "conv-1",
+                model: "composer-2.5",
+                chargedCents: 12,
+                id: "req-3",
+                tokenUsage: { inputTokens: 50 },
+              },
+            ];
+      return new Response(JSON.stringify({ usageEvents }));
+    };
+
+    const collector = createCollector({
+      psRunner: async () => "",
+      fs,
+      platform: "linux",
+      homeDir: "/home/test",
+      activeOnly: false,
+      usageApi: {
+        apiKey: "test-key",
+        email: "dev@example.com",
+        fetchFn,
+        usageUrl: "https://mock.local/usage",
+        minIntervalMs: 0,
+        gitEmailFn: () => "",
+        meFn: async () => null,
+      },
+    });
+
+    const first = await collector.collect();
+    expect(first.nodes["conv-1"]!.costUsd).toBe(0.4);
+    expect(first.nodes["conv-1"]!.usage).toMatchObject({
+      requestCount: 2,
+      inTokens: 300,
+    });
+    expect(first.usage).toMatchObject({
+      email: "dev@example.com",
+      totalCostUsd: 0.4,
+      requestCount: 2,
+    });
+
+    const second = await collector.collect();
+    // req-1 rewrite replaces 10¢ with 18¢; req-3 adds 12¢ → 18+30+12 = 60¢
+    expect(second.nodes["conv-1"]!.costUsd).toBe(0.6);
+    expect(second.nodes["conv-1"]!.usage?.requestCount).toBe(3);
+    expect(second.usage?.totalCostUsd).toBe(0.6);
+  });
+});

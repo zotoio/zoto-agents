@@ -4,6 +4,7 @@ import type { AgentNode } from "../types.js";
 import { formatRepoDisplay } from "../discovery/repo-url.js";
 import {
   formatAlignedLogRole,
+  formatCostUsd,
   formatStartForNode,
   formatTokenUsageK,
   orderLogsForDisplay,
@@ -83,6 +84,13 @@ export function DetailPane({
         {node.tokenUsage != null
           ? formatTokenUsageK(node.tokenUsage).trim()
           : "—"}
+        {node.costUsd != null
+          ? ` · cost: ${formatCostUsd(node.costUsd, 0).trim()}${
+              node.usage && node.usage.requestCount > 0
+                ? ` (${node.usage.requestCount} req)`
+                : ""
+            }`
+          : ""}
       </Text>
       <Text dimColor={theme.dim}>
         started: {formatStartForNode(node, now)}
