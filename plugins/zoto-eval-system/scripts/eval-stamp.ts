@@ -1565,16 +1565,42 @@ function loadTemplate(absolute: string): string {
   return readFileSync(absolute, "utf-8");
 }
 
+/**
+ * Substitute a template token without interpreting `$` metacharacters in the
+ * replacement value. `String.prototype.replaceAll` treats `$'`, `$&`, `$1`, …
+ * specially in the replacement string, which corrupts JSON payloads containing
+ * regex end anchors followed by quotes (e.g. `'$': 'ts-jest'`).
+ */
+function substituteTemplateToken(
+  template: string,
+  token: string,
+  value: string,
+): string {
+  return template.split(token).join(value);
+}
+
+function applyTemplateReplacements(
+  template: string,
+  replacements: Record<string, string>,
+): string {
+  let rendered = template;
+  for (const [token, value] of Object.entries(replacements)) {
+    rendered = substituteTemplateToken(rendered, token, value);
+  }
+  return rendered;
+}
+
 function renderPerPrimitiveTest(
   template: string,
   payload: AnalyserPayload,
   primitive: PrimitiveMeta,
 ): string {
-  return template
-    .replaceAll("{{TARGET_ID}}", primitive.target_id)
-    .replaceAll("{{SOURCE_PATH}}", primitive.source_path)
-    .replaceAll("{{SOURCE_HASH}}", primitive.source_hash)
-    .replaceAll("{{PAYLOAD_JSON}}", JSON.stringify(payload, null, 2));
+  return applyTemplateReplacements(template, {
+    "{{TARGET_ID}}": primitive.target_id,
+    "{{SOURCE_PATH}}": primitive.source_path,
+    "{{SOURCE_HASH}}": primitive.source_hash,
+    "{{PAYLOAD_JSON}}": JSON.stringify(payload, null, 2),
+  });
 }
 
 function ensureGeneratedMarker(content: string): string {
@@ -1777,6 +1803,13 @@ export function stampVitestPerPrimitive(
     "_shared",
     "result-yaml-writer.ts",
   );
+  const pluginRootFile = join(evalsDir, "_zoto", "plugin-root.ts");
+  const sandboxFile = join(evalsDir, "_llm", "sandbox.ts");
+  const unifiedHarnessRoot = join(
+    templatesDir(hostRepoRoot),
+    "llm",
+    "unified-harness",
+  );
 
   const state: { written: string[]; unchanged: string[] } = {
     written: [],
@@ -1798,6 +1831,12 @@ export function stampVitestPerPrimitive(
   const sharedWriterTemplate = loadVitestTemplate(
     join(sharedRoot, "result-yaml-writer.ts.tmpl"),
   );
+  const pluginRootTemplate = loadVitestTemplate(
+    join(unifiedHarnessRoot, "_zoto", "plugin-root.ts.tmpl"),
+  );
+  const sandboxTemplate = loadVitestTemplate(
+    join(unifiedHarnessRoot, "_llm", "sandbox.ts.tmpl"),
+  );
 
   const renderedTest = ensureVitestGeneratedMarker(
     renderVitestPerPrimitiveTest(testTemplate, payload, primitive),
@@ -1815,6 +1854,18 @@ export function stampVitestPerPrimitive(
   writeVitestIfChanged(
     sharedWriterFile,
     sharedWriterTemplate,
+    state,
+    opts.dryRun ?? false,
+  );
+  writeVitestIfChanged(
+    pluginRootFile,
+    pluginRootTemplate,
+    state,
+    opts.dryRun ?? false,
+  );
+  writeVitestIfChanged(
+    sandboxFile,
+    sandboxTemplate,
     state,
     opts.dryRun ?? false,
   );
@@ -1851,14 +1902,15 @@ function renderVitestPerPrimitiveTest(
   payload: AnalyserPayload,
   primitive: PrimitiveMeta,
 ): string {
-  return template
-    .replaceAll("{{TARGET_ID}}", primitive.target_id)
-    .replaceAll("{{SOURCE_PATH}}", primitive.source_path)
-    .replaceAll("{{SOURCE_HASH}}", primitive.source_hash)
-    .replaceAll("{{KIND}}", payload.kind)
-    .replaceAll("{{ANALYSER_VERSION}}", payload.analyser_version)
-    .replaceAll("{{MODEL_ID}}", payload.model_id)
-    .replaceAll("{{PAYLOAD_JSON}}", JSON.stringify(payload, null, 2));
+  return applyTemplateReplacements(template, {
+    "{{TARGET_ID}}": primitive.target_id,
+    "{{SOURCE_PATH}}": primitive.source_path,
+    "{{SOURCE_HASH}}": primitive.source_hash,
+    "{{KIND}}": payload.kind,
+    "{{ANALYSER_VERSION}}": payload.analyser_version,
+    "{{MODEL_ID}}": payload.model_id,
+    "{{PAYLOAD_JSON}}": JSON.stringify(payload, null, 2),
+  });
 }
 
 function ensureVitestGeneratedMarker(content: string): string {
@@ -2073,20 +2125,21 @@ function renderLlmPerPrimitiveTest(
   );
   const casesJson = JSON.stringify(cases, null, 2);
 
-  return template
-    .replaceAll("{{FRAMEWORK_IMPORTS}}", frameworkImports)
-    .replaceAll("{{HARNESS_REL_PATH}}", harnessRel)
-    .replaceAll("{{CASES_JSON}}", casesJson)
-    .replaceAll("{{TARGET_ID}}", primitive.target_id)
-    .replaceAll("{{PRIMITIVE_KIND}}", payload.kind)
-    .replaceAll("{{PRIMITIVE_NAME}}", name ?? primitive.target_id)
-    .replaceAll("{{MODEL_ID}}", modelId)
-    .replaceAll("{{JUDGE_MODEL}}", judgeModel)
-    .replaceAll("{{CASE_TIMEOUT_MS}}", String(caseTimeoutMs))
-    .replaceAll("{{SOURCE_PATH}}", primitive.source_path)
-    .replaceAll("{{SOURCE_HASH}}", primitive.source_hash)
-    .replaceAll("{{CODE_FRAMEWORK}}", "vitest")
-    .replaceAll("{{PAYLOAD_JSON}}", JSON.stringify(payload, null, 2));
+  return applyTemplateReplacements(template, {
+    "{{FRAMEWORK_IMPORTS}}": frameworkImports,
+    "{{HARNESS_REL_PATH}}": harnessRel,
+    "{{CASES_JSON}}": casesJson,
+    "{{TARGET_ID}}": primitive.target_id,
+    "{{PRIMITIVE_KIND}}": payload.kind,
+    "{{PRIMITIVE_NAME}}": name ?? primitive.target_id,
+    "{{MODEL_ID}}": modelId,
+    "{{JUDGE_MODEL}}": judgeModel,
+    "{{CASE_TIMEOUT_MS}}": String(caseTimeoutMs),
+    "{{SOURCE_PATH}}": primitive.source_path,
+    "{{SOURCE_HASH}}": primitive.source_hash,
+    "{{CODE_FRAMEWORK}}": "vitest",
+    "{{PAYLOAD_JSON}}": JSON.stringify(payload, null, 2),
+  });
 }
 
 function writeLlmCodeIfChanged(
