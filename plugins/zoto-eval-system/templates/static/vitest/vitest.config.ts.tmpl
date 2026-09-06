@@ -28,18 +28,26 @@ import { fileURLToPath } from "node:url";
 
 import { defineConfig } from "vitest/config";
 
+import { evalEngineRoot } from "./_zoto/plugin-root.js";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   root: __dirname,
+  resolve: {
+    alias: {
+      "#eval-engine": evalEngineRoot,
+    },
+  },
   test: {
     globals: false,
     include: ["**/*.test.ts"],
     exclude: [
       "**/node_modules/**",
-      "_runs/**",
-      "fixtures/**",
-      "_llm/**",
+      "**/fixtures/**",
+      "**/_runs/**",
+      "**/evals/scenarios/_*",
+      "**/_llm/**",
     ],
     setupFiles: ["./setup.ts"],
     reporters: [
