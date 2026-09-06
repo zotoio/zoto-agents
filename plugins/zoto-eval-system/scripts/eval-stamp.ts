@@ -1721,9 +1721,10 @@ export function stampJestPerPrimitive(
 /*                                                                          */
 /* Layout produced for `static.framework === "vitest"`:                    */
 /*                                                                          */
-/*   <hostRepoRoot>/evals/test_<kind>_<slug>.test.ts                       */
-/*       — one per discovered primitive; first line carries the literal   */
-/*         `// _meta.generated: true` marker (subtasks 03 & 11 contract). */
+/*   <hostRepoRoot>/evals/test_<kind>_<name>.test.ts                       */
+/*       — one per discovered primitive; `name` is the target id after    */
+/*         the kind prefix (never `test_skill_skill_*`). First line       */
+/*         carries `// _meta.generated: true` (subtasks 03 & 11).         */
 /*   <hostRepoRoot>/evals/vitest.config.ts                                 */
 /*   <hostRepoRoot>/evals/setup.ts                                         */
 /*   <hostRepoRoot>/evals/reporters/zoto-eval-reporter.ts                  */
@@ -1765,11 +1766,14 @@ export interface VitestStampResult {
  * Stamp the vitest static backend into a host repo for a single primitive.
  *
  * The per-primitive test file lands at
- * `<hostRepoRoot>/evals/test_<payload.kind>_<primitive.slug>.test.ts` —
- * symmetric with subtask 06's pytest naming convention. The shared
- * vitest.config / setup / reporter / writer assets are stamped once each
- * (idempotent) so calling this function for every discovered primitive in a
- * fresh repo produces N test files plus a single set of harness assets.
+ * `<hostRepoRoot>/evals/test_<payload.kind>_<name>.test.ts` via
+ * {@link vitestStaticTestBasename} — the same path `regenerateVitest`
+ * catalogues. `primitive.slug` may be a clean name or a kind-prefixed
+ * slug (`skill_foo`); the helper strips a redundant kind prefix so hosts
+ * never get `test_skill_skill_foo.test.ts`. The shared vitest.config /
+ * setup / reporter / writer assets are stamped once each (idempotent) so
+ * calling this function for every discovered primitive in a fresh repo
+ * produces N test files plus a single set of harness assets.
  *
  * Throws `FrameworkConflictError` (defined in subtask 08's fence) when
  * jest artefacts are detected in `hostRepoRoot`. Use `bypassGuard: true`
@@ -1790,10 +1794,9 @@ export function stampVitestPerPrimitive(
     opts.sharedTemplateRoot ?? join(templatesDir(hostRepoRoot), VITEST_SHARED_TEMPLATE_SUFFIX);
   const evalsDir = evalsDirFor(hostRepoRoot);
 
-  const slug = sanitiseVitestSlug(primitive.slug);
   const testFile = join(
     evalsDir,
-    `test_${payload.kind}_${slug}.test.ts`,
+    vitestStaticTestBasename(payload.kind, primitive.slug),
   );
   const configFile = join(evalsDir, "vitest.config.ts");
   const setupFile = join(evalsDir, "setup.ts");
@@ -1888,6 +1891,21 @@ function sanitiseVitestSlug(raw: string): string {
     .replace(/[^A-Za-z0-9_-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .toLowerCase();
+}
+
+/**
+ * Catalogue basename for a generated static vitest file.
+ *
+ * `slug` may be a clean primitive name (`nab-testing`) or the kind-prefixed
+ * value from {@link buildPrimitiveMetaFromPayload} (`skill_nab-testing`).
+ * Either form yields `test_<kind>_<name>.test.ts` so the stamper and
+ * `regenerateVitest` agree with the manifest catalogue.
+ */
+export function vitestStaticTestBasename(kind: string, slug: string): string {
+  const clean = sanitiseVitestSlug(slug);
+  const prefix = `${kind.toLowerCase()}_`;
+  const name = clean.startsWith(prefix) ? clean.slice(prefix.length) : clean;
+  return `test_${kind}_${name}.test.ts`;
 }
 
 function loadVitestTemplate(absolute: string): string {

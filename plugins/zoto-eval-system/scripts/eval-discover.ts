@@ -34,6 +34,7 @@ import { createHash } from "node:crypto";
 import { join, relative, resolve } from "node:path";
 import { minimatch } from "minimatch";
 import YAML from "yaml";
+import { resolveDiscoveredEvalFiles } from "../engine/discovered-eval-files.js";
 import { loadEvalConfig, loadEvalPaths, resolveHostRepoRoot } from "../src/config-loader.js";
 
 const REPO_ROOT = resolveHostRepoRoot();
@@ -183,16 +184,13 @@ function discoverSkills(config: Record<string, unknown>): TargetSnapshot[] {
       const skillMd = join(skillDir, "SKILL.md");
       if (!existsSync(skillMd)) continue;
       const raw = readFileSync(skillMd, "utf-8");
-      const evalsPath = join(skillDir, "evals", "evals.json");
       targets.push({
         id: `skill:${name}`,
         kind: "skill",
         path: relative(activeRepoRoot(), skillMd),
         content_hash: sha256(normaliseContent(raw)),
         public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalsPath)
-          ? [relative(activeRepoRoot(), evalsPath)]
-          : [],
+        eval_files: resolveDiscoveredEvalFiles(activeRepoRoot(), "skill", skillMd),
       });
     }
   }
@@ -205,7 +203,6 @@ function discoverPluginAssets(
 ): TargetSnapshot[] {
   const pluginsRoot = join(activeRepoRoot(), "plugins");
   if (!existsSync(pluginsRoot)) return [];
-  const evalLeaf = subdir === "commands" ? "commands" : "agents";
   const out: TargetSnapshot[] = [];
   for (const plugin of readdirSync(pluginsRoot).sort()) {
     const dir = join(pluginsRoot, plugin, subdir);
@@ -214,17 +211,13 @@ function discoverPluginAssets(
       if (!file.endsWith(".md")) continue;
       const full = join(dir, file);
       const raw = readFileSync(full, "utf-8");
-      const base = file.replace(/\.md$/, "");
-      const evalPath = join(pluginsRoot, plugin, "evals", evalLeaf, `${base}.json`);
       out.push({
         id: `${kind}:${file.replace(/\.md$/, "")}`,
         kind,
         path: relative(activeRepoRoot(), full),
         content_hash: sha256(normaliseContent(raw)),
         public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalPath)
-          ? [relative(activeRepoRoot(), evalPath)]
-          : [],
+        eval_files: resolveDiscoveredEvalFiles(activeRepoRoot(), kind, full),
       });
     }
   }
@@ -240,7 +233,6 @@ function discoverUpstreamVendorAssets(
   if (!existsSync(root) || !statSync(root).isDirectory()) {
     return { snapshots: [], namespaced_ids: [] };
   }
-  const evalLeaf = subdir === "commands" ? "commands" : "agents";
   const snapshots: TargetSnapshot[] = [];
   const namespaced_ids: string[] = [];
   const prefix = kind === "command" ? "command" : "agent";
@@ -254,22 +246,13 @@ function discoverUpstreamVendorAssets(
       ? `${prefix}:upstream-vendor/${base}`
       : bareId;
     if (id !== bareId) namespaced_ids.push(id);
-    const evalPath = join(
-      activeRepoRoot(),
-      "upstream-vendor",
-      "evals",
-      evalLeaf,
-      `${base}.json`,
-    );
     snapshots.push({
       id,
       kind,
       path: relative(activeRepoRoot(), full),
       content_hash: sha256(normaliseContent(raw)),
       public_surface: parseFrontmatter(raw),
-      eval_files: existsSync(evalPath)
-        ? [relative(activeRepoRoot(), evalPath)]
-        : [],
+      eval_files: resolveDiscoveredEvalFiles(activeRepoRoot(), kind, full),
     });
   }
   return { snapshots, namespaced_ids };
@@ -283,16 +266,13 @@ function discoverHooks(): TargetSnapshot[] {
     const hooksJson = join(pluginsRoot, plugin, "hooks", "hooks.json");
     if (!existsSync(hooksJson)) continue;
     const raw = readFileSync(hooksJson, "utf-8");
-    const hookEvalPath = join(pluginsRoot, plugin, "evals", "hooks", `${plugin}.json`);
     out.push({
       id: `hook:${plugin}`,
       kind: "hook",
       path: relative(activeRepoRoot(), hooksJson),
       content_hash: sha256(normaliseContent(raw)),
       public_surface: { plugin },
-      eval_files: existsSync(hookEvalPath)
-        ? [relative(activeRepoRoot(), hookEvalPath)]
-        : [],
+      eval_files: resolveDiscoveredEvalFiles(activeRepoRoot(), "hook", hooksJson),
     });
   }
   return out;
@@ -327,16 +307,13 @@ function discoverCursorAssets(
         ? `command:cursor/${base}`
         : bareId;
       maybeRecordNamespacedId(bareId, id);
-      const evalPath = join(CURSOR_ROOT, "evals", "commands", `${base}.json`);
       snapshots.push({
         id,
         kind: "command",
         path: relative(activeRepoRoot(), full),
         content_hash: sha256(normaliseContent(raw)),
         public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalPath)
-          ? [relative(activeRepoRoot(), evalPath)]
-          : [],
+        eval_files: resolveDiscoveredEvalFiles(activeRepoRoot(), "command", full),
       });
     }
   }
@@ -353,16 +330,13 @@ function discoverCursorAssets(
         ? `agent:cursor/${base}`
         : bareId;
       maybeRecordNamespacedId(bareId, id);
-      const evalPath = join(CURSOR_ROOT, "evals", "agents", `${base}.json`);
       snapshots.push({
         id,
         kind: "agent",
         path: relative(activeRepoRoot(), full),
         content_hash: sha256(normaliseContent(raw)),
         public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalPath)
-          ? [relative(activeRepoRoot(), evalPath)]
-          : [],
+        eval_files: resolveDiscoveredEvalFiles(activeRepoRoot(), "agent", full),
       });
     }
   }
@@ -374,16 +348,13 @@ function discoverCursorAssets(
   else if (existsSync(hooksFlat)) hooksPath = hooksFlat;
   if (hooksPath) {
     const raw = readFileSync(hooksPath, "utf-8");
-    const hookEvalPath = join(CURSOR_ROOT, "evals", "hooks", "hooks.json");
     snapshots.push({
       id: "hook:cursor-workspace",
       kind: "hook",
       path: relative(activeRepoRoot(), hooksPath),
       content_hash: sha256(normaliseContent(raw)),
       public_surface: { workspace: ".cursor" },
-      eval_files: existsSync(hookEvalPath)
-        ? [relative(activeRepoRoot(), hookEvalPath)]
-        : [],
+      eval_files: resolveDiscoveredEvalFiles(activeRepoRoot(), "hook", hooksPath),
     });
   }
 

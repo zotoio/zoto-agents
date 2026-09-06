@@ -1140,6 +1140,23 @@ describe("JSON-first migration invariants", () => {
     return hits.sort();
   }
 
+  it("discovery catalogues co-located command JSON already on disk", () => {
+    const cfg = YAML.parse(
+      readText(join(REPO_ROOT, ".zoto", "eval-system", "config.yml")),
+    ) as Record<string, unknown>;
+    const targets = discover(REPO_ROOT, {
+      ...cfg,
+      discoveryTargets: ["command", "agent", "hook", "skill"],
+    });
+    const help = targets.find((t) => t.id === "command:z-eval-help");
+    expect(help?.eval_files).toEqual([
+      "plugins/zoto-eval-system/commands/evals/z-eval-help.json",
+    ]);
+    expect(targets.some((t) => t.eval_files.some((f) => f.includes("evals/test_")))).toBe(
+      false,
+    );
+  });
+
   it("manifest non-skill eval_files entries end in .json", () => {
     const manifestPath = join(REPO_ROOT, ".zoto", "eval-system", "manifest.yml");
     expect(isFile(manifestPath), "manifest.yml missing").toBe(true);
