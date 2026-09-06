@@ -2,7 +2,18 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "dist"
+    "outDir": "dist",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "declaration": false,
+    "declarationMap": false
   },
-  "include": ["scripts/**/*.ts", "tests/**/*.ts", "hooks/**/*.ts", "src/**/*.ts"]
+  "include": [
+    "scripts/**/*.ts",
+    "tests/**/*.ts",
+    "hooks/**/*.ts",
+    "src/**/*.ts"
+  ]
 }

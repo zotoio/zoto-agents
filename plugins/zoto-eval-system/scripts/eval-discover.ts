@@ -31,7 +31,7 @@ import {
 } from "node:fs";
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { join, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { minimatch } from "minimatch";
 import YAML from "yaml";
 import { loadEvalConfig, loadEvalPaths, resolveHostRepoRoot } from "../src/config-loader.js";
@@ -155,6 +155,23 @@ function expandRoot(rootPattern: string): string[] {
   return out;
 }
 
+/**
+ * Resolve the eval file for a non-skill primitive.
+ *
+ * Since the 2026-05-27 JSON-first migration every command / agent / hook eval
+ * lives **co-located** with its source as `<root>/<kind>s/evals/<name>.json`
+ * (the same layout `evals/vitest.config.ts` globs). Repos stamped before the
+ * migration used `<root>/evals/<kind>s/<name>.json`, so that path is still
+ * honoured as a fallback. The first existing candidate wins and is returned
+ * relative to the repo root; an empty array means no coverage.
+ */
+function resolveEvalFiles(candidates: string[]): string[] {
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return [relative(activeRepoRoot(), candidate)];
+  }
+  return [];
+}
+
 function parseFrontmatter(raw: string): Record<string, unknown> {
   const m = /^---\n([\s\S]*?)\n---/m.exec(raw);
   if (!m) return {};
@@ -215,16 +232,16 @@ function discoverPluginAssets(
       const full = join(dir, file);
       const raw = readFileSync(full, "utf-8");
       const base = file.replace(/\.md$/, "");
-      const evalPath = join(pluginsRoot, plugin, "evals", evalLeaf, `${base}.json`);
       out.push({
         id: `${kind}:${file.replace(/\.md$/, "")}`,
         kind,
         path: relative(activeRepoRoot(), full),
         content_hash: sha256(normaliseContent(raw)),
         public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalPath)
-          ? [relative(activeRepoRoot(), evalPath)]
-          : [],
+        eval_files: resolveEvalFiles([
+          join(dir, "evals", `${base}.json`),
+          join(pluginsRoot, plugin, "evals", evalLeaf, `${base}.json`),
+        ]),
       });
     }
   }
@@ -254,22 +271,16 @@ function discoverUpstreamVendorAssets(
       ? `${prefix}:upstream-vendor/${base}`
       : bareId;
     if (id !== bareId) namespaced_ids.push(id);
-    const evalPath = join(
-      activeRepoRoot(),
-      "upstream-vendor",
-      "evals",
-      evalLeaf,
-      `${base}.json`,
-    );
     snapshots.push({
       id,
       kind,
       path: relative(activeRepoRoot(), full),
       content_hash: sha256(normaliseContent(raw)),
       public_surface: parseFrontmatter(raw),
-      eval_files: existsSync(evalPath)
-        ? [relative(activeRepoRoot(), evalPath)]
-        : [],
+      eval_files: resolveEvalFiles([
+        join(dirname(full), "evals", `${base}.json`),
+        join(activeRepoRoot(), "upstream-vendor", "evals", evalLeaf, `${base}.json`),
+      ]),
     });
   }
   return { snapshots, namespaced_ids };
@@ -283,16 +294,16 @@ function discoverHooks(): TargetSnapshot[] {
     const hooksJson = join(pluginsRoot, plugin, "hooks", "hooks.json");
     if (!existsSync(hooksJson)) continue;
     const raw = readFileSync(hooksJson, "utf-8");
-    const hookEvalPath = join(pluginsRoot, plugin, "evals", "hooks", `${plugin}.json`);
     out.push({
       id: `hook:${plugin}`,
       kind: "hook",
       path: relative(activeRepoRoot(), hooksJson),
       content_hash: sha256(normaliseContent(raw)),
       public_surface: { plugin },
-      eval_files: existsSync(hookEvalPath)
-        ? [relative(activeRepoRoot(), hookEvalPath)]
-        : [],
+      eval_files: resolveEvalFiles([
+        join(pluginsRoot, plugin, "hooks", "evals", "hooks.json"),
+        join(pluginsRoot, plugin, "evals", "hooks", `${plugin}.json`),
+      ]),
     });
   }
   return out;
@@ -327,16 +338,16 @@ function discoverCursorAssets(
         ? `command:cursor/${base}`
         : bareId;
       maybeRecordNamespacedId(bareId, id);
-      const evalPath = join(CURSOR_ROOT, "evals", "commands", `${base}.json`);
       snapshots.push({
         id,
         kind: "command",
         path: relative(activeRepoRoot(), full),
         content_hash: sha256(normaliseContent(raw)),
         public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalPath)
-          ? [relative(activeRepoRoot(), evalPath)]
-          : [],
+        eval_files: resolveEvalFiles([
+          join(cmdDir, "evals", `${base}.json`),
+          join(CURSOR_ROOT, "evals", "commands", `${base}.json`),
+        ]),
       });
     }
   }
@@ -353,16 +364,16 @@ function discoverCursorAssets(
         ? `agent:cursor/${base}`
         : bareId;
       maybeRecordNamespacedId(bareId, id);
-      const evalPath = join(CURSOR_ROOT, "evals", "agents", `${base}.json`);
       snapshots.push({
         id,
         kind: "agent",
         path: relative(activeRepoRoot(), full),
         content_hash: sha256(normaliseContent(raw)),
         public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalPath)
-          ? [relative(activeRepoRoot(), evalPath)]
-          : [],
+        eval_files: resolveEvalFiles([
+          join(agDir, "evals", `${base}.json`),
+          join(CURSOR_ROOT, "evals", "agents", `${base}.json`),
+        ]),
       });
     }
   }
@@ -374,16 +385,16 @@ function discoverCursorAssets(
   else if (existsSync(hooksFlat)) hooksPath = hooksFlat;
   if (hooksPath) {
     const raw = readFileSync(hooksPath, "utf-8");
-    const hookEvalPath = join(CURSOR_ROOT, "evals", "hooks", "hooks.json");
     snapshots.push({
       id: "hook:cursor-workspace",
       kind: "hook",
       path: relative(activeRepoRoot(), hooksPath),
       content_hash: sha256(normaliseContent(raw)),
       public_surface: { workspace: ".cursor" },
-      eval_files: existsSync(hookEvalPath)
-        ? [relative(activeRepoRoot(), hookEvalPath)]
-        : [],
+      eval_files: resolveEvalFiles([
+        join(CURSOR_ROOT, "hooks", "evals", "hooks.json"),
+        join(CURSOR_ROOT, "evals", "hooks", "hooks.json"),
+      ]),
     });
   }
 

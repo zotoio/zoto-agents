@@ -2,8 +2,9 @@
 /**
  * Remove the locally-installed cursor-top plugin.
  *
- * Removes files from ~/.cursor/plugins/zoto-cursor-top/ and deregisters the
- * plugin from ~/.claude/ config files.
+ * Removes files from ~/.cursor/plugins/local/zoto-cursor-top/ (and the legacy
+ * ~/.cursor/plugins/zoto-cursor-top/ location, if present) and deregisters
+ * the plugin from ~/.claude/ config files.
  *
  * Usage:
  *   pnpm uninstall-local            # uninstall
@@ -27,8 +28,12 @@ const PLUGIN_NAME = "zoto-cursor-top";
 const PLUGIN_ID = `${PLUGIN_NAME}@local`;
 const BINARY_NAME = "cursor-top";
 
-const INSTALL_DIR = join(homedir(), ".cursor", "plugins", PLUGIN_NAME);
-const INSTALLED_BIN_ENTRY = join(INSTALL_DIR, "bin", "cursor-top.mjs");
+const INSTALL_DIR = join(homedir(), ".cursor", "plugins", "local", PLUGIN_NAME);
+const LEGACY_INSTALL_DIR = join(homedir(), ".cursor", "plugins", PLUGIN_NAME);
+const INSTALL_DIRS = [INSTALL_DIR, LEGACY_INSTALL_DIR] as const;
+const INSTALLED_BIN_ENTRIES = new Set(
+  INSTALL_DIRS.map((dir) => join(dir, "bin", "cursor-top.mjs")),
+);
 const CLAUDE_PLUGINS_FILE = join(
   homedir(),
   ".claude",
@@ -107,7 +112,7 @@ function removeBinarySymlink(): void {
       } catch {
         /* ignore */
       }
-      if (target && target !== INSTALLED_BIN_ENTRY) {
+      if (target && !INSTALLED_BIN_ENTRIES.has(target)) {
         console.log(
           `  Skipping ${linkPath} (points to ${target}, not our installed binary).`,
         );
@@ -132,14 +137,18 @@ function removeBinarySymlink(): void {
 }
 
 function removePluginFiles(): void {
-  if (existsSync(INSTALL_DIR)) {
+  let removedAny = false;
+  for (const dir of INSTALL_DIRS) {
+    if (!existsSync(dir)) continue;
+    removedAny = true;
     if (dryRun) {
-      console.log(`  [dry-run] would remove ${INSTALL_DIR}`);
+      console.log(`  [dry-run] would remove ${dir}`);
     } else {
-      rmSync(INSTALL_DIR, { recursive: true });
-      console.log(`  Removed ${INSTALL_DIR}`);
+      rmSync(dir, { recursive: true });
+      console.log(`  Removed ${dir}`);
     }
-  } else {
+  }
+  if (!removedAny) {
     console.log(`  ${INSTALL_DIR} does not exist - nothing to remove.`);
   }
 }

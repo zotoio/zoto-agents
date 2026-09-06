@@ -1,0 +1,55 @@
+{
+  "target_id": "command:uninstall-local-plugins",
+  "model_id": "composer-2.5",
+  "judge_model": "opus-4.6",
+  "case_timeout_ms": 180000,
+  "_meta": {
+    "generated": false,
+    "authored_by": "user",
+    "note": "User-authored. Cases use --dry-run so no files under ~/.cursor or ~/.claude are removed during evaluation."
+  },
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/uninstall-local-plugins --dry-run",
+      "interactions": {
+        "questions": ["Which locally-installed plugins do you want to remove?"],
+        "answers": ["zoto-eval-system"]
+      },
+      "assertions": [
+        "The assistant discovers installed plugins by listing `~/.cursor/plugins/local/*/` directories containing `.cursor-plugin/plugin.json`, and also checks the legacy `~/.cursor/plugins/<name>/` location for names that match a monorepo plugin.",
+        "The assistant presents a single multiselect `askQuestion` (`allow_multiple: true`) with option labels of the form `<displayName> (<install-path>)`.",
+        "For the selected plugin the assistant runs `pnpm uninstall-local --dry-run` from `plugins/zoto-eval-system/` (or the `tsx scripts/uninstall-local.ts --dry-run` fallback), forwarding `--dry-run` from `$ARGUMENTS`, and the reported dry-run output covers both the `local/` path and the legacy path.",
+        "The assistant does not remove or deregister any plugin the user did not select.",
+        "The final summary lists removed vs failed plugins and reminds the user to reload the Cursor window."
+      ],
+      "_meta": {
+        "generated": false,
+        "authored_by": "user"
+      },
+      "expected_output": "A multiselect over the currently installed plugins, dry-run uninstall output for zoto-eval-system only (listing `~/.cursor/plugins/local/zoto-eval-system` and, if present, `~/.cursor/plugins/zoto-eval-system`), and a closing summary with a reload reminder."
+    },
+    {
+      "id": 2,
+      "prompt": "/uninstall-local-plugins --dry-run",
+      "fixtures": {
+        "files": [
+          {
+            "path": "home/.cursor/plugins/local/.gitkeep",
+            "content": ""
+          }
+        ]
+      },
+      "assertions": [
+        "When no directory under `~/.cursor/plugins/local/` (or the legacy `~/.cursor/plugins/<name>/`) contains a `.cursor-plugin/plugin.json`, the assistant reports that no locally-installed plugins were found.",
+        "The assistant does not present an empty multiselect and does not run any `uninstall-local` script.",
+        "The assistant does not edit `~/.claude/plugins/installed_plugins.json` or `~/.claude/settings.json`."
+      ],
+      "_meta": {
+        "generated": false,
+        "authored_by": "user"
+      },
+      "expected_output": "A concise message that there is nothing to uninstall, with no prompts and no script execution."
+    }
+  ]
+}

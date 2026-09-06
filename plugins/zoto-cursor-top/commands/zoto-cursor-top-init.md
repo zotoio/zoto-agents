@@ -12,7 +12,7 @@ until you run this command (or `pnpm install-local` from a checkout).
 `install-local` will:
 
 1. Build `dist/cli.js` via `pnpm run build` (tsup) when missing.
-2. Copy plugin files to `~/.cursor/plugins/zoto-cursor-top/`.
+2. Copy plugin files to `~/.cursor/plugins/local/zoto-cursor-top/`.
 3. Run `npm install --omit=dev` there so Ink and React resolve at runtime.
 4. Register the plugin in Cursor's local plugin config.
 5. Symlink `cursor-top` into a directory on PATH (default `~/.local/bin`).
@@ -30,7 +30,7 @@ until you run this command (or `pnpm install-local` from a checkout).
 
 1. Resolve the plugin root, in order:
    - `plugins/zoto-cursor-top/` under the workspace when present.
-   - `~/.cursor/plugins/zoto-cursor-top/` when `scripts/install-local.ts` exists there.
+   - `~/.cursor/plugins/local/zoto-cursor-top/` when `scripts/install-local.ts` exists there.
    - Any other `~/.cursor/plugins/**/zoto-cursor-top/` tree that contains
      `scripts/install-local.ts`.
 2. From that directory, invoke `scripts/install-local.ts` and forward flags
@@ -45,7 +45,7 @@ until you run this command (or `pnpm install-local` from a checkout).
    place.
 4. After a successful (non-dry-run) install, print a short confirmation that
    includes:
-   - the install directory (`~/.cursor/plugins/zoto-cursor-top/`),
+   - the install directory (`~/.cursor/plugins/local/zoto-cursor-top/`),
    - the symlink path when created (or manual PATH instructions when
      `--no-symlink` or no writable bin dir),
    - a reminder to restart Cursor so marketplace commands pick up the

@@ -84,6 +84,8 @@ export interface AppProps {
   onActiveOnlyChange?: (activeOnly: boolean) => void;
   /** Persist theme / density / info-strip toggles to `~/.zoto/cursor-top.json`. */
   persistPrefs?: boolean;
+  /** Start with the refresh timer paused (manual `r` refresh still works). Used by tests. */
+  initialPaused?: boolean;
   /** Override home directory for prefs I/O (tests). */
   prefsHomeDir?: string;
   /** Ring terminal bell on finished / failed events (default off). */
@@ -118,6 +120,7 @@ export function App({
   initialActiveOnly = true,
   onActiveOnlyChange,
   persistPrefs = false,
+  initialPaused = false,
   prefsHomeDir,
   bell = false,
   bellWriter,
@@ -147,7 +150,7 @@ export function App({
     initial.roots[0] ?? null,
   );
   const [now, setNow] = useState<number>(Date.now());
-  const [paused, setPaused] = useState<boolean>(false);
+  const [paused, setPaused] = useState<boolean>(initialPaused);
   const [activeThemeName, setActiveThemeName] = useState<string>(themeName);
   const [density, setDensity] = useState<Density>(initialDensity);
   const [filterEditing, setFilterEditing] = useState<boolean>(false);
@@ -454,6 +457,10 @@ export function App({
         /* swallow; we keep the prior snapshot rather than crash the UI */
       }
     };
+    // Fire the first load immediately so data appears without waiting a
+    // full intervalMs cycle. This is critical when the TUI starts with an
+    // empty skeleton snapshot for instant startup rendering.
+    void tick();
     const timer = setInterval(tick, intervalMs);
     return () => {
       cancelled = true;

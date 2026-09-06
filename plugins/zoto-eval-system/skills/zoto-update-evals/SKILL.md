@@ -20,9 +20,10 @@ The active static framework is read via `plugins/zoto-eval-system/engine/manifes
 Drift detection considers eval files at:
 
 - Skills: `…/skills/<name>/evals/evals.json` (under configured `skillsRoots`).
-- Commands: `plugins/<plugin>/evals/commands/<name>.json` **and** `.cursor/evals/commands/<name>.json`.
-- Agents: `plugins/<plugin>/evals/agents/<name>.json` **and** `.cursor/evals/agents/<name>.json`.
-- Hooks: `plugins/<plugin>/evals/hooks/<plugin>.json` **and** `.cursor/evals/hooks/hooks.json` (canonical target id **`hook:cursor-workspace`**).
+- Commands: co-located `plugins/<plugin>/commands/evals/<name>.json` **and** `.cursor/commands/evals/<name>.json`.
+- Agents: co-located `plugins/<plugin>/agents/evals/<name>.json` **and** `.cursor/agents/evals/<name>.json`.
+- Hooks: co-located `plugins/<plugin>/hooks/evals/hooks.json` **and** `.cursor/hooks/evals/hooks.json` (canonical target id **`hook:cursor-workspace`**).
+- Legacy pre-2026-05-27 paths (`<root>/evals/<kind>s/<name>.json`) are still honoured as a fallback when no co-located file exists.
 
 The **preserve user-authored cases** contract applies uniformly: no `_meta`, or `_meta.generated === false` → never overwritten.
 

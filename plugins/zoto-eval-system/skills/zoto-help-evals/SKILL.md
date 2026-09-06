@@ -11,7 +11,7 @@ Canonical help for the Eval System plugin. The README is the source of truth; th
 
 No repo-level config required. The skill uses:
 
-- `plugins/zoto-eval-system/README.md` (or the installed path at `~/.cursor/plugins/zoto-eval-system/README.md`) as the documentation source of truth.
+- `plugins/zoto-eval-system/README.md` (or the installed path at `~/.cursor/plugins/local/zoto-eval-system/README.md`) as the documentation source of truth.
 - The host repo's eval-system state files for tailoring (read-only): `.zoto/eval-system/config.yml`, `.zoto/eval-system/manifest.yml`, `.zoto/eval-system/manifest.history.yml`, `.env.example`, `.env`, `package.json` (the `eval*` scripts), and the latest `evals/_runs/<run-id>/` if any.
 
 ## When to Use

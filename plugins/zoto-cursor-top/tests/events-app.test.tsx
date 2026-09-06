@@ -133,7 +133,7 @@ describe("App event strip and highlights", () => {
     const load = vi.fn().mockResolvedValue(updated);
 
     const { lastFrame, stdin, unmount } = render(
-      <App load={load} initial={initial} intervalMs={60_000} paused />,
+      <App load={load} initial={initial} intervalMs={60_000} initialPaused />,
     );
 
     stdin.write("r");

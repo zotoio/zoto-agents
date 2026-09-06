@@ -4,11 +4,11 @@ import { CLEAR_SCREEN_HOME, clearActiveScreen } from "../src/ui/terminal.js";
 describe("clearActiveScreen", () => {
   it("writes home+clear only on a TTY", () => {
     const write = vi.fn();
-    clearActiveScreen({ isTTY: true, write } as NodeJS.WriteStream);
+    clearActiveScreen({ isTTY: true, write } as unknown as NodeJS.WriteStream);
     expect(write).toHaveBeenCalledWith(CLEAR_SCREEN_HOME);
 
     write.mockClear();
-    clearActiveScreen({ isTTY: false, write } as NodeJS.WriteStream);
+    clearActiveScreen({ isTTY: false, write } as unknown as NodeJS.WriteStream);
     expect(write).not.toHaveBeenCalled();
   });
 });

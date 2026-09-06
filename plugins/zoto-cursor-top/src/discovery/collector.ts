@@ -42,6 +42,7 @@ import { pushMissingSessionRootDiagnostic, resolveCursorPaths } from "./paths.js
 import {
   defaultPsRunner,
   discoverCursorProcesses,
+  extractBinaryPath,
   type ProcessRunner,
   type RawProcess,
 } from "./processes.js";
@@ -99,16 +100,98 @@ interface RepoDisplayCacheEntry {
   display: string | null;
 }
 
-function classifyProcess(p: RawProcess): { kind: AgentKind; label: string } {
+/**
+ * Label for an Electron sub-process given its `--type=` flag. Cursor (like
+ * every Electron app) forks its main binary with `--type=renderer`,
+ * `--type=gpu-process`, `--type=utility --utility-sub-type=…`, etc. On
+ * Linux these run as `/usr/share/cursor/cursor --type=…` (same argv[0] as
+ * the main process), on macOS as `Cursor Helper (…).app/…`, and on Windows
+ * as `Cursor.exe --type=…` — so the flag, not the binary path, is the
+ * reliable discriminator.
+ */
+function electronSubprocessLabel(type: string, cmd: string): string {
+  switch (type) {
+    case "renderer":
+      return "Cursor renderer";
+    case "gpu-process":
+      return "Cursor GPU helper";
+    case "zygote":
+      return "Cursor zygote";
+    case "broker":
+      return "Cursor broker";
+    case "utility": {
+      if (/--inspect-port/i.test(cmd)) return "Cursor extension host";
+      if (/node\.mojom\.NodeService/i.test(cmd)) return "Cursor node service";
+      if (/network\.mojom\.NetworkService/i.test(cmd)) return "Cursor network service";
+      if (/audio\.mojom\.AudioService/i.test(cmd)) return "Cursor audio service";
+      return "Cursor utility";
+    }
+    default:
+      return `Cursor ${type}`;
+  }
+}
+
+/** True when the argv[0] or command line plausibly belongs to Cursor. */
+function mentionsCursor(binary: string, cmd: string): boolean {
+  return (
+    /cursor/i.test(binary) ||
+    /^\/proc\/self\/exe$/.test(binary) ||
+    /\/cursor\//i.test(cmd) ||
+    /--user-data-dir=.*[/\\]Cursor\b/i.test(cmd)
+  );
+}
+
+export function classifyProcess(p: RawProcess): { kind: AgentKind; label: string } {
   const cmd = p.command;
-  if (/cursor-agent/i.test(cmd)) return { kind: "cli", label: "cursor-agent CLI" };
+  const binary = extractBinaryPath(cmd);
+
+  // CLI agent (standalone binary or Cursor invoked with --agent flag)
+  if (/cursor-agent/i.test(binary)) return { kind: "cli", label: "cursor-agent CLI" };
+  if (/\bcursor\b.*--agent\b/i.test(cmd)) return { kind: "cli", label: "cursor-agent CLI" };
+
+  // Cloud Agent VM daemon
   if (/exec-daemon/i.test(cmd)) return { kind: "cloud", label: "Cloud Agent VM" };
-  if (/Cursor Helper \(GPU\)/i.test(cmd)) return { kind: "ide", label: "Cursor GPU helper" };
-  if (/Cursor Helper/i.test(cmd)) return { kind: "ide", label: "Cursor renderer" };
-  if (/Cursor\.app|\/Cursor(\s|$|\.exe)/i.test(cmd)) {
+
+  // Electron sub-processes: classify by `--type=` BEFORE looking at the
+  // binary path, otherwise every `/usr/share/cursor/cursor --type=…` child
+  // on Linux would be mistaken for the main IDE process.
+  const typeMatch = /--type=([a-z-]+)/i.exec(cmd);
+  if (typeMatch && mentionsCursor(binary, cmd)) {
+    return { kind: "ide", label: electronSubprocessLabel(typeMatch[1]!.toLowerCase(), cmd) };
+  }
+
+  // macOS helpers without a --type flag (older Electron builds).
+  if (/Cursor Helper \(GPU\)/i.test(binary)) return { kind: "ide", label: "Cursor GPU helper" };
+  if (/Cursor Helper/i.test(binary)) return { kind: "ide", label: "Cursor renderer" };
+
+  // Linux: `/proc/self/exe` children of the IDE that carry no --type flag.
+  if (/^\/proc\/self\/exe$/.test(binary)) return { kind: "ide", label: "Cursor helper" };
+
+  // Linux: Shells spawned by Cursor's integrated terminal
+  if (/\b(bash|zsh|fish|sh)\b/i.test(binary) && /\/cursor\b.*shellIntegration/i.test(cmd)) {
+    return { kind: "ide", label: "Cursor terminal" };
+  }
+
+  // Linux/macOS: chrome-sandbox, crashpad processes
+  if (/chrome-sandbox/i.test(binary)) return { kind: "ide", label: "Cursor sandbox" };
+  if (/chrome_crashpad_handler/i.test(binary)) return { kind: "ide", label: "Cursor crashpad" };
+
+  // Extension worker processes (Cursor binary running an extension .js)
+  if (/\/cursor\b/i.test(binary) && /\/extensions\/.*\.(js|mjs)$/i.test(cmd)) {
+    return { kind: "ide", label: "Cursor extension worker" };
+  }
+
+  // Main Cursor IDE process (the root binary without sub-type flags)
+  if (/Cursor\.app|[/\\]cursor(\.exe)?$/i.test(binary)) {
     return { kind: "ide", label: "Cursor IDE" };
   }
-  return { kind: "unknown", label: basename(cmd.split(/\s+/)[0] ?? "cursor") };
+
+  // Fallback: binary path contains cursor somewhere (e.g. /usr/share/cursor/resources/app/...)
+  if (/\/cursor\//i.test(binary) || /\/cursor\//i.test(cmd)) {
+    return { kind: "ide", label: "Cursor worker" };
+  }
+
+  return { kind: "unknown", label: basename(binary || "cursor") };
 }
 
 function nodeFromProcess(p: RawProcess): AgentNode {
@@ -385,7 +468,7 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
   const sem = createSemaphore(opts.fsConcurrency ?? DEFAULT_FS_CONCURRENCY);
   const paths = resolveCursorPaths(home, plat);
 
-  const cloudApiOpts: CloudApiOptions | false = opts.cloudApi ?? {};
+  const cloudApiOpts = resolveCloudApiOpts(opts.cloudApi);
   const usageApiOpts = resolveUsageApiOpts(opts.usageApi);
   const sessionFileCache = new Map<string, SessionFileCacheEntry>();
   const transcriptMetaCache = new Map<string, TranscriptFileMeta>();
@@ -751,6 +834,21 @@ export function createCollector(opts: CollectorOptions = {}): Collector {
       if (usageIdentity === undefined) usageIdentity = null;
     }
   }
+}
+
+/**
+ * Default the Cloud Agents API client on, except under Vitest where an
+ * exported `CURSOR_API_KEY` would otherwise turn every slow-lane tick of a
+ * unit test into a real 10s-timeout HTTPS call. Tests that want the client
+ * pass `cloudApi` explicitly (or inject a `fetch`).
+ */
+function resolveCloudApiOpts(
+  cloudApi: CollectorOptions["cloudApi"],
+): CloudApiOptions | false {
+  if (cloudApi === false) return false;
+  if (cloudApi) return cloudApi;
+  if (process.env.VITEST) return false;
+  return {};
 }
 
 function resolveUsageApiOpts(

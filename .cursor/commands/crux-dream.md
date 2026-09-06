@@ -1,3 +1,8 @@
+---
+name: crux-dream
+description: "Post-execution memory extraction and REM sleep rebalancing"
+---
+
 # crux-dream
 
 Post-execution memory extraction and REM sleep rebalancing.

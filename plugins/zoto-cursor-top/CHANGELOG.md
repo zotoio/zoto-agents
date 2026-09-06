@@ -29,6 +29,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   PATH). `/zoto-cursor-top` and the monitor skill gate on init when the binary
   is missing.
 
+- New `sdk` agent kind (badge `SDK`, category "SDK Agents"). Transcripts under
+  ephemeral `tmp-*` workspace slugs are headless `@cursor/sdk` agents (eval
+  runners, scripted agents) running locally; they were previously mislabelled
+  as Cloud Agents. `CLD` is now reserved for the Cloud Agents API and
+  `exec-daemon` VMs.
+
+- Instant TUI startup: the app renders an empty skeleton and fires the first
+  collector tick immediately instead of blocking for the initial filesystem
+  walk. `--once` / `--json` still await the full snapshot.
+
+### Fixed
+
+- **Unit tests hit the live Cloud Agents API.** `createCollector` defaulted `cloudApi` to `{}`, so with `CURSOR_API_KEY` exported every slow-lane tick in `tests/collector*.test.ts` made a real 10 s-timeout HTTPS call (2–4 s per case, three timeouts). The cloud client is now off under Vitest unless a test passes `cloudApi` explicitly, mirroring the existing usage-API guard.
+- **`tsc --noEmit` is clean again** (19 errors): `allowJs` for the JSDoc-typed `scripts/*.mjs` helpers, widened literal-typed accumulators in `format.ts`, a complete `AgentNode` fixture, an `initialPaused` prop for `App` (the events test passed a non-existent `paused` prop), and `as unknown as WriteStream` casts in the terminal test.
+- **Process classification regressions.** Electron sub-processes are now
+  classified by their `--type=` flag *before* the binary path is inspected, so
+  Linux children (`/usr/share/cursor/cursor --type=renderer|gpu-process|
+  utility|zygote|broker`) no longer all appear as "Cursor IDE". Utility
+  sub-types map to "extension host", "node service", "network service",
+  "audio service".
+- macOS helper binaries whose path contains spaces
+  (`Cursor Helper (GPU).app/…/Cursor Helper (GPU)`) and Windows
+  `C:\Program Files\cursor\Cursor.exe` are recognised again: `extractBinaryPath`
+  keeps `.app/` bundle paths and `.exe` paths intact instead of splitting on
+  the first space, and the binary matchers accept backslash separators.
+- `install-local` / `uninstall-local` now target the shared zoto location
+  `~/.cursor/plugins/local/zoto-cursor-top/` (previously
+  `~/.cursor/plugins/zoto-cursor-top/`), removing any legacy copy so the
+  plugin is not loaded twice. The `cursor-top` PATH symlink follows.
+
 ## [0.2.0] - 2026-06-11
 
 ### Added

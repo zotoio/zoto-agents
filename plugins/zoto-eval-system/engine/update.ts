@@ -82,6 +82,7 @@ import { minimatch } from "minimatch";
 import jsonMap from "json-source-map";
 
 import type { EvalCase, EvalFile } from "./case.js";
+export type { EvalCase, EvalFile } from "./case.js";
 import { casesOf, isRunnerCase, loadEvalFile } from "./case.js";
 import { isGeneratedCase, isGeneratedFile } from "./_user-case-guards.js";
 import { loadEvalConfig, loadEvalPaths, resolveHostRepoRoot } from "../src/config-loader.js";
@@ -229,7 +230,7 @@ export function targetMatchesUpdateGlob(
 
 function resolveUpdatePaths(repoRoot: string): { manifestPath: string; historyPath: string } {
   try {
-    const { paths } = loadEvalPaths(repoRoot);
+    const paths = loadEvalPaths(repoRoot);
     return {
       manifestPath: paths.manifestPathAbs,
       historyPath: paths.historyPathAbs,
@@ -350,227 +351,16 @@ interface TargetSnapshot {
   eval_files: string[];
 }
 
-function expandRoot(rootPattern: string): string[] {
-  if (!rootPattern.includes("*")) {
-    const abs = resolve(REPO_ROOT, rootPattern);
-    return existsSync(abs) && statSync(abs).isDirectory() ? [abs] : [];
-  }
-  const parts = rootPattern.split("/");
-  const idx = parts.indexOf("*");
-  if (idx === -1) {
-    const abs = resolve(REPO_ROOT, rootPattern);
-    return existsSync(abs) && statSync(abs).isDirectory() ? [abs] : [];
-  }
-  const prefix = resolve(REPO_ROOT, parts.slice(0, idx).join("/"));
-  const suffix = parts.slice(idx + 1).join("/");
-  if (!existsSync(prefix) || !statSync(prefix).isDirectory()) return [];
-  const out: string[] = [];
-  for (const entry of readdirSync(prefix).sort()) {
-    const candidate = suffix
-      ? join(prefix, entry, suffix)
-      : join(prefix, entry);
-    if (existsSync(candidate) && statSync(candidate).isDirectory()) {
-      out.push(candidate);
-    }
-  }
-  return out;
-}
-
-function parseFrontmatter(raw: string): Record<string, unknown> {
-  const m = /^---\n([\s\S]*?)\n---/m.exec(raw);
-  if (!m) return {};
-  const lines = m[1].split("\n");
-  const out: Record<string, string> = {};
-  for (const line of lines) {
-    const i = line.indexOf(":");
-    if (i === -1) continue;
-    out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
-  }
-  return { frontmatter: out };
-}
-
-function discoverSkills(config: Record<string, unknown>): TargetSnapshot[] {
-  const roots = ((config.skillsRoots as string[]) ?? [
-    ".cursor/skills",
-    "skills",
-    "plugins/*/skills",
-  ]).flatMap(expandRoot);
-
-  const targets: TargetSnapshot[] = [];
-  for (const root of roots) {
-    for (const name of readdirSync(root).sort()) {
-      const skillDir = join(root, name);
-      if (!statSync(skillDir).isDirectory()) continue;
-      const skillMd = join(skillDir, "SKILL.md");
-      if (!existsSync(skillMd)) continue;
-      const raw = readFileSync(skillMd, "utf-8");
-      const evalsPath = join(skillDir, "evals", "evals.json");
-      targets.push({
-        id: `skill:${name}`,
-        kind: "skill",
-        path: relative(REPO_ROOT, skillMd),
-        content_hash: sha256(normaliseContent(raw)),
-        public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalsPath)
-          ? [relative(REPO_ROOT, evalsPath)]
-          : [],
-      });
-    }
-  }
-  return targets;
-}
-
-function discoverPluginAssets(
-  kind: "command" | "agent",
-  subdir: "commands" | "agents",
-): TargetSnapshot[] {
-  const pluginsRoot = join(REPO_ROOT, "plugins");
-  if (!existsSync(pluginsRoot)) return [];
-  const evalLeaf = subdir === "commands" ? "commands" : "agents";
-  const out: TargetSnapshot[] = [];
-  for (const plugin of readdirSync(pluginsRoot).sort()) {
-    const dir = join(pluginsRoot, plugin, subdir);
-    if (!existsSync(dir) || !statSync(dir).isDirectory()) continue;
-    for (const file of readdirSync(dir).sort()) {
-      if (!file.endsWith(".md")) continue;
-      const full = join(dir, file);
-      const raw = readFileSync(full, "utf-8");
-      const base = file.replace(/\.md$/, "");
-      const evalPath = join(pluginsRoot, plugin, "evals", evalLeaf, `${base}.json`);
-      out.push({
-        id: `${kind}:${file.replace(/\.md$/, "")}`,
-        kind,
-        path: relative(REPO_ROOT, full),
-        content_hash: sha256(normaliseContent(raw)),
-        public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalPath)
-          ? [relative(REPO_ROOT, evalPath)]
-          : [],
-      });
-    }
-  }
-  return out;
-}
-
-function discoverHooks(): TargetSnapshot[] {
-  const pluginsRoot = join(REPO_ROOT, "plugins");
-  if (!existsSync(pluginsRoot)) return [];
-  const out: TargetSnapshot[] = [];
-  for (const plugin of readdirSync(pluginsRoot).sort()) {
-    const hooksJson = join(pluginsRoot, plugin, "hooks", "hooks.json");
-    if (!existsSync(hooksJson)) continue;
-    const raw = readFileSync(hooksJson, "utf-8");
-    const hookEvalPath = join(pluginsRoot, plugin, "evals", "hooks", `${plugin}.json`);
-    out.push({
-      id: `hook:${plugin}`,
-      kind: "hook",
-      path: relative(REPO_ROOT, hooksJson),
-      content_hash: sha256(normaliseContent(raw)),
-      public_surface: { plugin },
-      eval_files: existsSync(hookEvalPath)
-        ? [relative(REPO_ROOT, hookEvalPath)]
-        : [],
-    });
-  }
-  return out;
-}
-
-const CURSOR_ROOT = join(REPO_ROOT, ".cursor");
-
-function discoverCursorCommands(): TargetSnapshot[] {
-  const dir = join(CURSOR_ROOT, "commands");
-  if (!existsSync(dir) || !statSync(dir).isDirectory()) return [];
-  const out: TargetSnapshot[] = [];
-  for (const file of readdirSync(dir).sort()) {
-    if (!file.endsWith(".md")) continue;
-    const full = join(dir, file);
-    const raw = readFileSync(full, "utf-8");
-    const base = file.replace(/\.md$/, "");
-    const evalPath = join(CURSOR_ROOT, "evals", "commands", `${base}.json`);
-    out.push({
-      id: `command:${base}`,
-      kind: "command",
-      path: relative(REPO_ROOT, full),
-      content_hash: sha256(normaliseContent(raw)),
-      public_surface: parseFrontmatter(raw),
-      eval_files: existsSync(evalPath)
-        ? [relative(REPO_ROOT, evalPath)]
-        : [],
-    });
-  }
-  return out;
-}
-
-function discoverCursorAgents(): TargetSnapshot[] {
-  const dir = join(CURSOR_ROOT, "agents");
-  if (!existsSync(dir) || !statSync(dir).isDirectory()) return [];
-  const out: TargetSnapshot[] = [];
-  for (const file of readdirSync(dir).sort()) {
-    if (!file.endsWith(".md")) continue;
-    const full = join(dir, file);
-    const raw = readFileSync(full, "utf-8");
-    const base = file.replace(/\.md$/, "");
-    const evalPath = join(CURSOR_ROOT, "evals", "agents", `${base}.json`);
-    out.push({
-      id: `agent:${base}`,
-      kind: "agent",
-      path: relative(REPO_ROOT, full),
-      content_hash: sha256(normaliseContent(raw)),
-      public_surface: parseFrontmatter(raw),
-      eval_files: existsSync(evalPath)
-        ? [relative(REPO_ROOT, evalPath)]
-        : [],
-    });
-  }
-  return out;
-}
-
-function discoverCursorHooks(): TargetSnapshot[] {
-  const hooksNested = join(CURSOR_ROOT, "hooks", "hooks.json");
-  const hooksFlat = join(CURSOR_ROOT, "hooks.json");
-  let hooksPath: string | null = null;
-  if (existsSync(hooksNested)) hooksPath = hooksNested;
-  else if (existsSync(hooksFlat)) hooksPath = hooksFlat;
-  if (!hooksPath) return [];
-  const raw = readFileSync(hooksPath, "utf-8");
-  const hookEvalPath = join(CURSOR_ROOT, "evals", "hooks", "hooks.json");
-  return [
-    {
-      id: "hook:cursor-workspace",
-      kind: "hook",
-      path: relative(REPO_ROOT, hooksPath),
-      content_hash: sha256(normaliseContent(raw)),
-      public_surface: { workspace: ".cursor" },
-      eval_files: existsSync(hookEvalPath)
-        ? [relative(REPO_ROOT, hookEvalPath)]
-        : [],
-    },
-  ];
-}
-
+/**
+ * Enumerate live targets for the CLI path. Delegates to the canonical
+ * discovery in `scripts/eval-discover.ts` so the updater, the manifest
+ * writer, and `/z-eval-create` all agree on target ids, hashes, and the
+ * co-located `<kind>/evals/<name>.json` coverage layout.
+ */
 function discoverTargets(config: Record<string, unknown>): TargetSnapshot[] {
   const discoveryConfig =
     (config.discovery_config as Record<string, unknown> | undefined) ?? config;
-  const kinds =
-    ((discoveryConfig as Record<string, unknown>).discoveryTargets as
-      | string[]
-      | undefined) ?? ["skill"];
-
-  const all: TargetSnapshot[] = [];
-  if (kinds.includes("skill")) all.push(...discoverSkills(discoveryConfig));
-  if (kinds.includes("command")) {
-    all.push(...discoverPluginAssets("command", "commands"));
-    all.push(...discoverCursorCommands());
-  }
-  if (kinds.includes("agent")) {
-    all.push(...discoverPluginAssets("agent", "agents"));
-    all.push(...discoverCursorAgents());
-  }
-  if (kinds.includes("hook")) {
-    all.push(...discoverHooks());
-    all.push(...discoverCursorHooks());
-  }
-  return all;
+  return discoverTargetsAtRepo(REPO_ROOT, discoveryConfig) as TargetSnapshot[];
 }
 
 function classify(
@@ -1665,20 +1455,25 @@ export function surgicallyReplaceGeneratedCases(
       if (!ptr) continue;
       let start = ptr.value.pos;
       let end = ptr.valueEnd.pos;
-      // Strip trailing comma + whitespace so the array stays well-formed.
-      while (end < out.length && /[,\s]/.test(out[end] ?? "")) {
-        if (out[end] === ",") {
-          end++;
-          break;
-        }
-        end++;
-      }
-      // Strip leading whitespace (indentation of this row) too.
+      // Look past trailing whitespace for the comma separating this row
+      // from the next one. When present, consume it with the row.
+      let scan = end;
+      while (scan < out.length && /\s/.test(out[scan] ?? "")) scan++;
+      const hasTrailingComma = out[scan] === ",";
+      if (hasTrailingComma) end = scan + 1;
+      // Strip this row's indentation and the newline that introduced it.
       while (start > 0 && /[ \t]/.test(out[start - 1] ?? "")) {
         start--;
       }
-      // Eat the preceding newline if the surrounding context still has structure.
       if (out[start - 1] === "\n") start--;
+      // Last row in the array: the separator is the comma *before* this
+      // row, so remove that instead (otherwise we would leave `,]` behind
+      // and the file would no longer parse).
+      if (!hasTrailingComma) {
+        let back = start;
+        while (back > 0 && /\s/.test(out[back - 1] ?? "")) back--;
+        if (out[back - 1] === ",") start = back - 1;
+      }
       out = out.slice(0, start) + out.slice(end);
       removed++;
     }
@@ -1737,26 +1532,39 @@ export async function dispatchRegeneration(
 /* Cached analyser payload loader (--no-analyser path)                       */
 /* ------------------------------------------------------------------------ */
 
-function loadCachedAnalyserPayload(
+/**
+ * Locate the cached analyser payload for `target`.
+ *
+ * Payloads are keyed by `source_hash` = sha256(normalised source), the same
+ * digest `eval-discover.ts` stores as `content_hash`. A payload whose
+ * `source_hash` equals the target's current `content_hash` is **fresh**: it
+ * describes the source as it is now. Any other payload for the same
+ * `target_id` is **stale** — it was produced from an earlier revision of the
+ * primitive — and is returned only so callers can report it; it must not be
+ * stamped over a drifted target, otherwise `--apply --no-analyser` would
+ * silently regress the eval file to describe code that no longer exists.
+ */
+export function loadCachedAnalyserPayload(
   hostRepoRoot: string,
   target: TargetSnapshot,
-): AnalyserPayload | null {
+): { payload: AnalyserPayload; fresh: boolean } | null {
   const cacheDir = join(hostRepoRoot, ANALYSER_CACHE_DIR_REL);
   if (!existsSync(cacheDir)) return null;
-  // The cache key is sha256(normalised source + analyser_version + model_id).
-  // Reading every file and matching by `target_id` is robust to model swaps.
+  let newestStale: { payload: AnalyserPayload; at: number } | null = null;
   for (const f of readdirSync(cacheDir)) {
     if (!f.endsWith(".json")) continue;
+    const abs = join(cacheDir, f);
     try {
-      const body = JSON.parse(
-        readFileSync(join(cacheDir, f), "utf-8"),
-      ) as AnalyserPayload;
-      if (body.target_id === target.id) return body;
+      const body = JSON.parse(readFileSync(abs, "utf-8")) as AnalyserPayload;
+      if (body.target_id !== target.id) continue;
+      if (body.source_hash === target.content_hash) return { payload: body, fresh: true };
+      const at = statSync(abs).mtimeMs;
+      if (!newestStale || at > newestStale.at) newestStale = { payload: body, at };
     } catch {
       /* skip malformed cache entries */
     }
   }
-  return null;
+  return newestStale ? { payload: newestStale.payload, fresh: false } : null;
 }
 
 /**
@@ -2044,6 +1852,8 @@ export interface RunOptions {
   repoRoot: string;
   mode: Mode;
   targetedFile?: string;
+  /** Accepted for parity with the CLI; `runUpdate` never invokes the analyser. */
+  noAnalyser?: boolean;
 }
 
 function resolveCheckExitCodeOnDrift(repoRoot: string): number {
@@ -2424,8 +2234,8 @@ async function main(): Promise<number> {
   for (const target of driftedTargets) {
     let payload: AnalyserPayload | null = null;
     if (args.noAnalyser) {
-      payload = loadCachedAnalyserPayload(REPO_ROOT, target);
-      if (!payload) {
+      const cached = loadCachedAnalyserPayload(REPO_ROOT, target);
+      if (!cached) {
         console.error(
           JSON.stringify({
             target_id: target.id,
@@ -2434,6 +2244,23 @@ async function main(): Promise<number> {
         );
         continue;
       }
+      if (!cached.fresh) {
+        // A drifted target's source has changed since the cached analysis
+        // was produced, so re-stamping from it would overwrite the eval
+        // with content describing the *old* primitive. Keep the existing
+        // eval file and tell the operator to run with `--with-analyser`.
+        console.error(
+          JSON.stringify({
+            target_id: target.id,
+            skipped: "stale_cached_analyser_payload",
+            cached_source_hash: cached.payload.source_hash,
+            current_content_hash: target.content_hash,
+            hint: "re-run with --with-analyser to refresh the analysis",
+          }),
+        );
+        continue;
+      }
+      payload = cached.payload;
     } else {
       try {
         const r = await runAnalyser(
@@ -2493,7 +2320,7 @@ async function main(): Promise<number> {
   // and append one multi-doc chunk to history (never rewrite prior entries).
   //
   // CRITICAL — targeted-scope merge: when `--target` filters `current` to a
-  // subset (e.g. `[command:sync-plugins]`), writing `current` directly to the
+  // subset (e.g. `[command:zoto-create-plugin]`), writing `current` directly to the
   // manifest truncates the full baseline to just the matched targets. Merge
   // the refreshed scope back into the original manifest baseline so untouched
   // targets retain their prior snapshot rows.

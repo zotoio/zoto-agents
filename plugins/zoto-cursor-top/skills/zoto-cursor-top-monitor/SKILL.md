@@ -29,7 +29,7 @@ instead.
 
 Marketplace installs do not build `dist/cli.js` or put `cursor-top` on PATH.
 Before launching, check `command -v cursor-top` or
-`~/.cursor/plugins/zoto-cursor-top/dist/cli.js`. When neither exists, tell the
+`~/.cursor/plugins/local/zoto-cursor-top/dist/cli.js`. When neither exists, tell the
 user to run `/zoto-cursor-top-init` once, then retry.
 
 Monorepo developers can instead run
@@ -114,7 +114,7 @@ tree stays navigable; non-matching siblings under a matched parent are hidden.
 
 Each visible row carries:
 
-- **TYPE badge** (`IDE`, `CLI`, `CLD`, `SUB`) - the surface this agent runs on.
+- **TYPE badge** (`IDE`, `CLI`, `CLD`, `SDK`, `AGENT`, `SUB`) - the surface this agent runs on. `SDK` marks headless `@cursor/sdk` agents (ephemeral `tmp-*` workspaces); `CLD` is reserved for Cloud Agents.
 - **PID** - the OS process id (blank for subagents that share their parent's
   process).
 - **AGENT label** - `main` for a root, `Task(<subagentType>)` for subagents.

@@ -372,17 +372,16 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
     return 0;
   }
 
-  const initial = await loadSnapshot({
-    ...opts,
-    activeOnly: startupPrefs.activeOnly,
-  });
-
-  if (opts.json) {
-    process.stdout.write(JSON.stringify(initial, null, 2) + "\n");
-    return 0;
-  }
-
-  if (opts.once) {
+  // For --json and --once, we must await the full snapshot before output.
+  if (opts.json || opts.once) {
+    const initial = await loadSnapshot({
+      ...opts,
+      activeOnly: startupPrefs.activeOnly,
+    });
+    if (opts.json) {
+      process.stdout.write(JSON.stringify(initial, null, 2) + "\n");
+      return 0;
+    }
     process.stdout.write(
       renderText(initial, Date.now(), {
         density: startupPrefs.density,
@@ -403,12 +402,23 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
     ? (): Promise<AgentSnapshot> => Promise.resolve(demoSnapshot(opts.logLines))
     : (): Promise<AgentSnapshot> => collector!.collect();
 
+  // Render the TUI immediately with an empty skeleton so the user sees
+  // instant feedback. The first real snapshot arrives on the next tick
+  // (~1s) rather than blocking startup for 3-5s while the collector
+  // walks the filesystem.
+  const skeleton: AgentSnapshot = {
+    capturedAt: Date.now(),
+    nodes: {},
+    roots: [],
+    diagnostics: ["Scanning for Cursor agents..."],
+  };
+
   // Alternate screen (like top/htop): fresh viewport on start, primary
   // scrollback restored on quit — no history wipe.
   const { waitUntilExit } = render(
     React.createElement(App, {
       load,
-      initial,
+      initial: skeleton,
       intervalMs: opts.intervalMs,
       themeName: startupPrefs.theme,
       density: startupPrefs.density,

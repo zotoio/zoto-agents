@@ -91,7 +91,7 @@ function normalizedDiscoveryTargets(
 
 function manifestPath(repoRoot: string): string {
   try {
-    return loadEvalPaths(repoRoot).paths.manifestPathAbs;
+    return loadEvalPaths(repoRoot).manifestPathAbs;
   } catch {
     return join(repoRoot, ".zoto", "eval-system", "manifest.yml");
   }

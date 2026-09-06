@@ -42,9 +42,12 @@ plugins/*/skills/*/evals/workspace/
 evals/_runs/
 !evals/_runs/.gitkeep
 
-# Eval analyser cache (regenerable)
+# Eval analyser cache. The analyser payloads under cache/analyser/ are
+# deliberately tracked: CI runs `eval:update:check -- --no-analyser` and
+# `--apply --no-analyser` reuses them instead of paying for an LLM call.
 .zoto/eval-system/cache/
 !.zoto/eval-system/cache/.gitkeep
+!.zoto/eval-system/cache/analyser/
 
 # Cursor local install artifacts
 .cursor/plugins/

@@ -514,10 +514,10 @@ function parseExistingStampedDoc(
   try {
     const o = JSON.parse(raw) as Record<string, unknown>;
     if (typeof o.skill_name === "string" && Array.isArray(o.evals)) {
-      return o as SkillStampedDoc;
+      return o as unknown as SkillStampedDoc;
     }
     if (Array.isArray(o.cases)) {
-      return o as StampedDoc;
+      return o as unknown as StampedDoc;
     }
   } catch {
     return null;
@@ -1804,7 +1804,16 @@ export function stampVitestPerPrimitive(
   );
 
   writeVitestIfChanged(testFile, renderedTest, state, opts.dryRun ?? false);
-  writeVitestIfChanged(configFile, configTemplate, state, opts.dryRun ?? false);
+  // `evals/vitest.config.ts` is shared with the unified LLM harness
+  // (`stamp-unified-llm-harness.ts`), whose config registers the JSON loader
+  // plugin and the `<kind>/evals/*.json` include globs. When that harness
+  // owns the file, re-stamping the static-only template here would silently
+  // drop every LLM eval from discovery — so leave it alone.
+  if (isUnifiedHarnessVitestConfig(configFile)) {
+    state.unchanged.push(configFile);
+  } else {
+    writeVitestIfChanged(configFile, configTemplate, state, opts.dryRun ?? false);
+  }
   writeVitestIfChanged(setupFile, setupTemplate, state, opts.dryRun ?? false);
   writeVitestIfChanged(
     reporterFile,
@@ -1866,6 +1875,16 @@ function ensureVitestGeneratedMarker(content: string): string {
   const firstLine = content.split("\n", 1)[0] ?? "";
   if (firstLine === expected) return content;
   return `${expected}\n${content}`;
+}
+
+/**
+ * True when an existing `vitest.config.ts` was stamped by the unified LLM
+ * harness (it imports the JSON loader plugin). Exported for tests.
+ */
+export function isUnifiedHarnessVitestConfig(configFile: string): boolean {
+  if (!existsSync(configFile)) return false;
+  const body = readFileSync(configFile, "utf-8");
+  return /vitest-json-loader|evalJsonLoader\(/.test(body);
 }
 
 function writeVitestIfChanged(

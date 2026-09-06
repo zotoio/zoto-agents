@@ -1,3 +1,8 @@
+---
+name: crux-recall
+description: "Decompress, query, and display CRUX memories in human-readable form"
+---
+
 # crux-recall
 
 Decompress, query, and display CRUX memories in human-readable form.

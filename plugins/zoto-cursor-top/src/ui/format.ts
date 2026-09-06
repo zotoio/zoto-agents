@@ -250,6 +250,8 @@ export function kindBadge(kind: AgentKind): string {
       return "CLI";
     case "cloud":
       return "CLD";
+    case "sdk":
+      return "SDK";
     case "agent":
       return "AGENT";
     case "subagent":
@@ -279,7 +281,7 @@ export function formatStatusColumn(
 
 function minKindColumnWidth(theme?: Theme): number {
   if (!theme?.decor?.kindGlyphs) return COL_MIN.kind;
-  let max = COL_MIN.kind;
+  let max: number = COL_MIN.kind;
   for (const glyph of Object.values(theme.decor.kindGlyphs)) {
     if (glyph) max = Math.max(max, displayWidth(glyph));
   }
@@ -292,7 +294,7 @@ function minStatusColumnWidth(
   rows: ReadonlyArray<{ node: AgentNode }>,
   theme?: Theme,
 ): number {
-  let max = COL_MIN.status;
+  let max: number = COL_MIN.status;
   max = Math.max(max, "STATUS".length);
   for (const row of rows) {
     max = Math.max(max, row.node.status.length);
@@ -359,7 +361,7 @@ function repoContentWidth(rows: ReadonlyArray<RowColumnLayoutInput>): number {
 }
 
 function agentContentWidth(rows: ReadonlyArray<RowColumnLayoutInput>): number {
-  let agent = COL_MIN.agent;
+  let agent: number = COL_MIN.agent;
   for (const row of rows) {
     const labelIndent = "  ".repeat(row.depth);
     const hasChildren = (row.node.children?.length ?? 0) > 0;
@@ -472,8 +474,8 @@ export function computeRowColumnLayout(
   const agentMin = COL_MIN.agent;
   const repoMin = COL_MIN.repo;
 
-  let agent = agentMin;
-  let repo = repoMin;
+  let agent: number = agentMin;
+  let repo: number = repoMin;
 
   if (flexBudget >= agentMin + repoMin) {
     const extra = flexBudget - agentMin - repoMin;

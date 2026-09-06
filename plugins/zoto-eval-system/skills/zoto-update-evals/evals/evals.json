@@ -69,7 +69,8 @@
       "id": 2,
       "prompt": "Onboarding checklist: `.zoto/eval-system/config.yml` exists but `.zoto/eval-system/manifest.yml` is absent. According to zoto-update-evals, what single abort message must the updater surface and what prior command should operators run instead?",
       "assertions": [
-        "When `.zoto/eval-system/manifest.yml` is missing, the updater aborts with the documented string `Run /z-eval-create first.`"
+        "When `.zoto/eval-system/manifest.yml` is missing, the updater aborts with the documented string `Run /z-eval-create first.`",
+        "The assistant names `/z-eval-create` as the prerequisite command and does not attempt to synthesise or write a manifest itself."
       ],
       "_meta": {
         "generated": true,

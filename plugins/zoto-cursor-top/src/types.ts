@@ -7,6 +7,13 @@ export type AgentKind =
   | "cli"
   | "cloud"
   /**
+   * A headless agent driven through `@cursor/sdk` (or any non-IDE local
+   * harness such as an eval runner). Cursor gives these an ephemeral
+   * `tmp-*` workspace slug. Distinct from `"cloud"`, which is reserved for
+   * Cloud Agents surfaced by the Cloud Agents API or an `exec-daemon` VM.
+   */
+  | "sdk"
+  /**
    * A chat / agent session hosted inside a Cursor IDE window. Distinct
    * from `"ide"` (the OS process tree) so the TUI can render a separate
    * `[AGENT]` badge and nest these rows under their owning IDE PID.

@@ -1,3 +1,8 @@
+---
+name: crux-meditate
+description: "Recursive memory-informed exploration of themes, topics, and intent through 3-level deep agent inception"
+---
+
 # crux-meditate
 
 Recursive memory-informed exploration of themes, topics, and intent through 3-level deep agent inception.

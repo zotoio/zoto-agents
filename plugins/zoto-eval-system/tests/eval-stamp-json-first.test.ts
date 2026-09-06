@@ -449,6 +449,51 @@ describe("Subtask 08 — engine/update.ts surgical-merge for non-skill JSON", ()
     expect(result.replaced).toBe(0);
     expect(result.userPreserved).toBe(1);
   }, 60_000);
+
+  it("removing tail generated rows keeps the array well-formed (no dangling comma)", async () => {
+    const { surgicallyReplaceGeneratedCases } = await import(
+      "../engine/update.ts"
+    );
+    const gen = (id: number) => ({
+      id,
+      prompt: `p${id}`,
+      assertions: [`a${id}`],
+      _meta: { generated: true },
+    });
+    const raw = JSON.stringify(
+      {
+        target_id: "skill:s",
+        cases: [
+          { id: 1, prompt: "user", assertions: ["u"], _meta: { generated: false } },
+          gen(2),
+          gen(3),
+          gen(4),
+        ],
+      },
+      null,
+      2,
+    );
+
+    // Analyser now produces one fewer case: the *last* generated row goes.
+    const one = surgicallyReplaceGeneratedCases(raw, [gen(2), gen(3)]);
+    expect(one.removed).toBe(1);
+    expect(() => JSON.parse(one.text)).not.toThrow();
+    expect(JSON.parse(one.text).cases.map((c: { id: number }) => c.id)).toEqual([1, 2, 3]);
+    expect(one.text).not.toMatch(/,\s*\]/);
+
+    // Every generated row goes; only the user row must remain.
+    const none = surgicallyReplaceGeneratedCases(raw, []);
+    expect(none.removed).toBe(3);
+    expect(() => JSON.parse(none.text)).not.toThrow();
+    expect(JSON.parse(none.text).cases.map((c: { id: number }) => c.id)).toEqual([1]);
+    expect(none.text).not.toMatch(/,\s*\]/);
+
+    // Middle removal (generated rows followed by more generated rows).
+    const mid = surgicallyReplaceGeneratedCases(raw, [gen(2)]);
+    expect(mid.removed).toBe(2);
+    expect(() => JSON.parse(mid.text)).not.toThrow();
+    expect(JSON.parse(mid.text).cases.map((c: { id: number }) => c.id)).toEqual([1, 2]);
+  }, 60_000);
 });
 
 describe("Subtask 08 — engine/runner.ts discoverCoLocatedEvalJson enumerates new co-located paths", () => {

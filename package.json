@@ -33,7 +33,7 @@
     "eval:vitest": "vitest run --config evals/vitest.config.ts",
     "eval:static:vitest": "vitest run --config evals/vitest.config.ts",
     "eval:static:jest": "NODE_OPTIONS=--experimental-vm-modules jest --config evals/jest.config.ts",
-    "eval:llm": "vitest run --config evals/vitest.config.ts",
+    "eval:llm": "ZOTO_EVAL_LLM=1 vitest run --config evals/vitest.config.ts",
     "eval:ensure-host": "tsx plugins/zoto-eval-system/scripts/eval-ensure-host.ts",
     "eval:stamp-host-layout": "tsx plugins/zoto-eval-system/scripts/stamp-host-layout.ts",
     "eval:un-eject": "tsx plugins/zoto-eval-system/scripts/eval-un-eject.ts"
@@ -58,8 +58,5 @@
     "vitest": "^4.1.5",
     "yaml": "^2.8.4"
   },
-  "packageManager": "pnpm@10.8.0",
-  "dependencies": {
-    "json-source-map": "^0.6.1"
-  }
+  "packageManager": "pnpm@10.8.0"
 }

@@ -8,7 +8,7 @@
 
 import type { AgentKind, AgentNode, AgentSnapshot } from "../types.js";
 
-export type CategoryId = "cat:ide" | "cat:cli" | "cat:cloud";
+export type CategoryId = "cat:ide" | "cat:cli" | "cat:cloud" | "cat:sdk";
 
 export interface CategoryInfo {
   id: CategoryId;
@@ -40,6 +40,13 @@ export const CATEGORIES: CategoryInfo[] = [
     kinds: ["cloud"],
     collapsedByDefault: true,
   },
+  {
+    id: "cat:sdk",
+    label: "SDK Agents",
+    badge: "SDK",
+    kinds: ["sdk"],
+    collapsedByDefault: true,
+  },
 ];
 
 export function isCategoryId(id: string): id is CategoryId {
@@ -63,6 +70,7 @@ export function groupByCategory(snapshot: AgentSnapshot): AgentSnapshot {
     "cat:ide": [],
     "cat:cli": [],
     "cat:cloud": [],
+    "cat:sdk": [],
   };
 
   const newRoots: string[] = [];
@@ -114,6 +122,7 @@ export function categoryCounts(snapshot: AgentSnapshot): Record<CategoryId, numb
     "cat:ide": 0,
     "cat:cli": 0,
     "cat:cloud": 0,
+    "cat:sdk": 0,
   };
   for (const node of Object.values(snapshot.nodes)) {
     if (isCategoryId(node.id)) continue;

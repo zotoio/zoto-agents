@@ -1,3 +1,8 @@
+---
+name: crux-remember
+description: "Store ad-hoc memories outside of spec workflows. These memories participate in standard consolidation during REM sleep"
+---
+
 # crux-remember
 
 Store ad-hoc memories outside of spec workflows. These memories participate in standard consolidation during REM sleep.

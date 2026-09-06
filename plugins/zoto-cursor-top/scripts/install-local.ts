@@ -2,8 +2,11 @@
 /**
  * Install the cursor-top plugin locally for development and testing.
  *
- * Copies plugin files to ~/.cursor/plugins/zoto-cursor-top/, registers the
- * plugin in ~/.claude/ config files so Cursor discovers it on next restart,
+ * Copies plugin files to ~/.cursor/plugins/local/zoto-cursor-top/ (the
+ * shared target for every zoto plugin's `install-local`), removes any legacy
+ * copy at ~/.cursor/plugins/zoto-cursor-top/ so Cursor does not load the
+ * plugin twice, registers the plugin in ~/.claude/ config files so Cursor
+ * discovers it on next restart,
  * and symlinks the `cursor-top` binary into a directory on PATH (defaults
  * to ~/.local/bin) so the command works in any terminal and inside Cursor
  * agent shells.
@@ -42,7 +45,10 @@ const REPO_ROOT = resolve(import.meta.dirname, "..");
 const DIST_ENTRY = join(REPO_ROOT, "dist", "cli.js");
 const BIN_ENTRY = join(REPO_ROOT, "bin", "cursor-top.mjs");
 const CURSOR_PLUGINS_DIR = join(homedir(), ".cursor", "plugins");
-const INSTALL_DIR = join(CURSOR_PLUGINS_DIR, PLUGIN_NAME);
+/** Canonical local-install target shared by every zoto plugin. */
+const INSTALL_DIR = join(CURSOR_PLUGINS_DIR, "local", PLUGIN_NAME);
+/** Pre-unification target; removed on install so the plugin isn't loaded twice. */
+const LEGACY_INSTALL_DIR = join(CURSOR_PLUGINS_DIR, PLUGIN_NAME);
 const INSTALLED_BIN_ENTRY = join(INSTALL_DIR, "bin", "cursor-top.mjs");
 
 const CLAUDE_DIR = join(homedir(), ".claude");
@@ -223,11 +229,22 @@ function registerPlugin(): void {
   writeJson(CLAUDE_SETTINGS_FILE, settings);
 }
 
+function removeLegacyInstall(): void {
+  if (!existsSync(LEGACY_INSTALL_DIR)) return;
+  if (dryRun) {
+    console.log(`  [dry-run] would remove legacy install ${LEGACY_INSTALL_DIR}`);
+    return;
+  }
+  rmSync(LEGACY_INSTALL_DIR, { recursive: true });
+  console.log(`  Removed legacy install ${LEGACY_INSTALL_DIR} (now lives under plugins/local/).`);
+}
+
 console.log(`Installing ${PLUGIN_NAME} locally...`);
 console.log(`  Source: ${REPO_ROOT}`);
 console.log(`  Target: ${INSTALL_DIR}`);
 
 ensureDistBuilt();
+removeLegacyInstall();
 copyPluginFiles();
 console.log("  Plugin files copied.");
 

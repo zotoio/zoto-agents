@@ -659,14 +659,26 @@ function buildTranscriptRecordSync(
   let status: AgentStatus = "done";
   if (ageMs <= STATUS_RUNNING_MS) status = "running";
   else if (ageMs <= STATUS_IDLE_MS) status = "idle";
-  // Subs are always called "Task"; parent transcripts are "chat" to
-  // hint that the row represents a user-driven IDE chat session
-  // (rendered with the `[AGENT]` badge).
-  const defaultLabel = input.kind === "subagent" ? "Task" : "chat";
+
+  // Determine the effective kind: subagents keep their kind; parent
+  // agents use workspace-slug heuristics to distinguish IDE chats from
+  // headless SDK-driven agents.
+  let effectiveKind = input.kind;
+  if (input.kind !== "subagent") {
+    effectiveKind = inferKindFromWorkspaceSlug(workspaceSlug);
+  }
+
+  // Subs are always called "Task"; parent transcripts label depends on source.
+  const defaultLabel = input.kind === "subagent"
+    ? "Task"
+    : effectiveKind === "sdk"
+      ? "sdk agent"
+      : "chat";
+
   return {
     id: input.id,
     parentId: input.parentId,
-    kind: input.kind,
+    kind: effectiveKind,
     pid: null,
     label: defaultLabel,
     title: "",
@@ -686,5 +698,25 @@ function extractWorkspaceSlug(file: string): string | null {
   const idx = parts.lastIndexOf("agent-transcripts");
   if (idx <= 0) return null;
   return parts[idx - 1] ?? null;
+}
+
+/**
+ * Infer the agent kind from the workspace slug pattern. Cursor uses
+ * consistent naming for workspace directories:
+ *
+ *   * `home-<user>-<path>` → IDE workspace (derived from local path)
+ *   * `tmp-*`              → headless `@cursor/sdk` agent whose cwd is an
+ *                             ephemeral `/tmp/…` directory (eval runners,
+ *                             scripted agents). These are local processes,
+ *                             NOT Cloud Agents — Cloud Agents are surfaced
+ *                             by `cloud-api.ts` and `exec-daemon` VMs.
+ *   * Numeric-only slugs   → regular workspace IDs (IDE)
+ *
+ * Falls back to `"agent"` (IDE) when the pattern is ambiguous.
+ */
+export function inferKindFromWorkspaceSlug(slug: string | null): AgentKind {
+  if (!slug) return "agent";
+  if (/^tmp-/i.test(slug)) return "sdk";
+  return "agent";
 }
 

@@ -29,9 +29,9 @@ zoto-agents/
 ├── .cursor-plugin/
 │   └── marketplace.json          # Registers all plugins for the marketplace
 ├── .cursor/
-│   ├── hooks.json                # Dev-time hooks (sync plugins on edit/session)
-│   ├── hooks/sync-plugins.mjs    # Syncs plugin sources to ~/.cursor/plugins/local/
-│   └── commands/sync-plugins.md  # Manual sync command
+│   ├── hooks.json                # Dev-time hooks (CRUX compression, memory changes)
+│   ├── commands/install-local-plugins.md   # Install plugins locally (multiselect)
+│   └── commands/uninstall-local-plugins.md # Remove local plugins (multiselect)
 ├── scripts/
 │   ├── validate-template.mjs     # Official Cursor template validation
 │   └── validate-skills.mjs       # Agent Skills spec validation via skills-ref
@@ -290,17 +290,14 @@ pnpm test
 
 ## Local Development Workflow
 
-### Plugin Sync
-
-The monorepo uses hooks (`.cursor/hooks.json`) to auto-sync plugin sources to `~/.cursor/plugins/local/` on session start and file edit. Manual sync:
-
-```bash
-node .cursor/hooks/sync-plugins.mjs --full
-```
-
-The sync copies syncable directories (`agents`, `commands`, `skills`, `rules`, `hooks`, `docs`, `templates`, `.cursor-plugin`) and standalone files (`README.md`, `LICENSE`, `CHANGELOG.md`).
-
 ### Local Install/Uninstall
+
+Use the slash commands for interactive multiselect plugin management:
+
+- `/install-local-plugins` — discover and install selected plugins to `~/.cursor/plugins/local/`
+- `/uninstall-local-plugins` — remove selected locally-installed plugins
+
+Or per-plugin from the CLI:
 
 ```bash
 cd plugins/<name> && pnpm install-local    # symlink to ~/.cursor/plugins/local/

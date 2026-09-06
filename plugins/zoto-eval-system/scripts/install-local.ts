@@ -2,11 +2,11 @@
 /**
  * Install the Eval System plugin locally for development and testing.
  *
- * Copies plugin files to every Cursor local install location:
- *   - ~/.cursor/plugins/zoto-eval-system/
- *   - ~/.cursor/plugins/local/zoto-eval-system/
- *
- * Registers the plugin in ~/.claude/ config files so Cursor discovers it.
+ * Copies plugin files to ~/.cursor/plugins/local/zoto-eval-system/ (the
+ * shared target for every zoto plugin's `install-local`), removes any legacy
+ * copy at ~/.cursor/plugins/zoto-eval-system/ so Cursor does not load the
+ * plugin's rules twice, and registers the plugin in ~/.claude/ config files
+ * so Cursor discovers it.
  *
  * Usage:
  *   pnpm install-local
@@ -32,12 +32,10 @@ const PLUGIN_ID = `${PLUGIN_NAME}@local`;
 const REPO_ROOT = resolve(import.meta.dirname, "..");
 
 const CURSOR_PLUGINS_DIR = join(homedir(), ".cursor", "plugins");
-/** Primary install dir (install-local / dev dogfood). */
-const INSTALL_DIR = join(CURSOR_PLUGINS_DIR, PLUGIN_NAME);
-/** Nested local bundle dir — also scanned by resolvePluginRoot(); keep in sync. */
-const LOCAL_BUNDLE_DIR = join(CURSOR_PLUGINS_DIR, "local", PLUGIN_NAME);
-
-const INSTALL_TARGETS = [INSTALL_DIR, LOCAL_BUNDLE_DIR] as const;
+/** Canonical local-install target shared by every zoto plugin; scanned by resolvePluginRoot(). */
+const INSTALL_DIR = join(CURSOR_PLUGINS_DIR, "local", PLUGIN_NAME);
+/** Pre-unification target; removed on install so the plugin isn't loaded twice. */
+const LEGACY_INSTALL_DIR = join(CURSOR_PLUGINS_DIR, PLUGIN_NAME);
 
 const CLAUDE_DIR = join(homedir(), ".claude");
 const CLAUDE_PLUGINS_FILE = join(CLAUDE_DIR, "plugins", "installed_plugins.json");
@@ -164,15 +162,24 @@ function registerPlugin(): void {
   writeJson(CLAUDE_SETTINGS_FILE, settings);
 }
 
+function removeLegacyInstall(): void {
+  if (!existsSync(LEGACY_INSTALL_DIR)) return;
+  if (dryRun) {
+    console.log(`  [dry-run] would remove legacy install ${LEGACY_INSTALL_DIR}`);
+    return;
+  }
+  rmSync(LEGACY_INSTALL_DIR, { recursive: true });
+  console.log(`  Removed legacy install ${LEGACY_INSTALL_DIR} (now lives under plugins/local/).`);
+}
+
 console.log(`Installing ${PLUGIN_NAME} locally...`);
 console.log(`  Source: ${REPO_ROOT}`);
+console.log(`  Target: ${INSTALL_DIR}`);
 
-for (const target of INSTALL_TARGETS) {
-  console.log(`  Target: ${target}`);
-  copyPluginFiles(target);
-  console.log("  Plugin files copied.");
-  installPluginDependencies(target);
-}
+removeLegacyInstall();
+copyPluginFiles(INSTALL_DIR);
+console.log("  Plugin files copied.");
+installPluginDependencies(INSTALL_DIR);
 
 registerPlugin();
 console.log("  Plugin registered in ~/.claude/ config.");

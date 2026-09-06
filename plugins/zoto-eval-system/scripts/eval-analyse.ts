@@ -549,7 +549,8 @@ function hooksJsonHandlers(
   for (const phase of phases) {
     const arr = hooks[phase];
     if (!Array.isArray(arr)) continue;
-    for (const row of arr) {
+    for (const rawRow of arr) {
+      const row = (rawRow ?? {}) as Record<string, unknown>;
       const cmd =
         typeof row.command === "string" ? row.command : "";
       const desc =
@@ -1018,10 +1019,8 @@ export function analyse(
   const operates_on = heuristicPaths(fullText);
   const buckets = sideEffectBuckets(fullText, operates_on);
 
-  const suggested_cases =
-    resolved.kind !== "hook"
-      ? defaultTwoCases(resolved, fullText, fm, buckets, operates_on)
-      : [];
+  // Hooks returned above, so every remaining kind gets the default pair.
+  const suggested_cases = defaultTwoCases(resolved, fullText, fm, buckets, operates_on);
 
   return {
     target_id: resolved.targetId,

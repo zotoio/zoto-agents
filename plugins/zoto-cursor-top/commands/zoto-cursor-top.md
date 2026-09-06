@@ -84,7 +84,7 @@ Marketplace installs do **not** run the build step automatically.
 
 **Initialisation gate:** before opening a terminal, check whether `cursor-top`
 resolves on PATH (`command -v cursor-top` or platform equivalent) **or**
-`~/.cursor/plugins/zoto-cursor-top/dist/cli.js` exists. If **neither** is true,
+`~/.cursor/plugins/local/zoto-cursor-top/dist/cli.js` exists. If **neither** is true,
 **stop** and tell the user exactly:
 
 > Cursor Top CLI is not installed. Run `/zoto-cursor-top-init` first to build

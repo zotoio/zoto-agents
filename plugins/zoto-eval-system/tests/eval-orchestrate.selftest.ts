@@ -144,7 +144,7 @@ async function run(): Promise<void> {
       assert(a.full === true, "--full survives the legacy flags");
       assert(a.model === "opus-4-6", "--model survives the legacy flags");
       assert(
-        !("strategy" in (a as Record<string, unknown>)),
+        !("strategy" in (a as unknown as Record<string, unknown>)),
         "OrchestrateArgs must not expose strategy",
       );
       const joined = captured.join("");
@@ -191,11 +191,11 @@ async function run(): Promise<void> {
       assert(cfg.retention === 7, `retention 7, got ${cfg.retention}`);
       assert(typeof cfg.modelId === "string", "modelId");
       assert(
-        !("llmStrategy" in (cfg as Record<string, unknown>)),
+        !("llmStrategy" in (cfg as unknown as Record<string, unknown>)),
         "ResolvedConfig must not expose llmStrategy after subtask 03",
       );
       assert(
-        !("llmCodeFramework" in (cfg as Record<string, unknown>)),
+        !("llmCodeFramework" in (cfg as unknown as Record<string, unknown>)),
         "ResolvedConfig must not expose llmCodeFramework after subtask 03",
       );
     } finally {

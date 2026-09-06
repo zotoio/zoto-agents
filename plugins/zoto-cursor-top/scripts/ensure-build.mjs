@@ -1,5 +1,5 @@
 /**
- * Run `pnpm run build` for a plugin package before sync/install copies dist/.
+ * Run `pnpm run build` for a plugin package before install-local copies dist/.
  */
 
 import { execSync } from "node:child_process";

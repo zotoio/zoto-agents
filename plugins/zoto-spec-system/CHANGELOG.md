@@ -12,6 +12,7 @@ All notable changes to the Spec System plugin will be documented in this file.
 
 ### Fixed
 - Local Spec System installs now copy the runtime `scripts/` and `src/` directories so live-status CLIs referenced by the installed plugin are present.
+- `install-local` removes a legacy `~/.cursor/plugins/zoto-spec-system/` copy (left by older installers) and `uninstall-local` removes both that path and `~/.cursor/plugins/local/zoto-spec-system/`, so the plugin can never be loaded twice.
 
 ### Changed
 - **`/z-spec-create`** — Enforces the `zoto-create-spec` requirement gate before `{specsDir}/` writes (host-led minimum clarifiers or generator `needs_user_input` + resume); mandates spawning **`zoto-spec-generator`** with a reasoning-class model ladder (Opus/thinking slugs).

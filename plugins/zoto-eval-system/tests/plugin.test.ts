@@ -1014,7 +1014,7 @@ describe("Fixture repo — update semantics", () => {
 
     const manifestPath = join(tmp, ".zoto", "eval-system", "manifest.yml");
     const mfDoc = YAML.parse(readFileSync(manifestPath, "utf-8")) as {
-      targets?: Array<{ id?: string }>;
+      targets?: Array<Record<string, unknown> & { id?: string }>;
     };
     mfDoc.targets = mfDoc.targets ?? [];
     mfDoc.targets.push({
@@ -1052,7 +1052,7 @@ describe("Fixture repo — update semantics", () => {
 
     const manifestPath = join(tmp, ".zoto", "eval-system", "manifest.yml");
     const mfDoc = YAML.parse(readFileSync(manifestPath, "utf-8")) as {
-      targets?: Array<{ id?: string }>;
+      targets?: Array<Record<string, unknown> & { id?: string }>;
     };
     mfDoc.targets = mfDoc.targets ?? [];
     mfDoc.targets.push({
@@ -1333,7 +1333,7 @@ describe("stampLeanLayout", () => {
       expect(existsSync(join(evalHome, "scripts", "eval-discover.ts"))).toBe(false);
       expect(existsSync(join(evalHome, "package.json"))).toBe(true);
 
-      const pkg = loadJson(join(evalHome, "package.json"));
+      const pkg = loadJson(join(evalHome, "package.json")) as { scripts?: Record<string, string> };
       expect(pkg.scripts?.eval).toContain("eval-bridge.ts");
       expect(pkg.scripts?.["eval:full"]).toContain("eval-bridge.ts");
       expect(pkg.scripts?.["eval:discover"]).toBeUndefined();

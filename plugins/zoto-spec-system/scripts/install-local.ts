@@ -28,7 +28,10 @@ const PLUGIN_ID = `${PLUGIN_NAME}@local`;
 const REPO_ROOT = resolve(import.meta.dirname, "..");
 
 const CURSOR_PLUGINS_DIR = join(homedir(), ".cursor", "plugins", "local");
+/** Canonical local-install target shared by every zoto plugin. */
 const INSTALL_DIR = join(CURSOR_PLUGINS_DIR, PLUGIN_NAME);
+/** Pre-unification target used by older installers; removed so the plugin isn't loaded twice. */
+const LEGACY_INSTALL_DIR = join(homedir(), ".cursor", "plugins", PLUGIN_NAME);
 
 const CLAUDE_DIR = join(homedir(), ".claude");
 const CLAUDE_PLUGINS_FILE = join(CLAUDE_DIR, "plugins", "installed_plugins.json");
@@ -127,10 +130,21 @@ function registerPlugin(): void {
   writeJson(CLAUDE_SETTINGS_FILE, settings);
 }
 
+function removeLegacyInstall(): void {
+  if (!existsSync(LEGACY_INSTALL_DIR)) return;
+  if (dryRun) {
+    console.log(`  [dry-run] would remove legacy install ${LEGACY_INSTALL_DIR}`);
+    return;
+  }
+  rmSync(LEGACY_INSTALL_DIR, { recursive: true });
+  console.log(`  Removed legacy install ${LEGACY_INSTALL_DIR} (now lives under plugins/local/).`);
+}
+
 console.log(`Installing ${PLUGIN_NAME} locally...`);
 console.log(`  Source: ${REPO_ROOT}`);
 console.log(`  Target: ${INSTALL_DIR}`);
 
+removeLegacyInstall();
 copyPluginFiles();
 console.log("  Plugin files copied.");
 

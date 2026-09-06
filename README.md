@@ -59,7 +59,9 @@ pnpm validate
 
 ### Local Testing
 
-Install a plugin locally so Cursor discovers it on next restart:
+From a Cursor chat in this repo, `/install-local-plugins` and
+`/uninstall-local-plugins` present a multiselect over the monorepo plugins and
+run each plugin's own install/uninstall script. Per plugin from a terminal:
 
 ```bash
 cd plugins/zoto-spec-system
@@ -73,7 +75,11 @@ cd plugins/zoto-spec-system
 pnpm uninstall-local
 ```
 
-Both scripts support `--dry-run` to preview changes without writing.
+Every plugin installs to `~/.cursor/plugins/local/<name>/` and registers
+`<name>@local` in `~/.claude/plugins/installed_plugins.json`; the installer also
+removes any legacy `~/.cursor/plugins/<name>/` copy so rules are not loaded
+twice. Both scripts support `--dry-run` to preview changes without writing.
+Reload the Cursor window after installing or removing.
 
 ### Adding a New Plugin
 
@@ -91,16 +97,27 @@ zoto-agents/
 ├── .cursor-plugin/
 │   └── marketplace.json      # Marketplace manifest (registers all plugins)
 ├── .cursor/
-│   └── .gitignore
+│   ├── agents/               # Monorepo dev agents (zoto-plugin-manager, crux-*)
+│   ├── commands/             # /zoto-create-plugin, /install-local-plugins, /uninstall-local-plugins, /crux-*
+│   ├── skills/               # zoto-create-plugin + crux-* skills
+│   ├── rules/                # Always-on workspace rules (CRUX, plugin conventions)
+│   ├── hooks/                # CRUX compression / memory hooks (see hooks.json)
+│   └── hooks.json
+├── .zoto/
+│   └── eval-system/          # Eval-system config, manifest, analyser cache (workspace-local)
 ├── scripts/
-│   └── validate-template.mjs # Official Cursor template validation
+│   ├── validate-template.mjs # Official Cursor template validation
+│   └── validate-skills.mjs   # Agent Skills spec validation
+├── evals/                    # Unified eval harness (vitest.config.ts, scenarios, static tests)
 ├── docs/
 │   └── add-a-plugin.md       # Guide for adding new plugins
 ├── package.json              # Workspace root
 ├── pnpm-workspace.yaml       # pnpm workspace definition
 ├── tsconfig.base.json        # Shared TypeScript config
 ├── plugins/
-│   └── zoto-spec-system/
+│   ├── zoto-cursor-top/      # htop-style monitor for every Cursor agent on the machine
+│   ├── zoto-eval-system/     # Eval generation / execution / drift detection
+│   └── zoto-spec-system/     # Structured engineering specs (shown expanded)
 │       ├── .cursor-plugin/   # Plugin manifest (plugin.json)
 │       ├── agents/           # Agent definitions (markdown + frontmatter)
 │       ├── assets/           # Logo and static assets

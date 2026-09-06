@@ -1,11 +1,51 @@
 import { describe, expect, it } from "vitest";
 import {
   discoverCursorProcesses,
+  extractBinaryPath,
   isCursorProcess,
   parseEtime,
   parseUnixPs,
   parseWindowsPs,
 } from "../src/discovery/processes.js";
+
+const MAC_GPU_HELPER =
+  "/Applications/Cursor.app/Contents/Frameworks/Cursor Helper (GPU).app/Contents/MacOS/Cursor Helper (GPU)";
+const MAC_RENDERER_HELPER =
+  "/Applications/Cursor.app/Contents/Frameworks/Cursor Helper.app/Contents/MacOS/Cursor Helper";
+
+describe("extractBinaryPath", () => {
+  it("returns the whole command when there are no arguments", () => {
+    expect(extractBinaryPath("/usr/share/cursor/cursor")).toBe("/usr/share/cursor/cursor");
+  });
+  it("splits at the first flag for simple paths", () => {
+    expect(extractBinaryPath("/usr/share/cursor/cursor --type=renderer --foo")).toBe(
+      "/usr/share/cursor/cursor",
+    );
+    expect(extractBinaryPath("/usr/local/bin/cursor-agent --resume foo")).toBe(
+      "/usr/local/bin/cursor-agent",
+    );
+  });
+  it("keeps macOS bundle paths that contain spaces intact", () => {
+    expect(extractBinaryPath(`${MAC_GPU_HELPER} --type=gpu-process --field-trial`)).toBe(
+      MAC_GPU_HELPER,
+    );
+    expect(extractBinaryPath(`${MAC_RENDERER_HELPER} --type=renderer`)).toBe(
+      MAC_RENDERER_HELPER,
+    );
+    expect(extractBinaryPath(MAC_RENDERER_HELPER)).toBe(MAC_RENDERER_HELPER);
+  });
+  it("keeps Windows paths with spaces intact when they end in .exe", () => {
+    expect(
+      extractBinaryPath("C:\\Program Files\\cursor\\Cursor.exe --type=utility --lang=en-US"),
+    ).toBe("C:\\Program Files\\cursor\\Cursor.exe");
+  });
+  it("falls back to the first token for interpreter-style commands", () => {
+    expect(extractBinaryPath("/usr/bin/node /opt/app/server.js --port 80")).toBe(
+      "/usr/bin/node",
+    );
+    expect(extractBinaryPath("  /proc/self/exe --type=utility")).toBe("/proc/self/exe");
+  });
+});
 
 describe("parseEtime", () => {
   it("parses pure seconds", () => {
@@ -54,6 +94,21 @@ describe("isCursorProcess", () => {
   });
   it("does not match unrelated processes", () => {
     expect(isCursorProcess("/usr/bin/python3 -m http.server")).toBe(false);
+  });
+  it("matches macOS helper binaries whose path contains spaces", () => {
+    expect(isCursorProcess(`${MAC_GPU_HELPER} --type=gpu-process`)).toBe(true);
+    expect(isCursorProcess(`${MAC_RENDERER_HELPER} --type=renderer`)).toBe(true);
+  });
+  it("matches Linux Electron children and /proc/self/exe workers", () => {
+    expect(isCursorProcess("/usr/share/cursor/cursor --type=utility --lang=en-US")).toBe(true);
+    expect(
+      isCursorProcess(
+        "/proc/self/exe --type=utility --user-data-dir=/home/u/.config/Cursor --lang=en-US",
+      ),
+    ).toBe(true);
+  });
+  it("does not match an unrelated process just because an argument mentions cursor", () => {
+    expect(isCursorProcess("/usr/bin/python3 /opt/wrap.py --cursor-electron-mode")).toBe(false);
   });
 });
 

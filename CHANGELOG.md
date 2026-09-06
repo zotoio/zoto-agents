@@ -7,6 +7,28 @@ here. Per-plugin changes live in each plugin's own `CHANGELOG.md`:
 - [`plugins/zoto-spec-system/CHANGELOG.md`](plugins/zoto-spec-system/CHANGELOG.md)
 - [`plugins/zoto-cursor-top/CHANGELOG.md`](plugins/zoto-cursor-top/CHANGELOG.md)
 
+## [unreleased] — 2026-09-06
+
+### Changed — local plugin management
+
+- **Removed the `sync-plugins` hook pipeline** (`.cursor/hooks/sync-plugins.mjs`, the `sessionStart` / `afterFileEdit` / `stop` hooks in `.cursor/hooks.json`, `/sync-plugins`, and its eval). Plugins are no longer mirrored to `~/.cursor/plugins/local/` on every edit.
+- **New `/install-local-plugins` and `/uninstall-local-plugins` commands** — interactive multiselect over the monorepo plugins that run each plugin's own `install-local` / `uninstall-local` script. Every plugin now installs to the single shared target **`~/.cursor/plugins/local/<name>/`** and cleans up the legacy `~/.cursor/plugins/<name>/` copy (see each plugin's `CHANGELOG.md`).
+
+### Fixed
+
+- Eval-system discovery could not see co-located `<kind>/evals/<name>.json` files, so `eval:update --check` reported "no eval coverage" for every new command/agent/hook. See [`plugins/zoto-eval-system/CHANGELOG.md`](plugins/zoto-eval-system/CHANGELOG.md).
+- cursor-top process classification on Linux/macOS/Windows and the `SDK` vs `CLD` agent distinction. See [`plugins/zoto-cursor-top/CHANGELOG.md`](plugins/zoto-cursor-top/CHANGELOG.md).
+- **LLM evals could bill without `--full`.** Any `vitest run --config evals/vitest.config.ts` executed paid LLM cases whenever `CURSOR_API_KEY` was in `.env`. LLM cases now require the explicit `ZOTO_EVAL_LLM=1` opt-in that only `eval:full` / `eval:llm` set. See the eval-system CHANGELOG.
+- `eval:update --apply --no-analyser` no longer stamps stale cached analysis over drifted targets, and surgical case removal no longer leaves invalid JSON (`,]`).
+- `tsc --noEmit` is clean in all three plugins (was 19 / 78 / 2 errors); `zoto-eval-system` and `zoto-spec-system` tsconfigs now match their tsx-only runtime (`ESNext` / `Bundler`, `allowImportingTsExtensions`, `noEmit`). Fixed a masked runtime bug on the way: `loadEvalPaths(...).paths.manifestPathAbs` always threw and fell back to the default manifest path.
+- cursor-top unit tests no longer call the live Cloud Agents API when `CURSOR_API_KEY` is exported.
+
+### Housekeeping
+
+- Untracked force-added artefacts: 8 files under `evals/_runs/` and the dangling `.zoto/eval-system/bin/cursor-top` symlink. Analyser cache payloads stay tracked on purpose (CI `--no-analyser`) and `.gitignore` now says so.
+- Removed the unreferenced `tsconfig.tests.json` and the duplicate root `json-source-map` dependency.
+- The seven vendored `/crux-*` commands now carry `name` / `description` frontmatter per the plugin conventions rule.
+
 ## [unreleased] — 2026-05-27
 
 ### BREAKING — Evals JSON-first migration

@@ -1,3 +1,8 @@
+---
+name: crux-forget
+description: "Remove memories from the CRUX memory corpus"
+---
+
 # crux-forget
 
 Remove memories from the CRUX memory corpus.

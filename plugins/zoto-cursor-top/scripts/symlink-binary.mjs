@@ -1,8 +1,8 @@
 /**
  * Create or refresh ~/.local/bin/cursor-top → installed binary wrapper.
  *
- * Shared by install-local.ts (marketplace/init install) and sync-plugins.mjs
- * (monorepo dev sync to ~/.cursor/plugins/local/).
+ * Used by install-local.ts, which is what both `/zoto-cursor-top-init` and the
+ * monorepo `/install-local-plugins` command run (target: ~/.cursor/plugins/local/).
  */
 
 import { existsSync, lstatSync, mkdirSync, symlinkSync, unlinkSync } from "node:fs";

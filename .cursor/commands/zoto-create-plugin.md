@@ -58,4 +58,5 @@ plugins/<plugin-name>/
 
 - `zoto-plugin-manager` agent — plugin creation and management specialist
 - `zoto-create-plugin` skill — guided plugin scaffolding workflow
-- `/sync-plugins` — sync plugin sources to local Cursor installation
+- `/install-local-plugins` — install plugin sources to local Cursor installation
+- `/uninstall-local-plugins` — remove locally-installed plugins

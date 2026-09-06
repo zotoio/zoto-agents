@@ -196,7 +196,10 @@ describe("spec-aggregator CLI", () => {
     writeFileSync(subPath, YAML.stringify(yml, { lineWidth: 0 }), "utf-8");
 
     await delay(500);
-    const y2 = YAML.parse(readFileSync(join(specDir, "status.yml"), "utf-8")) as { updated_at: string };
+    const y2 = YAML.parse(readFileSync(join(specDir, "status.yml"), "utf-8")) as {
+      updated_at: string;
+      events?: { kind: string }[];
+    };
 
     await stopAggregator(child);
 

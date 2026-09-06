@@ -87,9 +87,9 @@ describe("createCollector", () => {
     // ps payload with four roots after discovery filtering:
     //   * pid:100 — Cursor IDE root + its Cursor Helper child
     //   * pid:300 — cursor-agent CLI (kind: cli, must survive)
-    //   * pid:900 — wrapper script that hits the permissive 4th bin matcher
-    //               (`\bcursor\b...electron`) but lands at kind:"unknown"
-    //               because none of the IDE / CLI / Cloud classifiers match.
+    //   * pid:900 — a node process with --user-data-dir pointing at Cursor
+    //               (discovered via fullcmd matchers) but whose binary is
+    //               /usr/bin/node and doesn't classify as IDE/CLI/Cloud.
     //               Must be pruned along with any descendants.
     const collector = createCollector({
       cursorOnly: true,
@@ -98,8 +98,8 @@ describe("createCollector", () => {
           "100 1 02:00 /Applications/Cursor.app/Contents/MacOS/Cursor",
           "200 100 01:00 /Applications/Cursor.app/Contents/Frameworks/Cursor Helper.app/Contents/MacOS/Cursor Helper",
           "300 1 00:30 /usr/local/bin/cursor-agent --resume foo",
-          "900 1 00:10 /bin/python3 /opt/wrap.py --cursor-electron-mode",
-          "910 900 00:05 /bin/python3 --cursor-electron-debug",
+          "900 1 00:10 /usr/bin/node /opt/unrelated/server.js --user-data-dir=/tmp/Cursor",
+          "910 900 00:05 /usr/bin/node /opt/unrelated/worker.js --user-data-dir=/tmp/Cursor",
         ].join("\n"),
       fs: emptyFs,
       platform: "linux",

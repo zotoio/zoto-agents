@@ -576,20 +576,16 @@ function collectAllEvalJson(repoRoot: string): string[] {
       }
     }
   }
-  // central evals
+  // central evals — co-located `<kind>/evals/*.json` (canonical since the
+  // 2026-05-27 JSON-first migration) plus the legacy `evals/<kind>/*.json`.
   const kinds = ["commands", "agents", "hooks"] as const;
   for (const k of kinds) {
-    const cd = join(repoRoot, ".cursor", "evals", k);
-    if (existsSync(cd)) {
-      for (const fn of readdirSync(cd)) {
-        if (fn.endsWith(".json")) out.push(join(cd, fn));
-      }
-    }
-    for (const pd of pluginDirs(repoRoot)) {
-      const cd2 = join(pd, "evals", k);
-      if (existsSync(cd2)) {
-        for (const fn of readdirSync(cd2)) {
-          if (fn.endsWith(".json")) out.push(join(cd2, fn));
+    const roots = [join(repoRoot, ".cursor"), ...pluginDirs(repoRoot)];
+    for (const root of roots) {
+      for (const cd of [join(root, k, "evals"), join(root, "evals", k)]) {
+        if (!existsSync(cd)) continue;
+        for (const fn of readdirSync(cd)) {
+          if (fn.endsWith(".json")) out.push(join(cd, fn));
         }
       }
     }

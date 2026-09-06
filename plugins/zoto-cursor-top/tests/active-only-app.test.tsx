@@ -16,10 +16,18 @@ function snapshotWithDoneAgent(): AgentSnapshot {
     nodes: {
       "done-root": {
         id: "done-root",
+        parentId: null,
         kind: "ide",
+        pid: null,
         label: "finished chat",
+        title: "",
+        model: null,
+        repo: null,
+        startedAt: 0,
         status: "done",
         recentLogs: ["done line"],
+        logSource: null,
+        tokenUsage: null,
         children: [],
       },
     },

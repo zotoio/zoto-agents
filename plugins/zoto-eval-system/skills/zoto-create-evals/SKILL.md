@@ -86,9 +86,11 @@ pnpm run eval:stamp -- <target-id> [--dry-run]
 
 | Kind | Plugin assets | Workspace `.cursor` assets |
 |------|----------------|---------------------------|
-| command | `plugins/<plugin>/evals/commands/<name>.json` | `.cursor/evals/commands/<name>.json` |
-| agent | `plugins/<plugin>/evals/agents/<name>.json` | `.cursor/evals/agents/<name>.json` |
-| hook | `plugins/<plugin>/evals/hooks/<plugin>.json` | `.cursor/evals/hooks/hooks.json` (**`hook:cursor-workspace`**) |
+| command | `plugins/<plugin>/commands/evals/<name>.json` | `.cursor/commands/evals/<name>.json` |
+| agent | `plugins/<plugin>/agents/evals/<name>.json` | `.cursor/agents/evals/<name>.json` |
+| hook | `plugins/<plugin>/hooks/evals/hooks.json` | `.cursor/hooks/evals/hooks.json` (**`hook:cursor-workspace`**) |
+
+Eval files are **co-located** with their primitive (`<kind>/evals/<name>.json`, the same layout `evals/vitest.config.ts` globs). Legacy `<root>/evals/<kind>s/` paths from before the 2026-05-27 JSON-first migration are accepted as a fallback only.
 
 Committed JSON MUST include **`fixtures`** + **`expected_filesystem`** blocks for realism; **`eval-stamp`** materialises `from:` paths and preserves user-authored `_meta.generated: false` cases.
 

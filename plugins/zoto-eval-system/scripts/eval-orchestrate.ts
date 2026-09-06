@@ -590,11 +590,16 @@ export async function orchestrate(
     return null;
   })();
   const llmEnabled = runLlm && apiKeyPresent;
+  // The unified Vitest run hosts both backends. LLM cases only execute when
+  // the child sees ZOTO_EVAL_LLM=1, so a static-only `pnpm run eval` can
+  // never bill just because CURSOR_API_KEY happens to be in `.env`.
+  if (llmEnabled) childEnv.ZOTO_EVAL_LLM = "1";
+  else delete childEnv.ZOTO_EVAL_LLM;
 
   let staticOutcome: BackendOutcome | null = null;
   let llmOutcome: BackendOutcome | null = null;
 
-  const spawnFn =
+  const spawnFn: NonNullable<OrchestrateOpts["spawnRunner"]> =
     opts.spawnRunner ??
     ((script, env, modelCli) =>
       spawnBackend(hostRepoRoot, cfg.hostLayout, script, env, modelCli));

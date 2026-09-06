@@ -1,3 +1,8 @@
+---
+name: crux-compress
+description: "Compress markdown rule files, code files, and images into CRUX notation for token/size efficiency"
+---
+
 # crux-compress
 
 Compress markdown rule files, code files, and images into CRUX notation for token/size efficiency.

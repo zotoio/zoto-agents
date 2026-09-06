@@ -24,6 +24,8 @@ const PLUGIN_NAME = "zoto-spec-system";
 const PLUGIN_ID = `${PLUGIN_NAME}@local`;
 
 const INSTALL_DIR = join(homedir(), ".cursor", "plugins", "local", PLUGIN_NAME);
+const LEGACY_INSTALL_DIR = join(homedir(), ".cursor", "plugins", PLUGIN_NAME);
+const INSTALL_DIRS = [INSTALL_DIR, LEGACY_INSTALL_DIR] as const;
 const CLAUDE_PLUGINS_FILE = join(
   homedir(),
   ".claude",
@@ -55,14 +57,18 @@ function writeJson(path: string, data: Record<string, unknown>): void {
 }
 
 function removePluginFiles(): void {
-  if (existsSync(INSTALL_DIR)) {
+  let removedAny = false;
+  for (const dir of INSTALL_DIRS) {
+    if (!existsSync(dir)) continue;
+    removedAny = true;
     if (dryRun) {
-      console.log(`  [dry-run] would remove ${INSTALL_DIR}`);
+      console.log(`  [dry-run] would remove ${dir}`);
     } else {
-      rmSync(INSTALL_DIR, { recursive: true });
-      console.log(`  Removed ${INSTALL_DIR}`);
+      rmSync(dir, { recursive: true });
+      console.log(`  Removed ${dir}`);
     }
-  } else {
+  }
+  if (!removedAny) {
     console.log(`  ${INSTALL_DIR} does not exist — nothing to remove.`);
   }
 }

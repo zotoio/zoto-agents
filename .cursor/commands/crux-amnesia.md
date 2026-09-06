@@ -1,3 +1,8 @@
+---
+name: crux-amnesia
+description: "Temporarily disable or restore ambient CRUX memory usage for the current chat session"
+---
+
 # crux-amnesia
 
 Temporarily disable or restore ambient CRUX memory usage for the current chat session.

@@ -349,7 +349,7 @@ describe("engine/update.ts — loadAndValidateEvalFile (Ajv schema gate)", () =>
       );
       const file = loadAndValidateEvalFile(path);
       expect(file.target_id).toBe("command:z-cmd");
-      expect(file.cases?.length).toBe(2);
+      expect((file.cases as unknown[] | undefined)?.length).toBe(2);
     });
   });
 

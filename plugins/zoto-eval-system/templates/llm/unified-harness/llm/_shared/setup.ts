@@ -25,13 +25,17 @@ import { resolveBaselineDir } from "../../_llm/sandbox.js";
 const REPO_ROOT = process.cwd();
 const CONFIG_PATH = join(REPO_ROOT, ".zoto", "eval-system", "config.yml");
 
-if (!process.env.CURSOR_API_KEY) {
+if (process.env.ZOTO_EVAL_LLM !== "1") {
+  process.stderr.write(
+    "[zoto-eval-llm] ZOTO_EVAL_LLM not set — all LLM code-strategy cases will skip (use `pnpm run eval:full` / `eval:llm` to opt in).\n",
+  );
+} else if (!process.env.CURSOR_API_KEY) {
   process.stderr.write(
     "[zoto-eval-llm] CURSOR_API_KEY not set — all LLM code-strategy cases will skip.\n",
   );
 } else {
   process.stderr.write(
-    `[zoto-eval-llm] CURSOR_API_KEY present — running LLM code-strategy cases (config=${
+    `[zoto-eval-llm] ZOTO_EVAL_LLM=1 and CURSOR_API_KEY present — running LLM code-strategy cases (config=${
       existsSync(CONFIG_PATH) ? CONFIG_PATH : "<missing>"
     }).\n`,
   );

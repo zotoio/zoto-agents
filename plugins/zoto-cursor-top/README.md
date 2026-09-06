@@ -118,7 +118,7 @@ The marketplace ships agents, skills, commands, and rules — **not** a built
 /zoto-cursor-top-init
 ```
 
-That builds `dist/cli.js`, copies the plugin to `~/.cursor/plugins/zoto-cursor-top/`,
+That builds `dist/cli.js`, copies the plugin to `~/.cursor/plugins/local/zoto-cursor-top/`,
 installs Ink/React runtime deps, and symlinks `cursor-top` onto PATH (usually
 `~/.local/bin`). Restart Cursor after init, then verify with
 `cursor-top --help` or `cursor-top --demo`.
@@ -219,7 +219,8 @@ This plugin also registers:
 | `ps -axww` (macOS / Linux) or `Get-CimInstance Win32_Process` (Windows) | Cursor IDE, `cursor-agent`, Cloud Agent VM processes |
 | `~/Library/Application Support/Cursor/` (macOS), `~/.config/Cursor/` (Linux), `%APPDATA%/Cursor/` (Windows) | IDE session metadata |
 | `~/.cursor/cli/` | `cursor-agent` CLI session metadata |
-| `~/.cursor/projects/<workspace>/` | Cloud Agent VM in-flight agents |
+| `~/.cursor/projects/<workspace>/agent-transcripts/` | IDE chat agents (`home-*` / numeric slugs) and headless `@cursor/sdk` agents (`tmp-*` slugs, badge `SDK`) |
+| Cloud Agents API (when `CURSOR_API_KEY` is set) | Remote Cloud Agents (badge `CLD`) |
 | Log files referenced from each session record | Last 3 lines per agent |
 | `POST /teams/filtered-usage-events` (when `CURSOR_ANALYTICS_API_KEY` or `CURSOR_API_KEY` is set) | Billed COST per conversation and `cursor-top tail` |
 

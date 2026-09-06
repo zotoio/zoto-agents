@@ -10,7 +10,7 @@ import {
   type EvalPaths,
 } from "./paths.js";
 
-export type { EvalLayoutMode, EvalPaths, HostLayout };
+export type { EvalLayoutMode, EvalPaths };
 export type { ResolveEvalPathsOptions, ResolvePluginRootOptions } from "./paths.js";
 export {
   resolveEvalPaths,

@@ -108,7 +108,10 @@ describe("kindBadge", () => {
     expect(kindBadge("ide")).toBe("IDE");
     expect(kindBadge("cli")).toBe("CLI");
     expect(kindBadge("cloud")).toBe("CLD");
+    expect(kindBadge("sdk")).toBe("SDK");
+    expect(kindBadge("agent")).toBe("AGENT");
     expect(kindBadge("subagent")).toBe("SUB");
+    expect(kindBadge("unknown")).toBe("???");
   });
 });
 

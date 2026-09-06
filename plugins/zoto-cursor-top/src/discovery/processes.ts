@@ -12,11 +12,30 @@ import { promisify } from "node:util";
 
 const execAsync = promisify(exec);
 
-const CURSOR_BIN_MATCHERS = [
+/**
+ * Matchers that operate on the **binary path** portion of the command line
+ * (everything before the first space-separated argument). This avoids false
+ * positives from `/proc/self/exe` processes whose *arguments* happen to
+ * mention Cursor paths (e.g. `--user-data-dir=.../.config/Cursor`).
+ */
+const CURSOR_BINARY_MATCHERS = [
+  /(^|[/\\])cursor(\.exe)?$/i,
   /(^|\/)Cursor(\.app)?\//i,
-  /(^|\/)Cursor( Helper.*)?(\.exe)?(\s|$)/i,
-  /(^|\/)cursor-agent(\s|$)/i,
-  /\bcursor\b.*(--agent|--cloud|electron)/i,
+  /(^|[/\\])Cursor( Helper.*)?(\.exe)?$/i,
+  /(^|[/\\])cursor-agent(\.exe)?$/i,
+  /(^|\/)chrome_crashpad_handler$/,
+  /(^|\/)chrome-sandbox$/,
+];
+
+/**
+ * Matchers that need the full command line (binary + arguments). Only
+ * checked when the binary-path matchers above didn't match, so the
+ * cost of scanning argument strings is minimised.
+ */
+const CURSOR_FULLCMD_MATCHERS = [
+  /\bcursor-agent\b/i,
+  /\/cursor\/resources\/app\//i,
+  /--user-data-dir=.*[/\\]Cursor\b/i,
 ];
 
 export interface RawProcess {
@@ -160,8 +179,36 @@ function parseWindowsCimDate(value: string | null | undefined): number | null {
   );
 }
 
+/**
+ * Extract the binary path from a full command string.
+ *
+ * `ps` does not quote argv[0], so binaries whose path contains spaces
+ * (macOS `Cursor Helper (GPU).app/…/Cursor Helper (GPU)`, Windows
+ * `C:\Program Files\cursor\Cursor.exe`) cannot be split on the first
+ * space. Strategy:
+ *
+ *   1. Take everything before the first flag-like token (` -x` / ` --x`).
+ *   2. If that prefix is a macOS bundle path (`.app/`) or ends in `.exe`,
+ *      it is the binary even if it contains spaces.
+ *   3. Otherwise fall back to the first whitespace-delimited token
+ *      (handles `node /path/script.js` style commands).
+ *
+ * On Linux, `/proc/self/exe` is itself the binary (a symlink resolved by
+ * the kernel).
+ */
+export function extractBinaryPath(command: string): string {
+  const trimmed = command.trimStart();
+  const flagIdx = trimmed.search(/\s-{1,2}[A-Za-z]/);
+  const prefix = (flagIdx < 0 ? trimmed : trimmed.slice(0, flagIdx)).trimEnd();
+  if (/\.app\//i.test(prefix) || /\.exe$/i.test(prefix)) return prefix;
+  const spaceIdx = prefix.indexOf(" ");
+  return spaceIdx < 0 ? prefix : prefix.slice(0, spaceIdx);
+}
+
 export function isCursorProcess(command: string): boolean {
-  return CURSOR_BIN_MATCHERS.some((re) => re.test(command));
+  const binary = extractBinaryPath(command);
+  if (CURSOR_BINARY_MATCHERS.some((re) => re.test(binary))) return true;
+  return CURSOR_FULLCMD_MATCHERS.some((re) => re.test(command));
 }
 
 /**

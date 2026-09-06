@@ -1,6 +1,6 @@
 {
   "name": "@zoto-agents/zoto-eval-system",
-  "version": "0.1.0",
+  "version": "0.3.1",
   "private": true,
   "description": "Generate, run, and consciously update static (pytest) + LLM (@cursor/sdk) evals when AI primitives change — every proposed change requires user confirmation.",
   "type": "module",

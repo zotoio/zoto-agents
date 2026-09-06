@@ -33,7 +33,7 @@
           "interactionStyle": "none"
         }
       },
-      "expected_output": "The thread finishes plugin scaffolding beneath `plugins/acme/proto-lint/` after confirmation, cites validation results, `.cursor-plugin/marketplace.json` references the slug, README covers install plus `/sync-plugins` follow-through, LICENSE and CHANGELOG persist, `.cursor-plugin/plugin.json` summarizes components, skill folders expose `evals/evals.json` rows, hooks stay absent unless the operator picked them earlier.",
+      "expected_output": "The thread finishes plugin scaffolding beneath `plugins/acme/proto-lint/` after confirmation, cites validation results, `.cursor-plugin/marketplace.json` references the slug, README covers install plus `/install-local-plugins` follow-through, LICENSE and CHANGELOG persist, `.cursor-plugin/plugin.json` summarizes components, skill folders expose `evals/evals.json` rows, hooks stay absent unless the operator picked them earlier.",
       "follow_ups": [
         "Approve the proposed layout named acme/proto-lint with agents, commands, plus one SKILL-backed skill packaged under `skills/proto-lint/`. Default to MIT licensing."
       ]
@@ -45,7 +45,7 @@
         "The quoted prose flows through untouched so later confirmation screens keep citing “protobuf lint toolkit for Cursor service catalogs” verbatim when summarizing rationale.",
         "The assistant still honours the caveat that clarification turns may emerge for ancillary components despite the seeded description.",
         "`plugins/<chosen-name>/package.json`, `.cursor-plugin/plugin.json`, Markdown agents/commands/rules/skills bundles, README, CHANGELOG, and LICENSE reconcile with section “Generate supporting files …”.",
-        "The closing rundown references both “Run validation pipeline and fix errors” behaviour and actionable `/sync-plugins` guidance called out beside Related bullets."
+        "The closing rundown references both “Run validation pipeline and fix errors” behaviour and actionable `/install-local-plugins` guidance called out beside Related bullets."
       ],
       "_meta": {
         "generated": true,

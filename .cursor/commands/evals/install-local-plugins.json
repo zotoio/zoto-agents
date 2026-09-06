@@ -1,0 +1,59 @@
+{
+  "target_id": "command:install-local-plugins",
+  "model_id": "composer-2.5",
+  "judge_model": "opus-4.6",
+  "case_timeout_ms": 180000,
+  "_meta": {
+    "generated": false,
+    "authored_by": "user",
+    "note": "User-authored. Cases use --dry-run so no files under ~/.cursor or ~/.claude are written during evaluation."
+  },
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/install-local-plugins --dry-run",
+      "interactions": {
+        "questions": [
+          "Which plugins do you want to install locally?"
+        ],
+        "answers": [
+          "zoto-cursor-top, zoto-spec-system"
+        ]
+      },
+      "assertions": [
+        "The assistant discovers plugins by listing `plugins/*/` directories that contain `.cursor-plugin/plugin.json` and reads each manifest's `displayName` before asking anything.",
+        "The assistant presents a single multiselect `askQuestion` (`allow_multiple: true`) whose option labels follow `<displayName> (plugins/<dir-name>)` — it does not ask one yes/no question per plugin.",
+        "For each selected plugin the assistant runs `pnpm install-local --dry-run` from that plugin's directory (or falls back to `pnpm exec tsx scripts/install-local.ts --dry-run`), forwarding the `--dry-run` flag from `$ARGUMENTS`.",
+        "The assistant does not run the install script for plugins the user did not select.",
+        "The final summary lists which plugins succeeded and which failed, states the target path `~/.cursor/plugins/local/<name>/`, and reminds the user to reload the Cursor window."
+      ],
+      "_meta": {
+        "generated": false,
+        "authored_by": "user"
+      },
+      "expected_output": "A multiselect prompt over the discovered plugins, dry-run install output for exactly the two chosen plugins showing `~/.cursor/plugins/local/<name>` as the target, and a closing summary with a reload reminder."
+    },
+    {
+      "id": 2,
+      "prompt": "/install-local-plugins",
+      "interactions": {
+        "questions": [
+          "Which plugins do you want to install locally?"
+        ],
+        "answers": [
+          "Select none of the listed plugins"
+        ]
+      },
+      "assertions": [
+        "When the user selects nothing in the multiselect, the assistant acknowledges the empty selection and exits without running any `install-local` script.",
+        "No `pnpm install-local` or `tsx scripts/install-local.ts` invocation appears in the transcript.",
+        "The assistant does not fabricate a success summary for plugins that were never installed."
+      ],
+      "_meta": {
+        "generated": false,
+        "authored_by": "user"
+      },
+      "expected_output": "A short acknowledgement that no plugins were selected and nothing was installed."
+    }
+  ]
+}

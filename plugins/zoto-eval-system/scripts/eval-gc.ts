@@ -81,7 +81,7 @@ function loadRetention(hostRepoRoot: string = REPO_ROOT): number {
 
 const RUN_DIR_NAME_RE = /^[A-Za-z0-9._-]{4,}$/;
 
-export function computePlan(opts: GcArgs = {}): GcPlan {
+export function computePlan(opts: GcArgs = { apply: false }): GcPlan {
   const hostRepoRoot = opts.hostRepoRoot ?? REPO_ROOT;
   const paths = loadEvalPaths(hostRepoRoot);
   const runsDir = join(hostRepoRoot, paths.evalsDirRel, "_runs");

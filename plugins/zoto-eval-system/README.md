@@ -644,6 +644,8 @@ When `manualChecklists.enabled` is true, `/z-eval-create` stamps `USER_EVAL_CHEC
 
 The LLM backend is always gated on `--full` + `CURSOR_API_KEY`. It never self-runs.
 
+Because the static and LLM backends share one Vitest run, the gate is enforced *inside* the suite: LLM cases execute only when the process sees **`ZOTO_EVAL_LLM=1`** *and* `CURSOR_API_KEY`. `eval:full` / `eval:llm` (via `eval-orchestrate.ts --full|--llm-only`) set `ZOTO_EVAL_LLM=1` for the child run; a bare `vitest run --config evals/vitest.config.ts` — CI discovery, `pnpm run eval`, IDE test explorers — skips every LLM case with the label `skipped: LLM backend not enabled`, even when `.env` holds a key.
+
 ## Troubleshooting
 
 - **"Run /z-eval-create first."** — `.zoto/eval-system/manifest.yml` is missing; the updater has nothing to diff against.

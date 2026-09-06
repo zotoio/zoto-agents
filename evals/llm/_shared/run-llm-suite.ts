@@ -26,8 +26,9 @@
  *   jest) and doesn't force globals: true in the vitest config.
  * - Token accounting (resolveTokens) and afterAll→reportSuite
  *   semantics are preserved exactly.
- * - The CURSOR_API_KEY skip pattern matches the existing per-test
- *   it.skip behavior verbatim.
+ * - LLM cases are skipped unless BOTH `ZOTO_EVAL_LLM=1` (explicit opt-in,
+ *   set by the orchestrator for --full/--llm-only) and `CURSOR_API_KEY`
+ *   are present; the skip label names the missing precondition.
  * - Grader dispatch, parseJudgeScore, and the assertion rubric are
  *   shared (no forked logic).
  */
@@ -292,6 +293,18 @@ export function defineLlmEval(config: LlmEvalConfig): void {
   const REPO_ROOT = process.cwd();
   const SUITE_START = Date.now();
   const API_KEY_PRESENT = Boolean(process.env.CURSOR_API_KEY);
+  // Paid LLM turns need an explicit opt-in on top of the API key. `evals/
+  // setup.ts` loads `.env`, so a key on disk would otherwise turn every bare
+  // `vitest run --config evals/vitest.config.ts` (CI discovery, `pnpm run
+  // eval`, IDE test explorers) into a billed run. The orchestrator sets
+  // ZOTO_EVAL_LLM=1 only for `--full` / `--llm-only`; `pnpm run eval:llm`
+  // sets it directly.
+  const LLM_OPT_IN = process.env.ZOTO_EVAL_LLM === "1";
+  const LLM_SKIP_REASON = !LLM_OPT_IN
+    ? "LLM backend not enabled — run `pnpm run eval:full` or `eval:llm` (sets ZOTO_EVAL_LLM=1)"
+    : !API_KEY_PRESENT
+      ? "CURSOR_API_KEY missing"
+      : null;
 
   validateCasesAtSuiteLoad(cases, { __sourcePath: config.__sourcePath });
 
@@ -337,8 +350,8 @@ export function defineLlmEval(config: LlmEvalConfig): void {
         });
       };
 
-      if (!API_KEY_PRESENT) {
-        testIt.skip(`${c.id} (skipped: CURSOR_API_KEY missing)`, () => {});
+      if (LLM_SKIP_REASON) {
+        testIt.skip(`${c.id} (skipped: ${LLM_SKIP_REASON})`, () => {});
       } else {
         testIt(label, testFn, perCaseTimeout);
       }
