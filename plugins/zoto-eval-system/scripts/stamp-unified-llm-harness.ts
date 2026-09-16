@@ -136,6 +136,7 @@ export function stampUnifiedLlmHarness(
 
   const manifest = buildStampManifest({
     pluginRoot: resolvePluginRootForRepo(repoRoot),
+    repoRoot,
     evalsDir,
     templateRoot: TEMPLATE_ROOT,
   });

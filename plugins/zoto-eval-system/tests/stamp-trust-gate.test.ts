@@ -27,6 +27,7 @@ import {
   EVAL_STAMP_TRUNCATED,
   readStampManifest,
   StampTrustError,
+  writeStampManifestSync,
 } from "../scripts/stamp-trust-gate.ts";
 
 const PLUGIN_DIR = resolve(import.meta.dirname, "..");
@@ -87,13 +88,63 @@ describe("stamp-trust gate", () => {
       const evalsDir = stampCompleteHarness(host);
       const manifest = readStampManifest(evalsDir);
       expect(manifest).not.toBeNull();
+      expect(manifest!.engine_root).toBe("plugins/zoto-eval-system/engine");
+      expect(manifest!.engine_root.startsWith("/")).toBe(false);
 
       assertStampTrust({
         evalsDir,
-        resolveEvalEngineRoot: () => manifest!.engine_root,
+        resolveEvalEngineRoot: () =>
+          join(host, "plugins", "zoto-eval-system", "engine"),
       });
     } finally {
       rmSync(host, { recursive: true, force: true });
+    }
+  });
+
+  it("passes on a relocated host with the same repo-relative layout", () => {
+    const hostA = mkdtempSync(join(tmpdir(), "stamp-trust-host-a-"));
+    const hostB = mkdtempSync(join(tmpdir(), "stamp-trust-host-b-"));
+    try {
+      const evalsDirA = stampCompleteHarness(hostA);
+      const manifest = readStampManifest(evalsDirA)!;
+      expect(manifest.engine_root).toBe("plugins/zoto-eval-system/engine");
+
+      cpSync(hostA, hostB, { recursive: true });
+      const evalsDirB = join(hostB, "evals");
+
+      assertStampTrust({
+        evalsDir: evalsDirB,
+        resolveEvalEngineRoot: () =>
+          join(hostB, "plugins", "zoto-eval-system", "engine"),
+      });
+    } finally {
+      rmSync(hostA, { recursive: true, force: true });
+      rmSync(hostB, { recursive: true, force: true });
+    }
+  });
+
+  it("does not false-fire when manifest carries a legacy absolute engine_root", () => {
+    const hostA = mkdtempSync(join(tmpdir(), "stamp-trust-legacy-a-"));
+    const hostB = mkdtempSync(join(tmpdir(), "stamp-trust-legacy-b-"));
+    try {
+      const evalsDirA = stampCompleteHarness(hostA);
+      const manifest = readStampManifest(evalsDirA)!;
+      writeStampManifestSync(evalsDirA, {
+        ...manifest,
+        engine_root: join("/other/machine/root", manifest.engine_root),
+      });
+
+      cpSync(hostA, hostB, { recursive: true });
+      const evalsDirB = join(hostB, "evals");
+
+      assertStampTrust({
+        evalsDir: evalsDirB,
+        resolveEvalEngineRoot: () =>
+          join(hostB, "plugins", "zoto-eval-system", "engine"),
+      });
+    } finally {
+      rmSync(hostA, { recursive: true, force: true });
+      rmSync(hostB, { recursive: true, force: true });
     }
   });
 
@@ -152,6 +203,7 @@ describe("stamp-trust gate", () => {
       const drift = checkEngineAliasAlignment(
         manifest.engine_root,
         altEngine,
+        host,
         manifest.plugin_version,
         "0.0.1-alt",
       );

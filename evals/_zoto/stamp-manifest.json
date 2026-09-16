@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "stamped_at": "2026-09-16T22:31:52.261Z",
+  "stamped_at": "2026-09-16T22:34:44.604Z",
   "plugin_version": "0.1.0",
-  "engine_root": "/workspace/plugins/zoto-eval-system/engine",
+  "engine_root": "plugins/zoto-eval-system/engine",
   "harness_checksums": {
     "_llm/sandbox.ts": "b7822459645637369c45fde07fefca8821ddabb63a6bd4488047a68a0e774d34",
     "_shared/result-yaml-writer.ts": "0835dc951d971c552a921a7be9d7857199ff330f009799fd161dfa80871b2d3b",

@@ -12,7 +12,7 @@ import {
   readdirSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
@@ -34,6 +34,7 @@ export interface StampManifest {
   schema_version: 1;
   stamped_at: string;
   plugin_version: string;
+  /** Repo-relative posix path, e.g. `plugins/zoto-eval-system/engine`. */
   engine_root: string;
   harness_checksums: Record<string, string>;
 }
@@ -104,19 +105,76 @@ export function buildHarnessChecksums(
   return checksums;
 }
 
+export function resolveHostRepoRoot(evalsDir: string): string {
+  return dirname(evalsDir);
+}
+
+function toPosixPath(path: string): string {
+  return path.split("\\").join("/");
+}
+
+export function toRepoRelativePath(hostRepoRoot: string, absPath: string): string {
+  const hostRoot = realpathSync(hostRepoRoot);
+  const abs = realpathSync(absPath);
+  const rel = toPosixPath(relative(hostRoot, abs));
+  if (rel.startsWith("..")) {
+    return toPosixPath(abs);
+  }
+  return rel;
+}
+
+/** Normalize legacy absolute manifest values to portable repo-relative tails. */
+export function manifestEngineRootRef(engineRoot: string): string {
+  const posix = toPosixPath(engineRoot);
+  if (!isAbsolute(engineRoot)) {
+    return posix;
+  }
+  const markers = [
+    "plugins/zoto-eval-system/engine",
+    ".zoto/eval-system/engine",
+  ];
+  for (const marker of markers) {
+    const idx = posix.indexOf(marker);
+    if (idx >= 0) return marker;
+  }
+  return posix;
+}
+
+export function normalizeEngineRootForCompare(
+  hostRepoRoot: string,
+  engineRoot: string,
+): string {
+  const hostRoot = realpathSync(hostRepoRoot);
+  const ref = manifestEngineRootRef(engineRoot);
+  if (!isAbsolute(ref)) {
+    try {
+      return toRepoRelativePath(hostRoot, join(hostRoot, ref));
+    } catch {
+      return ref;
+    }
+  }
+  try {
+    return toRepoRelativePath(hostRoot, ref);
+  } catch {
+    return ref;
+  }
+}
+
 export function buildStampManifest(args: {
   pluginRoot: string;
   evalsDir: string;
+  repoRoot?: string;
   templateRoot?: string;
   stampedAt?: string;
 }): StampManifest {
   const templateRoot = args.templateRoot ?? TEMPLATE_ROOT;
-  const engineRoot = realpathSync(join(args.pluginRoot, "engine"));
+  const repoRoot = args.repoRoot ?? resolveHostRepoRoot(args.evalsDir);
+  const engineAbs = realpathSync(join(args.pluginRoot, "engine"));
   return {
     schema_version: 1,
     stamped_at: args.stampedAt ?? new Date().toISOString(),
     plugin_version: readPackageVersion(args.pluginRoot),
-    engine_root: engineRoot,
+    engine_root: toRepoRelativePath(repoRoot, engineAbs),
     harness_checksums: buildHarnessChecksums(args.evalsDir, templateRoot),
   };
 }
@@ -215,21 +273,15 @@ export function checkHarnessCompleteness(
 export function checkEngineAliasAlignment(
   recordedEngineRoot: string,
   resolvedEngineRoot: string,
+  hostRepoRoot: string,
   recordedPluginVersion?: string,
   resolvedPluginVersion?: string,
 ): StampTrustError | null {
-  let recorded = recordedEngineRoot;
-  let resolved = resolvedEngineRoot;
-  try {
-    recorded = realpathSync(recordedEngineRoot);
-  } catch {
-    /* keep literal path when target was removed */
-  }
-  try {
-    resolved = realpathSync(resolvedEngineRoot);
-  } catch {
-    /* keep literal path for error detail */
-  }
+  const recorded = normalizeEngineRootForCompare(
+    hostRepoRoot,
+    manifestEngineRootRef(recordedEngineRoot),
+  );
+  const resolved = normalizeEngineRootForCompare(hostRepoRoot, resolvedEngineRoot);
 
   if (recorded !== resolved) {
     return new StampTrustError(
@@ -285,12 +337,14 @@ export function assertStampTrust(opts: AssertStampTrustOptions): void {
       );
     });
 
+  const hostRepoRoot = resolveHostRepoRoot(opts.evalsDir);
   const resolvedEngineRoot = resolveEngineRoot();
   const pluginRoot = dirname(resolvedEngineRoot);
   const resolvedVersion = readPackageVersion(pluginRoot);
   const drift = checkEngineAliasAlignment(
     manifest.engine_root,
     resolvedEngineRoot,
+    hostRepoRoot,
     manifest.plugin_version,
     resolvedVersion,
   );
