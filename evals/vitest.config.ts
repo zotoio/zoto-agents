@@ -42,7 +42,11 @@ export default defineConfig({
       "**/evals/scenarios/_*",
       "**/_llm/**",
     ],
-    setupFiles: [resolve(__dirname, "setup.ts"), resolve(__dirname, "llm/_shared/setup.ts")],
+    setupFiles: [
+      resolve(__dirname, "_zoto/stamp-trust-setup.ts"),
+      resolve(__dirname, "setup.ts"),
+      resolve(__dirname, "llm/_shared/setup.ts"),
+    ],
     reporters: [
       "default",
       [resolve(__dirname, "reporters/zoto-eval-reporter.ts"), {}],

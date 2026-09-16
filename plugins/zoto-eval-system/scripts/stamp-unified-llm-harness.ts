@@ -6,6 +6,8 @@
  *   - evals/vitest.config.ts
  *   - evals/setup.ts
  *   - evals/_zoto/plugin-root.ts
+ *   - evals/_zoto/stamp-manifest.json
+ *   - evals/_zoto/stamp-trust-gate.ts (+ signals, setup)
  *   - evals/_llm/sandbox.ts
  *   - evals/_shared/result-yaml-writer.ts
  *   - evals/reporters/zoto-eval-reporter.ts
@@ -26,7 +28,16 @@ import {
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  buildStampManifest,
+  writeStampManifestSync,
+} from "./stamp-trust-gate.js";
+
 const PLUGIN_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const STAMP_TRUST_SOURCES = [
+  "stamp-trust-gate.ts",
+  "stamp-trust-signals.ts",
+] as const;
 const TEMPLATE_ROOT = join(PLUGIN_ROOT, "templates", "llm", "unified-harness");
 
 export interface StampUnifiedLlmHarnessOptions {
@@ -62,6 +73,17 @@ function destRelFromTemplateRel(templateRel: string): string {
     return templateRel.slice(0, -".tmpl".length);
   }
   return templateRel;
+}
+
+function resolvePluginRootForRepo(repoRoot: string): string {
+  const monorepo = join(repoRoot, "plugins", "zoto-eval-system");
+  if (
+    existsSync(join(monorepo, "engine")) ||
+    existsSync(join(monorepo, "templates"))
+  ) {
+    return monorepo;
+  }
+  return PLUGIN_ROOT;
 }
 
 function writeIfChanged(
@@ -104,6 +126,22 @@ export function stampUnifiedLlmHarness(
     const body = readFileSync(absTemplate, "utf-8");
     writeIfChanged(absDest, body, dryRun, written, unchanged);
   });
+
+  for (const fileName of STAMP_TRUST_SOURCES) {
+    const src = join(PLUGIN_ROOT, "scripts", fileName);
+    const absDest = join(evalsDir, "_zoto", fileName);
+    const body = readFileSync(src, "utf-8");
+    writeIfChanged(absDest, body, dryRun, written, unchanged);
+  }
+
+  const manifest = buildStampManifest({
+    pluginRoot: resolvePluginRootForRepo(repoRoot),
+    evalsDir,
+    templateRoot: TEMPLATE_ROOT,
+  });
+  const manifestPath = join(evalsDir, "_zoto", "stamp-manifest.json");
+  const manifestBody = `${JSON.stringify(manifest, null, 2)}\n`;
+  writeIfChanged(manifestPath, manifestBody, dryRun, written, unchanged);
 
   return { evalsDir, written, unchanged };
 }
