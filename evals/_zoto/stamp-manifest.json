@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "stamped_at": "2026-09-16T22:34:44.604Z",
+  "plugin_version": "0.1.0",
+  "engine_root": "plugins/zoto-eval-system/engine",
+  "harness_checksums": {
+    "_llm/sandbox.ts": "b7822459645637369c45fde07fefca8821ddabb63a6bd4488047a68a0e774d34",
+    "_shared/result-yaml-writer.ts": "0835dc951d971c552a921a7be9d7857199ff330f009799fd161dfa80871b2d3b",
+    "_zoto/plugin-root.ts": "a3676c07a09cd94949b35853412eaa3af926dcbf2498c3eceab6a6288194250a",
+    "_zoto/stamp-trust-setup.ts": "836ec0a438885c993c9583c1671734621da54bb73ddb0134a0ba42b885edde59",
+    "llm/_shared/_user-case-guards.ts": "03327ffa703e39aa8b22b60903c5156245ef1cb082a32d4d9ffd6a99d6374b53",
+    "llm/_shared/askquestion-bridge.ts": "1268f87f24e4cfc95e124e5ef1e953d1c703ccafb781e37423f493e77f42eb81",
+    "llm/_shared/index.ts": "b3360d9bc56d4c671538fd35095bec710b80b3de7b974c78f605497754fa455e",
+    "llm/_shared/llm-case.ts": "c703425b54a039859cd48799508cf614bf74b2b75226857a9b1483e5bd033cb6",
+    "llm/_shared/path-classifiers.ts": "86f9b89af62960f34feef55baeae6e3264402ac2c95f7ad89b5c010b01da5030",
+    "llm/_shared/run-llm-suite.ts": "5a4a1be4c5de215844bb7830b2087bbd8dbd6b334506f61c08b92f6a22951b21",
+    "llm/_shared/runner-params.ts": "752a916f5be1d161a36d9902a811e09182efd3f04005747c6ead64a213d1e616",
+    "llm/_shared/sandbox-helpers.ts": "d6ce16fec8d595437234e855d7c1a4a95747ee7b59e6428e9ef3a928a70dcf4d",
+    "llm/_shared/setup.ts": "e091e2dbe2ad58f11951500beafdff24996384a9e37d7ac1c025e29786d01ab3",
+    "llm/_shared/vitest-json-loader.ts": "96ff58b48dfd2e0f90d525a3d8ac7c0b8e397812b6edf188ae575f60b951ebe0",
+    "llm/_shared/zoto-llm-reporter.ts": "580e013d0b614ca5674e1d1d32f9e22ecfee76f1642dc15f6b2b97209ab34726",
+    "reporters/zoto-eval-reporter.ts": "18d6c3c81a4dc9a004e3cf9e789dabfcd979765ae08e1e48f981a60eb0aa4e24",
+    "setup.ts": "c76384288b0424e013b796685e86ed09099f446b129c5131e0cbf0f3c526de48",
+    "vitest.config.ts": "f74c3ad0e516584e201344a2dbc37a9152baaf9615739c58943d0b0adb028be8"
+  }
+}
