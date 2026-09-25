@@ -13,6 +13,8 @@ All notable changes to the Eval System plugin will be documented in this file.
 
 ### Fixed
 
+- **Static vitest catalogue paths** — `stampVitestPerPrimitive` now emits `evals/test_<kind>_<name>.test.ts` (same basename as `regenerateVitest`). Kind-prefixed slugs from `buildPrimitiveMetaFromPayload` no longer produce missing `test_skill_skill_*` files that the catalogue still listed.
+- **Discovery catalogues co-located JSON** — `eval:discover` / `eval:update` prefer `<kind-dir>/evals/<name>.json` over the legacy `plugins/<p>/evals/<kind>s/` tree, so the manifest lists real JSON suites instead of empty coverage or generated `evals/test_*.test.ts` rows that are not on disk.
 - **Lean LLM Vitest reliability** — `run-vitest.ts` runs from the host repo cwd with the plugin Vitest on `PATH`; `ensure-native-deps.ts` builds `sqlite3` when pnpm skipped lifecycle scripts; `lean-root-vitest.json` merges harness devDeps into the consumer root `package.json` at init/create; stamped `vitest.config.ts` scopes includes to host primitives (avoids plugin self-eval discovery); harness templates use `#eval-engine/sdk-bridge.js` and comment-safe docs (no `**/` or fenced examples that break Vite config bundling).
 
 ### Added

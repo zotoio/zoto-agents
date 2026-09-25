@@ -85,6 +85,7 @@ import type { EvalCase, EvalFile } from "./case.js";
 import { casesOf, isRunnerCase, loadEvalFile } from "./case.js";
 import { isGeneratedCase, isGeneratedFile } from "./_user-case-guards.js";
 import { loadEvalConfig, loadEvalPaths, resolveHostRepoRoot } from "../src/config-loader.js";
+import { resolveDiscoveredEvalFiles } from "./discovered-eval-files.js";
 import {
   filterTargetsByDiscoveryIgnores,
   filterTargetsByDiscoveryKinds,
@@ -111,6 +112,7 @@ import {
   stampJestPerPrimitive,
   stampPytestPerPrimitive,
   stampVitestPerPrimitive,
+  vitestStaticTestBasename,
   type PrimitiveMeta,
 } from "../scripts/eval-stamp.ts";
 
@@ -404,16 +406,13 @@ function discoverSkills(config: Record<string, unknown>): TargetSnapshot[] {
       const skillMd = join(skillDir, "SKILL.md");
       if (!existsSync(skillMd)) continue;
       const raw = readFileSync(skillMd, "utf-8");
-      const evalsPath = join(skillDir, "evals", "evals.json");
       targets.push({
         id: `skill:${name}`,
         kind: "skill",
         path: relative(REPO_ROOT, skillMd),
         content_hash: sha256(normaliseContent(raw)),
         public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalsPath)
-          ? [relative(REPO_ROOT, evalsPath)]
-          : [],
+        eval_files: resolveDiscoveredEvalFiles(REPO_ROOT, "skill", skillMd),
       });
     }
   }
@@ -426,7 +425,6 @@ function discoverPluginAssets(
 ): TargetSnapshot[] {
   const pluginsRoot = join(REPO_ROOT, "plugins");
   if (!existsSync(pluginsRoot)) return [];
-  const evalLeaf = subdir === "commands" ? "commands" : "agents";
   const out: TargetSnapshot[] = [];
   for (const plugin of readdirSync(pluginsRoot).sort()) {
     const dir = join(pluginsRoot, plugin, subdir);
@@ -435,17 +433,13 @@ function discoverPluginAssets(
       if (!file.endsWith(".md")) continue;
       const full = join(dir, file);
       const raw = readFileSync(full, "utf-8");
-      const base = file.replace(/\.md$/, "");
-      const evalPath = join(pluginsRoot, plugin, "evals", evalLeaf, `${base}.json`);
       out.push({
         id: `${kind}:${file.replace(/\.md$/, "")}`,
         kind,
         path: relative(REPO_ROOT, full),
         content_hash: sha256(normaliseContent(raw)),
         public_surface: parseFrontmatter(raw),
-        eval_files: existsSync(evalPath)
-          ? [relative(REPO_ROOT, evalPath)]
-          : [],
+        eval_files: resolveDiscoveredEvalFiles(REPO_ROOT, kind, full),
       });
     }
   }
@@ -460,16 +454,13 @@ function discoverHooks(): TargetSnapshot[] {
     const hooksJson = join(pluginsRoot, plugin, "hooks", "hooks.json");
     if (!existsSync(hooksJson)) continue;
     const raw = readFileSync(hooksJson, "utf-8");
-    const hookEvalPath = join(pluginsRoot, plugin, "evals", "hooks", `${plugin}.json`);
     out.push({
       id: `hook:${plugin}`,
       kind: "hook",
       path: relative(REPO_ROOT, hooksJson),
       content_hash: sha256(normaliseContent(raw)),
       public_surface: { plugin },
-      eval_files: existsSync(hookEvalPath)
-        ? [relative(REPO_ROOT, hookEvalPath)]
-        : [],
+      eval_files: resolveDiscoveredEvalFiles(REPO_ROOT, "hook", hooksJson),
     });
   }
   return out;
@@ -484,19 +475,16 @@ function discoverCursorCommands(): TargetSnapshot[] {
   for (const file of readdirSync(dir).sort()) {
     if (!file.endsWith(".md")) continue;
     const full = join(dir, file);
-    const raw = readFileSync(full, "utf-8");
-    const base = file.replace(/\.md$/, "");
-    const evalPath = join(CURSOR_ROOT, "evals", "commands", `${base}.json`);
-    out.push({
-      id: `command:${base}`,
-      kind: "command",
-      path: relative(REPO_ROOT, full),
-      content_hash: sha256(normaliseContent(raw)),
-      public_surface: parseFrontmatter(raw),
-      eval_files: existsSync(evalPath)
-        ? [relative(REPO_ROOT, evalPath)]
-        : [],
-    });
+      const raw = readFileSync(full, "utf-8");
+      const base = file.replace(/\.md$/, "");
+      out.push({
+        id: `command:${base}`,
+        kind: "command",
+        path: relative(REPO_ROOT, full),
+        content_hash: sha256(normaliseContent(raw)),
+        public_surface: parseFrontmatter(raw),
+        eval_files: resolveDiscoveredEvalFiles(REPO_ROOT, "command", full),
+      });
   }
   return out;
 }
@@ -508,19 +496,16 @@ function discoverCursorAgents(): TargetSnapshot[] {
   for (const file of readdirSync(dir).sort()) {
     if (!file.endsWith(".md")) continue;
     const full = join(dir, file);
-    const raw = readFileSync(full, "utf-8");
-    const base = file.replace(/\.md$/, "");
-    const evalPath = join(CURSOR_ROOT, "evals", "agents", `${base}.json`);
-    out.push({
-      id: `agent:${base}`,
-      kind: "agent",
-      path: relative(REPO_ROOT, full),
-      content_hash: sha256(normaliseContent(raw)),
-      public_surface: parseFrontmatter(raw),
-      eval_files: existsSync(evalPath)
-        ? [relative(REPO_ROOT, evalPath)]
-        : [],
-    });
+      const raw = readFileSync(full, "utf-8");
+      const base = file.replace(/\.md$/, "");
+      out.push({
+        id: `agent:${base}`,
+        kind: "agent",
+        path: relative(REPO_ROOT, full),
+        content_hash: sha256(normaliseContent(raw)),
+        public_surface: parseFrontmatter(raw),
+        eval_files: resolveDiscoveredEvalFiles(REPO_ROOT, "agent", full),
+      });
   }
   return out;
 }
@@ -533,7 +518,6 @@ function discoverCursorHooks(): TargetSnapshot[] {
   else if (existsSync(hooksFlat)) hooksPath = hooksFlat;
   if (!hooksPath) return [];
   const raw = readFileSync(hooksPath, "utf-8");
-  const hookEvalPath = join(CURSOR_ROOT, "evals", "hooks", "hooks.json");
   return [
     {
       id: "hook:cursor-workspace",
@@ -541,9 +525,7 @@ function discoverCursorHooks(): TargetSnapshot[] {
       path: relative(REPO_ROOT, hooksPath),
       content_hash: sha256(normaliseContent(raw)),
       public_surface: { workspace: ".cursor" },
-      eval_files: existsSync(hookEvalPath)
-        ? [relative(REPO_ROOT, hookEvalPath)]
-        : [],
+      eval_files: resolveDiscoveredEvalFiles(REPO_ROOT, "hook", hooksPath),
     },
   ];
 }
@@ -934,13 +916,10 @@ export function regeneratePytest(opts: RegenerationCommonOpts): RegenerationRepo
 export function regenerateVitest(opts: RegenerationCommonOpts): RegenerationReport {
   const report = newRegenerationReport(opts.target.id, "vitest", null);
   const primitive = buildPrimitiveMeta(opts.payload, opts.target);
-  const slug = primitive.slug
-    .replace(/^[^_]+_/, "")
-    .replace(/[^A-Za-z0-9_-]+/g, "-");
   const outPath = join(
     opts.hostRepoRoot,
     "evals",
-    `test_${opts.payload.kind}_${slug}.test.ts`,
+    vitestStaticTestBasename(opts.payload.kind, primitive.slug),
   );
   guardedFileWrite(
     report,
