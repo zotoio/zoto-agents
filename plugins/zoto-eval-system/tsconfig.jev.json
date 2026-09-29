@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "types": ["node"]
+  },
+  "include": [
+    "engine/jev/**/*.ts",
+    "engine/graders/jev.ts",
+    "scripts/eval-jev.ts",
+    "tests/jev-*.test.ts"
+  ]
+}

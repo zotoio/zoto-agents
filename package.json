@@ -34,9 +34,13 @@
     "eval:static:vitest": "vitest run --config evals/vitest.config.ts",
     "eval:static:jest": "NODE_OPTIONS=--experimental-vm-modules jest --config evals/jest.config.ts",
     "eval:llm": "vitest run --config evals/vitest.config.ts",
+    "eval:jev": "tsx plugins/zoto-eval-system/scripts/eval-jev.ts",
+    "eval:jev:lock": "tsx plugins/zoto-eval-system/scripts/eval-jev.ts --write-lock",
+    "eval:jev:check-lock": "tsx plugins/zoto-eval-system/scripts/eval-jev.ts --check-lock",
     "eval:ensure-host": "tsx plugins/zoto-eval-system/scripts/eval-ensure-host.ts",
     "eval:stamp-host-layout": "tsx plugins/zoto-eval-system/scripts/stamp-host-layout.ts",
-    "eval:un-eject": "tsx plugins/zoto-eval-system/scripts/eval-un-eject.ts"
+    "eval:un-eject": "tsx plugins/zoto-eval-system/scripts/eval-un-eject.ts",
+    "typecheck": "pnpm -C plugins/zoto-eval-system run typecheck:jev"
   },
   "devDependencies": {
     "@cursor/sdk": "^1.0.12",

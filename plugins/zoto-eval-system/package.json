@@ -12,7 +12,8 @@
   },
   "scripts": {
     "build": "tsup",
-    "test": "vitest run",
+    "typecheck:jev": "tsc --noEmit -p tsconfig.jev.json",
+    "test": "tsc --noEmit -p tsconfig.jev.json && vitest run",
     "test:watch": "vitest",
     "validate": "tsx scripts/validate-plugin.ts",
     "install-local": "tsx scripts/install-local.ts",
