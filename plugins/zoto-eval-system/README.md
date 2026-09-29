@@ -251,7 +251,7 @@ The shared engine modules under [`evals/llm/_shared/`](../../evals/llm/_shared/R
 - `runner-params.ts` — typed contract (`RunnerParams`, `RunnerFn`, `RunnerResult`) for the `runner` escape hatch.
 - `sdk-bridge.ts` — sole direct `@cursor/sdk` wrapper; pins SDK version and token resolution.
 - `askquestion-bridge.ts` — scripted AskQuestion simulation (`interactions.answers`).
-- `graders/` — `contains`, `regex`, `tool-called`, `llm-judge`.
+- `graders/` — `contains`, `regex`, `tool-called`, `llm-judge`, `jev`.
 - `zoto-llm-reporter.ts` — writes canonical **`llm.yml`** + per-case logs.
 - `_user-case-guards.ts` — `_meta.generated` predicates (file + case level).
 
@@ -262,6 +262,15 @@ Model precedence at runtime:
 1. `--model <id>` on the CLI.
 2. `ZOTO_EVAL_MODEL` env var.
 3. `config.llm.model.id` from `.zoto/eval-system/config.yml`.
+
+### Jev grader (Typesafe System One)
+
+`jev` is a grader kind alongside the others. It asks Typesafe Jev a locked Noul, Choice or Score question and lets grader code make the call. Low-confidence gates (`ask_human` / `abstain`) are `inconclusive`, never pass. A confident Jev "pass" is still refused when code-owned evidence or leading-phrase guards fail.
+
+- Engine: `engine/graders/jev.ts` plus `engine/jev/`, a vendored zero-dependency JevClient pinned to `zotoio/jev-feature-demo@44403c0` (see `engine/jev/VENDOR.md`).
+- Host assets: `evals/jev/` holds the versioned templates, fixtures, cases and `jev.lock.json`. See [`evals/jev/README.md`](../../evals/jev/README.md).
+- Run: `pnpm eval:jev`. It uses fixtures by default, so it needs no key and makes no network calls. For live mode set `ZOTO_EVAL_JEV_MODE=live` and `TYPESAFE_API_KEY`.
+- Gate: the plugin `test` script runs `tsc --noEmit -p tsconfig.jev.json` before Vitest.
 
 ### Environment variables (`.env` / `.env.example`)
 

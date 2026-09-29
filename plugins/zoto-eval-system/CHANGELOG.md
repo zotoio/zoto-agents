@@ -4,6 +4,10 @@ All notable changes to the Eval System plugin will be documented in this file.
 
 ## [unreleased] — eval-system v3 (dual-mode host layout)
 
+### Added (evals/jev)
+
+- **`jev` grader (Typesafe Jev / System One).** Jev proposes and grader code decides. Verdicts form the union `pass | fail | inconclusive`, and inconclusive is never a pass. It uses a vendored JevClient pinned to `zotoio/jev-feature-demo@44403c0339ce`. Fixtures are the default: no key, zero network. Live mode is opt-in with `ZOTO_EVAL_JEV_MODE=live`. `evals/jev/jev.lock.json` pins the fixture-set and template hashes. `pnpm eval:jev` prints three separate counts and exits non-zero on any fail or inconclusive. It is wired into the declarative runner, the unified LLM harness and case validation.
+
 ### BREAKING
 
 - **Dual-mode host layout.** `/z-eval-create` now stamps **lean** layout by default: repo-specific assets under `.zoto/eval-system/` (`config.yml`, `manifest.yml`, `cache/`, `.gitignore`, nested `package.json`, `scripts/eval-bridge.ts`). Engine, scripts, and templates resolve from the installed plugin at runtime via the bridge and `resolvePluginRoot()`. Full self-contained runtime is **opt-in** via `pnpm run eval:stamp-host-layout` (CLI only — no new slash command).
