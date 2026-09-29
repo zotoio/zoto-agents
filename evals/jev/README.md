@@ -35,6 +35,8 @@ or inconclusive result exits non-zero.
 pnpm eval:jev                      # fixture mode (default): no key, zero network
 pnpm eval:jev:check-lock           # verify lock (fixtures/templates/pin unchanged)
 pnpm eval:jev:lock                 # conscious re-lock after editing fixtures/templates
+pnpm eval:jev:graded               # just the Vitest scenario evals/scenarios/jev-graded.test.ts
+                                   # (stamp-trust gate + every record checked against the lock)
 
 # Optional live mode (opt-in only; a key alone never switches modes)
 ZOTO_EVAL_JEV_MODE=live TYPESAFE_API_KEY=sk-... pnpm eval:jev
@@ -45,6 +47,13 @@ The stamp-trust gate runs before Jev is consulted at all, so an untrusted stamp 
 and in the Vitest scenario `evals/scenarios/jev-graded.test.ts`. Results go
 to `evals/_runs/jev/` (gitignored). Every result records `jev_mode`,
 `jev_commit`, `vendor_sha256`, `grader_sha256`, `fixture_set_sha256` and `template_sha256`. `template_sha256` is the hash of the template file found on disk, including on drift or load errors, and is null only when no file exists.
+
+`pnpm eval:jev:graded` runs only that scenario through `evals/vitest.config.ts`
+(1 file, 2 tests; none of the other evals rows are collected). The
+zoto-eval-system package `test` script runs it (`test:jev-graded`) after its
+`tsconfig.jev.json` typecheck and before the plugin's own Vitest suite, so
+`pnpm -r test` validates records too. The full `pnpm eval:vitest` run and the
+eval-format-check workflow also include it.
 
 Never commit API keys: keep `TYPESAFE_API_KEY` in your shell or in a
 gitignored `.env`.

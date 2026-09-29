@@ -37,6 +37,7 @@
     "eval:jev": "tsx plugins/zoto-eval-system/scripts/eval-jev.ts",
     "eval:jev:lock": "tsx plugins/zoto-eval-system/scripts/eval-jev.ts --write-lock",
     "eval:jev:check-lock": "tsx plugins/zoto-eval-system/scripts/eval-jev.ts --check-lock",
+    "eval:jev:graded": "vitest run --config evals/vitest.config.ts --reporter=default evals/scenarios/jev-graded.test.ts",
     "eval:ensure-host": "tsx plugins/zoto-eval-system/scripts/eval-ensure-host.ts",
     "eval:stamp-host-layout": "tsx plugins/zoto-eval-system/scripts/stamp-host-layout.ts",
     "eval:un-eject": "tsx plugins/zoto-eval-system/scripts/eval-un-eject.ts",

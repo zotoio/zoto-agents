@@ -189,6 +189,31 @@ describe("record validation rejects a missing or mismatched lock hash (grader/ve
     const p = { ...(await realRecord()).provenance, template: "evidence-verdict@9" };
     expect(checkRecordProvenance(p, lock)).toEqual(["template evidence-verdict@9 is not in the lock"]);
   });
+
+  it("an uppercase-hex sha256 is rejected as not a sha256", async () => {
+    const p = { ...(await realRecord()).provenance, grader_sha256: String(lock.grader_sha256).toUpperCase() };
+    expect(checkRecordProvenance(p, lock)).toEqual(["grader_sha256 is missing or not a sha256"]);
+  });
+
+  it("a 63-char hash is rejected as not a sha256", async () => {
+    const p = { ...(await realRecord()).provenance, grader_sha256: String(lock.grader_sha256).slice(0, 63) };
+    expect(checkRecordProvenance(p, lock)).toEqual(["grader_sha256 is missing or not a sha256"]);
+  });
+
+  it("a 12-char hash is rejected as not a sha256", async () => {
+    const p = { ...(await realRecord()).provenance, template_sha256: String(lock.templates["evidence-verdict@1"]).slice(0, 12) };
+    expect(checkRecordProvenance(p, lock)).toEqual(["template_sha256 is missing or not a sha256"]);
+  });
+
+  it("template id __proto__ is not found through the prototype chain", async () => {
+    const p = { ...(await realRecord()).provenance, template: "__proto__" };
+    expect(checkRecordProvenance(p, lock)).toEqual(["template __proto__ is not in the lock"]);
+  });
+
+  it("template id constructor is not found through the prototype chain", async () => {
+    const p = { ...(await realRecord()).provenance, template: "constructor" };
+    expect(checkRecordProvenance(p, lock)).toEqual(["template constructor is not in the lock"]);
+  });
 });
 
 describe("template_sha256 records the hash actually found (drift / load errors)", () => {
