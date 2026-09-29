@@ -1,0 +1,14 @@
+{
+  "id": "rubric-met",
+  "version": 1,
+  "kind": "noul",
+  "question_key": "rubricMet",
+  "instructions": "Does the agent's REPLY meet every requirement in the RUBRIC?",
+  "criteria": {
+    "true": "Every rubric requirement is met by content in the reply.",
+    "false": "At least one rubric requirement is missing or contradicted."
+  },
+  "pass_when": "yes",
+  "thresholds": { "act": 0.85, "askHuman": 0.6, "deny": 0.4 },
+  "leading_phrases": ["looks fine, confirm", "just approve", "ship it"]
+}

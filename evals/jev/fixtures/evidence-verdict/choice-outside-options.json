@@ -1,0 +1,9 @@
+{
+  "template": "evidence-verdict@1",
+  "note": "Answer outside the locked options is refused (inconclusive).",
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": { "verdict": { "type": "choice", "choice": "approve", "probabilities": { "approve": 0.97 }, "confidence": 0.97 } },
+    "usage": { "input_tokens": 512, "output_tokens": 24 }
+  }
+}

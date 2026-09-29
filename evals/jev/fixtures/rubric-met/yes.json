@@ -1,0 +1,9 @@
+{
+  "template": "rubric-met@1",
+  "note": "Noul yes at 0.95.",
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": { "rubricMet": { "type": "noul", "noul": 0.95 } },
+    "usage": { "input_tokens": 512, "output_tokens": 24 }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "template": "evidence-verdict@1",
+  "note": "Row a: Jev proposes pass at 0.9 for a reply that lacks required evidence. Grader code must refuse.",
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": { "verdict": { "type": "choice", "choice": "pass", "probabilities": { "pass": 0.9, "fail": 0.08, "unsure": 0.02 }, "confidence": 0.9 } },
+    "usage": { "input_tokens": 512, "output_tokens": 24 }
+  }
+}

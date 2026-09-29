@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "jev_repo": "zotoio/jev-feature-demo",
+  "jev_commit": "44403c0339ce665ff1c058e73c4c049e7332d441",
+  "fixture_set_sha256": "bae6a352b7bab7fedc2660a11352b57968580d403d0c237e28ee47bb267acc0f",
+  "templates": {
+    "evidence-verdict@1": "20485da195a5106cb1f273167535982d52b15b461c9e826b545bfed8220274ec",
+    "guardrail-risk@1": "27c34d4ed26279e8c36ce31db5736e6e65587df5a4b8c8d4d3d10ce48f3a30b5",
+    "rubric-met@1": "6cf55fbdd69d75d42b071de73acf48b084aff35f5d2f6ba41aacb667491640fa"
+  }
+}

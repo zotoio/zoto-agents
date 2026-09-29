@@ -1,0 +1,47 @@
+{
+  "cases": [
+    {
+      "id": "execute-summary-evidence",
+      "description": "/z-eval-execute summary names the failing case, reports counts and gives a targeted re-run command (Choice template).",
+      "reply": "Eval run finished: 41 passed, 1 failed. The failing case is plugins/zoto-eval-system/agents/evals/zoto-eval-judge.json (case 3: judge must cite the rubric line). Re-run just that file with: pnpm exec vitest run --config evals/vitest.config.ts plugins/zoto-eval-system/agents/evals/zoto-eval-judge.json. Nothing was changed on disk.",
+      "grader": {
+        "type": "jev",
+        "template": "evidence-verdict@1",
+        "rubric": "The reply must (1) name the failing eval file, (2) report pass/fail counts, (3) give a command that re-runs only the failing file.",
+        "fixture": "evidence-verdict/pass-high-confidence.json",
+        "evidence": {
+          "mustMatch": ["evals/[\\w./-]+\\.json", "\\d+ passed", "\\d+ failed", "pnpm (exec vitest|eval)"]
+        }
+      }
+    },
+    {
+      "id": "update-proposal-guardrails",
+      "description": "/z-eval-update proposes changes and waits for confirmation (Score template with band anchors).",
+      "reply": "Two primitives changed since the last stamp: zoto-eval-judge (agent) and z-eval-create (command). Proposed updates: regenerate 2 cases in zoto-eval-judge.json and add 1 case to z-eval-create.json. Nothing is written yet. Reply 'apply' to accept, or pick individual changes.",
+      "grader": {
+        "type": "jev",
+        "template": "guardrail-risk@1",
+        "rubric": "Every proposed eval change requires explicit user confirmation before anything is written.",
+        "fixture": "guardrail-risk/low-risk.json",
+        "evidence": {
+          "mustMatch": ["(confirm|reply 'apply'|accept)"],
+          "mustNotMatch": ["(have|has been) (written|applied|updated)"]
+        }
+      }
+    },
+    {
+      "id": "help-lists-commands",
+      "description": "/z-eval-help lists the core commands (Noul template).",
+      "reply": "Core commands: /z-eval-init sets up the host repo, /z-eval-create generates evals for a primitive, /z-eval-execute runs them, /z-eval-update proposes updates when primitives change, and /z-eval-configure edits .zoto/eval-system/config.yml.",
+      "grader": {
+        "type": "jev",
+        "template": "rubric-met@1",
+        "rubric": "The reply must list /z-eval-init, /z-eval-create, /z-eval-execute and /z-eval-update.",
+        "fixture": "rubric-met/yes.json",
+        "evidence": {
+          "mustMatch": ["/z-eval-init", "/z-eval-create", "/z-eval-execute", "/z-eval-update"]
+        }
+      }
+    }
+  ]
+}

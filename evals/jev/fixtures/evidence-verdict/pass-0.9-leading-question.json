@@ -1,0 +1,9 @@
+{
+  "template": "evidence-verdict@1",
+  "note": "Row b: reply asks 'this looks fine, confirm?'; Jev proposes pass at 0.9. Grader code must refuse.",
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": { "verdict": { "type": "choice", "choice": "pass", "probabilities": { "pass": 0.9, "fail": 0.07, "unsure": 0.03 }, "confidence": 0.9 } },
+    "usage": { "input_tokens": 512, "output_tokens": 24 }
+  }
+}
