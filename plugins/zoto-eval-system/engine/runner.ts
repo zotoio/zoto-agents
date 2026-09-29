@@ -70,6 +70,13 @@ import { contains } from "./graders/contains.js";
 import { regex } from "./graders/regex.js";
 import { toolCalled } from "./graders/tool-called.js";
 import { llmJudge } from "./graders/llm-judge.js";
+import {
+  createJevGraderContext,
+  defaultJevDir,
+  gradeWithJev,
+  jevToGraderReport,
+  type JevGraderContext,
+} from "./graders/jev.js";
 import type { GraderReport } from "./graders/common.js";
 import type { SnapshotDiff } from "./sandbox.js";
 import { loadEvalConfig, resolveHostRepoRoot } from "../src/config-loader.js";
@@ -96,6 +103,8 @@ import {
 } from "./sdk-bridge.js";
 
 const REPO_ROOT = resolveHostRepoRoot();
+/** Lazily created on the first `jev` grader (lock verified once per run). */
+let jevCtx: JevGraderContext | undefined;
 
 const DEFAULT_EXCLUDE = [
   "evals/_runs",
@@ -483,7 +492,11 @@ async function finishCase(
       else if (t === "regex") reports.push(regex(g as never, response));
       else if (t === "tool-called")
         reports.push(toolCalled(g as never, opts.toolCalls));
-      else if (t === "llm-judge") {
+      else if (t === "jev") {
+        /* Jev proposes, grader code decides; inconclusive maps to a non-pass report. */
+        jevCtx ??= createJevGraderContext({ jevDir: defaultJevDir(REPO_ROOT) });
+        reports.push(jevToGraderReport(await gradeWithJev(g as never, response, jevCtx)));
+      } else if (t === "llm-judge") {
         reports.push(
           await llmJudge(g as never, response, {
             judge: async ({ prompt }) => ({

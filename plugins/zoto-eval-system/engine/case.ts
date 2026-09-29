@@ -71,6 +71,14 @@ export type DeclarativeGraderConfig =
       rubric: string;
       passThreshold?: number;
       judgeModel?: string;
+    }
+  | {
+      /** Jev (Typesafe System One) grader — see `graders/jev.ts`. */
+      type: "jev";
+      template: string;
+      rubric: string;
+      fixture?: string;
+      evidence?: { mustMatch?: string[]; mustNotMatch?: string[]; flags?: string };
     };
 
 /**
@@ -338,7 +346,7 @@ function validateRunnerEnriched(c: EvalCase): ValidateEnrichedResult {
  *   1. `prompt` is a non-placeholder string (see `detectPlaceholderPrompt`).
  *   2. `assertions` is a non-empty array of strings.
  *   3. When `graders` is present, every **object** entry must be a supported
- *      grader (`contains` | `regex` | `tool-called` | `llm-judge`) with the
+ *      grader (`contains` | `regex` | `tool-called` | `llm-judge` | `jev`) with the
  *      fields enforced by `#eval-engine/graders/*.js`. Bare strings (legacy
  *      tags) are ignored.
  *      Generated cases MUST NOT use `contains` needles shorter than four trimmed
@@ -358,6 +366,7 @@ const DECLARATIVE_GRADER_TYPES = new Set<string>([
   "regex",
   "tool-called",
   "llm-judge",
+  "jev",
 ]);
 
 /** Minimum trimmed `needle` length for `contains` on generated cases (judge playbook). */
@@ -384,7 +393,7 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
     if (!DECLARATIVE_GRADER_TYPES.has(t)) {
       return {
         ok: false,
-        reason: `graders[${i}] unknown type "${t}" (declarative runner: contains | regex | tool-called | llm-judge)`,
+        reason: `graders[${i}] unknown type "${t}" (declarative runner: contains | regex | tool-called | llm-judge | jev)`,
       };
     }
     if (t === "contains") {
@@ -449,6 +458,27 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
           return {
             ok: false,
             reason: `graders[${i}] (tool-called) "${key}" must be a finite number when present`,
+          };
+        }
+      }
+    } else if (t === "jev") {
+      if (typeof rec.template !== "string" || !/^[a-z0-9][a-z0-9-]*@[1-9][0-9]*$/.test(rec.template)) {
+        return {
+          ok: false,
+          reason: `graders[${i}] (jev) requires "template" as <id>@<version>`,
+        };
+      }
+      if (typeof rec.rubric !== "string" || rec.rubric.trim().length === 0) {
+        return { ok: false, reason: `graders[${i}] (jev) requires non-empty string "rubric"` };
+      }
+      if (rec.fixture !== undefined && typeof rec.fixture !== "string") {
+        return { ok: false, reason: `graders[${i}] (jev) "fixture" must be a string when present` };
+      }
+      for (const locked of ["instructions", "question", "options", "anchors", "criteria", "thresholds"]) {
+        if (locked in rec) {
+          return {
+            ok: false,
+            reason: `graders[${i}] (jev) may not set "${locked}" — wording, options and anchors live in the versioned template`,
           };
         }
       }

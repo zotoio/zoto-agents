@@ -60,6 +60,13 @@ import { contains } from "#eval-engine/graders/contains.js";
 import { regex } from "#eval-engine/graders/regex.js";
 import { toolCalled } from "#eval-engine/graders/tool-called.js";
 import { llmJudge } from "#eval-engine/graders/llm-judge.js";
+import {
+  createJevGraderContext,
+  defaultJevDir,
+  gradeWithJev,
+  jevToGraderReport,
+  type JevGraderContext,
+} from "#eval-engine/graders/jev.js";
 import type { GraderReport } from "#eval-engine/graders/common.js";
 
 /* ---------------------------------------------------------------------- */
@@ -641,6 +648,9 @@ export { runCase };
  * `dispatchAssertionJudge` so the runner can short-circuit it when an
  * objective grader has already failed.
  */
+/** Lazily created on the first `jev` grader (lock verified once per worker). */
+let jevCtx: JevGraderContext | undefined;
+
 async function dispatchExplicitGraders(
   c: LlmCaseDefinition,
   text: string,
@@ -652,7 +662,12 @@ async function dispatchExplicitGraders(
     if (gtype === "contains") reports.push(contains(g as never, text));
     else if (gtype === "regex") reports.push(regex(g as never, text));
     else if (gtype === "tool-called") reports.push(toolCalled(g as never, []));
-    else if (gtype === "llm-judge") {
+    else if (gtype === "jev") {
+      /* Jev proposes, grader code decides; inconclusive maps to a non-pass report.
+       * Fixture mode by default (no key, no network); live needs ZOTO_EVAL_JEV_MODE=live. */
+      jevCtx ??= createJevGraderContext({ jevDir: defaultJevDir(opts.repoRoot) });
+      reports.push(jevToGraderReport(await gradeWithJev(g as never, text, jevCtx)));
+    } else if (gtype === "llm-judge") {
       reports.push(
         await llmJudge(g as never, text, {
           judge: async ({ prompt }) => {
