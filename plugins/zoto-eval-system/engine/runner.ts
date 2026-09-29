@@ -66,17 +66,8 @@ import {
 import { loadAndValidateEvalFile } from "./update.js";
 import { computeMetrics } from "./metrics.js";
 import { writeResults, type WriterCase } from "./writer.js";
-import { contains } from "./graders/contains.js";
-import { regex } from "./graders/regex.js";
-import { toolCalled } from "./graders/tool-called.js";
-import { llmJudge } from "./graders/llm-judge.js";
-import {
-  createJevGraderContext,
-  defaultJevDir,
-  gradeWithJev,
-  jevToGraderReport,
-  type JevGraderContext,
-} from "./graders/jev.js";
+import { dispatchGraders } from "./graders/dispatch.js";
+import { createJevGraderContext, defaultJevDir, type JevGraderContext } from "./graders/jev.js";
 import type { GraderReport } from "./graders/common.js";
 import type { SnapshotDiff } from "./sandbox.js";
 import { loadEvalConfig, resolveHostRepoRoot } from "../src/config-loader.js";
@@ -486,27 +477,16 @@ async function finishCase(
 
   /** Post-hoc graders (only when runner reached agent invocation without fixture fatal). */
   if (!opts.fixtureError && opts.beforeSandbox !== null) {
-    for (const g of c.graders ?? []) {
-      const t = (g as { type?: string }).type;
-      if (t === "contains") reports.push(contains(g as never, response));
-      else if (t === "regex") reports.push(regex(g as never, response));
-      else if (t === "tool-called")
-        reports.push(toolCalled(g as never, opts.toolCalls));
-      else if (t === "jev") {
-        /* Jev proposes, grader code decides; inconclusive maps to a non-pass report. */
-        jevCtx ??= createJevGraderContext({ jevDir: defaultJevDir(REPO_ROOT) });
-        reports.push(jevToGraderReport(await gradeWithJev(g as never, response, jevCtx)));
-      } else if (t === "llm-judge") {
-        reports.push(
-          await llmJudge(g as never, response, {
-            judge: async ({ prompt }) => ({
-              score: 0.5,
-              detail: `stub: ${prompt.length} chars`,
-            }),
-          }),
-        );
-      }
-    }
+    reports.push(
+      ...(await dispatchGraders(c.graders, response, {
+        toolCalls: opts.toolCalls,
+        judge: async ({ prompt }) => ({
+          score: 0.5,
+          detail: `stub: ${prompt.length} chars`,
+        }),
+        jevContext: () => (jevCtx ??= createJevGraderContext({ jevDir: defaultJevDir(REPO_ROOT) })),
+      })),
+    );
   }
 
   const assertionsMet = reports.filter((r) => r.verdict === "pass").length;

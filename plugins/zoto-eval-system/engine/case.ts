@@ -81,6 +81,14 @@ export type DeclarativeGraderConfig =
       evidence?: { mustMatch?: string[]; mustNotMatch?: string[]; flags?: string };
     };
 
+/** The closed set of declarative grader kinds (`jev` is the fifth). */
+export type DeclarativeGraderKind = DeclarativeGraderConfig["type"];
+
+/** Exhaustiveness guard: adding a grader kind without handling it is a tsc error here. */
+function assertNeverGraderKind(kind: never): never {
+  throw new Error(`unhandled declarative grader kind: ${String(kind)}`);
+}
+
 /**
  * Scripted AskQuestion payload — **forbidden** on declarative `EvalCase`.
  * Belongs exclusively to the code-strategy backend. The declarative runner
@@ -396,7 +404,9 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
         reason: `graders[${i}] unknown type "${t}" (declarative runner: contains | regex | tool-called | llm-judge | jev)`,
       };
     }
-    if (t === "contains") {
+    const kind = t as DeclarativeGraderKind;
+    switch (kind) {
+    case "contains": {
       if (typeof rec.needle !== "string" || rec.needle.trim().length === 0) {
         return {
           ok: false,
@@ -412,7 +422,9 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
           reason: `graders[${i}] (contains) needle is shorter than ${MIN_GENERATED_CONTAINS_NEEDLE_LEN} characters after trim on a generated case — use a longer phrase, regex, or llm-judge`,
         };
       }
-    } else if (t === "regex") {
+      break;
+    }
+    case "regex": {
       if (typeof rec.pattern !== "string" || rec.pattern.length === 0) {
         return {
           ok: false,
@@ -445,7 +457,9 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
           reason: `graders[${i}] (regex) invalid pattern: ${(err as Error).message}`,
         };
       }
-    } else if (t === "tool-called") {
+      break;
+    }
+    case "tool-called": {
       if (typeof rec.tool !== "string" || rec.tool.trim().length === 0) {
         return {
           ok: false,
@@ -461,7 +475,9 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
           };
         }
       }
-    } else if (t === "jev") {
+      break;
+    }
+    case "jev": {
       if (typeof rec.template !== "string" || !/^[a-z0-9][a-z0-9-]*@[1-9][0-9]*$/.test(rec.template)) {
         return {
           ok: false,
@@ -482,7 +498,9 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
           };
         }
       }
-    } else if (t === "llm-judge") {
+      break;
+    }
+    case "llm-judge": {
       if (typeof rec.rubric !== "string" || rec.rubric.trim().length === 0) {
         return {
           ok: false,
@@ -508,6 +526,10 @@ function validateGradersList(c: EvalCase): ValidateEnrichedResult | null {
           reason: `graders[${i}] (llm-judge) "judgeModel" must be a string when present`,
         };
       }
+      break;
+    }
+    default:
+      return assertNeverGraderKind(kind);
     }
   }
   return null;

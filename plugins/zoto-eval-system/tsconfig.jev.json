@@ -5,11 +5,14 @@
     "declaration": false,
     "declarationMap": false,
     "sourceMap": false,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "engine/jev/**/*.ts",
-    "engine/graders/jev.ts",
+    "engine/graders/*.ts",
+    "engine/case.ts",
     "scripts/eval-jev.ts",
     "tests/jev-*.test.ts"
   ]

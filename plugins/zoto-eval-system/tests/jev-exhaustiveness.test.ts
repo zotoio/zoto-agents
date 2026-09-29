@@ -20,17 +20,18 @@ function tscBin(): string {
   throw new Error("tsc not found");
 }
 
-function typecheckCopy(patch?: { file: string; from: string; to: string }): { status: number | null; out: string } {
+type Patch = { file: string; from: string | RegExp; to: string };
+
+/** Type-check a temp copy of the engine with the same scope as tsconfig.jev.json. */
+function typecheckCopy(patch?: Patch): { status: number | null; out: string } {
   const dir = mkdtempSync(join(tmpdir(), "zoto-jev-tsc-"));
-  mkdirSync(join(dir, "engine", "graders"), { recursive: true });
-  cpSync(join(PLUGIN_ROOT, "engine", "jev"), join(dir, "engine", "jev"), { recursive: true });
-  for (const f of ["jev.ts", "common.ts"]) {
-    cpSync(join(PLUGIN_ROOT, "engine", "graders", f), join(dir, "engine", "graders", f));
-  }
+  mkdirSync(join(dir, "engine"), { recursive: true });
+  cpSync(join(PLUGIN_ROOT, "engine"), join(dir, "engine"), { recursive: true });
   if (patch) {
     const p = join(dir, patch.file);
     const src = readFileSync(p, "utf-8");
-    if (!src.includes(patch.from)) throw new Error(`patch anchor not found in ${patch.file}`);
+    const found = typeof patch.from === "string" ? src.includes(patch.from) : patch.from.test(src);
+    if (!found) throw new Error(`patch anchor not found in ${patch.file}`);
     writeFileSync(p, src.replace(patch.from, patch.to));
   }
   writeFileSync(
@@ -46,7 +47,7 @@ function typecheckCopy(patch?: { file: string; from: string; to: string }): { st
         types: ["node"],
         typeRoots: [join(REPO_ROOT, "node_modules", "@types")],
       },
-      include: ["engine/**/*.ts"],
+      include: ["engine/jev/**/*.ts", "engine/graders/*.ts", "engine/case.ts"],
     }),
   );
   const r = spawnSync(tscBin(), ["--noEmit", "-p", join(dir, "tsconfig.json")], { encoding: "utf-8" });
@@ -78,5 +79,28 @@ describe("row e: exhaustiveness is enforced by tsc", () => {
     });
     expect(r.status).not.toBe(0);
     expect(r.out).toMatch(/engine\/graders\/jev\.ts.*error TS2345.*"escalate"/);
+  }, 60_000);
+
+  /* jev is the fifth grader kind (contains | regex | tool-called | llm-judge | jev).
+   * Its consumers are case.ts validation and graders/dispatch.ts, which runner.ts
+   * and the unified harness (run-llm-suite.ts) both call. */
+  it("fifth grader kind unhandled in the shared dispatcher (runner.ts + run-llm-suite.ts) makes tsc red", () => {
+    const r = typecheckCopy({
+      file: "engine/graders/dispatch.ts",
+      from: /    case "jev":\n.*\n.*\n/,
+      to: "",
+    });
+    expect(r.status).not.toBe(0);
+    expect(r.out).toMatch(/engine\/graders\/dispatch\.ts.*error TS2345.*type: "jev"/s);
+  }, 60_000);
+
+  it("fifth grader kind unhandled in case.ts validation makes tsc red", () => {
+    const r = typecheckCopy({
+      file: "engine/case.ts",
+      from: /    case "jev": \{[\s\S]*?      break;\n    \}\n/,
+      to: "",
+    });
+    expect(r.status).not.toBe(0);
+    expect(r.out).toMatch(/engine\/case\.ts.*error TS2345.*"jev"/);
   }, 60_000);
 });

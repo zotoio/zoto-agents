@@ -56,15 +56,12 @@ import {
   preSnapshot,
 } from "./sandbox-helpers.js";
 import { reportCase, reportSuite } from "./zoto-llm-reporter.js";
-import { contains } from "#eval-engine/graders/contains.js";
 import { regex } from "#eval-engine/graders/regex.js";
-import { toolCalled } from "#eval-engine/graders/tool-called.js";
 import { llmJudge } from "#eval-engine/graders/llm-judge.js";
+import { dispatchGraders } from "#eval-engine/graders/dispatch.js";
 import {
   createJevGraderContext,
   defaultJevDir,
-  gradeWithJev,
-  jevToGraderReport,
   type JevGraderContext,
 } from "#eval-engine/graders/jev.js";
 import type { GraderReport } from "#eval-engine/graders/common.js";
@@ -657,36 +654,28 @@ async function dispatchExplicitGraders(
   reports: GraderReport[],
   opts: RunCaseOpts,
 ): Promise<void> {
-  for (const g of c.graders ?? []) {
-    const gtype = (g as { type?: string }).type;
-    if (gtype === "contains") reports.push(contains(g as never, text));
-    else if (gtype === "regex") reports.push(regex(g as never, text));
-    else if (gtype === "tool-called") reports.push(toolCalled(g as never, []));
-    else if (gtype === "jev") {
-      /* Jev proposes, grader code decides; inconclusive maps to a non-pass report.
-       * Fixture mode by default (no key, no network); live needs ZOTO_EVAL_JEV_MODE=live. */
-      jevCtx ??= createJevGraderContext({ jevDir: defaultJevDir(opts.repoRoot) });
-      reports.push(jevToGraderReport(await gradeWithJev(g as never, text, jevCtx)));
-    } else if (gtype === "llm-judge") {
-      reports.push(
-        await llmJudge(g as never, text, {
-          judge: async ({ prompt }) => {
-            const judgeAgent = await createAgent({
-              modelId: opts.judgeModel,
-              cwd: opts.repoRoot,
-            });
-            try {
-              const jr = await sendPrompt(judgeAgent, prompt);
-              const ja = await awaitRun(jr);
-              return parseJudgeScore(ja.text);
-            } finally {
-              await closeAgent(judgeAgent);
-            }
-          },
-        }),
-      );
-    }
-  }
+  /* Exhaustive over the grader-kind union (contains | regex | tool-called |
+   * llm-judge | jev) in #eval-engine/graders/dispatch.ts. jev: fixture mode by
+   * default (no key, no network); live needs ZOTO_EVAL_JEV_MODE=live. */
+  reports.push(
+    ...(await dispatchGraders(c.graders, text, {
+      toolCalls: [],
+      judge: async ({ prompt }) => {
+        const judgeAgent = await createAgent({
+          modelId: opts.judgeModel,
+          cwd: opts.repoRoot,
+        });
+        try {
+          const jr = await sendPrompt(judgeAgent, prompt);
+          const ja = await awaitRun(jr);
+          return parseJudgeScore(ja.text);
+        } finally {
+          await closeAgent(judgeAgent);
+        }
+      },
+      jevContext: () => (jevCtx ??= createJevGraderContext({ jevDir: defaultJevDir(opts.repoRoot) })),
+    })),
+  );
 }
 
 /**
