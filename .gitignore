@@ -21,6 +21,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
+# Plugin env template (stamped to host .env.example); must stay tracked.
+!**/templates/env/.env.example.tmpl
 
 # OS and editor
 .DS_Store
