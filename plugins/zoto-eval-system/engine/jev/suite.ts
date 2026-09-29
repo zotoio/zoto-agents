@@ -16,6 +16,8 @@ import {
   type JevProvenance,
 } from "../graders/jev.js";
 import type { JevEnv } from "./client.js";
+import { JEV_PIN } from "./pin.js";
+import type { JevLock } from "./template.js";
 import { countVerdicts, describeVerdict, exitCodeFor, type JevRunCounts, type JevVerdict } from "./verdict.js";
 
 export interface JevCase {
@@ -47,6 +49,47 @@ export interface JevRunReport {
   counts: JevRunCounts;
   exit_code: 0 | 1;
   results: JevCaseResult[];
+}
+
+const SHA256_HEX = /^[0-9a-f]{64}$/;
+
+/**
+ * Validate one result record's provenance before accepting it. Returns the
+ * problems found; an empty list means the record is accepted.
+ *
+ * - jev_commit must equal the vendored pin.
+ * - template_sha256 and fixture_set_sha256 must be sha256 hex.
+ * - vendor_sha256 and grader_sha256 must be present, sha256 hex, and equal to
+ *   the committed lock's values, so a record graded by different vendored
+ *   code or a different grader is rejected.
+ */
+export function checkRecordProvenance(
+  provenance: Partial<JevProvenance> | null | undefined,
+  lock: Pick<JevLock, "vendor_sha256" | "grader_sha256">,
+): string[] {
+  if (!provenance || typeof provenance !== "object") return ["record has no provenance"];
+  const p = provenance;
+  const problems: string[] = [];
+  if (p.jev_commit !== JEV_PIN.commit) {
+    problems.push(`jev_commit ${String(p.jev_commit)} != vendored pin ${JEV_PIN.commit}`);
+  }
+  if (typeof p.template_sha256 !== "string" || !SHA256_HEX.test(p.template_sha256)) {
+    problems.push("template_sha256 is missing or not a sha256");
+  }
+  if (typeof p.fixture_set_sha256 !== "string" || !SHA256_HEX.test(p.fixture_set_sha256)) {
+    problems.push("fixture_set_sha256 is missing or not a sha256");
+  }
+  if (typeof p.vendor_sha256 !== "string" || !SHA256_HEX.test(p.vendor_sha256)) {
+    problems.push("vendor_sha256 is missing or not a sha256");
+  } else if (p.vendor_sha256 !== lock.vendor_sha256) {
+    problems.push(`vendor_sha256 ${p.vendor_sha256.slice(0, 12)} != lock ${String(lock.vendor_sha256).slice(0, 12)}`);
+  }
+  if (typeof p.grader_sha256 !== "string" || !SHA256_HEX.test(p.grader_sha256)) {
+    problems.push("grader_sha256 is missing or not a sha256");
+  } else if (p.grader_sha256 !== lock.grader_sha256) {
+    problems.push(`grader_sha256 ${p.grader_sha256.slice(0, 12)} != lock ${String(lock.grader_sha256).slice(0, 12)}`);
+  }
+  return problems;
 }
 
 export function loadJevCases(jevDir: string): Array<{ source: string; case: JevCase }> {

@@ -72,7 +72,21 @@ green. For that reason `inconclusive` is reported there as `fail`, with an
 - **New or updated fixture:** edit it, run `pnpm eval:jev:lock`, and review.
   If a fixture changes without a re-lock, the lock test fails and every case
   comes back inconclusive.
-- **Vendored code or grader edit:** any change under `engine/jev/` or to `engine/graders/jev.ts` (even a comment) is drift until you run `pnpm eval:jev:lock`. If you are reverting to probe a row, re-lock first so the only difference is the one under test.
+- **Vendored code or grader edit:** any change under `engine/jev/` or to
+  `engine/graders/jev.ts` (even a comment) is drift until you run
+  `pnpm eval:jev:lock`.
+- **Reverting a check to probe a row:** make the revert, then re-lock, then
+  run. The lock checks themselves live in `engine/jev/template.ts` (and the
+  record check in `engine/jev/suite.ts`), so removing one is vendor drift. If
+  you re-lock before the revert, the drift check fires first and the wrong rows
+  go red, hiding the one you are probing. Restore the file and the committed `jev.lock.json`
+  (`git checkout`) afterwards.
+- **Not hashed, on purpose:** `engine/graders/common.ts` is imported type-only
+  by `graders/jev.ts` (`import type { GraderReport }`), is erased at runtime and
+  is not covered by `grader_sha256` or `vendor_sha256`. Hashes are taken with
+  CRLF normalised to LF, so a CRLF-only change (converting `\n` to `\r\n`) is
+  not drift by design (a lone `\r` is not normalised). Any other text change,
+  including whitespace, is drift.
 - **Jev pin bump:** re-vendor from the new commit (see
   `plugins/zoto-eval-system/engine/jev/VENDOR.md`), update `pin.ts`, then
   re-lock.

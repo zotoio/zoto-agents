@@ -12,9 +12,8 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { formatJevSummary, loadJevCases, runJevSuite } from "#eval-engine/jev/suite.js";
-import { JEV_PIN } from "#eval-engine/jev/pin.js";
-import { verifyLock } from "#eval-engine/jev/template.js";
+import { checkRecordProvenance, formatJevSummary, loadJevCases, runJevSuite } from "#eval-engine/jev/suite.js";
+import { readLock, verifyLock } from "#eval-engine/jev/template.js";
 
 import { repoRoot } from "../_zoto/plugin-root.js";
 
@@ -27,13 +26,15 @@ describe("Jev-graded evals (evals/jev)", () => {
   });
 
   it("every case passes through Jev with pass/fail/inconclusive counted separately", async () => {
+    const lock = readLock(jevDir);
+    expect(lock).not.toBeNull();
     const report = await runJevSuite({ jevDir });
     console.log(formatJevSummary(report));
     expect(report.results.length).toBe(loadJevCases(jevDir).length);
+    // jev_commit == pin, template/fixture-set hashes well-formed, and
+    // vendor_sha256 / grader_sha256 present and equal to the lock.
     for (const r of report.results) {
-      expect(r.provenance.jev_commit).toBe(JEV_PIN.commit);
-      expect(r.provenance.template_sha256).toMatch(/^[0-9a-f]{64}$/);
-      expect(r.provenance.fixture_set_sha256).toMatch(/^[0-9a-f]{64}$/);
+      expect(checkRecordProvenance(r.provenance, lock!), r.case_id).toEqual([]);
     }
     expect(report.counts).toEqual({ pass: report.results.length, fail: 0, inconclusive: 0 });
     expect(report.exit_code).toBe(0);

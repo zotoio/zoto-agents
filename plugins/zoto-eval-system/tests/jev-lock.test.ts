@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 
 import { createJevGraderContext, gradeWithJev } from "../engine/graders/jev.js";
 import { JEV_PIN } from "../engine/jev/pin.js";
+import { checkRecordProvenance } from "../engine/jev/suite.js";
 import {
   GRADER_FILE,
   VENDOR_DIR,
@@ -111,6 +112,44 @@ describe("grader_sha256 pins engine/graders/jev.ts (pass guards)", () => {
       const r = await gradeWithJev(c.grader, c.reply, ctx);
       expect(r.provenance.grader_sha256, c.id).toBe(lock.grader_sha256);
     }
+  });
+});
+
+describe("record validation rejects a missing or mismatched grader/vendor hash", () => {
+  const lock = JSON.parse(readFileSync(join(JEV_DIR, "jev.lock.json"), "utf-8"));
+  const realRecord = async () => {
+    const c = readCases("cases/eval-system-replies.json")[0]!.case;
+    return gradeWithJev(c.grader, c.reply, createJevGraderContext({ jevDir: JEV_DIR, env: {} }));
+  };
+  const other = "0".repeat(64);
+
+  it("control: a real record matching the lock is accepted", async () => {
+    const r = await realRecord();
+    expect(checkRecordProvenance(r.provenance, lock)).toEqual([]);
+  });
+
+  it("a record missing grader_sha256 is rejected", async () => {
+    const { grader_sha256: _dropped, ...rest } = (await realRecord()).provenance;
+    expect(checkRecordProvenance(rest, lock)).toEqual(["grader_sha256 is missing or not a sha256"]);
+  });
+
+  it("a record with a wrong grader_sha256 is rejected", async () => {
+    const p = { ...(await realRecord()).provenance, grader_sha256: other };
+    expect(checkRecordProvenance(p, lock)).toEqual([
+      `grader_sha256 000000000000 != lock ${String(lock.grader_sha256).slice(0, 12)}`,
+    ]);
+  });
+
+  it("a record missing vendor_sha256 is rejected", async () => {
+    const { vendor_sha256: _dropped, ...rest } = (await realRecord()).provenance;
+    expect(checkRecordProvenance(rest, lock)).toEqual(["vendor_sha256 is missing or not a sha256"]);
+  });
+
+  it("a record with a wrong vendor_sha256 is rejected", async () => {
+    const p = { ...(await realRecord()).provenance, vendor_sha256: other };
+    expect(checkRecordProvenance(p, lock)).toEqual([
+      `vendor_sha256 000000000000 != lock ${String(lock.vendor_sha256).slice(0, 12)}`,
+    ]);
   });
 });
 
