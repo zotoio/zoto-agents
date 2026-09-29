@@ -72,9 +72,12 @@ export async function runJevSuite(opts: {
   fetchImpl?: typeof fetch;
   cases?: Array<{ source: string; case: JevCase }>;
   ctx?: JevGraderContext;
+  onJevCall?: JevGraderContext["onJevCall"];
 }): Promise<JevRunReport> {
   const started = new Date().toISOString();
-  const ctx = opts.ctx ?? createJevGraderContext({ jevDir: opts.jevDir, env: opts.env, fetchImpl: opts.fetchImpl });
+  const ctx =
+    opts.ctx ??
+    createJevGraderContext({ jevDir: opts.jevDir, env: opts.env, fetchImpl: opts.fetchImpl, onJevCall: opts.onJevCall });
   const cases = opts.cases ?? loadJevCases(opts.jevDir);
   const results: JevCaseResult[] = [];
   for (const { source, case: c } of cases) {
@@ -108,7 +111,7 @@ export function formatJevSummary(report: JevRunReport): string {
   const first = report.results[0]?.provenance;
   if (first) {
     lines.push(
-      `  provenance: jev_commit=${first.jev_commit} fixture_set_sha256=${first.fixture_set_sha256.slice(0, 16)}…`,
+      `  provenance: jev_commit=${first.jev_commit} vendor_sha256=${first.vendor_sha256.slice(0, 16)}… fixture_set_sha256=${first.fixture_set_sha256.slice(0, 16)}…`,
     );
   }
   const c = report.counts;

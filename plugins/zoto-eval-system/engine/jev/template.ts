@@ -12,7 +12,8 @@
  */
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import type { EntryType, Question, SystemOneResult } from "./client.js";
 import { DEFAULT_THRESHOLDS, type GateThresholds, type ScoreBandPolicy } from "./gates.js";
@@ -100,6 +101,48 @@ function listJsonFiles(dir: string): string[] {
   };
   walk(dir);
   return out;
+}
+
+/** The vendored Jev code directory (`engine/jev/`), pinned by `vendor_sha256`. */
+export const VENDOR_DIR = dirname(fileURLToPath(import.meta.url));
+
+function listAllFiles(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  const out: string[] = [];
+  const walk = (d: string) => {
+    for (const entry of readdirSync(d).sort()) {
+      const abs = join(d, entry);
+      if (statSync(abs).isDirectory()) walk(abs);
+      else out.push(abs);
+    }
+  };
+  walk(dir);
+  return out;
+}
+
+/**
+ * Deterministic hash over EVERY file under `engine/jev/` (path + content):
+ * the vendored client, gates, pin and the grader support code. Editing any of
+ * them without a conscious `pnpm eval:jev:lock` is drift.
+ */
+export function hashVendoredCode(vendorDir: string = VENDOR_DIR): string {
+  const lines = listAllFiles(vendorDir).map((abs) => {
+    const rel = relative(vendorDir, abs).split("\\").join("/");
+    return `${rel}\u0000${hashFileText(abs)}`;
+  });
+  return sha256(lines.join("\n"));
+}
+
+/** Hash of the template file actually on disk for `ref`, or null when there is none. */
+export function templateFileHash(jevDir: string, ref: string): string | null {
+  let file: string;
+  try {
+    file = templateFileName(ref);
+  } catch {
+    return null;
+  }
+  const path = join(jevDir, "templates", file);
+  return existsSync(path) ? hashFileText(path) : null;
 }
 
 /** Deterministic hash over every `*.json` under `<jevDir>/fixtures` (path + content). */
@@ -247,13 +290,15 @@ export interface JevLock {
   schema_version: 1;
   jev_repo: string;
   jev_commit: string;
+  /** Hash of every file under `engine/jev/` (vendored client + grader support). */
+  vendor_sha256: string;
   fixture_set_sha256: string;
   templates: Record<string, string>;
 }
 
 export const LOCK_FILE = "jev.lock.json";
 
-export function computeLock(jevDir: string): JevLock {
+export function computeLock(jevDir: string, vendorDir: string = VENDOR_DIR): JevLock {
   const templates: Record<string, string> = {};
   const tdir = join(jevDir, "templates");
   if (existsSync(tdir)) {
@@ -266,6 +311,7 @@ export function computeLock(jevDir: string): JevLock {
     schema_version: 1,
     jev_repo: JEV_PIN.repo,
     jev_commit: JEV_PIN.commit,
+    vendor_sha256: hashVendoredCode(vendorDir),
     fixture_set_sha256: hashFixtureSet(jevDir),
     templates,
   };
@@ -282,13 +328,18 @@ export type LockCheck =
   | { kind: "drift"; problems: string[]; computed: JevLock | null };
 
 /** Compare the committed lock with what is on disk right now. */
-export function verifyLock(jevDir: string): LockCheck {
-  const computed = computeLock(jevDir);
+export function verifyLock(jevDir: string, vendorDir: string = VENDOR_DIR): LockCheck {
+  const computed = computeLock(jevDir, vendorDir);
   const lock = readLock(jevDir);
   if (!lock) return { kind: "drift", problems: [`missing ${LOCK_FILE}`], computed };
   const problems: string[] = [];
   if (lock.jev_commit !== JEV_PIN.commit) {
     problems.push(`jev_commit ${lock.jev_commit} != vendored pin ${JEV_PIN.commit}`);
+  }
+  if (lock.vendor_sha256 !== computed.vendor_sha256) {
+    problems.push(
+      `vendored Jev code (engine/jev) changed without a lock update (locked ${String(lock.vendor_sha256).slice(0, 12)}, now ${computed.vendor_sha256.slice(0, 12)})`,
+    );
   }
   if (lock.fixture_set_sha256 !== computed.fixture_set_sha256) {
     problems.push(

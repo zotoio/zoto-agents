@@ -27,7 +27,7 @@ or inconclusive result exits non-zero.
 | `fixtures/**.json` | Recorded `/v1/systemone` responses (`{ template, note, response }`), in the same wire format as jev-feature-demo. |
 | `cases/*.json` | The Jev eval suite (`{ "cases": [{ id, reply, grader }] }`). It is expected to be green. |
 | `adversarial/cases.json` | Refusal rows used by the plugin tests: a confident pass that gets refused, a leading question, mid-confidence and score-band cases. |
-| `jev.lock.json` | Pinned jev commit, fixture-set hash and per-template hashes. |
+| `jev.lock.json` | Pinned jev commit, `vendor_sha256` (every file under `plugins/zoto-eval-system/engine/jev/`), fixture-set hash and per-template hashes. |
 
 ## Run
 
@@ -41,10 +41,10 @@ ZOTO_EVAL_JEV_MODE=live TYPESAFE_API_KEY=sk-... pnpm eval:jev
 # optional: ZOTO_EVAL_JEV_MODEL (default jev-1.13.0, pinned), TYPESAFE_BASE_URL
 ```
 
-The stamp-trust gate runs before any Jev-graded case, both in `pnpm eval:jev`
+The stamp-trust gate runs before Jev is consulted at all, so an untrusted stamp produces zero Jev calls, even in live mode. It runs both in `pnpm eval:jev`
 and in the Vitest scenario `evals/scenarios/jev-graded.test.ts`. Results go
 to `evals/_runs/jev/` (gitignored). Every result records `jev_mode`,
-`jev_commit`, `fixture_set_sha256` and `template_sha256`.
+`jev_commit`, `vendor_sha256`, `fixture_set_sha256` and `template_sha256`. `template_sha256` is the hash of the template file found on disk, including on drift or load errors, and is null only when no file exists.
 
 Never commit API keys: keep `TYPESAFE_API_KEY` in your shell or in a
 gitignored `.env`.
@@ -72,6 +72,7 @@ green. For that reason `inconclusive` is reported there as `fail`, with an
 - **New or updated fixture:** edit it, run `pnpm eval:jev:lock`, and review.
   If a fixture changes without a re-lock, the lock test fails and every case
   comes back inconclusive.
+- **Vendored code edit:** any change under `engine/jev/` is drift until you run `pnpm eval:jev:lock`.
 - **Jev pin bump:** re-vendor from the new commit (see
   `plugins/zoto-eval-system/engine/jev/VENDOR.md`), update `pin.ts`, then
   re-lock.

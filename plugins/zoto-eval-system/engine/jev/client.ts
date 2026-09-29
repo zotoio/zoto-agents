@@ -187,15 +187,19 @@ export interface JevClientConfig {
   transport: JevTransport;
   /** Defaults to the pinned model so confidence gates stay calibrated. */
   model?: string;
+  /** Observer called once per consultation, before the transport runs (used to count Jev calls). */
+  onCall?: (request: SystemOneRequest & { model: string }) => void;
 }
 
 export class JevClient {
   readonly transport: JevTransport;
   readonly model: string;
+  readonly #onCall?: JevClientConfig["onCall"];
 
   constructor(config: JevClientConfig) {
     this.transport = config.transport;
     this.model = config.model ?? JEV_PINNED;
+    this.#onCall = config.onCall;
   }
 
   get mode(): JevMode {
@@ -206,7 +210,9 @@ export class JevClient {
     if (Object.keys(request.questions).length === 0) {
       throw new JevConfigError("systemOne requires at least one question.");
     }
-    return this.transport.systemOne({ ...request, model: request.model ?? this.model });
+    const payload = { ...request, model: request.model ?? this.model };
+    this.#onCall?.(payload);
+    return this.transport.systemOne(payload);
   }
 }
 

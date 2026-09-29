@@ -34,8 +34,10 @@ import { JEV_PIN } from "../jev/pin.js";
 import {
   buildQuestion,
   hashFixtureSet,
+  hashVendoredCode,
   loadFixture,
   loadTemplate,
+  templateFileHash,
   thresholdsOf,
   verifyLock,
   type JevTemplate,
@@ -70,6 +72,8 @@ export interface JevGraderConfig {
 export interface JevProvenance {
   jev_mode: JevMode;
   jev_commit: string;
+  /** Hash of every file under engine/jev/ at grading time. */
+  vendor_sha256: string;
   fixture_set_sha256: string;
   template: string;
   template_sha256: string | null;
@@ -95,6 +99,9 @@ export interface JevGraderContext {
   mode: JevMode;
   lock: LockCheck;
   fixtureSetSha256: string;
+  vendorSha256: string;
+  /** Observer: called once per Jev consultation (fixture or live), before the transport runs. */
+  onJevCall?: (info: { mode: JevMode; template: string }) => void;
   /** Only present in live mode. */
   liveTransport?: JevTransport;
   model?: string;
@@ -112,6 +119,7 @@ export function createJevGraderContext(opts: {
   jevDir: string;
   env?: JevEnv;
   fetchImpl?: typeof fetch;
+  onJevCall?: JevGraderContext["onJevCall"];
 }): JevGraderContext {
   const env = opts.env ?? (process.env as JevEnv);
   const mode = resolveJevMode(env);
@@ -122,6 +130,8 @@ export function createJevGraderContext(opts: {
       ? verifyLock(opts.jevDir)
       : { kind: "drift", problems: [`jev dir not found: ${opts.jevDir}`], computed: null },
     fixtureSetSha256: existsSync(opts.jevDir) ? hashFixtureSet(opts.jevDir) : "",
+    vendorSha256: hashVendoredCode(),
+    onJevCall: opts.onJevCall,
     model: env.ZOTO_EVAL_JEV_MODEL?.trim() || undefined,
   };
   if (mode === "live") ctx.liveTransport = createLiveTransportFromEnv(env, opts.fetchImpl);
@@ -242,9 +252,11 @@ export async function gradeWithJev(
   const provenance: JevProvenance = {
     jev_mode: ctx.mode,
     jev_commit: JEV_PIN.commit,
+    vendor_sha256: ctx.vendorSha256,
     fixture_set_sha256: ctx.fixtureSetSha256,
     template: config.template,
-    template_sha256: null,
+    /* Hash of the template file actually found on disk (also on drift / load errors). */
+    template_sha256: templateFileHash(ctx.jevDir, config.template),
     fixture: ctx.mode === "fixture" ? (config.fixture ?? null) : null,
     model: null,
   };
@@ -287,7 +299,11 @@ export async function gradeWithJev(
     transport = ctx.liveTransport;
   }
 
-  const client = new JevClient({ transport, model: ctx.model });
+  const client = new JevClient({
+    transport,
+    model: ctx.model,
+    onCall: () => ctx.onJevCall?.({ mode: transport.mode, template: config.template }),
+  });
   let result: SystemOneResult;
   try {
     result = await client.systemOne({
@@ -315,6 +331,6 @@ export function jevToGraderReport(record: JevGradeRecord): GraderReport {
   return {
     grader: "jev",
     verdict: toLegacyVerdict(record.verdict),
-    detail: `${describeVerdict(record.verdict)} [jev_mode=${p.jev_mode} jev_commit=${p.jev_commit.slice(0, 12)} template=${p.template} template_sha256=${(p.template_sha256 ?? "-").slice(0, 12)} fixture_set_sha256=${p.fixture_set_sha256.slice(0, 12)}]`,
+    detail: `${describeVerdict(record.verdict)} [jev_mode=${p.jev_mode} jev_commit=${p.jev_commit.slice(0, 12)} vendor_sha256=${p.vendor_sha256.slice(0, 12)} template=${p.template} template_sha256=${(p.template_sha256 ?? "-").slice(0, 12)} fixture_set_sha256=${p.fixture_set_sha256.slice(0, 12)}]`,
   };
 }

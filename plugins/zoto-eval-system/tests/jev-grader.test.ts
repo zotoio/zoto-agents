@@ -140,12 +140,13 @@ describe("green cases and provenance", () => {
     }
   });
 
-  it("records jev_mode, pinned commit, fixture-set hash and template hash", async () => {
+  it("records jev_mode, pinned commit, vendor hash, fixture-set hash and template hash", async () => {
     const r = await grade("row-a-confident-pass-missing-evidence");
     const lock = JSON.parse(readFileSync(join(JEV_DIR, "jev.lock.json"), "utf-8"));
     expect(r.provenance).toEqual({
       jev_mode: "fixture",
       jev_commit: JEV_PIN.commit,
+      vendor_sha256: lock.vendor_sha256,
       fixture_set_sha256: lock.fixture_set_sha256,
       template: "evidence-verdict@1",
       template_sha256: lock.templates["evidence-verdict@1"],
