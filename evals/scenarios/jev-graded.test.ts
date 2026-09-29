@@ -31,8 +31,8 @@ describe("Jev-graded evals (evals/jev)", () => {
     const report = await runJevSuite({ jevDir });
     console.log(formatJevSummary(report));
     expect(report.results.length).toBe(loadJevCases(jevDir).length);
-    // jev_commit == pin, template/fixture-set hashes well-formed, and
-    // vendor_sha256 / grader_sha256 present and equal to the lock.
+    // jev_commit == pin; fixture_set / vendor / grader hashes and the
+    // template hash (for the record's template id) equal the lock.
     for (const r of report.results) {
       expect(checkRecordProvenance(r.provenance, lock!), r.case_id).toEqual([]);
     }

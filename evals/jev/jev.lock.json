@@ -2,7 +2,7 @@
   "schema_version": 1,
   "jev_repo": "zotoio/jev-feature-demo",
   "jev_commit": "44403c0339ce665ff1c058e73c4c049e7332d441",
-  "vendor_sha256": "6bd6693fd65c6c7fc754c782967b23439e2a9a769b89a9b96a247dc104cd60ff",
+  "vendor_sha256": "538a92386541effd49ec7e1dc14128674c2a9457e78f92feb74fe0554f524e29",
   "grader_sha256": "55e8d35dd3a40a3da79c1651b52fccd5bc42e5ab028f9071c4830522cf9cb1e6",
   "fixture_set_sha256": "bae6a352b7bab7fedc2660a11352b57968580d403d0c237e28ee47bb267acc0f",
   "templates": {

@@ -58,14 +58,18 @@ const SHA256_HEX = /^[0-9a-f]{64}$/;
  * problems found; an empty list means the record is accepted.
  *
  * - jev_commit must equal the vendored pin.
- * - template_sha256 and fixture_set_sha256 must be sha256 hex.
- * - vendor_sha256 and grader_sha256 must be present, sha256 hex, and equal to
- *   the committed lock's values, so a record graded by different vendored
- *   code or a different grader is rejected.
+ * - fixture_set_sha256, vendor_sha256 and grader_sha256 must be present,
+ *   sha256 hex, and equal to the committed lock's values.
+ * - template_sha256 must be present, sha256 hex, and equal to the lock's hash
+ *   for the record's template id (e.g. `evidence-verdict@1`); a template id
+ *   that is not in the lock is rejected.
+ *
+ * So a record graded against different fixtures, template wording, vendored
+ * code or grader is rejected.
  */
 export function checkRecordProvenance(
   provenance: Partial<JevProvenance> | null | undefined,
-  lock: Pick<JevLock, "vendor_sha256" | "grader_sha256">,
+  lock: Pick<JevLock, "vendor_sha256" | "grader_sha256" | "fixture_set_sha256" | "templates">,
 ): string[] {
   if (!provenance || typeof provenance !== "object") return ["record has no provenance"];
   const p = provenance;
@@ -73,11 +77,22 @@ export function checkRecordProvenance(
   if (p.jev_commit !== JEV_PIN.commit) {
     problems.push(`jev_commit ${String(p.jev_commit)} != vendored pin ${JEV_PIN.commit}`);
   }
+  const templates = lock.templates ?? {};
+  const lockedTemplate =
+    typeof p.template === "string" && Object.prototype.hasOwnProperty.call(templates, p.template)
+      ? templates[p.template]
+      : undefined;
   if (typeof p.template_sha256 !== "string" || !SHA256_HEX.test(p.template_sha256)) {
     problems.push("template_sha256 is missing or not a sha256");
+  } else if (lockedTemplate === undefined) {
+    problems.push(`template ${String(p.template)} is not in the lock`);
+  } else if (p.template_sha256 !== lockedTemplate) {
+    problems.push(`template_sha256 ${p.template_sha256.slice(0, 12)} != lock ${String(lockedTemplate).slice(0, 12)} for ${String(p.template)}`);
   }
   if (typeof p.fixture_set_sha256 !== "string" || !SHA256_HEX.test(p.fixture_set_sha256)) {
     problems.push("fixture_set_sha256 is missing or not a sha256");
+  } else if (p.fixture_set_sha256 !== lock.fixture_set_sha256) {
+    problems.push(`fixture_set_sha256 ${p.fixture_set_sha256.slice(0, 12)} != lock ${String(lock.fixture_set_sha256).slice(0, 12)}`);
   }
   if (typeof p.vendor_sha256 !== "string" || !SHA256_HEX.test(p.vendor_sha256)) {
     problems.push("vendor_sha256 is missing or not a sha256");

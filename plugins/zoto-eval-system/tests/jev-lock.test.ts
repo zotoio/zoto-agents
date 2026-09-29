@@ -115,7 +115,7 @@ describe("grader_sha256 pins engine/graders/jev.ts (pass guards)", () => {
   });
 });
 
-describe("record validation rejects a missing or mismatched grader/vendor hash", () => {
+describe("record validation rejects a missing or mismatched lock hash (grader/vendor/fixture/template)", () => {
   const lock = JSON.parse(readFileSync(join(JEV_DIR, "jev.lock.json"), "utf-8"));
   const realRecord = async () => {
     const c = readCases("cases/eval-system-replies.json")[0]!.case;
@@ -150,6 +150,44 @@ describe("record validation rejects a missing or mismatched grader/vendor hash",
     expect(checkRecordProvenance(p, lock)).toEqual([
       `vendor_sha256 000000000000 != lock ${String(lock.vendor_sha256).slice(0, 12)}`,
     ]);
+  });
+
+  it("a record missing fixture_set_sha256 is rejected", async () => {
+    const { fixture_set_sha256: _dropped, ...rest } = (await realRecord()).provenance;
+    expect(checkRecordProvenance(rest, lock)).toEqual(["fixture_set_sha256 is missing or not a sha256"]);
+  });
+
+  it("a record with a wrong fixture_set_sha256 is rejected", async () => {
+    const p = { ...(await realRecord()).provenance, fixture_set_sha256: other };
+    expect(checkRecordProvenance(p, lock)).toEqual([
+      `fixture_set_sha256 000000000000 != lock ${String(lock.fixture_set_sha256).slice(0, 12)}`,
+    ]);
+  });
+
+  it("a record missing template_sha256 is rejected", async () => {
+    const { template_sha256: _dropped, ...rest } = (await realRecord()).provenance;
+    expect(checkRecordProvenance(rest, lock)).toEqual(["template_sha256 is missing or not a sha256"]);
+  });
+
+  it("a record with a wrong template_sha256 for its template id is rejected", async () => {
+    const real = (await realRecord()).provenance;
+    expect(real.template).toBe("evidence-verdict@1");
+    const p = { ...real, template_sha256: other };
+    expect(checkRecordProvenance(p, lock)).toEqual([
+      `template_sha256 000000000000 != lock ${String(lock.templates["evidence-verdict@1"]).slice(0, 12)} for evidence-verdict@1`,
+    ]);
+  });
+
+  it("another locked template's hash does not satisfy the record's template id", async () => {
+    const p = { ...(await realRecord()).provenance, template_sha256: lock.templates["rubric-met@1"] };
+    expect(checkRecordProvenance(p, lock)).toEqual([
+      `template_sha256 ${String(lock.templates["rubric-met@1"]).slice(0, 12)} != lock ${String(lock.templates["evidence-verdict@1"]).slice(0, 12)} for evidence-verdict@1`,
+    ]);
+  });
+
+  it("a record whose template id is not in the lock is rejected", async () => {
+    const p = { ...(await realRecord()).provenance, template: "evidence-verdict@9" };
+    expect(checkRecordProvenance(p, lock)).toEqual(["template evidence-verdict@9 is not in the lock"]);
   });
 });
 
