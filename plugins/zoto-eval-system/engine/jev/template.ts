@@ -133,6 +133,17 @@ export function hashVendoredCode(vendorDir: string = VENDOR_DIR): string {
   return sha256(lines.join("\n"));
 }
 
+/**
+ * The `jev` grader source (`engine/graders/jev.ts`): gates → verdict mapping and
+ * the pass guards (evidence regexes + leading-phrase check). Pinned by `grader_sha256`.
+ */
+export const GRADER_FILE = join(VENDOR_DIR, "..", "graders", "jev.ts");
+
+/** sha256 over the jev grader source (CRLF-normalised). */
+export function hashGraderCode(graderFile: string = GRADER_FILE): string {
+  return hashFileText(graderFile);
+}
+
 /** Hash of the template file actually on disk for `ref`, or null when there is none. */
 export function templateFileHash(jevDir: string, ref: string): string | null {
   let file: string;
@@ -292,13 +303,19 @@ export interface JevLock {
   jev_commit: string;
   /** Hash of every file under `engine/jev/` (vendored client + grader support). */
   vendor_sha256: string;
+  /** Hash of engine/graders/jev.ts (the pass guards). */
+  grader_sha256: string;
   fixture_set_sha256: string;
   templates: Record<string, string>;
 }
 
 export const LOCK_FILE = "jev.lock.json";
 
-export function computeLock(jevDir: string, vendorDir: string = VENDOR_DIR): JevLock {
+export function computeLock(
+  jevDir: string,
+  vendorDir: string = VENDOR_DIR,
+  graderFile: string = GRADER_FILE,
+): JevLock {
   const templates: Record<string, string> = {};
   const tdir = join(jevDir, "templates");
   if (existsSync(tdir)) {
@@ -312,6 +329,7 @@ export function computeLock(jevDir: string, vendorDir: string = VENDOR_DIR): Jev
     jev_repo: JEV_PIN.repo,
     jev_commit: JEV_PIN.commit,
     vendor_sha256: hashVendoredCode(vendorDir),
+    grader_sha256: hashGraderCode(graderFile),
     fixture_set_sha256: hashFixtureSet(jevDir),
     templates,
   };
@@ -328,8 +346,12 @@ export type LockCheck =
   | { kind: "drift"; problems: string[]; computed: JevLock | null };
 
 /** Compare the committed lock with what is on disk right now. */
-export function verifyLock(jevDir: string, vendorDir: string = VENDOR_DIR): LockCheck {
-  const computed = computeLock(jevDir, vendorDir);
+export function verifyLock(
+  jevDir: string,
+  vendorDir: string = VENDOR_DIR,
+  graderFile: string = GRADER_FILE,
+): LockCheck {
+  const computed = computeLock(jevDir, vendorDir, graderFile);
   const lock = readLock(jevDir);
   if (!lock) return { kind: "drift", problems: [`missing ${LOCK_FILE}`], computed };
   const problems: string[] = [];
@@ -339,6 +361,11 @@ export function verifyLock(jevDir: string, vendorDir: string = VENDOR_DIR): Lock
   if (lock.vendor_sha256 !== computed.vendor_sha256) {
     problems.push(
       `vendored Jev code (engine/jev) changed without a lock update (locked ${String(lock.vendor_sha256).slice(0, 12)}, now ${computed.vendor_sha256.slice(0, 12)})`,
+    );
+  }
+  if (lock.grader_sha256 !== computed.grader_sha256) {
+    problems.push(
+      `jev grader (engine/graders/jev.ts) changed without a lock update (locked ${String(lock.grader_sha256).slice(0, 12)}, now ${computed.grader_sha256.slice(0, 12)})`,
     );
   }
   if (lock.fixture_set_sha256 !== computed.fixture_set_sha256) {

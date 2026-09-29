@@ -11,7 +11,15 @@ import { describe, expect, it } from "vitest";
 
 import { createJevGraderContext, gradeWithJev } from "../engine/graders/jev.js";
 import { JEV_PIN } from "../engine/jev/pin.js";
-import { VENDOR_DIR, computeLock, hashVendoredCode, sha256, verifyLock } from "../engine/jev/template.js";
+import {
+  GRADER_FILE,
+  VENDOR_DIR,
+  computeLock,
+  hashGraderCode,
+  hashVendoredCode,
+  sha256,
+  verifyLock,
+} from "../engine/jev/template.js";
 import { JEV_DIR, copyJevDir, readCases } from "./jev-helpers.js";
 
 describe("row d: committed lock matches disk", () => {
@@ -57,6 +65,51 @@ describe("vendored code is pinned by vendor_sha256", () => {
     for (const { case: c } of readCases("cases/eval-system-replies.json")) {
       const r = await gradeWithJev(c.grader, c.reply, ctx);
       expect(r.provenance.vendor_sha256).toBe(hashVendoredCode());
+    }
+  });
+});
+
+describe("grader_sha256 pins engine/graders/jev.ts (pass guards)", () => {
+  function graderCopy(): string {
+    const dir = mkdtempSync(join(tmpdir(), "zoto-jev-grader-"));
+    const p = join(dir, "jev.ts");
+    cpSync(GRADER_FILE, p);
+    return p;
+  }
+
+  it("the lock records the hash of engine/graders/jev.ts", () => {
+    const lock = JSON.parse(readFileSync(join(JEV_DIR, "jev.lock.json"), "utf-8"));
+    expect(lock.grader_sha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(lock.grader_sha256).toBe(hashGraderCode());
+  });
+
+  it("a comment-only grader edit fails check-lock (red), and passes after re-lock (green)", () => {
+    const grader = graderCopy();
+    writeFileSync(grader, `${readFileSync(grader, "utf-8")}\n// comment-only edit\n`);
+    const dir = copyJevDir();
+    const red = verifyLock(dir, VENDOR_DIR, grader);
+    expect(red.kind).toBe("drift");
+    if (red.kind === "drift") {
+      expect(red.problems).toEqual([expect.stringMatching(/jev grader \(engine\/graders\/jev\.ts\) changed/)]);
+    }
+    writeFileSync(join(dir, "jev.lock.json"), JSON.stringify(computeLock(dir, VENDOR_DIR, grader)));
+    expect(verifyLock(dir, VENDOR_DIR, grader).kind).toBe("ok");
+  });
+
+  it("a lock without grader_sha256 is drift", () => {
+    const dir = copyJevDir();
+    const p = join(dir, "jev.lock.json");
+    const { grader_sha256: _drop, ...rest } = JSON.parse(readFileSync(p, "utf-8"));
+    writeFileSync(p, JSON.stringify(rest));
+    expect(verifyLock(dir).kind).toBe("drift");
+  });
+
+  it("every result record carries grader_sha256", async () => {
+    const ctx = createJevGraderContext({ jevDir: JEV_DIR, env: {} });
+    const lock = JSON.parse(readFileSync(join(JEV_DIR, "jev.lock.json"), "utf-8"));
+    for (const { case: c } of [...readCases("cases/eval-system-replies.json"), ...readCases("adversarial/cases.json")]) {
+      const r = await gradeWithJev(c.grader, c.reply, ctx);
+      expect(r.provenance.grader_sha256, c.id).toBe(lock.grader_sha256);
     }
   });
 });

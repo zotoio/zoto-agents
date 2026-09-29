@@ -111,7 +111,7 @@ export function formatJevSummary(report: JevRunReport): string {
   const first = report.results[0]?.provenance;
   if (first) {
     lines.push(
-      `  provenance: jev_commit=${first.jev_commit} vendor_sha256=${first.vendor_sha256.slice(0, 16)}… fixture_set_sha256=${first.fixture_set_sha256.slice(0, 16)}…`,
+      `  provenance: jev_commit=${first.jev_commit} vendor_sha256=${first.vendor_sha256.slice(0, 16)}… grader_sha256=${first.grader_sha256.slice(0, 16)}… fixture_set_sha256=${first.fixture_set_sha256.slice(0, 16)}…`,
     );
   }
   const c = report.counts;

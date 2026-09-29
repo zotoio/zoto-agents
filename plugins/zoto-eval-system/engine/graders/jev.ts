@@ -34,6 +34,7 @@ import { JEV_PIN } from "../jev/pin.js";
 import {
   buildQuestion,
   hashFixtureSet,
+  hashGraderCode,
   hashVendoredCode,
   loadFixture,
   loadTemplate,
@@ -74,6 +75,8 @@ export interface JevProvenance {
   jev_commit: string;
   /** Hash of every file under engine/jev/ at grading time. */
   vendor_sha256: string;
+  /** Hash of this file (engine/graders/jev.ts: the pass guards) at grading time. */
+  grader_sha256: string;
   fixture_set_sha256: string;
   template: string;
   template_sha256: string | null;
@@ -100,6 +103,7 @@ export interface JevGraderContext {
   lock: LockCheck;
   fixtureSetSha256: string;
   vendorSha256: string;
+  graderSha256: string;
   /** Observer: called once per Jev consultation (fixture or live), before the transport runs. */
   onJevCall?: (info: { mode: JevMode; template: string }) => void;
   /** Only present in live mode. */
@@ -131,6 +135,7 @@ export function createJevGraderContext(opts: {
       : { kind: "drift", problems: [`jev dir not found: ${opts.jevDir}`], computed: null },
     fixtureSetSha256: existsSync(opts.jevDir) ? hashFixtureSet(opts.jevDir) : "",
     vendorSha256: hashVendoredCode(),
+    graderSha256: hashGraderCode(),
     onJevCall: opts.onJevCall,
     model: env.ZOTO_EVAL_JEV_MODEL?.trim() || undefined,
   };
@@ -253,6 +258,7 @@ export async function gradeWithJev(
     jev_mode: ctx.mode,
     jev_commit: JEV_PIN.commit,
     vendor_sha256: ctx.vendorSha256,
+    grader_sha256: ctx.graderSha256,
     fixture_set_sha256: ctx.fixtureSetSha256,
     template: config.template,
     /* Hash of the template file actually found on disk (also on drift / load errors). */
@@ -331,6 +337,6 @@ export function jevToGraderReport(record: JevGradeRecord): GraderReport {
   return {
     grader: "jev",
     verdict: toLegacyVerdict(record.verdict),
-    detail: `${describeVerdict(record.verdict)} [jev_mode=${p.jev_mode} jev_commit=${p.jev_commit.slice(0, 12)} vendor_sha256=${p.vendor_sha256.slice(0, 12)} template=${p.template} template_sha256=${(p.template_sha256 ?? "-").slice(0, 12)} fixture_set_sha256=${p.fixture_set_sha256.slice(0, 12)}]`,
+    detail: `${describeVerdict(record.verdict)} [jev_mode=${p.jev_mode} jev_commit=${p.jev_commit.slice(0, 12)} vendor_sha256=${p.vendor_sha256.slice(0, 12)} grader_sha256=${p.grader_sha256.slice(0, 12)} template=${p.template} template_sha256=${(p.template_sha256 ?? "-").slice(0, 12)} fixture_set_sha256=${p.fixture_set_sha256.slice(0, 12)}]`,
   };
 }
