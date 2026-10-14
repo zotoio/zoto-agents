@@ -1,7 +1,7 @@
 {
   "repo": "zotoio/CRUX-Compress",
-  "tag": "v2.11.7",
-  "commit": "1a252afe689392fcdecf6afd0afaf49d429b5add",
+  "tag": "v2.11.8",
+  "commit": "a60bf6c40600c8185735df9106ee7073cb78320c",
   "releaseDate": "2026-10-14",
   "mode": "plugin",
   "files": {
@@ -103,8 +103,8 @@
     },
     "hooks/crux-detect-memory-changes.py": {
       "from": ".cursor/hooks/crux-detect-memory-changes.py",
-      "upstreamSha256": "a4a475289ca62ed5f6977165423a462656a782239c3957c6fd02a917024b0ffe",
-      "sha256": "a4a475289ca62ed5f6977165423a462656a782239c3957c6fd02a917024b0ffe",
+      "upstreamSha256": "1fc2c90fa6345d37d633063372eb197b4e27169c69775417a2ba73419300126b",
+      "sha256": "1fc2c90fa6345d37d633063372eb197b4e27169c69775417a2ba73419300126b",
       "changed": false
     },
     "hooks/crux-session-start.py": {
@@ -253,8 +253,8 @@
     },
     "spec/CRUX.md": {
       "from": "CRUX.md",
-      "upstreamSha256": "92ab320fa1884e12c635e1758b4f8344519a4c6dfdef8d74af835fadb3dbc981",
-      "sha256": "92ab320fa1884e12c635e1758b4f8344519a4c6dfdef8d74af835fadb3dbc981",
+      "upstreamSha256": "1b80d1e4a4b30001a04bfb23e666a8bb5643fa508c006d1d5ab125d707ef0006",
+      "sha256": "1b80d1e4a4b30001a04bfb23e666a8bb5643fa508c006d1d5ab125d707ef0006",
       "changed": false
     },
     "templates/compress-prompts.md": {
