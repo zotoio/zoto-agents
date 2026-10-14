@@ -1,6 +1,6 @@
 # /crux-compress — per-source-type dispatch prompts
 
-This file holds the five per-source-type dispatch bodies for the `/crux-compress` command. It is a plain markdown data file — **not** a Cursor command file (no frontmatter, no IDE registration). The loadable command `.cursor/commands/crux-compress.md` (generated from `crux-compress.source.mdx`) loads only the section matching the resolved source type of a given invocation.
+This file holds the five per-source-type dispatch bodies for the `/crux-compress` command. It is a plain markdown data file — **not** a Cursor command file (no frontmatter, no IDE registration). The loadable command `.cursor/commands/crux/crux-compress.md` (generated from `crux-compress.source.mdx`) loads only the section matching the resolved source type of a given invocation.
 
 ## Shared Preamble
 

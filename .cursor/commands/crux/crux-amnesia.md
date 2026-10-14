@@ -56,5 +56,5 @@ Respond with a short status confirmation:
 
 ## Related
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full
+See `.cursor/skills/crux/_memory-shared.md#related-commands--skills` for the full
 registry of memory commands and skills.

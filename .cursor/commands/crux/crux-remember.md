@@ -14,7 +14,7 @@ Store ad-hoc memories outside of spec workflows. These memories participate in s
 
 ## Instructions
 
-This command primarily uses **Pattern A (pre-collect then spawn)** — the parent agent collects the user's choices (type, tags, description) via `AskQuestion` FIRST, then spawns a `crux-memory-remember` subagent with the pre-collected answers. If creation surfaces an unexpected decision (e.g. conflict, size limit), the subagent falls back to **Pattern B** and returns `needs_user_input`. The subagent NEVER calls `AskQuestion` directly. For the full Pattern A / Pattern B contract and the `needs_user_input` YAML schema, see `.cursor/skills/_memory-shared.md#user-input-escalation` and `AGENTS.md`.
+This command primarily uses **Pattern A (pre-collect then spawn)** — the parent agent collects the user's choices (type, tags, description) via `AskQuestion` FIRST, then spawns a `crux-memory-remember` subagent with the pre-collected answers. If creation surfaces an unexpected decision (e.g. conflict, size limit), the subagent falls back to **Pattern B** and returns `needs_user_input`. The subagent NEVER calls `AskQuestion` directly. For the full Pattern A / Pattern B contract and the `needs_user_input` YAML schema, see `.cursor/skills/crux/_memory-shared.md#user-input-escalation` and `AGENTS.md`.
 
 ### Argument Handling
 
@@ -45,5 +45,5 @@ This command primarily uses **Pattern A (pre-collect then spawn)** — the paren
 
 ## Related
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full
+See `.cursor/skills/crux/_memory-shared.md#related-commands--skills` for the full
 registry of memory commands and skills.

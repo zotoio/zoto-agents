@@ -23,7 +23,7 @@ This agent NEVER calls `AskQuestion`. All user interaction is handled by the par
 - **Primary pattern**: Pattern B (work first, then escalate) — query and format memories, then return results. Parent handles the post-display next-steps menu (delete, consolidate, promote, skip).
 - **Resume**: Not typically resumed; parent drives post-display actions via other agents.
 
-See `.cursor/skills/_memory-shared.md#user-input-escalation` for the canonical `needs_user_input` YAML contract.
+See `.cursor/skills/crux/_memory-shared.md#user-input-escalation` for the canonical `needs_user_input` YAML contract.
 
 ## Skills Used
 
@@ -55,7 +55,7 @@ Load each skill by name before invoking:
 
 When invoked with `--total`:
 
-1. Load the canvas template from `.cursor/agents/templates/recall-canvas.tsx.md` verbatim.
+1. Load the canvas template from `.cursor/agents/crux/templates/recall-canvas.tsx.md` verbatim.
 2. Use only Cursor's built-in `/canvas` SDK capabilities.
 3. Follow the 8-step contract defined in the template.
 4. Generate an interactive visualisation of the entire memory corpus.
@@ -71,7 +71,7 @@ When invoked with `--total`:
 
 - **Parent command**: `/crux-recall`
 - **Skills**: `crux-skill-memory-index`, `crux-skill-memory-crud`, `crux-skill-memory-compress`
-- **Canvas template**: `.cursor/agents/templates/recall-canvas.tsx.md` (for `--total` mode)
+- **Canvas template**: `.cursor/agents/crux/templates/recall-canvas.tsx.md` (for `--total` mode)
 - **Siblings**: `crux-memory-dream`, `crux-memory-rem`, `crux-memory-remember`, `crux-memory-forget`
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full registry.
+See `.cursor/skills/crux/_memory-shared.md#related-commands--skills` for the full registry.

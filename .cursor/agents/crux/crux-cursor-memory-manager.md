@@ -24,7 +24,7 @@ This agent is a **deprecated dispatcher shim**. The Memory Manager has been spli
 
 ## Removal criteria
 
-- The five thin agents (`crux-memory-dream`, `crux-memory-rem`, `crux-memory-recall`, `crux-memory-remember`, `crux-memory-forget`) plus `.cursor/agents/templates/recall-canvas.tsx.md` are shipped in the dist zip.
+- The five thin agents (`crux-memory-dream`, `crux-memory-rem`, `crux-memory-recall`, `crux-memory-remember`, `crux-memory-forget`) plus `.cursor/agents/crux/templates/recall-canvas.tsx.md` are shipped in the dist zip.
 - The consumer upgrade script re-points existing installs at the thin agents.
 - One minor release cycle has elapsed since the thin agents shipped so downstream projects have had a chance to upgrade.
 
@@ -32,7 +32,7 @@ Once all three criteria are met, delete this file.
 
 ## Shared reference
 
-Shared config keys, User-Input Escalation contract, memory command/skill registry, and cross-skill boundaries live in `.cursor/skills/_memory-shared.md`. Do not re-paste that content — the thin agents link to it directly.
+Shared config keys, User-Input Escalation contract, memory command/skill registry, and cross-skill boundaries live in `.cursor/skills/crux/_memory-shared.md`. Do not re-paste that content — the thin agents link to it directly.
 
 ## Ownership
 

@@ -19,7 +19,7 @@ Use this skill when:
 
 Before any operation:
 
-1. **Read config**: Load `.crux/crux-memories.json`. This skill needs `cruxMemories.typeTransitions`, `demoteAfterDaysUnreferenced`, `archiveAfterDaysUnreferenced`, `typePriority`, `sizeUnit`, `compressionTarget`, `compressionMinLines`, `maxMemorySize`, `maxConsolidatedSize`, `storage.*`, `referenceTracking.trackingDir`, `referenceTracking.promotionToRuleThreshold`, plus the `flags.enableMemories`, `flags.enableMemoryCompression`, and `flags.enableMemoryConsolidation` gates. Defaults and full key descriptions live in `.cursor/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
+1. **Read config**: Load `.crux/crux-memories.json`. This skill needs `cruxMemories.typeTransitions`, `demoteAfterDaysUnreferenced`, `archiveAfterDaysUnreferenced`, `typePriority`, `sizeUnit`, `compressionTarget`, `compressionMinLines`, `maxMemorySize`, `maxConsolidatedSize`, `storage.*`, `referenceTracking.trackingDir`, `referenceTracking.promotionToRuleThreshold`, plus the `flags.enableMemories`, `flags.enableMemoryCompression`, and `flags.enableMemoryConsolidation` gates. Defaults and full key descriptions live in `.cursor/skills/crux/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
 2. **Guard check**: If `flags.enableMemories` is not `"true"`, abort and inform the caller that memories are disabled.
 3. **`typeTransitions` values are read verbatim from config — do not hard-code promotion thresholds.**
 
@@ -532,4 +532,4 @@ When a memory transitions between types, follow this exact procedure:
 | Strength exceeds `promoteAt` but `promoteTo` is not in `typePriority` | Skip promotion, report config issue |
 | File move would overwrite an existing file | Return `needs_user_input` for the calling agent to confirm with the user |
 
-> Out-of-scope and cross-skill delegation: see `.cursor/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.
+> Out-of-scope and cross-skill delegation: see `.cursor/skills/crux/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.

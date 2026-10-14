@@ -11,7 +11,7 @@ Applies CRUX compression to memory file bodies, enforces size caps, archives ori
 
 Before any operation:
 
-1. **Read config**: Load `.crux/crux-memories.json`. This skill needs `flags.enableMemoryCompression`, `cruxMemories.compressionTarget`, `sizeUnit`, `compressionMinLines`, `maxMemorySize`, `maxConsolidatedSize`, and `storage.compressionSourceArchive` / `memoriesDir`. Defaults and full key descriptions live in `.cursor/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
+1. **Read config**: Load `.crux/crux-memories.json`. This skill needs `flags.enableMemoryCompression`, `cruxMemories.compressionTarget`, `sizeUnit`, `compressionMinLines`, `maxMemorySize`, `maxConsolidatedSize`, and `storage.compressionSourceArchive` / `memoriesDir`. Defaults and full key descriptions live in `.cursor/skills/crux/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
 2. **Load CRUX spec**: Read `CRUX.md` from project root for encoding symbols and compression rules.
 3. **Guard check**: If `flags.enableMemoryCompression` is not `"true"`, refuse all operations and inform the caller that memory compression is disabled.
 
@@ -130,7 +130,7 @@ When compressing memory bodies, follow these patterns adapted from the CRUX spec
 - For warning memories (redflags), compress to condition → consequence patterns
 - Reference the `crux-cursor-rule-manager` agent definition for full compression methodology
 
-> Out-of-scope and cross-skill delegation: see `.cursor/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.
+> Out-of-scope and cross-skill delegation: see `.cursor/skills/crux/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.
 
 ## Error Handling
 

@@ -41,7 +41,7 @@ This script is **not** a Cursor event hook and is **not** registered in `.cursor
 
 Reads `.crux/crux-memories.json` — uses `cruxMemories.storage.memoriesDir` / `agentMemoriesDir` / `indexFile`, `cruxMemories.referenceTracking.trackingDir`, and `cruxMemories.typePriority`.
 
-> Config keys and defaults: see `.cursor/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
+> Config keys and defaults: see `.cursor/skills/crux/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
 
 ## Index File Format
 
@@ -96,4 +96,4 @@ memories:
 - `pyyaml` package installed
 - `.crux/crux-memories.json` must exist with valid config
 
-> Out-of-scope and cross-skill delegation: see `.cursor/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.
+> Out-of-scope and cross-skill delegation: see `.cursor/skills/crux/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.

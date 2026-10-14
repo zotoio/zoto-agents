@@ -54,7 +54,7 @@ If this body is CRUX-notated and you cannot decompress it from always-on rules a
   invoke→spawn `crux-cursor-meditation-guide` subagent
   escalation=Pattern B(work first then escalate)!
   subagents NEVER AskQuestion→parent owns all pre-spawn+post-consolidation gates
-  shared_memory_file=.cursor/skills/_memory-shared.md#user-input-escalation
+  shared_memory_file=.cursor/skills/crux/_memory-shared.md#user-input-escalation
   coordination→md files in wdir; ¬in-context return vals; ¬JSONL polling
   subagent→steps 1–8(mode-specific); calling agent→steps 9–12
   mandatory_gates_order: Q-Depth-Selection→RQ→Theme Preflight→
