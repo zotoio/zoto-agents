@@ -13,7 +13,7 @@ here. Per-plugin changes live in each plugin's own `CHANGELOG.md`:
 
 ### `crux-compress` plugin
 
-- Add `crux-compress` 2.11.7, which packages the [CRUX-Compress](https://github.com/zotoio/CRUX-Compress) v2.11.7 release as a plugin and registers it in all three marketplaces. `plugins/crux-compress/scripts/sync-upstream.mjs` rebuilds it from a release.
+- Add `crux-compress` 2.11.8, which packages the [CRUX-Compress](https://github.com/zotoio/CRUX-Compress) v2.11.8 release as a plugin and registers it in all three marketplaces. `plugins/crux-compress/scripts/sync-upstream.mjs` rebuilds it from a release.
 
 ### `/z-<skill>` commands
 

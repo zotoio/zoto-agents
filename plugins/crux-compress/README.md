@@ -4,7 +4,7 @@
 
 CRUX (Context Reduction Using X-encoding) compresses markdown rules, code files, images, and web pages into a dense notation that agents read directly, usually to about a quarter of the original tokens. The plugin carries the CRUX-Compress release unchanged except for the path and frontmatter changes listed in [`scripts/upstream-map.json`](scripts/upstream-map.json).
 
-This plugin is version **2.11.7**, the same as the CRUX-Compress release it packages.
+This plugin is version **2.11.8**, the same as the CRUX-Compress release it packages.
 
 ## Requirements
 
@@ -48,9 +48,9 @@ Upstream files refer to their own files as `.cursor/...`. In the plugin those pa
 The plugin is built from a CRUX-Compress GitHub release by [`scripts/sync-upstream.mjs`](scripts/sync-upstream.mjs):
 
 ```bash
-node scripts/sync-upstream.mjs --ref v2.11.7
+node scripts/sync-upstream.mjs --ref v2.11.8
 node scripts/sync-upstream.mjs
-node scripts/sync-upstream.mjs --check --ref v2.11.7
+node scripts/sync-upstream.mjs --check --ref v2.11.8
 ```
 
 The script:

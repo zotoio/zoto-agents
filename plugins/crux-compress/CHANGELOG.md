@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.11.8
+
+- Package CRUX-Compress v2.11.8 (commit `a60bf6c`), which documents why `crux-detect-memory-changes.py` ignores edits outside the project root.
+
 ## 2.11.7
 
 - First release: packages CRUX-Compress v2.11.7 (commit `1a252af`) as a plugin for Cursor, Claude Code, and Codex.
