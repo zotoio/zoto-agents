@@ -30,6 +30,12 @@
         "command": "node .cursor/hooks/sync-plugins.mjs --full",
         "description": "Sync all plugins to ~/.cursor/plugins/local/"
       }
+    ],
+    "afterAgentResponse": [
+      {
+        "command": "python3 .cursor/hooks/crux-track-memory-references.py",
+        "description": "CRUX: Auto-track memory references from [memory:*] annotations in agent output"
+      }
     ]
   }
 }
