@@ -1,0 +1,49 @@
+---
+generated: 2026-07-13 17:34
+sourceChecksum: "2439373976"
+cruxLevel: 25
+beforeTokens: 1506
+afterTokens: 510
+reducedBy: 66%
+confidence: 94%
+alwaysApply: true
+---
+
+> [!IMPORTANT]
+> Generated file - do not edit!
+
+# CRUX Memories Integration Rule
+
+```crux
+⟦CRUX:crux-memories-integration.md
+Ρ{CRUX Memories agent integration}
+Κ{cfg=.crux/crux-memories.json; idx=.crux/memory-index.yml}
+
+Φ.amnesia{/crux-amnesia=session override ≻ enableMemories;
+ suppress[discover,load,annotate,refs,dream-nudge]; ¬Δ cfg|files|trackers|idx;
+ subagents→inherit; explicit /crux-dream|recall|remember|meditate|forget→user intent OK}
+
+Φ.enabled{enableMemories="true"→
+ discover: read idx→load likely matches(title|desc|tags);
+ MCP→semantic search ≻ idx scan;
+ ⊛proactive: non-trivial→query MCP early[arch|design|unfamiliar|plan|debug|patterns];
+ descriptive NL queries; filter[types,minStrength≥3];
+ ⊛annotate: [memory:{title}] inline near influenced stmt!;
+ ⊛annotate=load-bearing: ¬annotate→0refs ∧ ¬strength ∧ ¬REM signal ∧ stale-nudge;
+ ⊛passthrough: subagent [memory:T]→parent MUST preserve verbatim;
+ ¬strip; recursive; paraphrase→copy [memory:…];
+ subagent omits syntax but identifiable via idx→parent adds;
+ ⊛self-check: pre-respond→mem influenced ∧ ¬annotated→add;
+ afterAgentResponse hook→auto .refs.yml; ¬manual ref-tracker;
+ post-spec→suggest /crux-dream}
+
+Φ.disabled{enableMemories="false"→skip all silently}
+
+R.general{¬direct read|write→use skills; scope=base+own agent; repo-local;
+ dir=memories/ (cfg: cruxMemories.storage.memoriesDir)}
+
+R.mcp{pipx install ./crux_mcp_server→~/.cursor/mcp.json;
+ MCP avail→semantic search ≻ idx scan;
+ E: CallMcpTool(server="user-crux-memories",toolName="memory-search",args={query:"…"})}
+⟧
+```
