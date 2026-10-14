@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-14T03:19:54.877Z
-git_ref: 7cf59dd04a3bfd5158b69bf889abf2b82d168715
+updated_at: 2026-10-14T04:58:29.427Z
+git_ref: 648fdf9c8ba381dd512ea775979b958b4e8a3872
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -196,7 +196,7 @@ targets:
   - id: skill:crux-init
     kind: skill
     path: plugins/crux-compress/skills/crux-init/SKILL.md
-    content_hash: 9fb91727b6c1f63d8e1f2f48205be6bcc61186cbe830061781bfb146f8414247
+    content_hash: 3f064de31dbae945fb16935c985f52d27ad71917401fe8005fd8b00cfda36d6c
     public_surface:
       frontmatter:
         name: crux-init

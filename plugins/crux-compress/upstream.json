@@ -1,8 +1,8 @@
 {
   "repo": "zotoio/CRUX-Compress",
-  "tag": "v2.11.5",
-  "commit": "ad633f45ffc1004a3324b2c206a8aa50d9f302ef",
-  "releaseDate": "2026-09-25",
+  "tag": "v2.11.6",
+  "commit": "e966c856fb9c3b69b8cc3cb90c5185e28424a08f",
+  "releaseDate": "2026-10-14",
   "mode": "plugin",
   "files": {
     "agents/crux-cursor-meditation-guide.md": {
@@ -13,7 +13,7 @@
     },
     "agents/crux-cursor-memory-manager.md": {
       "from": ".cursor/agents/crux/crux-cursor-memory-manager.md",
-      "upstreamSha256": "70ae6f7a48beb092f5fde8fa4a11f15246a3e019c008e8270fd815ce24ba43e3",
+      "upstreamSha256": "086f8ac8cf8267b08f073646ca49ba16b8bdeb118a78d9d7f255abafdb61f537",
       "sha256": "71d7599d548cd3857bfdeebf982df882fcdd15a7a670d707dfdd1524c63d8bfa",
       "changed": true
     },
@@ -25,73 +25,73 @@
     },
     "agents/crux-memory-dream.md": {
       "from": ".cursor/agents/crux/crux-memory-dream.md",
-      "upstreamSha256": "0dcab43f0055d200f603dba0d849473d542b4035fb71f9b3fef340f6a6ec4c07",
+      "upstreamSha256": "d7be94edcc1d1bb81f0c23973658fce7c67c4472d784d4f745d93363477f9226",
       "sha256": "833d76a002b1dd6246a140c8e720f672f2ff227709cbef6fa38f6c47390dbcbc",
       "changed": true
     },
     "agents/crux-memory-forget.md": {
       "from": ".cursor/agents/crux/crux-memory-forget.md",
-      "upstreamSha256": "27113ba3a7556fea8f4d431e748b0eb788e25e2e8ae88b6117aa6d65e0cd3dc0",
+      "upstreamSha256": "6fa84841e3ebc2853614961f5f1b2fb65627c10aed7bb3e057413b1d41c98569",
       "sha256": "f234328f68441906bd2ccd3e54bcd1adb7dedc291cb3bef2f3b7f7eeec8db31b",
       "changed": true
     },
     "agents/crux-memory-recall.md": {
       "from": ".cursor/agents/crux/crux-memory-recall.md",
-      "upstreamSha256": "03aa97b75e7d22e8aefbc2cdbc409db3ff0c04b39ad8f5bb149f81b5f3674eda",
+      "upstreamSha256": "5fa8e2c0be02ff49fe33b4f6610140656c8a95cb94b02830f4cb44b118e60212",
       "sha256": "18a7c47d3367f76b06fcceb7b0be26398d524e0dbd6456590aa6cf970c903211",
       "changed": true
     },
     "agents/crux-memory-rem.md": {
       "from": ".cursor/agents/crux/crux-memory-rem.md",
-      "upstreamSha256": "85f08fd23b6c2df3a39ab10a072e35b1c41cebefa4cf9d5126cf5f3fc927ca13",
+      "upstreamSha256": "425f07fb071951b973f8305403257b758c125e452d50c1ce1b74076f9ae54ba7",
       "sha256": "04eac05f1949b41854e262bbdd55c96926c3990e56e3e348372796822a82f832",
       "changed": true
     },
     "agents/crux-memory-remember.md": {
       "from": ".cursor/agents/crux/crux-memory-remember.md",
-      "upstreamSha256": "da2903b419df6b9450e7a41fe7ed68087b6f7701b9a534e35aeaa23e2ec4640c",
+      "upstreamSha256": "c25758081e53b46481a1268ca4992cd01902b42ef940381035f42883ead283c6",
       "sha256": "b0ca2ad640867f229616838a8aafc4501729ffb928c7994753c369900d584094",
       "changed": true
     },
     "commands/crux-amnesia.md": {
       "from": ".cursor/commands/crux/crux-amnesia.md",
-      "upstreamSha256": "bd19ee084be7d02c223dc8a23ae96a28be88a021e019d77edce3c90eb06c4a17",
+      "upstreamSha256": "d12b536a36f869ef2178d51df6c1b68c18fd0d68386ee9ec260b9bbd5fee7678",
       "sha256": "250e5102d4325c7de6ecc4d0bfac330ac269f547edd443af5ede728b459abdbf",
       "changed": true
     },
     "commands/crux-compress.md": {
       "from": ".cursor/commands/crux/crux-compress.md",
-      "upstreamSha256": "14914dc2039a964335fd82c96a926e5d73f21087dc1683d99a3d478cce29d9c6",
+      "upstreamSha256": "8cce60993ec10d3d9c9274205c916ad84c2e99fbea5616acb6498b054223ee08",
       "sha256": "42bc4d248da92a8f1877459ac1a35503066ad2cb0951c3f8ff1b7200b58b7909",
       "changed": true
     },
     "commands/crux-dream.md": {
       "from": ".cursor/commands/crux/crux-dream.md",
-      "upstreamSha256": "83c826ac750333e210dba006e3bedcf354400962269cc0a5d364017df7921e5a",
+      "upstreamSha256": "f174cd0868536659af0780d27e17f205f799577da820d84f90661da6f927115a",
       "sha256": "8658c259025252d81b049f1808a4962b3a7f67de14d6b5f9da126f06c5584db0",
       "changed": true
     },
     "commands/crux-forget.md": {
       "from": ".cursor/commands/crux/crux-forget.md",
-      "upstreamSha256": "39a7d75cc886195ec80f3663b955086de67aae22842e7e75e85bea65978f9371",
+      "upstreamSha256": "dcc9d0699b322893d36936b85fcf36ecc33b87c1fdf74a4fa486f0293bd3cb80",
       "sha256": "3bcc923d953b52b3f4455b287aca16a623ecf8c107db21e17feb4b54b1b9ccf1",
       "changed": true
     },
     "commands/crux-meditate.md": {
       "from": ".cursor/commands/crux/crux-meditate.md",
-      "upstreamSha256": "4bbf7751443b1e2b92956d909cac829f1889c77351c83b8032f98d7103b79dae",
+      "upstreamSha256": "b3738c65b12d6aa6396bb50a28f8ec788a025df95ef8d8d5c881c88a5b0e9f98",
       "sha256": "45ccc413f056e1342fb63b40968ba55d80d3b6c6ce1948c6a38fde338816aa88",
       "changed": true
     },
     "commands/crux-recall.md": {
       "from": ".cursor/commands/crux/crux-recall.md",
-      "upstreamSha256": "e48bb2a79f05da0fc2f951f1d9854c9540302a3ac3cd985b46ebac6cecb16fc8",
+      "upstreamSha256": "27d4bd7898683e3d3f8536ad4c354e056bc380d774ca63fabc19f858ca15c4fd",
       "sha256": "bbde573dc21915fec73130569dde9e1b976f5f73ff5272c7d52a8fc7c05dbbee",
       "changed": true
     },
     "commands/crux-remember.md": {
       "from": ".cursor/commands/crux/crux-remember.md",
-      "upstreamSha256": "a7515a40918afe3b92167c9062488517976fc677b60dc9d605ec6d66c7698f91",
+      "upstreamSha256": "ac1c4fa103ebabc766d629d65bd317467fb479f852116771ebb840584da5aa71",
       "sha256": "dc72ec2ff85c2f7c921861d82cbdde620385965af201f76d5c64e102f448ea83",
       "changed": true
     },
@@ -151,19 +151,19 @@
     },
     "skills/crux-skill-memory-compress/SKILL.md": {
       "from": ".cursor/skills/crux/crux-skill-memory-compress/SKILL.md",
-      "upstreamSha256": "b8a243d9e93e17c60a696998ef1300a66cae8140c558b138980742c651350bf7",
+      "upstreamSha256": "848d70d12589535e43c00b08b2fb0d633041ac7e4b5c8b2368c5bdd51f0c548c",
       "sha256": "6094372706b3d63ab9705a12d37af9502cab17bb46f793c9a6e3e5dca9799e92",
       "changed": true
     },
     "skills/crux-skill-memory-crud/SKILL.md": {
       "from": ".cursor/skills/crux/crux-skill-memory-crud/SKILL.md",
-      "upstreamSha256": "63f7f238ba1d46a00eeb234bf3bb27666843ca3b7c55961c63fad326393034ed",
+      "upstreamSha256": "3ccd192475faaf1676063f3d10c42a385b8984c11f63bd0a6293b44da52a78e8",
       "sha256": "f1cf6f4ee850ccfcb9182a2f1e76b97e49e4177111efde69b0ebd8fe79a93921",
       "changed": true
     },
     "skills/crux-skill-memory-extract/SKILL.md": {
       "from": ".cursor/skills/crux/crux-skill-memory-extract/SKILL.md",
-      "upstreamSha256": "6015356791c04d58ca9562f3f423dcc180c2dd84cfcf1db8a8ffda23cca497e2",
+      "upstreamSha256": "6c1d2661db4b743abda9610a7c1015ee1d563b9224f87d73f6ace244fe755872",
       "sha256": "eb554c288dbee98e624e4a3bcb90f20c5acc5b7a92de2f55fd7bfc8a301b1c85",
       "changed": true
     },
@@ -181,7 +181,7 @@
     },
     "skills/crux-skill-memory-index/SKILL.md": {
       "from": ".cursor/skills/crux/crux-skill-memory-index/SKILL.md",
-      "upstreamSha256": "74d51c1768f6fa84cf710474e11cc227ae395322837ae3d8f117d9c4c119a12b",
+      "upstreamSha256": "c176b368fe0b78dda61c4a6bb52252a26137ede8ac6b68ef680702eb27bd63fc",
       "sha256": "dd1c476266b5d4d92552473ae61cfcae1aca2724b836089151f7eb99ad65ac34",
       "changed": true
     },
@@ -223,13 +223,13 @@
     },
     "skills/crux-skill-memory-rebalance/SKILL.md": {
       "from": ".cursor/skills/crux/crux-skill-memory-rebalance/SKILL.md",
-      "upstreamSha256": "76881c691c72866abb14df018cfff3be34e66d659ee5ed027084c833e2349095",
+      "upstreamSha256": "0c44747d50849279b6566ebff5512515dea1dc8a4c98dae032d7babb9024a6d4",
       "sha256": "b59d79e6204617b15178fc0c5560b7cae96715eb0b9a1364f63830e019eaa982",
       "changed": true
     },
     "skills/crux-skill-memory-reference-tracker/SKILL.md": {
       "from": ".cursor/skills/crux/crux-skill-memory-reference-tracker/SKILL.md",
-      "upstreamSha256": "96e9c2de391a32b33cef95c9c09a418a867c137a5de986ab9d5f69076505e222",
+      "upstreamSha256": "4139d50e493543000f988a7c881e61e574b171b13a9794555855b6dda4441230",
       "sha256": "eb557b46bfc1a531a3c3d26d3ad00b8559ac0c04e5cd6e2899a6dbf766a75f6d",
       "changed": true
     },
@@ -248,18 +248,18 @@
     "spec/AGENTS.crux.md": {
       "from": "AGENTS.crux.md",
       "upstreamSha256": "d9499a93f184c20de9818c0c47248a2bdc0cb9ff6b371a17d826ba7d33debc3d",
-      "sha256": "d5687eec8fa0876333677a1f9cacafa5fc65afd3f7dbf65fbf0684006a1e162f",
+      "sha256": "d2af2841b52ee9ebc9f91e77d3adb78b4384d3155d2a5fc4e00786f1fd0d5e7f",
       "changed": true
     },
     "spec/CRUX.md": {
       "from": "CRUX.md",
-      "upstreamSha256": "7945f45d4e1c37694c5a2253339ccfbefc63160ab87557a12df819aaab9f834e",
-      "sha256": "7945f45d4e1c37694c5a2253339ccfbefc63160ab87557a12df819aaab9f834e",
+      "upstreamSha256": "dd47d097bfa31709130ee3abffd2d8164d5b95849a8cb956640139226364caf0",
+      "sha256": "dd47d097bfa31709130ee3abffd2d8164d5b95849a8cb956640139226364caf0",
       "changed": false
     },
     "templates/compress-prompts.md": {
       "from": ".cursor/commands/crux/templates/compress-prompts.md",
-      "upstreamSha256": "ee7525d0eade5b2e193b96e81302de175a32e8a3c292fe22ed4bb62ed420ce9c",
+      "upstreamSha256": "02719fbdae7805a48a4327c066f163189fae2c535a1fd4f70996cf774d14d89f",
       "sha256": "df81b29b138f821ab769daa9fbcb20d1130c816080c60aa0786f2fa54323dd0d",
       "changed": true
     },

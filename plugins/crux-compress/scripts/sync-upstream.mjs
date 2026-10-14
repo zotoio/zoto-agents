@@ -3,8 +3,8 @@
  * Sync this plugin from a CRUX-Compress GitHub release.
  *
  *   node scripts/sync-upstream.mjs                  # latest release
- *   node scripts/sync-upstream.mjs --ref v2.11.5    # a specific release
- *   node scripts/sync-upstream.mjs --zip <file> --ref v2.11.5   # an already-downloaded release zip
+ *   node scripts/sync-upstream.mjs --ref v2.11.6    # a specific release
+ *   node scripts/sync-upstream.mjs --zip <file> --ref v2.11.6   # an already-downloaded release zip
  *   node scripts/sync-upstream.mjs --raw            # move files into the plugin layout, change no content
  *   node scripts/sync-upstream.mjs --check          # report drift from upstream.json, write nothing
  *

@@ -4,7 +4,7 @@
 
 CRUX (Context Reduction Using X-encoding) compresses markdown rules, code files, images, and web pages into a dense notation that agents read directly, usually to about a quarter of the original tokens. The plugin carries the CRUX-Compress release unchanged except for the path and frontmatter changes listed in [`scripts/upstream-map.json`](scripts/upstream-map.json).
 
-This plugin is version **2.11.5**, the same as the CRUX-Compress release it packages.
+This plugin is version **2.11.6**, the same as the CRUX-Compress release it packages.
 
 ## Requirements
 
@@ -44,9 +44,9 @@ Upstream files refer to their own files as `.cursor/...`. In the plugin those pa
 The plugin is built from a CRUX-Compress GitHub release by [`scripts/sync-upstream.mjs`](scripts/sync-upstream.mjs):
 
 ```bash
-node scripts/sync-upstream.mjs --ref v2.11.5
+node scripts/sync-upstream.mjs --ref v2.11.6
 node scripts/sync-upstream.mjs
-node scripts/sync-upstream.mjs --check --ref v2.11.5
+node scripts/sync-upstream.mjs --check --ref v2.11.6
 ```
 
 The script:
@@ -63,7 +63,6 @@ Files this plugin adds are not touched by a sync: `rules/crux-plugin-paths.mdc`,
 
 ## Known upstream issues
 
-- The v2.11.5 release zip's `.cursor/hooks.json` runs `crux-track-memory-references.py`, but the zip does not include it. The sync fetches it from the release commit.
 - `AGENTS.crux.md` is in the zip but not in the release's checksum manifest, so the sync cannot verify it and warns.
 
 ## Licence

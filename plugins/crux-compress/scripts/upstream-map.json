@@ -53,7 +53,6 @@
   "extraFiles": {
     "$comment": "Fetched from raw.githubusercontent.com at the release commit because the release zip leaves them out.",
     "files": {
-      ".cursor/hooks/crux-track-memory-references.py": "Listed in the release's .cursor/hooks.json but missing from the release zip",
       "LICENSE.md": "Upstream licence, shipped as the plugin's LICENSE"
     },
     "rename": {
@@ -71,17 +70,14 @@
   "rewrites": {
     "$comment": "Exact-string replacements applied to every synced text file, longest first. <plugin> is this plugin's install directory (see rules/crux-plugin-paths.mdc).",
     "python3 .cursor/hooks/": "python3 hooks/",
-    ".cursor/skills/crux/crux-skill-memory-index/scripts/": "<plugin>/skills/crux-skill-memory-index/scripts/",
-    ".cursor/skills/crux/crux-utils/scripts/crux-utils.py": "<plugin>/skills/crux-utils/scripts/crux-utils.py",
-    ".cursor/skills/_memory-shared.md": "<plugin>/skills/_memory-shared.md",
-    ".cursor/commands/templates/compress-prompts.md": "<plugin>/templates/compress-prompts.md",
-    ".cursor/agents/templates/recall-canvas.tsx.md": "<plugin>/templates/recall-canvas.tsx.md",
-    ".cursor/rules/_CRUX-RULE.mdc": "<plugin>/rules/_CRUX-RULE.mdc",
-    ".cursor/rules/crux-memories-integration.md": "<plugin>/rules/crux-memories-integration.crux.mdc",
     "`.cursor/hooks.json`": "`<plugin>/hooks/hooks.json`",
+    ".cursor/agents/crux/templates/": "<plugin>/templates/",
+    ".cursor/commands/crux/templates/": "<plugin>/templates/",
     ".cursor/agents/crux/": "<plugin>/agents/",
     ".cursor/commands/crux/": "<plugin>/commands/",
-    ".cursor/commands/crux-compress.md": "<plugin>/commands/crux-compress.md"
+    ".cursor/rules/crux/": "<plugin>/rules/",
+    ".cursor/skills/crux/": "<plugin>/skills/",
+    ".cursor/rules/crux-memories-integration.md": "<plugin>/rules/crux-memories-integration.crux.mdc"
   },
   "frontmatter": {
     "$comment": "Keys added to files whose upstream frontmatter lacks what plugin loaders and validate-template require. Existing keys are never overwritten.",

@@ -1,6 +1,6 @@
 {
   "name": "crux-compress",
-  "version": "2.11.5",
+  "version": "2.11.6",
   "description": "Compress rules, code, images, and web pages into CRUX notation, with CRUX memories and meditation. Packages the CRUX-Compress release as a plugin.",
   "author": {
     "name": "zotoio",
