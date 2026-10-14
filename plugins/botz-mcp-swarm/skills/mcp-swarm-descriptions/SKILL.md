@@ -44,14 +44,16 @@ Present a table of tool, current description, issues, proposed description, and 
 
 ## 3. Examine saved optimize suggestions
 
-`botz mcp-swarm optimize` saves its proposal to `.botz/mcp-swarm/data/optimize-drafts.json` and appends to `.botz/mcp-swarm/data/optimize-history.json` (`toolName`, `before`, `after`, `rationale`, `benchDelta`, `status`, `source` of `llm` or `heuristic`). Read them as hints, with these limits of the current CLI:
+`botz mcp-swarm optimize --tool <name>` reads one tool from the live `tools/list` and proposes a description from its current description, input schema, and property descriptions. It saves the proposal to `.botz/mcp-swarm/data/optimize-drafts.json` and appends it to `.botz/mcp-swarm/data/optimize-history.json` (`toolName`, `before`, `after`, `rationale`, `status`, `source` of `llm` or `heuristic`). `before` is the server's current description. Treat proposals as hints and review them against step 2:
 
-- `before` and the model's input are the tool **name**, not its current description, so compare `after` with the real description from the suite yourself.
-- A `heuristic` proposal only appends the required argument names.
-- `benchDelta` is the latency of two single calls; it says nothing about description quality.
+- An `llm` proposal is a model rewrite; check it does not invent behaviour the schema and description do not state.
+- A `heuristic` proposal lists concrete gaps in `rationale` (missing or very short description, undocumented properties, required arguments the description does not mention). It drafts a new description only when the current one is missing or very short; otherwise `after` equals `before`.
+- `optimize` does not measure whether a proposal is better. Use tool evals (step 4) for that.
 - Accepting a draft happens in the swarm service dashboard; the standalone CLI has no accept command.
 
-Do not run `optimize` yourself unless the user asks. It calls the tool twice with `{"message": ...}` arguments, so never run it against a write-like tool, and it requires `--allowlist` (`stdio` for stdio targets, the host name for HTTP).
+`optimize` does not call the tool. It requires `--tool` and `--allowlist` (`stdio` for stdio targets, the host name for HTTP), and uses a model only when inference credentials are configured. Run it only when the user asks.
+
+Check `botz mcp-swarm --version`. Versions up to 0.6.1 behave differently: `before` and the model input are the tool name, `--tool` defaults to `echo`, the tool is called twice with `{"message": ...}` arguments, and `benchDelta` records the latency of those two calls, which says nothing about description quality. On those versions, never run `optimize` against a write-like tool, compare `after` with the real description from the suite yourself, and ignore `benchDelta`. Run `botz plugins install mcp-swarm` to update.
 
 ## 4. Measure a change with tool evals
 

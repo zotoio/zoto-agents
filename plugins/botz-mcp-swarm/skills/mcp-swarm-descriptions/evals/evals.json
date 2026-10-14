@@ -22,11 +22,12 @@
       "expected_output": "The assistant reads the saved optimize drafts and history, explains their limits, and proposes a fair before/after measurement with tool evals using the same suite.",
       "assertions": [
         "The assistant reads .botz/mcp-swarm/data/optimize-drafts.json and optimize-history.json",
-        "The assistant explains that the optimize `before` value is the tool name, not the current description, and compares `after` with the real description",
-        "The assistant explains that benchDelta does not measure description quality",
+        "The assistant checks the CLI version and, for 0.6.1 or earlier, explains that `before` is the tool name and benchDelta does not measure description quality",
+        "The assistant reviews each proposed `after` against the tool's current description and schema rather than accepting it as-is",
+        "The assistant explains that optimize itself does not measure whether a proposal is better",
         "The assistant recommends running the same suite with --inference before and after the description change, without recapturing in between",
         "The assistant suggests repeating each side more than once and comparing with the mcp-swarm-compare skill",
-        "The assistant does not run optimize against a write-like tool"
+        "The assistant does not run optimize unless the user asks, and on 0.6.1 or earlier never against a write-like tool"
       ]
     }
   ]
