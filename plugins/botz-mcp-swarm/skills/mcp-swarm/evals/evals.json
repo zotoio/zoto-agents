@@ -13,7 +13,8 @@
         "The assistant installs the extension with `botz plugins install mcp-swarm` only after `botz plugins info mcp-swarm --json` shows it is not installed",
         "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm` or `swarm`",
         "The assistant inspects captured steps (suite show or validate) before running the suite",
-        "The assistant reports the verdict, executed coverage, and report location rather than calling the run successful because a report exists"
+        "The assistant reports the verdict, executed coverage, and report location rather than calling the run successful because a report exists",
+        "The summary names the MCP server by name and URL or command"
       ]
     },
     {

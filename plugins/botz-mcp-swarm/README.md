@@ -4,11 +4,19 @@ Agent Skills for the [botz MCP Swarm CLI](https://github.com/zotoio/botz-mcp-swa
 
 | Skill | Use it to |
 | --- | --- |
-| `mcp-swarm` | Capture, validate, refresh, and run suites |
+| `mcp-swarm-guided` | Be walked through testing a server: questions for the target, credentials, test data, tool selection, and load, then capture, review, run, and summary |
+| `mcp-swarm` | Capture, validate, refresh, and run suites directly |
+| `mcp-swarm-compare` | Compare two runs or a series, and chart latency, error rate, and tool-eval trends in Cursor's `/canvas` or a self-contained HTML page |
+| `mcp-swarm-descriptions` | Review a server's tool descriptions, examine `optimize` suggestions, and measure a change with tool evals |
+| `mcp-swarm-record-replay` | Record redacted wire traffic and replay it as recorded, at maximum rate, or paced |
 | `mcp-swarm-diagnose` | Explain failed runs, missing credentials, and regressions |
 | `mcp-swarm-upgrade` | Update the CLI and migrate saved suites to the current layout |
 
 The skills set `disable-model-invocation: true`: run them by name (for example `/mcp-swarm`). On first use they install the `botz` host (`@zotoio/botz-cli`) and its `mcp-swarm` extension if missing, so Node.js 22.13+ and npm are required. No MCP server or executable is bundled.
+
+Every suite, report summary, chart, and file the skills produce names the MCP server under test by its name and its URL or command. Run reports do not record the server, so the skills take it from the run's saved suite.
+
+`mcp-swarm-compare` ships `scripts/runs-dataset.mjs`, which needs only Node.js; `pnpm --filter @zoto-agents/botz-mcp-swarm test` runs its tests.
 
 ## Install
 

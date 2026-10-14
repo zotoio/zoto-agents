@@ -1,0 +1,33 @@
+{
+  "skill_name": "mcp-swarm-compare",
+  "evals": [
+    {
+      "id": 1,
+      "files": [],
+      "prompt": "/mcp-swarm-compare Compare my last two runs of the docs-server suite and show me what changed.",
+      "expected_output": "The assistant compares the two most recent docs-server reports with the CLI and the bundled dataset script, checks comparability, and visualises the result labelled with the server name and URL or command.",
+      "assertions": [
+        "The assistant selects the two most recent botz-run-*.json reports from .botz/mcp-swarm/runs (or the configured runsDir)",
+        "The assistant runs `botz mcp-swarm compare --base <older> --head <newer>` and treats exit code 1 as regressions found, not a command failure",
+        "The assistant runs scripts/runs-dataset.mjs from the skill directory on the selected reports",
+        "The assistant reviews the comparability notes before stating any regression",
+        "In Cursor the assistant hands the dataset to /canvas; in other clients it writes the HTML page with --html",
+        "The chart or page title and the summary name the server by name and URL or command",
+        "Every regression reported includes its before and after values"
+      ]
+    },
+    {
+      "id": 2,
+      "files": [],
+      "prompt": "/mcp-swarm-compare Show the p95 trend across all runs in .botz/mcp-swarm/runs. Some were run at concurrency 2 and some at 8.",
+      "expected_output": "The assistant builds a series dataset over all runs, warns that differing concurrency makes latency differences not comparable, and does not call those differences regressions without that caveat.",
+      "assertions": [
+        "The assistant passes the runs directory (or every report) to scripts/runs-dataset.mjs",
+        "The assistant reports that concurrency differs between runs and that latency differences are not directly comparable",
+        "The assistant flags tools with fewer than 30 samples as having unreliable p95",
+        "The assistant excludes or calls out silent-green runs",
+        "The assistant does not start new load runs to fill gaps without being asked"
+      ]
+    }
+  ]
+}

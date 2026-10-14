@@ -10,7 +10,8 @@
         "The assistant identifies exit code 2 as a configuration or execution error, not a failed assertion",
         "The assistant runs `botz mcp-swarm suite validate --suite demo --json` and `botz mcp-swarm doctor --suite demo --json` before contacting the target",
         "The assistant reports missing environment variable names without reading or printing secret values",
-        "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm`"
+        "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm`",
+        "The summary names the MCP server by name and URL or command"
       ]
     },
     {

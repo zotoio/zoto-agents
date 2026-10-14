@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-14T00:45:21.904Z
-git_ref: 16888b3c7ca6e1594c540dee515568395236acef
+updated_at: 2026-10-14T01:02:34.320Z
+git_ref: 61f2497737162850fac6e4166aad283d606bf1a5
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -811,7 +811,7 @@ targets:
   - id: skill:mcp-swarm
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm/SKILL.md
-    content_hash: 138c4547ad167750407534de818ef257707aac662e3769badd3d3d97b005f248
+    content_hash: 6d3bc5cfd68432df555580c5068ecafa76a34fd69d5c2dcd5e5083596a5c7f24
     public_surface:
       frontmatter:
         name: mcp-swarm
@@ -832,7 +832,7 @@ targets:
   - id: skill:mcp-swarm-diagnose
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/SKILL.md
-    content_hash: 12ff6eea46157a18d4b7b36fc5a2bb9b16aef8ef8460e1951c60e1baaa11f751
+    content_hash: da096bb7642c34c97de66720f3140d638daebeb05357a7f78621a3d1602f6def
     public_surface:
       frontmatter:
         name: mcp-swarm-diagnose
@@ -873,3 +873,93 @@ targets:
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/evals/evals.json
+  - id: skill:mcp-swarm-compare
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-compare/SKILL.md
+    content_hash: 75183bc4dfb892592cbf5d384029a32e4234ee1e811303ac1a87a739c96017c9
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-compare
+        description: Compare two botz MCP Swarm runs or a series of runs and visualise
+          latency, error rate, and tool-eval trends in Cursor's /canvas or a
+          self-contained HTML page. Use to check for regressions between builds,
+          environments, or load settings.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Reads
+          existing run reports; does not contact the target.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-compare/evals/evals.json
+  - id: skill:mcp-swarm-descriptions
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/SKILL.md
+    content_hash: efaadeeef34ec384d79bd7b285c4b944ba011eeaac9d350ceba3a5a38e2a5293
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-descriptions
+        description: Review an MCP server's tool descriptions, propose clearer ones,
+          examine description suggestions saved by botz MCP Swarm optimize, and
+          measure a description change with tool evals. Use when models pick the
+          wrong tool, misuse arguments, or a server's descriptions need an
+          audit.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Measuring changes with tool evals needs model credentials and access
+          to the target MCP server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/evals/evals.json
+  - id: skill:mcp-swarm-guided
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-guided/SKILL.md
+    content_hash: 1401f9e50fb3449985841b29c3c51febde2fec677d1055e6ba0947f486a8e12c
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-guided
+        description: Guided, question-driven introspection of an MCP server with botz
+          MCP Swarm, from target and credentials through suite generation,
+          review, and execution to a summarised result. Use when someone wants
+          to test an MCP server and has not set up a suite yet.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Contacts the target MCP server; inference needs model credentials.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-guided/evals/evals.json
+  - id: skill:mcp-swarm-record-replay
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/SKILL.md
+    content_hash: eac67ce385d1773dbf2e09c0b9c274bd053960957f742657ee40ac8d3ccd81f7
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-record-replay
+        description: Record redacted MCP wire traffic from a server with botz MCP Swarm
+          and replay it against the same or another server, as recorded, at
+          maximum rate, or paced. Use to reproduce a session, compare server
+          builds on identical traffic, or create fixtures.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Recording and replay contact the target MCP server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/evals/evals.json

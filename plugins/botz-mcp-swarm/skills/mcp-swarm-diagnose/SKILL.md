@@ -20,6 +20,10 @@ Run every command through the botz host as `botz mcp-swarm`. Do not use the stan
 2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null`, run `botz plugins install mcp-swarm`.
 3. Confirm with `botz mcp-swarm --version`, and check the relevant subcommand's `--help` before using unfamiliar options.
 
+## Identify the server
+
+Name the MCP server under test by its name and its URL or command in every finding, table, and summary. Take them from the suite (`surface.serverName`, `surface.serverVersion`, `target`) or `botz mcp-swarm suite show`; if neither is available, ask the user. Write them as `<server name> <version> (<URL or command>)`.
+
 Begin with the existing report and offline diagnostics, using the user's suite name or directory:
 
 ```sh
