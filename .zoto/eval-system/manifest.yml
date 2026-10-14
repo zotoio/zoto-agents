@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-14T02:50:42.860Z
-git_ref: 3c481837d5ab2304c72c4eee41d48ee5cffe0b41
+updated_at: 2026-10-14T05:16:06.569Z
+git_ref: 3e96ca68cf3ee637ba2a0de64a29d041179299cc
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -38,6 +38,374 @@ targets:
           scratch.
     eval_files:
       - .cursor/skills/zoto-create-plugin/evals/evals.json
+  - id: skill:mcp-swarm
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm/SKILL.md
+    content_hash: 3f411c0d2682b88c1ef9c54b9e2559a7701a1e998ff2835eb5527950a4204027
+    public_surface:
+      frontmatter:
+        name: mcp-swarm
+        description: Capture, validate, refresh, and run MCP test suites with the botz
+          MCP Swarm CLI. Use for testing MCP servers, repeatable tool
+          assertions, load tests, and CI reports.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Live
+          capture and runs require access to the target MCP server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm/evals/evals.json
+  - id: skill:mcp-swarm-compare
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-compare/SKILL.md
+    content_hash: 6d8bb1e1ad04ad7c15b6de5fb058a1d4355e9a4542065329ba35881704ef4a77
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-compare
+        description: Compare two botz MCP Swarm runs or a series of runs and visualise
+          latency, error rate, and tool-eval trends in Cursor's /canvas or a
+          self-contained HTML page. Use to check for regressions between builds,
+          environments, or load settings.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Reads
+          existing run reports; does not contact the target.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-compare/evals/evals.json
+  - id: skill:mcp-swarm-descriptions
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/SKILL.md
+    content_hash: 27720a2afe4bc8432133f6aad6ad8ac9c40ed9402a5c09f2e69f27b283d1a188
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-descriptions
+        description: Review an MCP server's tool descriptions, propose clearer ones,
+          examine description suggestions saved by botz MCP Swarm optimize, and
+          measure a description change with tool evals. Use when models pick the
+          wrong tool, misuse arguments, or a server's descriptions need an
+          audit.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Measuring changes with tool evals needs model credentials and access
+          to the target MCP server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/evals/evals.json
+  - id: skill:mcp-swarm-diagnose
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/SKILL.md
+    content_hash: da096bb7642c34c97de66720f3140d638daebeb05357a7f78621a3d1602f6def
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-diagnose
+        description: Diagnose failed botz MCP Swarm suites, missing credentials, invalid
+          fixtures, execution errors, and performance regressions from CLI
+          diagnostics and run reports.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Offline validation and doctor do not require target access.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/evals/evals.json
+  - id: skill:mcp-swarm-guided
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-guided/SKILL.md
+    content_hash: 1401f9e50fb3449985841b29c3c51febde2fec677d1055e6ba0947f486a8e12c
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-guided
+        description: Guided, question-driven introspection of an MCP server with botz
+          MCP Swarm, from target and credentials through suite generation,
+          review, and execution to a summarised result. Use when someone wants
+          to test an MCP server and has not set up a suite yet.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Contacts the target MCP server; inference needs model credentials.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-guided/evals/evals.json
+  - id: skill:mcp-swarm-record-replay
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/SKILL.md
+    content_hash: eac67ce385d1773dbf2e09c0b9c274bd053960957f742657ee40ac8d3ccd81f7
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-record-replay
+        description: Record redacted MCP wire traffic from a server with botz MCP Swarm
+          and replay it against the same or another server, as recorded, at
+          maximum rate, or paced. Use to reproduce a session, compare server
+          builds on identical traffic, or create fixtures.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Recording and replay contact the target MCP server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/evals/evals.json
+  - id: skill:mcp-swarm-upgrade
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/SKILL.md
+    content_hash: a0862db3a8bb1eceab50446665bf28dd319733724e82c121347b0abf628b24bc
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-upgrade
+        description: Upgrade the botz MCP Swarm CLI and move saved suites, credentials,
+          run reports, and service state into the current layout. Use when
+          updating MCP Swarm, after release notes mention moved files, or when
+          old .botz/suites, .runs, .swarm-data, or .otel directories are
+          present.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. The
+          upgrade command needs mcp-swarm 0.6.1 or later.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/evals/evals.json
+  - id: skill:crux-init
+    kind: skill
+    path: plugins/crux-compress/skills/crux-init/SKILL.md
+    content_hash: ed250eb8209ada15197cefa861696e6b03f89ed2133fac38ed9f86bca4d5ffce
+    public_surface:
+      frontmatter:
+        name: crux-init
+        description: Set up CRUX Compress in the current project from this plugin.
+          Copies the CRUX specification to CRUX.md, adds or refreshes the <CRUX>
+          block in AGENTS.md, records the version in .crux/crux.json, and
+          optionally creates the memory system scaffolding. Use when CRUX.md is
+          missing, after updating the plugin, or when the user asks to install,
+          initialise, or update CRUX in a project.
+    eval_files:
+      - plugins/crux-compress/skills/crux-init/evals/evals.json
+  - id: skill:crux-skill-memory-compress
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-compress/SKILL.md
+    content_hash: 2eafafb9532a63e04820354c4f7cfa5f4a09e0a62f7c1b92580fa591a60b1867
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-compress
+        description: CRUX-compress memory files with adaptive sizing and source
+          archival. Handles compress, decompress, migration of existing
+          memories, and maxMemorySize enforcement (in lines). Use when
+          compressing or decompressing memory files, or migrating uncompressed
+          memories after enabling compression.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-compress/evals/evals.json
+  - id: skill:crux-skill-memory-crud
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-crud/SKILL.md
+    content_hash: 04d79b1eb269cad7f65594d7517083241aff75e29946add5ff0e445ec3c4b3bd
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-crud
+        description: Create, read, update, delete, and validate memory files with proper
+          frontmatter management. Use when creating new memories, modifying
+          existing ones, removing memories, or validating memory file structure.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-crud/evals/evals.json
+  - id: skill:crux-skill-memory-extract
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-extract/SKILL.md
+    content_hash: 463f56fe2eb7f22c613ac01c62c0a6aa890c5307b8e0fbe1daaad3ec5a878af0
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-extract
+        description: Analyse execution artifacts from completed units of work, compare
+          with existing memories, detect conflicts, and propose ranked candidate
+          facts for memory creation. Use after a spec (or configured unitOfWork)
+          completes to extract learnings, patterns, red flags, ideas, and goals.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-extract/evals/evals.json
+  - id: skill:crux-skill-memory-index
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-index/SKILL.md
+    content_hash: 052703de604eb24155752f486f57d4780e35e2f35fc05a27706e998ce08fa7fc
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-index
+        description: Build a prioritised memory index from all memory files and
+          reference trackers. Use when rebuilding the memory index, after memory
+          CRUD operations, or when agents need a sorted discovery list.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-index/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-coordination
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-coordination/SKILL.md
+    content_hash: 73d2c7be0588db4ead27e08d6a4e9c3f8ef3b806e37b87dc386da8e2eb4c5376
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-coordination
+        description: "File-based coordination primitives for meditation: artefact
+          filename grammar (18 rows including `init-suggestions-{ts}.yml`,
+          `finalisation-enhancements.yml`, per-tree ensemble variants, and 4
+          follow-up artefact types), placeholders, prefix-glob polling rule,
+          never-hard-code invariant, retrospective template, Branch & Leaf Index
+          template (single-model + ensemble variants). Use whenever the
+          `crux-cursor-meditation-guide` agent reads, writes, or links a
+          working-directory artefact."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-coordination/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-ensemble
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-ensemble/SKILL.md
+    content_hash: 8f99d6fa1f9a590a3a40b07195b8a71631523d8283c03d1156e37677cb2c3723
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-ensemble
+        description: "Ensemble Aggregation function for meditation: reads N model
+          consolidations, writes `cross-model-synthesis.md`, performs K10 root
+          cross-model reflection (step 3c), manages K10 layered cadence steps
+          3b–3f (per-tree `finalisation-enhancements.yml` reads + root combined
+          YAML write with `cross_model_candidates` + `union_candidates`),
+          returns single combined `needs_user_input`, dispatches resume-handler
+          by `source` provenance, and hands off to the report skill for ensemble
+          HTML+PDF generation. Use when the `crux-cursor-meditation-guide` agent
+          is spawned with `ensembleAggregation: true`."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-ensemble/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-quick
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-quick/SKILL.md
+    content_hash: ce82170d4785dbbe97be6a21fc6782ca1717ae18b1c4d4e77fdb6a7b5653e7ac
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-quick
+        description: "Quick-mode meditation protocol: 6-step parallel fan-out with
+          optional deep-confirm hook, warn-only citation validation, upfront
+          child derivation, no peer review, K10c reflection (same rubric,
+          warn-only at every richness level per K7). Use when the
+          `crux-cursor-meditation-guide` agent runs the Quick depth-0 manager or
+          any Quick-mode child agent."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-quick/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-report
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-report/SKILL.md
+    content_hash: d34fcd13b3b71897f4364514aeb36623439b5b9f3e927750fa1590374430212e
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-report
+        description: "Mandatory paired HTML+PDF report generation for meditation:
+          Comprehensiveness Level Mapping (12 dimensions × 4 levels),
+          anti-homogenisation rules, Universal Contrast, light/dark mode + print
+          TOC, Chart.js / D3 / calculator content minima with static fallbacks,
+          Per-Branch Section Rule, Depth-3 Leaf Inclusion Rule, Peer-Review
+          Surfacing Rule, Init-Suggestions Honour rules, K10b Per-Cheap-Type
+          Rendering Contract (7 cheap types), and Report-Skill Respawn Protocol
+          resume-handler. Use when the `crux-cursor-meditation-guide` agent runs
+          report generation (step 12), when the ensemble aggregator generates
+          the ensemble-level report, or when the report skill is respawned via
+          Dim 13."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-report/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-research
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-research/SKILL.md
+    content_hash: 18279b64da375f63579be0376bedd106e572f5b62f56d9d265d0e2e938ae8414
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-research
+        description: "Research-mode meditation protocol: Phases A–G depth-first
+          recursion, depth-0 manager steps 1–13 (incl. step 4b 4-mode
+          `additional_focus_areas[]` reconciliation +
+          `init-suggestions-{ts}.yml` write; step 8 K10c reflection writing
+          `finalisation-enhancements.yml`; step 8b respawn-payload prep), facet
+          registry lock, citations index, peer review file spec,
+          comprehensiveness honouring at leaf depth. Use when the
+          `crux-cursor-meditation-guide` agent runs the depth-0 manager or any
+          Research-mode child agent."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-research/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-review
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-review/SKILL.md
+    content_hash: 57b677b2d4a326a2eb82434427489536343869070032c9d212a2e556bfd4115f
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-review
+        description: "Adversarial Review function for meditation: 13-dimension audit
+          (incl. citation integrity, slop detection, anti-homogenisation drift,
+          level-conditional Dim 9 peer-review thoroughness, Dim 12
+          Comprehensiveness fidelity, Dim 13 Init-suggestion AND
+          finalisation-enhancement honour), severity classification,
+          ≤3-iteration loop, MUST_FIX `needs_user_input` schema with mandatory
+          `context` decision-guidance, and Dim 13 `respawn_required: true`
+          Report-Skill Respawn Protocol payload schema (K9 + K10b). Use when the
+          `crux-cursor-meditation-guide` agent is spawned in Adversarial Review
+          function (step 10)."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-review/evals/evals.json
+  - id: skill:crux-skill-memory-rebalance
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-rebalance/SKILL.md
+    content_hash: b864feb52c0828c14a754a234478bec1e549e1128ecc75fee0394fbfee9981c9
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-rebalance
+        description: Consolidate, promote, demote, and archive memories based on
+          strength, usage patterns, and type transition rules. Use when running
+          REM sleep, rebalancing memory strength, detecting conflicts, or
+          cleaning up orphaned trackers.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-rebalance/evals/evals.json
+  - id: skill:crux-skill-memory-reference-tracker
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-reference-tracker/SKILL.md
+    content_hash: 926f7011e22e129751f7e4c9db0bdb427bde0c22f1c6c4fc26228666a4c4863e
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-reference-tracker
+        description: Track which memories are referenced in agent output, manage
+          .refs.yml tracker files, and keep strength counters in sync with
+          memory frontmatter. Use when recording a memory reference, cleaning up
+          orphaned trackers during REM sleep, or checking whether a memory
+          should be promoted to a permanent rule.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-reference-tracker/evals/evals.json
+  - id: skill:crux-utils
+    kind: skill
+    path: plugins/crux-compress/skills/crux-utils/SKILL.md
+    content_hash: 815134ee432b8e8f566e666c2f209f48218e4cfb00b1502058c546ff4afd304a
+    public_surface:
+      frontmatter:
+        name: crux-utils
+        description: Multi-purpose utility for CRUX compression workflows. Provides
+          token estimation and checksum calculation. Use when estimating tokens
+          for compression, comparing file sizes, or getting checksums for
+          sourceChecksum tracking.
+    eval_files:
+      - plugins/crux-compress/skills/crux-utils/evals/evals.json
   - id: skill:zoto-cursor-top-monitor
     kind: skill
     path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
@@ -253,18 +621,352 @@ targets:
           or to assess and improve a spec before running zoto-execute-spec.
     eval_files:
       - plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
-  - id: command:zoto-cursor-top
+  - id: command:z-mcp-swarm-compare
     kind: command
-    path: plugins/zoto-cursor-top/commands/zoto-cursor-top.md
-    content_hash: cece1c01ad3fedac8d22e75d37b48e52e79c43fd5eb512cc83f0e39a47f390b3
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-compare.md
+    content_hash: 2f8fc6fb34419c0df1a99f9d38ab47081c15092dc616d72c1f3e4638f634b2b6
     public_surface:
       frontmatter:
-        name: zoto-cursor-top
-        description: Open the live updating htop-style CLI that lists every Cursor agent
-          on this machine, with expandable parent-to-subagent hierarchy and
-          scrolling log tails.
+        name: z-mcp-swarm-compare
+        description: "\"Run the mcp-swarm-compare skill. Compare two botz MCP Swarm runs
+          or a series of runs and visualise latency, error rate, and tool-eval
+          trends in Cursor's /canvas or a self-contained HTML page. Use to check
+          for regressions between builds, environments, or load settings.\""
     eval_files:
-      - plugins/zoto-cursor-top/commands/evals/zoto-cursor-top.json
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-compare.json
+  - id: command:z-mcp-swarm-descriptions
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-descriptions.md
+    content_hash: 3812ae92ac5740671aab5d4c58451be6b0e36c12566a8e51c29ca0791e7e18b1
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-descriptions
+        description: "\"Run the mcp-swarm-descriptions skill. Review an MCP server's
+          tool descriptions, propose clearer ones, examine description
+          suggestions saved by botz MCP Swarm optimize, and measure a
+          description change with tool evals. Use when models pick the wrong
+          tool, misuse arguments, or a server's descriptions need an audit.\""
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-descriptions.json
+  - id: command:z-mcp-swarm-diagnose
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-diagnose.md
+    content_hash: 265ec0b4b56955ef1b22823ad8bc7037e6858303325a60b6354984a7ddb7a720
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-diagnose
+        description: '"Run the mcp-swarm-diagnose skill. Diagnose failed botz MCP Swarm
+          suites, missing credentials, invalid fixtures, execution errors, and
+          performance regressions from CLI diagnostics and run reports."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-diagnose.json
+  - id: command:z-mcp-swarm-guided
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-guided.md
+    content_hash: 787fe564eb3020715c21cd1e8439357cc9349011db8bc212c56d00da155cf0a1
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-guided
+        description: '"Run the mcp-swarm-guided skill. Guided, question-driven
+          introspection of an MCP server with botz MCP Swarm, from target and
+          credentials through suite generation, review, and execution to a
+          summarised result. Use when someone wants to test an MCP server and
+          has not set up a suite yet."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-guided.json
+  - id: command:z-mcp-swarm-record-replay
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-record-replay.md
+    content_hash: e9c03a0875c9dbddca9629e4dec98ea253e49fa4f861a309cc6f7fb52e79b1e3
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-record-replay
+        description: '"Run the mcp-swarm-record-replay skill. Record redacted MCP wire
+          traffic from a server with botz MCP Swarm and replay it against the
+          same or another server, as recorded, at maximum rate, or paced. Use to
+          reproduce a session, compare server builds on identical traffic, or
+          create fixtures."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-record-replay.json
+  - id: command:z-mcp-swarm-upgrade
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-upgrade.md
+    content_hash: 1881531c168faa22710b56f05a2b79b32b7feca48c452e6c907ccb31d5086d13
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-upgrade
+        description: '"Run the mcp-swarm-upgrade skill. Upgrade the botz MCP Swarm CLI
+          and move saved suites, credentials, run reports, and service state
+          into the current layout. Use when updating MCP Swarm, after release
+          notes mention moved files, or when old .botz/suites, .runs,
+          .swarm-data, or .otel directories are present."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-upgrade.json
+  - id: command:z-mcp-swarm
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm.md
+    content_hash: 7f72301cb10bf1432659f2eeb188c99b188b1c67320c9b7f445987fb9582b7ce
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm
+        description: '"Run the mcp-swarm skill. Capture, validate, refresh, and run MCP
+          test suites with the botz MCP Swarm CLI. Use for testing MCP servers,
+          repeatable tool assertions, load tests, and CI reports."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm.json
+  - id: command:crux-amnesia
+    kind: command
+    path: plugins/crux-compress/commands/crux-amnesia.md
+    content_hash: 96e0eb9b1872199297b0e4d635824b40c5663cfc0de3f5b9072eaba0b65b5c7e
+    public_surface:
+      frontmatter:
+        name: '"crux-amnesia"'
+        description: '"Temporarily disable or restore ambient CRUX memory usage for the
+          current chat session."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-amnesia.json
+  - id: command:crux-compress
+    kind: command
+    path: plugins/crux-compress/commands/crux-compress.md
+    content_hash: 35208d68510b1163eec5bb28d0a5534989aed07830a7ce50ab2fc1ad601482f9
+    public_surface:
+      frontmatter:
+        name: '"crux-compress"'
+        description: '"Compress markdown rules, code files, images, and web pages into
+          CRUX notation for token efficiency."'
+        generated: 2026-07-13 19:14
+        sourceChecksum: '"2919266716"'
+        cruxLevel: "25"
+        beforeTokens: "6395"
+        afterTokens: "1374"
+        reducedBy: 79%
+        confidence: 94%
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-compress.json
+  - id: command:crux-dream
+    kind: command
+    path: plugins/crux-compress/commands/crux-dream.md
+    content_hash: d8b994fb16eb5f8116bfdaf1e1a769ceec6cf66626431ed792450e5d36523977
+    public_surface:
+      frontmatter:
+        name: '"crux-dream"'
+        description: '"Post-execution memory extraction and REM sleep rebalancing."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-dream.json
+  - id: command:crux-forget
+    kind: command
+    path: plugins/crux-compress/commands/crux-forget.md
+    content_hash: d86bf677ccedf33de0872ee41fd825aff3869f3149b456d3458696494535375b
+    public_surface:
+      frontmatter:
+        name: '"crux-forget"'
+        description: '"Remove memories from the CRUX memory corpus."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-forget.json
+  - id: command:crux-meditate
+    kind: command
+    path: plugins/crux-compress/commands/crux-meditate.md
+    content_hash: 1bc4af6890447f73a944c74486d171ee834ea1b3b02bf396a148f0a53e8bc1de
+    public_surface:
+      frontmatter:
+        name: '"crux-meditate"'
+        description: '"Run a recursive, memory-informed meditation on a topic: research,
+          adversarial review, and a final report."'
+        generated: 2026-09-06 23:12
+        sourceChecksum: '"3131920083"'
+        cruxLevel: "25"
+        beforeTokens: "25499"
+        afterTokens: "5495"
+        reducedBy: 78%
+        confidence: 92%
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-meditate.json
+  - id: command:crux-recall
+    kind: command
+    path: plugins/crux-compress/commands/crux-recall.md
+    content_hash: f7dc491b93be6f827a7ca2b8851e6c75afac488e6431bc815b7a3c9368021720
+    public_surface:
+      frontmatter:
+        name: '"crux-recall"'
+        description: '"Decompress, query, and display CRUX memories in human-readable
+          form."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-recall.json
+  - id: command:crux-remember
+    kind: command
+    path: plugins/crux-compress/commands/crux-remember.md
+    content_hash: d5eb6fd4fdf2bc7d40837fe772ff3e009078b446ee208a1f80391fa8acdcf9d0
+    public_surface:
+      frontmatter:
+        name: '"crux-remember"'
+        description: '"Store ad-hoc memories outside of spec workflows; they join
+          standard consolidation during REM sleep."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-remember.json
+  - id: command:z-crux-init
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-init.md
+    content_hash: c56cc7f1ae20150696c9fb735088533abee3cf4c9ea6872ad0aef37441954f47
+    public_surface:
+      frontmatter:
+        name: z-crux-init
+        description: '"Run the crux-init skill. Set up CRUX Compress in this project:
+          CRUX.md, the AGENTS.md <CRUX> block, .crux/crux.json, and optional
+          memory scaffolding."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-init.json
+  - id: command:z-crux-skill-memory-compress
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-compress.md
+    content_hash: 7363aa33442ddd42a6269e5c8ef6bdee01c3c6ed2186c9fe069747840ac54ea1
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-compress
+        description: '"Run the crux-skill-memory-compress skill. Compress or decompress
+          CRUX memory files, migrate existing memories, and enforce
+          maxMemorySize."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-compress.json
+  - id: command:z-crux-skill-memory-crud
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-crud.md
+    content_hash: 4046e4b299911026dec7ccd4abe14f32da1d28d6ccb330622e9c69947ba422fd
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-crud
+        description: '"Run the crux-skill-memory-crud skill. Create, read, update,
+          delete, and validate CRUX memory files and their frontmatter."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-crud.json
+  - id: command:z-crux-skill-memory-extract
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-extract.md
+    content_hash: 8427a7b58badd1bb6bfcb483b92f47c56e0e1db526d460c0fbf34ab698e5b21a
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-extract
+        description: '"Run the crux-skill-memory-extract skill. Extract ranked memory
+          candidates from a completed unit of work and flag conflicts with
+          existing memories."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-extract.json
+  - id: command:z-crux-skill-memory-index
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-index.md
+    content_hash: f2623e99abe98520dd687f5f0d8905c6ddab59b45b051cb89130b84ba87a6c67
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-index
+        description: '"Run the crux-skill-memory-index skill. Rebuild the prioritised
+          CRUX memory index from memory files and reference trackers."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-index.json
+  - id: command:z-crux-skill-memory-meditation-coordination
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-coordination.md
+    content_hash: f4bb0be54c39727d132b70ea91d547d93fff7d70ad353cabf1c0f90494c788e9
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-coordination
+        description: '"Run the crux-skill-memory-meditation-coordination skill.
+          Meditation artefact filenames, placeholders, polling, and index
+          templates used by the meditation guide."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-coordination.json
+  - id: command:z-crux-skill-memory-meditation-ensemble
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-ensemble.md
+    content_hash: c66f1e88ec8ded1b0af63a3a7be94a1694786bebe974c539d9a13cd2efa8c774
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-ensemble
+        description: "\"Run the crux-skill-memory-meditation-ensemble skill. Combine
+          several models' meditation results into a cross-model synthesis and a
+          single set of user decisions.\""
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-ensemble.json
+  - id: command:z-crux-skill-memory-meditation-quick
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-quick.md
+    content_hash: 5a6dc80f8c691a72b5be153ca1a95bab5f7ad8a3cfd2dd98f8ede6e2c1fcaf13
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-quick
+        description: '"Run the crux-skill-memory-meditation-quick skill. Quick-mode
+          meditation: a 6-step parallel fan-out with warn-only citation checks
+          and no peer review."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-quick.json
+  - id: command:z-crux-skill-memory-meditation-report
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-report.md
+    content_hash: 86efcefa77e15b5a62223642689efe546a230a9fc98e1a219daef0e330a0a787
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-report
+        description: "\"Run the crux-skill-memory-meditation-report skill. Generate the
+          paired HTML and PDF meditation report with the skill's content and
+          rendering rules.\""
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-report.json
+  - id: command:z-crux-skill-memory-meditation-research
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-research.md
+    content_hash: 700311f4e669c3f9e9bc99fc46bf4a25adaef6a556cb2a9eab797adba4f78a71
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-research
+        description: '"Run the crux-skill-memory-meditation-research skill.
+          Research-mode meditation: Phases A–G depth-first recursion, the
+          depth-0 manager steps, citations, and peer review."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-research.json
+  - id: command:z-crux-skill-memory-meditation-review
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-review.md
+    content_hash: 8b32c4c6189b52896003be48ada98f339ba8dd7f0de810b793e4f15122123b79
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-review
+        description: '"Run the crux-skill-memory-meditation-review skill. Adversarial
+          review of a meditation: the 13-dimension audit, severity classes, and
+          the fix loop."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-review.json
+  - id: command:z-crux-skill-memory-rebalance
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-rebalance.md
+    content_hash: 0355533d882f9df87d3aa6b469ca3b1608e8dfa6c1bd2b2d2af700905b0258c4
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-rebalance
+        description: '"Run the crux-skill-memory-rebalance skill. Run REM sleep
+          rebalancing: consolidate, promote, demote, and archive memories, and
+          clean up orphaned trackers."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-rebalance.json
+  - id: command:z-crux-skill-memory-reference-tracker
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-reference-tracker.md
+    content_hash: 5778e385bb45e473009b2afb370aa80fd7c0c6712f1cc1d55c42a32c549a904b
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-reference-tracker
+        description: '"Run the crux-skill-memory-reference-tracker skill. Record memory
+          references in .refs.yml trackers and keep strength counters in sync."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-reference-tracker.json
+  - id: command:z-crux-utils
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-utils.md
+    content_hash: 2b3a5d722bb95a554fc0bb814171d856fcda401206cf153428b9d7486a18de56
+    public_surface:
+      frontmatter:
+        name: z-crux-utils
+        description: '"Run the crux-utils skill. Estimate tokens, compare source and
+          CRUX sizes, and compute checksums for CRUX compression."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-utils.json
   - id: command:zoto-cursor-top-init
     kind: command
     path: plugins/zoto-cursor-top/commands/zoto-cursor-top-init.md
@@ -276,6 +978,18 @@ targets:
           CLI, installs runtime dependencies, and puts cursor-top on PATH.
     eval_files:
       - plugins/zoto-cursor-top/commands/evals/zoto-cursor-top-init.json
+  - id: command:zoto-cursor-top
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top.md
+    content_hash: 3fc1b7499fc12dc820934d1350b47c56ecc6dddb229dbc33417b9cf32ee866f3
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top
+        description: Open the live updating htop-style CLI that lists every Cursor agent
+          on this machine, with expandable parent-to-subagent hierarchy and
+          scrolling log tails.
+    eval_files:
+      - plugins/zoto-cursor-top/commands/evals/zoto-cursor-top.json
   - id: command:z-eval-advise
     kind: command
     path: plugins/zoto-eval-system/commands/z-eval-advise.md
@@ -527,10 +1241,140 @@ targets:
           selection, validation, and marketplace registration.
     eval_files:
       - .cursor/commands/evals/zoto-create-plugin.json
+  - id: agent:crux-cursor-meditation-guide
+    kind: agent
+    path: plugins/crux-compress/agents/crux-cursor-meditation-guide.md
+    content_hash: fbe8e8d39b46b0019d78d001ddd287bf6af465fe165a697608ac865afab25c3f
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-cursor-meditation-guide
+        model: claude-opus-5
+        color: indigo
+        description: Recursive memory-informed meditation guide. Owns the Meditate
+          persona, Research Phases A–G, Quick 6-step protocol, Adversarial
+          Review function, Ensemble Aggregation function, and the K10
+          finalisation-enhancements reflection function. Spawned by
+          `/crux-meditate` for the entire subagent tree; never user-invoked
+          directly.
+        tools: '["*"]'
+        generated: 2026-09-06 23:10
+        sourceChecksum: '"3404403276"'
+        cruxLevel: "25"
+        beforeTokens: "10762"
+        afterTokens: "2225"
+        reducedBy: 79%
+        confidence: 93%
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-cursor-meditation-guide.json
+  - id: agent:crux-cursor-memory-manager
+    kind: agent
+    path: plugins/crux-compress/agents/crux-cursor-memory-manager.md
+    content_hash: 2cd9507cab4e20c2d7c2e00ab93fd8a05eee45c862c25b6e08253d312416ae6e
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-cursor-memory-manager
+        model: claude-opus-5
+        description: DEPRECATED dispatcher — prefer the mode-scoped crux-memory-* thin
+          agents. Retained temporarily so pre-upgrade consumer installs continue
+          to resolve the name. Removed after one minor release once the thin
+          agents ship in the dist zip.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-cursor-memory-manager.json
+  - id: agent:crux-cursor-rule-manager
+    kind: agent
+    path: plugins/crux-compress/agents/crux-cursor-rule-manager.md
+    content_hash: 251d4502cd9c5ed531c8613971a256bf95c713746f75ddf703535c7c63accbe9
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-cursor-rule-manager
+        model: claude-opus-5
+        description: Semantic compressor for Cursor rule files in .cursor/rules/.
+          Converts markdown rules to CRUX notation achieving 5-10x token
+          reduction while preserving all actionable information.
+        is_background: "true"
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-cursor-rule-manager.json
+  - id: agent:crux-memory-dream
+    kind: agent
+    path: plugins/crux-compress/agents/crux-memory-dream.md
+    content_hash: 7817ac27c52688070c49839f08825dfad7ae4c9c594bdda8a89175ae5915f09c
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-memory-dream
+        model: claude-opus-5
+        description: Dream-mode memory extraction for CRUX. Analyses a completed unit of
+          work, ranks candidate memories, detects conflicts and resolved bugs,
+          and returns a full proposal for parent-driven accept/skip decisions.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-memory-dream.json
+  - id: agent:crux-memory-forget
+    kind: agent
+    path: plugins/crux-compress/agents/crux-memory-forget.md
+    content_hash: 451fe622e645de3b1ce7e9e909d4817b54f470fa2dae0f7e5197e40cc9832d58
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-memory-forget
+        model: claude-opus-5
+        description: Forget-mode memory deletion for CRUX. Resolves the input (id / slug
+          / path / search / list-all) to matching memories, returns the matches
+          for parent-driven confirmation, and — once resumed with the confirmed
+          list — deletes each memory file and its reference tracker, then
+          rebuilds the index.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-memory-forget.json
+  - id: agent:crux-memory-recall
+    kind: agent
+    path: plugins/crux-compress/agents/crux-memory-recall.md
+    content_hash: b3e2a965615b478674e78b6175502248c1a37bdc9e1efd3431f569e53f397342
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-memory-recall
+        model: claude-opus-5
+        description: Recall-mode memory query and display for CRUX. Reads memory files
+          (decompressing CRUX bodies on the fly), formats them as human-readable
+          output, and — when invoked with `--total` — generates an interactive
+          Canvas visualisation. Read-only.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-memory-recall.json
+  - id: agent:crux-memory-rem
+    kind: agent
+    path: plugins/crux-compress/agents/crux-memory-rem.md
+    content_hash: 66e0b4a912704c01180f4a387470d749de31b192f1d3c1d536499ef3fcc5c509
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-memory-rem
+        model: claude-opus-5
+        description: REM Sleep memory rebalancer for CRUX. Scans the full memory corpus,
+          verifies consistency, detects conflicts, and recommends promotions,
+          demotions, archival, consolidation, and compression for parent-driven
+          approval.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-memory-rem.json
+  - id: agent:crux-memory-remember
+    kind: agent
+    path: plugins/crux-compress/agents/crux-memory-remember.md
+    content_hash: 188c09cfc3fbdadccc96034b6365ca7a635a96bd6a90b8cb30ce6265040a8193
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-memory-remember
+        model: claude-opus-5
+        description: Remember-mode ad-hoc memory creation for CRUX. Creates a new memory
+          file from parent-collected content/type/tags/description, rebuilds the
+          index, and returns the created memory's metadata for parent display.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-memory-remember.json
   - id: agent:zoto-cursor-top-troubleshooter
     kind: agent
     path: plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md
-    content_hash: 0bfd7b8dae4a7e8af6b5be3084cd37971d39bf590fa88495968d7f801e7a15c0
+    content_hash: 2b1bb8aba901200c1d25e166b96b778e413a57b4ad00819da29f37d54117c753
     public_surface:
       frontmatter:
         name: zoto-cursor-top-troubleshooter
@@ -784,6 +1628,14 @@ targets:
         is_background: "true"
     eval_files:
       - .cursor/agents/evals/zoto-plugin-manager.json
+  - id: hook:crux-compress
+    kind: hook
+    path: plugins/crux-compress/hooks/hooks.json
+    content_hash: 4440d1ed13d072db4c1fe6b93e8d996fd422b98373d3b62d6bf4b04f8918c2e5
+    public_surface:
+      plugin: crux-compress
+    eval_files:
+      - plugins/crux-compress/hooks/evals/hooks.json
   - id: hook:zoto-eval-system
     kind: hook
     path: plugins/zoto-eval-system/hooks/hooks.json
@@ -803,256 +1655,8 @@ targets:
   - id: hook:cursor-workspace
     kind: hook
     path: .cursor/hooks.json
-    content_hash: 0a8483a7a8b5f97f31998cff0cb714f000896d661f379cc8cf8149bafca7e8f8
+    content_hash: 1fb45eaccf1a9cc7dce2f5e8e9130613ac3024cecf9cfe730949b662ccf6a43b
     public_surface:
       workspace: .cursor
     eval_files:
       - .cursor/hooks/evals/hooks.json
-  - id: skill:mcp-swarm
-    kind: skill
-    path: plugins/botz-mcp-swarm/skills/mcp-swarm/SKILL.md
-    content_hash: 3f411c0d2682b88c1ef9c54b9e2559a7701a1e998ff2835eb5527950a4204027
-    public_surface:
-      frontmatter:
-        name: mcp-swarm
-        description: Capture, validate, refresh, and run MCP test suites with the botz
-          MCP Swarm CLI. Use for testing MCP servers, repeatable tool
-          assertions, load tests, and CI reports.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Live
-          capture and runs require access to the target MCP server.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-    eval_files:
-      - plugins/botz-mcp-swarm/skills/mcp-swarm/evals/evals.json
-  - id: skill:mcp-swarm-diagnose
-    kind: skill
-    path: plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/SKILL.md
-    content_hash: da096bb7642c34c97de66720f3140d638daebeb05357a7f78621a3d1602f6def
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-diagnose
-        description: Diagnose failed botz MCP Swarm suites, missing credentials, invalid
-          fixtures, execution errors, and performance regressions from CLI
-          diagnostics and run reports.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
-          Offline validation and doctor do not require target access.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-    eval_files:
-      - plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/evals/evals.json
-  - id: skill:mcp-swarm-upgrade
-    kind: skill
-    path: plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/SKILL.md
-    content_hash: a0862db3a8bb1eceab50446665bf28dd319733724e82c121347b0abf628b24bc
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-upgrade
-        description: Upgrade the botz MCP Swarm CLI and move saved suites, credentials,
-          run reports, and service state into the current layout. Use when
-          updating MCP Swarm, after release notes mention moved files, or when
-          old .botz/suites, .runs, .swarm-data, or .otel directories are
-          present.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. The
-          upgrade command needs mcp-swarm 0.6.1 or later.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-    eval_files:
-      - plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/evals/evals.json
-  - id: skill:mcp-swarm-compare
-    kind: skill
-    path: plugins/botz-mcp-swarm/skills/mcp-swarm-compare/SKILL.md
-    content_hash: 6d8bb1e1ad04ad7c15b6de5fb058a1d4355e9a4542065329ba35881704ef4a77
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-compare
-        description: Compare two botz MCP Swarm runs or a series of runs and visualise
-          latency, error rate, and tool-eval trends in Cursor's /canvas or a
-          self-contained HTML page. Use to check for regressions between builds,
-          environments, or load settings.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Reads
-          existing run reports; does not contact the target.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-    eval_files:
-      - plugins/botz-mcp-swarm/skills/mcp-swarm-compare/evals/evals.json
-  - id: skill:mcp-swarm-descriptions
-    kind: skill
-    path: plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/SKILL.md
-    content_hash: 27720a2afe4bc8432133f6aad6ad8ac9c40ed9402a5c09f2e69f27b283d1a188
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-descriptions
-        description: Review an MCP server's tool descriptions, propose clearer ones,
-          examine description suggestions saved by botz MCP Swarm optimize, and
-          measure a description change with tool evals. Use when models pick the
-          wrong tool, misuse arguments, or a server's descriptions need an
-          audit.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
-          Measuring changes with tool evals needs model credentials and access
-          to the target MCP server.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-    eval_files:
-      - plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/evals/evals.json
-  - id: skill:mcp-swarm-guided
-    kind: skill
-    path: plugins/botz-mcp-swarm/skills/mcp-swarm-guided/SKILL.md
-    content_hash: 1401f9e50fb3449985841b29c3c51febde2fec677d1055e6ba0947f486a8e12c
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-guided
-        description: Guided, question-driven introspection of an MCP server with botz
-          MCP Swarm, from target and credentials through suite generation,
-          review, and execution to a summarised result. Use when someone wants
-          to test an MCP server and has not set up a suite yet.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
-          Contacts the target MCP server; inference needs model credentials.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-    eval_files:
-      - plugins/botz-mcp-swarm/skills/mcp-swarm-guided/evals/evals.json
-  - id: skill:mcp-swarm-record-replay
-    kind: skill
-    path: plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/SKILL.md
-    content_hash: eac67ce385d1773dbf2e09c0b9c274bd053960957f742657ee40ac8d3ccd81f7
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-record-replay
-        description: Record redacted MCP wire traffic from a server with botz MCP Swarm
-          and replay it against the same or another server, as recorded, at
-          maximum rate, or paced. Use to reproduce a session, compare server
-          builds on identical traffic, or create fixtures.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
-          Recording and replay contact the target MCP server.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-    eval_files:
-      - plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/evals/evals.json
-  - id: command:z-mcp-swarm-compare
-    kind: command
-    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-compare.md
-    content_hash: 2f8fc6fb34419c0df1a99f9d38ab47081c15092dc616d72c1f3e4638f634b2b6
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-compare
-        description: "\"Run the mcp-swarm-compare skill. Compare two botz MCP Swarm runs
-          or a series of runs and visualise latency, error rate, and tool-eval
-          trends in Cursor's /canvas or a self-contained HTML page. Use to check
-          for regressions between builds, environments, or load settings.\""
-    eval_files:
-      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-compare.json
-  - id: command:z-mcp-swarm-descriptions
-    kind: command
-    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-descriptions.md
-    content_hash: 3812ae92ac5740671aab5d4c58451be6b0e36c12566a8e51c29ca0791e7e18b1
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-descriptions
-        description: "\"Run the mcp-swarm-descriptions skill. Review an MCP server's
-          tool descriptions, propose clearer ones, examine description
-          suggestions saved by botz MCP Swarm optimize, and measure a
-          description change with tool evals. Use when models pick the wrong
-          tool, misuse arguments, or a server's descriptions need an audit.\""
-    eval_files:
-      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-descriptions.json
-  - id: command:z-mcp-swarm-diagnose
-    kind: command
-    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-diagnose.md
-    content_hash: 265ec0b4b56955ef1b22823ad8bc7037e6858303325a60b6354984a7ddb7a720
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-diagnose
-        description: '"Run the mcp-swarm-diagnose skill. Diagnose failed botz MCP Swarm
-          suites, missing credentials, invalid fixtures, execution errors, and
-          performance regressions from CLI diagnostics and run reports."'
-    eval_files:
-      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-diagnose.json
-  - id: command:z-mcp-swarm-guided
-    kind: command
-    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-guided.md
-    content_hash: 787fe564eb3020715c21cd1e8439357cc9349011db8bc212c56d00da155cf0a1
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-guided
-        description: '"Run the mcp-swarm-guided skill. Guided, question-driven
-          introspection of an MCP server with botz MCP Swarm, from target and
-          credentials through suite generation, review, and execution to a
-          summarised result. Use when someone wants to test an MCP server and
-          has not set up a suite yet."'
-    eval_files:
-      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-guided.json
-  - id: command:z-mcp-swarm-record-replay
-    kind: command
-    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-record-replay.md
-    content_hash: e9c03a0875c9dbddca9629e4dec98ea253e49fa4f861a309cc6f7fb52e79b1e3
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-record-replay
-        description: '"Run the mcp-swarm-record-replay skill. Record redacted MCP wire
-          traffic from a server with botz MCP Swarm and replay it against the
-          same or another server, as recorded, at maximum rate, or paced. Use to
-          reproduce a session, compare server builds on identical traffic, or
-          create fixtures."'
-    eval_files:
-      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-record-replay.json
-  - id: command:z-mcp-swarm-upgrade
-    kind: command
-    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-upgrade.md
-    content_hash: 1881531c168faa22710b56f05a2b79b32b7feca48c452e6c907ccb31d5086d13
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-upgrade
-        description: '"Run the mcp-swarm-upgrade skill. Upgrade the botz MCP Swarm CLI
-          and move saved suites, credentials, run reports, and service state
-          into the current layout. Use when updating MCP Swarm, after release
-          notes mention moved files, or when old .botz/suites, .runs,
-          .swarm-data, or .otel directories are present."'
-    eval_files:
-      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-upgrade.json
-  - id: command:z-mcp-swarm
-    kind: command
-    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm.md
-    content_hash: 7f72301cb10bf1432659f2eeb188c99b188b1c67320c9b7f445987fb9582b7ce
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm
-        description: '"Run the mcp-swarm skill. Capture, validate, refresh, and run MCP
-          test suites with the botz MCP Swarm CLI. Use for testing MCP servers,
-          repeatable tool assertions, load tests, and CI reports."'
-    eval_files:
-      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm.json

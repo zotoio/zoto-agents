@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="CRUX Compress">
+  <rect width="128" height="128" rx="28" fill="#1e1b4b"/>
+  <path d="M44 30H30v68h14" fill="none" stroke="#a5b4fc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M84 30h14v68H84" fill="none" stroke="#a5b4fc" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M52 50l24 28M76 50L52 78" stroke="#f0abfc" stroke-width="9" stroke-linecap="round"/>
+</svg>

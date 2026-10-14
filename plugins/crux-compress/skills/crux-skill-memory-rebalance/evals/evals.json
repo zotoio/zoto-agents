@@ -1,0 +1,24 @@
+{
+  "skill_name": "crux-skill-memory-rebalance",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Rebalance the memories. It's been a few months.",
+      "expected_output": "The assistant proposes promotions, demotions, archives, and consolidations based on strength and the configured transition rules, and applies them only after the user confirms.",
+      "assertions": [
+        "Recommendations follow the type transitions and demote/archive thresholds in `.crux/crux-memories.json`",
+        "Each recommendation names the memory and the reason",
+        "No memory is moved or archived before the user confirms"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Find memories that contradict each other.",
+      "expected_output": "The assistant lists pairs of conflicting memories with the conflicting statements and asks how to resolve each.",
+      "assertions": [
+        "Each conflict names both memories and quotes or summarises the conflicting statements",
+        "The assistant asks the user how to resolve each conflict"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "$comment": "How sync-upstream.mjs turns a CRUX-Compress release into this plugin. Every change made to upstream files is listed here.",
+  "repo": "zotoio/CRUX-Compress",
+  "asset": "CRUX-Compress-v{version}.zip",
+  "layout": [
+    {
+      "from": ".cursor/agents/crux/templates/",
+      "to": "templates/"
+    },
+    {
+      "from": ".cursor/commands/crux/templates/",
+      "to": "templates/"
+    },
+    {
+      "from": ".cursor/agents/crux/",
+      "to": "agents/"
+    },
+    {
+      "from": ".cursor/commands/crux/",
+      "to": "commands/"
+    },
+    {
+      "from": ".cursor/rules/crux/",
+      "to": "rules/"
+    },
+    {
+      "from": ".cursor/skills/crux/",
+      "to": "skills/"
+    },
+    {
+      "from": ".cursor/hooks/",
+      "to": "hooks/"
+    },
+    {
+      "from": ".cursor/hooks.json",
+      "to": "hooks/hooks.json"
+    },
+    {
+      "from": "CRUX.md",
+      "to": "spec/CRUX.md"
+    },
+    {
+      "from": "AGENTS.crux.md",
+      "to": "spec/AGENTS.crux.md"
+    }
+  ],
+  "exclude": [
+    "install.crux.md",
+    ".crux/crux.json",
+    ".crux/crux-release-files.json",
+    "AGENTS.md"
+  ],
+  "extraFiles": {
+    "$comment": "Fetched from raw.githubusercontent.com at the release commit because the release zip leaves them out.",
+    "files": {
+      "LICENSE.md": "Upstream licence, shipped as the plugin's LICENSE"
+    },
+    "rename": {
+      "LICENSE.md": "LICENSE"
+    }
+  },
+  "derived": {
+    "$comment": "Generated from upstream files at the release commit, then rewritten like synced files.",
+    "templates/crux-memories.default.json": {
+      "from": "install.py",
+      "pythonLiteral": "DEFAULT_MEMORIES_CONFIG",
+      "note": "The .crux/crux-memories.json the installer writes for --with-memories"
+    }
+  },
+  "rewrites": {
+    "$comment": "Exact-string replacements applied to every synced text file, longest first. <plugin> is this plugin's install directory (see rules/crux-plugin-paths.mdc).",
+    "\"command\": \"python3 .cursor/hooks/": "\"command\": \"python3 \\\"${CURSOR_PLUGIN_ROOT:-.}\\\"/hooks/",
+    "python3 .cursor/hooks/": "python3 <plugin>/hooks/",
+    "`.cursor/hooks.json`": "`<plugin>/hooks/hooks.json`",
+    ".cursor/agents/crux/templates/": "<plugin>/templates/",
+    ".cursor/commands/crux/templates/": "<plugin>/templates/",
+    ".cursor/agents/crux/": "<plugin>/agents/",
+    ".cursor/commands/crux/": "<plugin>/commands/",
+    ".cursor/rules/crux/": "<plugin>/rules/",
+    ".cursor/skills/crux/": "<plugin>/skills/",
+    ".cursor/rules/crux-memories-integration.md": "<plugin>/rules/crux-memories-integration.crux.mdc"
+  },
+  "frontmatter": {
+    "$comment": "Keys added to files whose upstream frontmatter lacks what plugin loaders and validate-template require. Existing keys are never overwritten.",
+    "commands/crux-compress.md": {
+      "name": "crux-compress",
+      "description": "Compress markdown rules, code files, images, and web pages into CRUX notation for token efficiency."
+    },
+    "commands/crux-dream.md": {
+      "name": "crux-dream",
+      "description": "Post-execution memory extraction and REM sleep rebalancing."
+    },
+    "commands/crux-recall.md": {
+      "name": "crux-recall",
+      "description": "Decompress, query, and display CRUX memories in human-readable form."
+    },
+    "commands/crux-remember.md": {
+      "name": "crux-remember",
+      "description": "Store ad-hoc memories outside of spec workflows; they join standard consolidation during REM sleep."
+    },
+    "commands/crux-forget.md": {
+      "name": "crux-forget",
+      "description": "Remove memories from the CRUX memory corpus."
+    },
+    "commands/crux-amnesia.md": {
+      "name": "crux-amnesia",
+      "description": "Temporarily disable or restore ambient CRUX memory usage for the current chat session."
+    },
+    "commands/crux-meditate.md": {
+      "name": "crux-meditate",
+      "description": "Run a recursive, memory-informed meditation on a topic: research, adversarial review, and a final report."
+    },
+    "rules/crux-memories-integration.crux.mdc": {
+      "description": "CRUX memories: when to load the memory index and how to annotate memory references in responses."
+    }
+  }
+}

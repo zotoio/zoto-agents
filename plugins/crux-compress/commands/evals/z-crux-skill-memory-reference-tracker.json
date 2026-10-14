@@ -1,0 +1,23 @@
+{
+  "target_id": "command:z-crux-skill-memory-reference-tracker",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-crux-skill-memory-reference-tracker record a reference to api-conventions",
+      "assertions": [
+        "The assistant follows the `crux-skill-memory-reference-tracker` skill's instructions for the request",
+        "Paths to files shipped with the plugin are resolved under the plugin directory, not the project's `.cursor/`"
+      ],
+      "expected_output": "The command hands the request to the `crux-skill-memory-reference-tracker` skill, which runs as if invoked directly."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-crux-skill-memory-reference-tracker clean up orphaned trackers",
+      "assertions": [
+        "The assistant passes the text after `/z-crux-skill-memory-reference-tracker` to the `crux-skill-memory-reference-tracker` skill as the user's request",
+        "The assistant does not perform actions the skill does not describe"
+      ],
+      "expected_output": "The arguments reach the skill unchanged and the skill's own workflow and safety rules apply."
+    }
+  ]
+}

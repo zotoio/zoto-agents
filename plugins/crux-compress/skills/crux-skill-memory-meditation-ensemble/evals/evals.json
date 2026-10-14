@@ -1,0 +1,24 @@
+{
+  "skill_name": "crux-skill-memory-meditation-ensemble",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Three models finished their meditation consolidations. Aggregate them.",
+      "expected_output": "The assistant reads each model's consolidation, writes cross-model-synthesis.md, and returns one combined needs_user_input section.",
+      "assertions": [
+        "Every model consolidation is read",
+        "`cross-model-synthesis.md` is written",
+        "A single combined `needs_user_input` section is returned"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "How does the ensemble step decide which finalisation enhancements to offer?",
+      "expected_output": "The assistant explains the per-tree finalisation-enhancements reads and the root combined YAML with cross_model_candidates and union_candidates.",
+      "assertions": [
+        "The answer mentions per-tree `finalisation-enhancements.yml` files",
+        "The answer distinguishes `cross_model_candidates` from `union_candidates`"
+      ]
+    }
+  ]
+}

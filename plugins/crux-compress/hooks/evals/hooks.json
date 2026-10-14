@@ -1,0 +1,25 @@
+{
+  "target_id": "hook:crux-compress",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Cursor runs the CRUX `afterFileEdit` hooks after an agent edits `.cursor/rules/api.md`, whose frontmatter has `crux: true`, sending `{\"file_path\": \".cursor/rules/api.md\"}` on stdin.",
+      "assertions": [
+        "`hooks/crux-detect-changes.py` exits with status 0",
+        "`.crux/pending-compression.json` lists `.cursor/rules/api.md`",
+        "A file without `crux: true` is not queued"
+      ],
+      "expected_output": "`hooks/crux-detect-changes.py` adds the file to `.crux/pending-compression.json` and exits 0."
+    },
+    {
+      "id": 2,
+      "prompt": "Cursor runs the CRUX `sessionStart` hook in a project where `.crux/pending-compression.json` lists two files.",
+      "assertions": [
+        "`hooks/crux-session-start.py` exits with status 0",
+        "The output names both pending files",
+        "The output suggests running `/crux-compress`"
+      ],
+      "expected_output": "`hooks/crux-session-start.py` exits 0 and its output mentions the two pending files and `/crux-compress`."
+    }
+  ]
+}

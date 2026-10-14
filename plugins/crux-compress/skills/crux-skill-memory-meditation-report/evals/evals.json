@@ -1,0 +1,24 @@
+{
+  "skill_name": "crux-skill-memory-meditation-report",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Generate the report for the meditation that just finished.",
+      "expected_output": "The assistant produces both an HTML and a PDF report, with light and dark mode and a print table of contents.",
+      "assertions": [
+        "Both an HTML report and a PDF report are produced",
+        "The HTML supports light and dark mode",
+        "Charts have static fallbacks"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Does every branch of the meditation tree need its own section in the report?",
+      "expected_output": "The assistant answers from the skill's Per-Branch Section Rule and Depth-3 Leaf Inclusion Rule.",
+      "assertions": [
+        "The answer cites the Per-Branch Section Rule",
+        "The answer explains when depth-3 leaves are included"
+      ]
+    }
+  ]
+}

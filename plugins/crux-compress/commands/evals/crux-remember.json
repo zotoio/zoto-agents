@@ -1,0 +1,24 @@
+{
+  "target_id": "command:crux-remember",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/crux-remember our staging database resets every Sunday at 02:00 UTC",
+      "assertions": [
+        "The parent agent collects the memory type and tags before spawning the subagent",
+        "The `crux-memory-remember` agent writes the memory under the configured memories directory",
+        "The memory records the Sunday 02:00 UTC reset"
+      ],
+      "expected_output": "The parent asks for the memory type and tags, then the `crux-memory-remember` agent writes the memory."
+    },
+    {
+      "id": 2,
+      "prompt": "/crux-remember",
+      "assertions": [
+        "The assistant asks what the user wants to remember",
+        "No memory file is created before the user answers"
+      ],
+      "expected_output": "With no text, the assistant asks what to remember before creating anything."
+    }
+  ]
+}

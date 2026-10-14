@@ -1,0 +1,24 @@
+{
+  "skill_name": "crux-utils",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "How many tokens is .cursor/rules/api.md, and what ratio does .cursor/rules/api.crux.mdc get against it?",
+      "expected_output": "The assistant runs crux-utils.py with --token-count --ratio on the source and CRUX files and reports both counts and the ratio.",
+      "assertions": [
+        "The assistant runs `<plugin>/skills/crux-utils/scripts/crux-utils.py` with `--token-count --ratio`",
+        "The script path is resolved to the plugin directory, not the project's `.cursor/skills/`",
+        "The answer reports the token counts and the ratio"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Give me the sourceChecksum value for docs/style-guide.md.",
+      "expected_output": "The assistant runs crux-utils.py --cksum on the file and reports the checksum for use as sourceChecksum.",
+      "assertions": [
+        "The assistant runs `crux-utils.py --cksum docs/style-guide.md`",
+        "The answer gives the checksum value as printed by the script"
+      ]
+    }
+  ]
+}

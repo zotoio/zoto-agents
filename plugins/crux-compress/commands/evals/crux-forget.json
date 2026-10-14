@@ -1,0 +1,24 @@
+{
+  "target_id": "command:crux-forget",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/crux-forget the old deploy freeze memory",
+      "assertions": [
+        "The assistant lists the matching memories before deleting anything",
+        "The parent asks the user to confirm which memories to delete",
+        "Reference trackers for deleted memories are removed too"
+      ],
+      "expected_output": "The `crux-memory-forget` agent resolves matching memories, the parent asks which to delete, and only confirmed memories and their trackers are removed."
+    },
+    {
+      "id": 2,
+      "prompt": "/crux-forget everything tagged legacy",
+      "assertions": [
+        "Every memory tagged `legacy` is listed",
+        "Nothing is deleted without confirmation"
+      ],
+      "expected_output": "All memories tagged legacy are listed and the user confirms before deletion."
+    }
+  ]
+}

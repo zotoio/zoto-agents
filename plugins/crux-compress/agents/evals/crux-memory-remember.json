@@ -1,0 +1,25 @@
+{
+  "target_id": "agent:crux-memory-remember",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Remember (type: redflag, tags: [ci]): the e2e suite flakes when run with more than 4 workers.",
+      "assertions": [
+        "The memory type is `redflag` and its tags include `ci`",
+        "The memory is written under the configured memories directory",
+        "The body records the more-than-4-workers flake"
+      ],
+      "expected_output": "The agent writes a redflag memory with the given tags and valid frontmatter."
+    },
+    {
+      "id": 2,
+      "prompt": "Remember (type: learning, tags: [api]): the billing API returns 409 on duplicate idempotency keys. A similar memory already exists.",
+      "assertions": [
+        "The existing similar memory is identified",
+        "The conflict is returned in `needs_user_input`",
+        "The existing memory is not overwritten"
+      ],
+      "expected_output": "The agent reports the conflict with the existing memory in needs_user_input instead of overwriting it."
+    }
+  ]
+}

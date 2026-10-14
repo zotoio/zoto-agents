@@ -1,0 +1,24 @@
+{
+  "target_id": "command:z-crux-init",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-crux-init",
+      "assertions": [
+        "The assistant follows the `crux-init` skill's instructions for the request",
+        "Paths to files shipped with the plugin are resolved under the plugin directory, not the project's `.cursor/`",
+        "The assistant does not copy plugin agents, commands, skills, or hooks into `.cursor/`"
+      ],
+      "expected_output": "The command hands the request to the `crux-init` skill, which runs as if invoked directly."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-crux-init with memories",
+      "assertions": [
+        "The assistant passes the text after `/z-crux-init` to the `crux-init` skill as the user's request",
+        "The assistant does not perform actions the skill does not describe"
+      ],
+      "expected_output": "The arguments reach the skill unchanged and the skill's own workflow and safety rules apply."
+    }
+  ]
+}

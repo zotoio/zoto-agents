@@ -1,0 +1,24 @@
+{
+  "target_id": "command:crux-recall",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/crux-recall api conventions",
+      "assertions": [
+        "The assistant uses the `crux-memory-recall` agent",
+        "Matching memories are shown decompressed",
+        "No memory file is modified"
+      ],
+      "expected_output": "Matching memories are decompressed and shown in readable form without changing any memory file."
+    },
+    {
+      "id": 2,
+      "prompt": "/crux-recall --total",
+      "assertions": [
+        "The Canvas template is loaded from `<plugin>/templates/recall-canvas.tsx.md`",
+        "The view covers the whole memory corpus"
+      ],
+      "expected_output": "The assistant builds the interactive Canvas view of all memories from the recall canvas template."
+    }
+  ]
+}

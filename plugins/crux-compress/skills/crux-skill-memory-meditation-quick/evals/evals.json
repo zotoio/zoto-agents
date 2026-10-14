@@ -1,0 +1,22 @@
+{
+  "skill_name": "crux-skill-memory-meditation-quick",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "What are the six steps of a quick meditation?",
+      "expected_output": "The assistant lists the six steps of the quick protocol as defined in the skill.",
+      "assertions": [
+        "The answer lists six steps matching the skill",
+        "The answer states that quick mode has no peer review"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "In a quick meditation, what happens when a citation can't be verified?",
+      "expected_output": "The assistant explains that citation validation in quick mode only warns and does not block.",
+      "assertions": [
+        "The answer says citation validation is warn-only in quick mode"
+      ]
+    }
+  ]
+}

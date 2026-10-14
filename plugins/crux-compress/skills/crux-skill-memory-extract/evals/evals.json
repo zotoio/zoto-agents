@@ -1,0 +1,25 @@
+{
+  "skill_name": "crux-skill-memory-extract",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The checkout-redesign spec is done. Pull out what we should remember from it.",
+      "expected_output": "The assistant analyses the spec's execution artifacts, compares them with existing memories, and proposes ranked candidates with types, without writing memories before the user picks.",
+      "assertions": [
+        "The assistant reads the completed spec's artifacts",
+        "Candidates are ranked and each has a proposed memory type",
+        "Conflicts with existing memories are flagged",
+        "No memory is written before the user chooses candidates"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Extract memories from specs/auth-migration. We fixed the token refresh race in that spec.",
+      "expected_output": "Candidates include the fixed race, and any existing redflag about it is identified as resolved.",
+      "assertions": [
+        "A candidate covers the token refresh race fix",
+        "An existing redflag about the race, if present, is flagged as resolved"
+      ]
+    }
+  ]
+}

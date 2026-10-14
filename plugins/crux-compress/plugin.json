@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "crux-compress",
+  "version": "2.11.7",
+  "description": "Compress rules, code, images, and web pages into CRUX notation, with CRUX memories and meditation. Packages the CRUX-Compress release as a plugin.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/zoto-agents/tree/main/plugins/crux-compress",
+  "repository": "https://github.com/zotoio/zoto-agents",
+  "license": "MIT",
+  "keywords": [
+    "crux",
+    "compression",
+    "tokens",
+    "rules",
+    "memories"
+  ],
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "displayName": "CRUX Compress",
+        "shortDescription": "Compress rules into CRUX",
+        "longDescription": "CRUX (Context Reduction Using X-encoding) compresses markdown rules, code files, images, and web pages into a dense notation that agents read directly, typically to a quarter of the original tokens. The plugin packages the CRUX-Compress release: the rule manager agent, /crux-compress, CRUX memories (dream, recall, remember, forget), and memory-informed meditation. Run /z-crux-init once per project to add CRUX.md and the AGENTS.md block. Hooks and scripts need Python 3.",
+        "developerName": "zotoio",
+        "category": "Developer Tools",
+        "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/crux-compress",
+        "composerIcon": "./assets/logo.svg",
+        "logo": "./assets/logo.svg"
+      }
+    }
+  }
+}

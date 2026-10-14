@@ -1,0 +1,23 @@
+{
+  "target_id": "command:crux-amnesia",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/crux-amnesia on",
+      "assertions": [
+        "The assistant confirms memory use is disabled for this chat session",
+        "The assistant does not change `.crux/crux-memories.json` or any memory file"
+      ],
+      "expected_output": "Ambient CRUX memory use is turned off for the rest of this chat session."
+    },
+    {
+      "id": 2,
+      "prompt": "/crux-amnesia off",
+      "assertions": [
+        "The assistant confirms memory use is restored",
+        "No memory files are changed"
+      ],
+      "expected_output": "Ambient CRUX memory use is restored for this chat session."
+    }
+  ]
+}

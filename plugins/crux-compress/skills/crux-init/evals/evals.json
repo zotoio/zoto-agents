@@ -1,0 +1,27 @@
+{
+  "skill_name": "crux-init",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up CRUX in this repo. There's no CRUX.md yet and AGENTS.md already has a section about our build.",
+      "expected_output": "CRUX.md is copied from the plugin's spec, the <CRUX> block is added to the top of AGENTS.md without changing the build section, and .crux/crux.json records the plugin version.",
+      "assertions": [
+        "The assistant reads the version from `<plugin>/upstream.json`",
+        "CRUX.md is created from `<plugin>/spec/CRUX.md`",
+        "The existing AGENTS.md content is kept unchanged and the `<CRUX>` block is added at the top",
+        "`.crux/crux.json` contains the plugin version"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Install CRUX here with memories. We had the old installer before, so .cursor/agents/crux-cursor-rule-manager.md and .cursor/hooks/crux-session-start.py are still around.",
+      "expected_output": "The assistant lists the old installer files, explains they will load twice, and removes them only after the user confirms; memories scaffolding is created from the plugin's default config.",
+      "assertions": [
+        "The assistant names the existing `.cursor/` CRUX files and says they duplicate the plugin",
+        "The assistant does not delete any file before the user confirms",
+        "`.crux/crux-memories.json` is created from `<plugin>/templates/crux-memories.default.json` if it does not exist",
+        "`memories/`, `memories/agents/`, and `.crux/reference-tracking/` are created"
+      ]
+    }
+  ]
+}

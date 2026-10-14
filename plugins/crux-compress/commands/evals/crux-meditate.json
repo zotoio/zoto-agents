@@ -1,0 +1,24 @@
+{
+  "target_id": "command:crux-meditate",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/crux-meditate \"how should we structure our retry policies\"",
+      "assertions": [
+        "The assistant spawns the `crux-cursor-meditation-guide` agent",
+        "User decisions are collected by the parent agent, not the subagent",
+        "The meditation produces a report"
+      ],
+      "expected_output": "The `crux-cursor-meditation-guide` agent runs the meditation; any decisions it needs come back to the parent, which asks the user."
+    },
+    {
+      "id": 2,
+      "prompt": "/crux-meditate --quick \"caching strategy for the catalog API\"",
+      "assertions": [
+        "The quick-mode protocol (`crux-skill-memory-meditation-quick`) is used",
+        "Paths to files shipped with the plugin are resolved under the plugin directory (`<plugin>/...`), not the project's `.cursor/`"
+      ],
+      "expected_output": "The meditation runs in quick mode using the quick protocol skill."
+    }
+  ]
+}
