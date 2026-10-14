@@ -24,7 +24,9 @@
         "longDescription": "Skills for the botz MCP Swarm CLI: capture suites from live MCP servers, run repeatable assertions and load tests, diagnose failures, and upgrade saved suites. The skills install the botz host and its mcp-swarm extension on first use.",
         "developerName": "zotoio",
         "category": "Developer Tools",
-        "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/botz-mcp-swarm"
+        "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/botz-mcp-swarm",
+        "composerIcon": "./assets/logo.png",
+        "logo": "./assets/logo.png"
       }
     }
   }

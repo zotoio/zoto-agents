@@ -8,6 +8,7 @@
 
 ## 0.7.0
 
+- Add the plugin logo (`assets/logo.png`) for Cursor and as the OpenAI listing logo and composer icon.
 - Add `mcp-swarm-guided`: question-driven target, credential, test-data, tool, and load selection, followed by capture, review, run, and summary. Tool selection defaults to all tools; write-like tools need per-tool confirmation and are never enabled on production.
 - Add `mcp-swarm-compare` with `scripts/runs-dataset.mjs`: compare two runs or a series, flag non-comparable runs, apply the CLI's regression rules, and chart results in `/canvas` or a self-contained HTML page.
 - Add `mcp-swarm-descriptions` (tool description review, `optimize` suggestions, tool-eval measurement) and `mcp-swarm-record-replay`.
