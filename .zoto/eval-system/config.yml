@@ -26,9 +26,10 @@ hostLayout: plugin
 
 # Active override: skip CRUX primitives in this repo.
 ignore:
-  - ".cursor/skills/crux-*"
-  - ".cursor/commands/crux-*.md"
-  - ".cursor/agents/crux-cursor-*.md"
+  - ".cursor/skills/crux/**"
+  - ".cursor/commands/crux/**"
+  - ".cursor/agents/crux/**"
+  - ".cursor/rules/crux/**"
   - ".cursor/hooks/crux-*"
 
 
