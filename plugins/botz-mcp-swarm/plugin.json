@@ -17,9 +17,10 @@
   ],
   "extensions": {
     "com.openai": {
+      "requires_local_executor": true,
       "interface": {
         "displayName": "MCP Swarm",
-        "shortDescription": "Capture, run, and diagnose MCP test suites",
+        "shortDescription": "Test and load-test MCP servers",
         "longDescription": "Skills for the botz MCP Swarm CLI: capture suites from live MCP servers, run repeatable assertions and load tests, diagnose failures, and upgrade saved suites. The skills install the botz host and its mcp-swarm extension on first use.",
         "developerName": "zotoio",
         "category": "Developer Tools",

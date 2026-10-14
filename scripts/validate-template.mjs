@@ -386,6 +386,8 @@ async function enforceJsonFirstNoColocatedTsEvals() {
 }
 
 const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
+// OpenAI listing limits: https://developers.openai.com/plugins/deploy/submission
+const OPENAI_INTERFACE_LIMITS = { displayName: 30, shortDescription: 30, longDescription: 4000, developerName: 80 };
 
 /**
  * Every plugin ships for Cursor, Claude Code, and Codex: an Agent Plugins
@@ -396,8 +398,14 @@ async function validateClientManifests(entryName, pluginDir, cursorManifest) {
   const portable = await readJsonFile(path.join(pluginDir, "plugin.json"), `${entryName} Agent Plugins manifest`);
   if (portable) {
     if (portable.$schema !== AGENT_PLUGINS_SCHEMA) addError(`${entryName}: plugin.json "$schema" must be ${AGENT_PLUGINS_SCHEMA}`);
-    if (typeof portable.extensions?.["com.openai"]?.interface?.displayName !== "string") {
-      addError(`${entryName}: plugin.json must set extensions["com.openai"].interface.displayName`);
+    const openai = portable.extensions?.["com.openai"];
+    for (const [field, max] of Object.entries(OPENAI_INTERFACE_LIMITS)) {
+      const value = openai?.interface?.[field];
+      if (typeof value !== "string" || !value.trim()) addError(`${entryName}: plugin.json must set extensions["com.openai"].interface.${field}`);
+      else if (value.length > max) addError(`${entryName}: extensions["com.openai"].interface.${field} is ${value.length} characters; OpenAI allows ${max}`);
+    }
+    if (openai && "requires_local_executor" in openai && typeof openai.requires_local_executor !== "boolean") {
+      addError(`${entryName}: extensions["com.openai"].requires_local_executor must be a boolean`);
     }
   }
   const claude = await readJsonFile(path.join(pluginDir, ".claude-plugin", "plugin.json"), `${entryName} Claude Code manifest`);

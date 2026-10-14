@@ -20,9 +20,10 @@
   ],
   "extensions": {
     "com.openai": {
+      "requires_local_executor": true,
       "interface": {
         "displayName": "Eval System",
-        "shortDescription": "Generate, run, and update static and LLM evals",
+        "shortDescription": "Generate and update evals",
         "longDescription": "Generate, run, and consciously update static (pytest) + LLM (@cursor/sdk) evals when AI primitives change — every proposed change requires user confirmation. YAML+JSONSchema results, surgical update on git diff, sovereign user-authored cases, /canvas-rendered cross-run compare.",
         "developerName": "zotoio",
         "category": "Developer Tools",

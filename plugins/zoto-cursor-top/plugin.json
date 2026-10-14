@@ -19,9 +19,10 @@
   ],
   "extensions": {
     "com.openai": {
+      "requires_local_executor": true,
       "interface": {
         "displayName": "Cursor Top",
-        "shortDescription": "Live htop-style view of every Cursor agent",
+        "shortDescription": "Live view of Cursor agents",
         "longDescription": "Live updating htop-style CLI that shows all agents across every Cursor process on this machine, with expandable parent-to-subagent hierarchy and scrolling log lines. After install, run /zoto-cursor-top-init once to build the CLI and put cursor-top on PATH.",
         "developerName": "zotoio",
         "category": "Developer Tools",

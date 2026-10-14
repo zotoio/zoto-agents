@@ -19,9 +19,10 @@
   ],
   "extensions": {
     "com.openai": {
+      "requires_local_executor": true,
       "interface": {
         "displayName": "Spec System",
-        "shortDescription": "Create, judge, and execute engineering specs",
+        "shortDescription": "Plan, judge, and run specs",
         "longDescription": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification, live execution status aggregation, and no-restart token-budget configuration.",
         "developerName": "zotoio",
         "category": "Developer Tools",

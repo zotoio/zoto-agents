@@ -32,7 +32,7 @@ botz mcp-swarm suite run --suite demo --format json
 
 Use the user's actual target. For stdio, substitute `--command <bin>` and repeated `--arg <value>` for `--url`. Capture contacts the live server. Inspect captured arguments and enabled steps before running; tool calls can change target data. Choose concurrency and duration within the requested test scope. Inference is opt-in with `--inference` and needs model configuration; ordinary capture and runs do not need model credentials.
 
-Suites live under `.botz/suites/<name>` at the Git root, or under the user's `.botz/suites` outside a repository. Reuse an existing suite instead of overwriting it. Capture refuses an existing suite unless `--force` is supplied. To inspect server changes while preserving assertions and custom arguments:
+Suites live under `.botz/mcp-swarm/suites/<name>` at the Git root, or under `~/.botz/mcp-swarm/suites` outside a repository, unless `suitesDir` in `.botz/mcp-swarm/settings.json` points elsewhere. A `.botz/suites` directory is the pre-0.6 layout: it is still read, but use the `mcp-swarm-upgrade` skill to move it rather than editing it. Reuse an existing suite instead of overwriting it. Capture refuses an existing suite unless `--force` is supplied. To inspect server changes while preserving assertions and custom arguments:
 
 ```sh
 botz mcp-swarm suite refresh --suite demo --dry-run
