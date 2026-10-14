@@ -36,7 +36,7 @@ plugins/my-new-plugin/.claude-plugin/plugin.json   # Claude Code: name, version,
 plugins/my-new-plugin/plugin.json                  # Agent Plugins 1.0, read by Codex; see below
 ```
 
-The root `plugin.json` sets `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"`, the same identity fields, and OpenAI metadata under `extensions["com.openai"]`: an `interface` with `displayName` and `shortDescription` (30 characters each), `longDescription` (4,000), and `developerName` (80), plus `category` and `websiteURL`; and `"requires_local_executor": true` when the plugin runs local programs, which marks it desktop-only. `validate-template` enforces the required fields and limits.
+The root `plugin.json` sets `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"`, the same identity fields, and OpenAI metadata under `extensions["com.openai"]`: an `interface` with `displayName` and `shortDescription` (30 characters each), `longDescription` (4,000), and `developerName` (80), plus `category`, `websiteURL`, and `logo` and `composerIcon` (`./`-prefixed paths to square PNG, JPEG, WebP, or SVG images, at least 48x48 and at most 5 MiB); and `"requires_local_executor": true` when the plugin runs local programs, which marks it desktop-only. `validate-template` enforces the required fields and limits.
 
 Example manifest:
 

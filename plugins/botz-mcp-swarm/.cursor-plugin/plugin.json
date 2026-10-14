@@ -16,5 +16,6 @@
     "load-testing"
   ],
   "category": "developer-tools",
+  "logo": "assets/logo.png",
   "skills": "./skills/"
 }

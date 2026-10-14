@@ -388,6 +388,41 @@ async function enforceJsonFirstNoColocatedTsEvals() {
 const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
 // OpenAI listing limits: https://developers.openai.com/plugins/deploy/submission
 const OPENAI_INTERFACE_LIMITS = { displayName: 30, shortDescription: 30, longDescription: 4000, developerName: 80 };
+const OPENAI_ICON_FIELDS = ["logo", "composerIcon"];
+const OPENAI_ICON_TYPES = /\.(png|jpe?g|webp|svg)$/i;
+
+/** Square side length of a PNG (IHDR) or SVG (width/height or viewBox), or null if unknown. */
+function iconSize(buffer, file) {
+  if (/\.png$/i.test(file)) {
+    if (buffer.length < 24 || buffer.toString("ascii", 12, 16) !== "IHDR") return null;
+    const width = buffer.readUInt32BE(16);
+    return width === buffer.readUInt32BE(20) ? width : -1;
+  }
+  if (/\.svg$/i.test(file)) {
+    const svg = buffer.toString("utf8");
+    const box = /viewBox\s*=\s*["']\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)\s*["']/.exec(svg);
+    if (box) return Number(box[1]) === Number(box[2]) ? Number(box[1]) : -1;
+    return null;
+  }
+  return null;
+}
+
+// OpenAI requires a square listing logo and composer icon, at least 48px, at most 5 MiB.
+async function validateOpenAiIcons(entryName, pluginDir, iface) {
+  for (const field of OPENAI_ICON_FIELDS) {
+    const value = iface?.[field];
+    const label = `${entryName}: extensions["com.openai"].interface.${field}`;
+    if (typeof value !== "string" || !value.startsWith("./")) { addError(`${label} must be a ./-prefixed path to an image`); continue; }
+    if (!OPENAI_ICON_TYPES.test(value)) { addError(`${label} must be PNG, JPEG, WebP, or SVG`); continue; }
+    let buffer;
+    try { buffer = await fs.readFile(path.join(pluginDir, value)); }
+    catch { addError(`${label} points to a missing file: ${value}`); continue; }
+    if (buffer.length > 5 * 1024 * 1024) addError(`${label} is larger than 5 MiB`);
+    const size = iconSize(buffer, value);
+    if (size === -1) addError(`${label} must be square`);
+    else if (size !== null && size < 48) addError(`${label} must be at least 48x48 (is ${size})`);
+  }
+}
 
 /**
  * Every plugin ships for Cursor, Claude Code, and Codex: an Agent Plugins
@@ -404,6 +439,7 @@ async function validateClientManifests(entryName, pluginDir, cursorManifest) {
       if (typeof value !== "string" || !value.trim()) addError(`${entryName}: plugin.json must set extensions["com.openai"].interface.${field}`);
       else if (value.length > max) addError(`${entryName}: extensions["com.openai"].interface.${field} is ${value.length} characters; OpenAI allows ${max}`);
     }
+    await validateOpenAiIcons(entryName, pluginDir, openai?.interface);
     if (openai && "requires_local_executor" in openai && typeof openai.requires_local_executor !== "boolean") {
       addError(`${entryName}: extensions["com.openai"].requires_local_executor must be a boolean`);
     }

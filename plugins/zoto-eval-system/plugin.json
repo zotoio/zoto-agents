@@ -27,7 +27,9 @@
         "longDescription": "Generate, run, and consciously update static (pytest) + LLM (@cursor/sdk) evals when AI primitives change — every proposed change requires user confirmation. YAML+JSONSchema results, surgical update on git diff, sovereign user-authored cases, /canvas-rendered cross-run compare.",
         "developerName": "zotoio",
         "category": "Developer Tools",
-        "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-eval-system"
+        "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-eval-system",
+        "composerIcon": "./assets/logo.svg",
+        "logo": "./assets/logo.svg"
       }
     }
   }

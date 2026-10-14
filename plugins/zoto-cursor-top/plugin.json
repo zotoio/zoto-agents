@@ -26,7 +26,9 @@
         "longDescription": "Live updating htop-style CLI that shows all agents across every Cursor process on this machine, with expandable parent-to-subagent hierarchy and scrolling log lines. After install, run /zoto-cursor-top-init once to build the CLI and put cursor-top on PATH.",
         "developerName": "zotoio",
         "category": "Developer Tools",
-        "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-cursor-top"
+        "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-cursor-top",
+        "composerIcon": "./assets/logo.svg",
+        "logo": "./assets/logo.svg"
       }
     }
   }

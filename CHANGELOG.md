@@ -15,6 +15,7 @@ here. Per-plugin changes live in each plugin's own `CHANGELOG.md`:
 - Every plugin now ships an [Agent Plugins](https://agent-plugins.org/) `plugin.json` with OpenAI metadata under `extensions["com.openai"]` and a `.claude-plugin/plugin.json`, alongside its Cursor manifest.
 - Add `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json`, listing the same plugins as `.cursor-plugin/marketplace.json`. `pnpm validate-template` fails if a manifest or marketplace entry is missing or its name or version differs.
 - Add the `botz-mcp-swarm` plugin (MCP Swarm skills), moved from `@zotoio/botz-mcp-swarm-cli`.
+- Every plugin's OpenAI metadata sets `interface.logo` and `interface.composerIcon`, which Codex requires. `validate-template` checks both point to existing square PNG, JPEG, WebP, or SVG images of at least 48x48 and at most 5 MiB.
 - Cursor-format hooks, `.mdc` rules, and Cursor-specific agent fields are ignored by Claude Code and Codex; skills, commands, and agents load in Claude Code, and skills load in Codex.
 
 ## [unreleased] — 2026-05-27
