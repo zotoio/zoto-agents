@@ -9,7 +9,7 @@
         "`.crux/pending-compression.json` lists `.cursor/rules/api.md`",
         "A file without `crux: true` is not queued"
       ],
-      "expected_output": "`python3 hooks/crux-detect-changes.py` adds the file to `.crux/pending-compression.json` and exits 0."
+      "expected_output": "`hooks/crux-detect-changes.py` adds the file to `.crux/pending-compression.json` and exits 0."
     },
     {
       "id": 2,
@@ -19,7 +19,7 @@
         "The output names both pending files",
         "The output suggests running `/crux-compress`"
       ],
-      "expected_output": "`python3 hooks/crux-session-start.py` exits 0 and its output mentions the two pending files and `/crux-compress`."
+      "expected_output": "`hooks/crux-session-start.py` exits 0 and its output mentions the two pending files and `/crux-compress`."
     }
   ]
 }

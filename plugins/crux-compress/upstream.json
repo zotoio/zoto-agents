@@ -1,7 +1,7 @@
 {
   "repo": "zotoio/CRUX-Compress",
-  "tag": "v2.11.6",
-  "commit": "e966c856fb9c3b69b8cc3cb90c5185e28424a08f",
+  "tag": "v2.11.7",
+  "commit": "1a252afe689392fcdecf6afd0afaf49d429b5add",
   "releaseDate": "2026-10-14",
   "mode": "plugin",
   "files": {
@@ -97,32 +97,32 @@
     },
     "hooks/crux-detect-changes.py": {
       "from": ".cursor/hooks/crux-detect-changes.py",
-      "upstreamSha256": "0a3e1d46ba20939c19a69a033a8327ea7e99062bcec0443a8f19fbc009e9ca01",
-      "sha256": "0a3e1d46ba20939c19a69a033a8327ea7e99062bcec0443a8f19fbc009e9ca01",
+      "upstreamSha256": "4f9d7a7bcef18f176cae4f9553cd6064139579e0906f556bfecdcb1f36594c67",
+      "sha256": "4f9d7a7bcef18f176cae4f9553cd6064139579e0906f556bfecdcb1f36594c67",
       "changed": false
     },
     "hooks/crux-detect-memory-changes.py": {
       "from": ".cursor/hooks/crux-detect-memory-changes.py",
-      "upstreamSha256": "e02843167caef091b590ba6f47d042d511f574ad3f8724fd69112e1d83036e68",
-      "sha256": "e02843167caef091b590ba6f47d042d511f574ad3f8724fd69112e1d83036e68",
+      "upstreamSha256": "a4a475289ca62ed5f6977165423a462656a782239c3957c6fd02a917024b0ffe",
+      "sha256": "a4a475289ca62ed5f6977165423a462656a782239c3957c6fd02a917024b0ffe",
       "changed": false
     },
     "hooks/crux-session-start.py": {
       "from": ".cursor/hooks/crux-session-start.py",
-      "upstreamSha256": "c7bc66c8639c60680673b0c11055bac7efe292290dbebf8bdfc44b087bf2afea",
-      "sha256": "75c1eb0a8bbbb095df7542f18bdfc88ceead07691b44409fd919ce319d5f0eb6",
+      "upstreamSha256": "f2dd33843b10eef6c3d356b8bc93c987fd8d4c9dfcc0d1a4986331d2dee1663a",
+      "sha256": "3c1d470a49a128e61ea9160e601640f2a8c581d4574d8843614c926465de6905",
       "changed": true
     },
     "hooks/crux-track-memory-references.py": {
       "from": ".cursor/hooks/crux-track-memory-references.py",
-      "upstreamSha256": "808691da2a5579400a3de2b1b5679a45175f9da07770abb280226b446c5ef7bc",
-      "sha256": "808691da2a5579400a3de2b1b5679a45175f9da07770abb280226b446c5ef7bc",
+      "upstreamSha256": "8ae8c1f151ad3d63c294eb07db1d6ff179930c15c25008583a60eea470d9643e",
+      "sha256": "8ae8c1f151ad3d63c294eb07db1d6ff179930c15c25008583a60eea470d9643e",
       "changed": false
     },
     "hooks/hooks.json": {
       "from": ".cursor/hooks.json",
       "upstreamSha256": "add715ccb7e809284c12374b847bf27af569a056adaddb33c13d9a75f3dbf62e",
-      "sha256": "cbc1ee7ade238e379601d1850d596516882f06d55874c78b6b0f025bd1bef055",
+      "sha256": "6767cf5560d8a9bd36f0fcb7fd9833905084f3209c4676dd674013e6b9b773b8",
       "changed": true
     },
     "LICENSE": {
@@ -253,8 +253,8 @@
     },
     "spec/CRUX.md": {
       "from": "CRUX.md",
-      "upstreamSha256": "dd47d097bfa31709130ee3abffd2d8164d5b95849a8cb956640139226364caf0",
-      "sha256": "dd47d097bfa31709130ee3abffd2d8164d5b95849a8cb956640139226364caf0",
+      "upstreamSha256": "92ab320fa1884e12c635e1758b4f8344519a4c6dfdef8d74af835fadb3dbc981",
+      "sha256": "92ab320fa1884e12c635e1758b4f8344519a4c6dfdef8d74af835fadb3dbc981",
       "changed": false
     },
     "templates/compress-prompts.md": {

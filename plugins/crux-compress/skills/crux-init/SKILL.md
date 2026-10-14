@@ -16,7 +16,7 @@ Set up a project to use the CRUX Compress plugin. This does the project-side ste
 
 ## Steps
 
-1. **Read the plugin version.** Read `<plugin>/upstream.json` and take `tag` without the leading `v` (for example `2.11.6`).
+1. **Read the plugin version.** Read `<plugin>/upstream.json` and take `tag` without the leading `v` (for example `2.11.7`).
 
 2. **Refuse inside the CRUX-Compress repo.** If the project root has both `CRUX.md` and `scripts/create-crux-zip.py`, stop: this is the upstream repository, and its files are the source of the plugin.
 

@@ -5,23 +5,23 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": "python3 hooks/crux-session-start.py",
+        "command": "python3 \"${CURSOR_PLUGIN_ROOT:-.}\"/hooks/crux-session-start.py",
         "description": "CRUX: Display pending compressions and memory nudges at session start"
       }
     ],
     "afterFileEdit": [
       {
-        "command": "python3 hooks/crux-detect-changes.py",
+        "command": "python3 \"${CURSOR_PLUGIN_ROOT:-.}\"/hooks/crux-detect-changes.py",
         "description": "CRUX: Queue modified source files (with crux: true) for CRUX compression"
       },
       {
-        "command": "python3 hooks/crux-detect-memory-changes.py",
+        "command": "python3 \"${CURSOR_PLUGIN_ROOT:-.}\"/hooks/crux-detect-memory-changes.py",
         "description": "CRUX: Flag memory index for rebuild when memory files change"
       }
     ],
     "afterAgentResponse": [
       {
-        "command": "python3 hooks/crux-track-memory-references.py",
+        "command": "python3 \"${CURSOR_PLUGIN_ROOT:-.}\"/hooks/crux-track-memory-references.py",
         "description": "CRUX: Auto-track memory references from [memory:*] annotations in agent output"
       }
     ]

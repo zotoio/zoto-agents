@@ -69,7 +69,8 @@
   },
   "rewrites": {
     "$comment": "Exact-string replacements applied to every synced text file, longest first. <plugin> is this plugin's install directory (see rules/crux-plugin-paths.mdc).",
-    "python3 .cursor/hooks/": "python3 hooks/",
+    "\"command\": \"python3 .cursor/hooks/": "\"command\": \"python3 \\\"${CURSOR_PLUGIN_ROOT:-.}\\\"/hooks/",
+    "python3 .cursor/hooks/": "python3 <plugin>/hooks/",
     "`.cursor/hooks.json`": "`<plugin>/hooks/hooks.json`",
     ".cursor/agents/crux/templates/": "<plugin>/templates/",
     ".cursor/commands/crux/templates/": "<plugin>/templates/",

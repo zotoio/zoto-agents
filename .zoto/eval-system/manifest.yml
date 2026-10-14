@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-14T04:58:29.427Z
-git_ref: 648fdf9c8ba381dd512ea775979b958b4e8a3872
+updated_at: 2026-10-14T05:16:06.569Z
+git_ref: 3e96ca68cf3ee637ba2a0de64a29d041179299cc
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -196,7 +196,7 @@ targets:
   - id: skill:crux-init
     kind: skill
     path: plugins/crux-compress/skills/crux-init/SKILL.md
-    content_hash: 3f064de31dbae945fb16935c985f52d27ad71917401fe8005fd8b00cfda36d6c
+    content_hash: ed250eb8209ada15197cefa861696e6b03f89ed2133fac38ed9f86bca4d5ffce
     public_surface:
       frontmatter:
         name: crux-init
@@ -1631,7 +1631,7 @@ targets:
   - id: hook:crux-compress
     kind: hook
     path: plugins/crux-compress/hooks/hooks.json
-    content_hash: 6d672df7483950e903ab4c36a6308d7bef8684fc0e9c1d5d8d656bb11b11e968
+    content_hash: 4440d1ed13d072db4c1fe6b93e8d996fd422b98373d3b62d6bf4b04f8918c2e5
     public_surface:
       plugin: crux-compress
     eval_files:
@@ -1655,7 +1655,7 @@ targets:
   - id: hook:cursor-workspace
     kind: hook
     path: .cursor/hooks.json
-    content_hash: 0a8483a7a8b5f97f31998cff0cb714f000896d661f379cc8cf8149bafca7e8f8
+    content_hash: 1fb45eaccf1a9cc7dce2f5e8e9130613ac3024cecf9cfe730949b662ccf6a43b
     public_surface:
       workspace: .cursor
     eval_files:

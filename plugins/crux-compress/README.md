@@ -4,7 +4,7 @@
 
 CRUX (Context Reduction Using X-encoding) compresses markdown rules, code files, images, and web pages into a dense notation that agents read directly, usually to about a quarter of the original tokens. The plugin carries the CRUX-Compress release unchanged except for the path and frontmatter changes listed in [`scripts/upstream-map.json`](scripts/upstream-map.json).
 
-This plugin is version **2.11.6**, the same as the CRUX-Compress release it packages.
+This plugin is version **2.11.7**, the same as the CRUX-Compress release it packages.
 
 ## Requirements
 
@@ -35,6 +35,10 @@ If the project already has CRUX from the upstream installer (files under `.curso
 
 The `crux-skill-memory-meditation-*` skills are steps of `/crux-meditate`, loaded by the `crux-cursor-meditation-guide` agent. Their `/z-` commands exist to inspect or reuse one step.
 
+### Hooks
+
+`hooks/hooks.json` runs each hook as `python3 "${CURSOR_PLUGIN_ROOT:-.}"/hooks/<hook>.py`, so it finds the script whether Cursor runs plugin hooks from the plugin directory or provides `CURSOR_PLUGIN_ROOT`. The hooks read and write `.crux/` in `CURSOR_PROJECT_DIR`. The hooks file uses Cursor's format, so Claude Code does not run these hooks.
+
 ### Paths
 
 Upstream files refer to their own files as `.cursor/...`. In the plugin those paths are written `<plugin>/...`, and `rules/crux-plugin-paths.mdc` tells agents that `<plugin>` is the plugin's install directory. Project paths (`CRUX.md`, `AGENTS.md`, `.crux/`, `memories/`, your `.cursor/rules/`) are unchanged.
@@ -44,9 +48,9 @@ Upstream files refer to their own files as `.cursor/...`. In the plugin those pa
 The plugin is built from a CRUX-Compress GitHub release by [`scripts/sync-upstream.mjs`](scripts/sync-upstream.mjs):
 
 ```bash
-node scripts/sync-upstream.mjs --ref v2.11.6
+node scripts/sync-upstream.mjs --ref v2.11.7
 node scripts/sync-upstream.mjs
-node scripts/sync-upstream.mjs --check --ref v2.11.6
+node scripts/sync-upstream.mjs --check --ref v2.11.7
 ```
 
 The script:
