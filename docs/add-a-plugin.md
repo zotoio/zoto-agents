@@ -66,6 +66,8 @@ Add only the components you need:
 - `mcp.json` for MCP server definitions
 - `assets/logo.svg` for marketplace display
 
+Every skill also gets a light wrapper command, `commands/z-<skill>.md`, so users can run it as `/z-<skill>` (for example `/z-mcp-swarm` for the `mcp-swarm` skill). The wrapper sets `name: z-<skill>` and a `description` in its frontmatter, gives usage examples, and tells the agent to load and follow the named skill with the text after the command as the request, adding no behaviour of its own. Add evals for it at `commands/evals/z-<skill>.json` (`target_id: "command:z-<skill>"`, at least 2 cases), and set `"commands": "./commands/"` in `.cursor-plugin/plugin.json`. `validate-template` enforces this for every plugin except `zoto-spec-system`, `zoto-eval-system`, and `zoto-cursor-top`, which predate the convention.
+
 ### 3. Add skill evaluations
 
 Each skill should have an `evals/evals.json` file with at least 2 test cases:
@@ -152,3 +154,4 @@ Fix all reported errors before committing.
 - Rule files missing frontmatter `description`.
 - Broken relative paths for `logo`, `hooks`, or `mcpServers` in manifest files.
 - Fewer than 2 eval test cases per skill.
+- A skill without its `/z-<skill>` wrapper command and that command's evals.

@@ -10,6 +10,10 @@ here. Per-plugin changes live in each plugin's own `CHANGELOG.md`:
 
 ## [unreleased] — 2026-10-14
 
+### `/z-<skill>` commands
+
+- Every skill in a plugin gets a light wrapper command `commands/z-<skill>.md` (run as `/z-<skill>`) with evals. `botz-mcp-swarm` 0.8.0 adds one per skill. `validate-template` enforces the convention for every plugin except `zoto-spec-system`, `zoto-eval-system`, and `zoto-cursor-top`, and `docs/add-a-plugin.md` and the `zoto-create-plugin` skill describe it.
+
 ### Claude Code and Codex marketplaces
 
 - Every plugin now ships an [Agent Plugins](https://agent-plugins.org/) `plugin.json` with OpenAI metadata under `extensions["com.openai"]` and a `.claude-plugin/plugin.json`, alongside its Cursor manifest.

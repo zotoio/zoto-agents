@@ -129,6 +129,8 @@ For each component the user requested:
 
 **Commands**: Create `commands/<name>.md` with frontmatter (`name`, `description`) and sections for Usage (with examples), Instructions (argument handling, what happens), and Related.
 
+**Skill wrapper commands**: For every skill, also create `commands/z-<skill>.md` so it runs as `/z-<skill>`. Set `name: z-<skill>` and a `description`; give Usage examples; in Instructions, tell the agent to load and follow the `<skill>` skill with the text after the command as the request, adding no behaviour of its own; list the skill under Related. Add `commands/evals/z-<skill>.json` with at least 2 cases. `validate-template` fails without them.
+
 **Rules**: Create `rules/<name>.mdc` with frontmatter (`description`, `alwaysApply: true`) and content describing what agents should know.
 
 **Hooks**: Create `hooks/hooks.json` pointing at compiled scripts. Write TypeScript source under `hooks/` that reads JSON stdin and writes JSON stdout.
@@ -200,6 +202,7 @@ Report to the user:
 - All `name` frontmatter fields: kebab-case, matching their filename or directory
 - Skill names: match their parent directory name exactly
 - Commands: typically `zoto-<verb>` or `zoto-<verb>-<noun>`
+- Skill wrappers: every skill `<skill>` has a command `z-<skill>`
 - Config: `.zoto-<plugin-name>/config.json` at repo root (in target repos)
 - Evals: minimum 2 test cases per skill, each with assertions
 
