@@ -1,0 +1,34 @@
+{
+  "name": "zoto-agents",
+  "owner": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "description": "zotoio agent plugins: specs, evals, agent monitoring, and MCP testing.",
+  "plugins": [
+    {
+      "name": "zoto-spec-system",
+      "source": "./plugins/zoto-spec-system",
+      "description": "Decompose complex initiatives into reviewable specs, judge them independently, then execute with adversarial verification. Live execution status aggregation and no-restart token-budget configuration.",
+      "category": "developer-tools"
+    },
+    {
+      "name": "zoto-eval-system",
+      "source": "./plugins/zoto-eval-system",
+      "description": "Stamp static (pytest) and LLM (@cursor/sdk) eval suites side-by-side, detect drift when AI primitives change and update evals with user confirmation, compare runs across models on /canvas. Surgical update on git diff, sovereign user-authored cases.",
+      "category": "developer-tools"
+    },
+    {
+      "name": "zoto-cursor-top",
+      "source": "./plugins/zoto-cursor-top",
+      "description": "Live updating htop-style CLI that shows every Cursor agent on this machine, with expandable parent-to-subagent hierarchy and scrolling log tails",
+      "category": "developer-tools"
+    },
+    {
+      "name": "botz-mcp-swarm",
+      "source": "./plugins/botz-mcp-swarm",
+      "description": "Capture, run, and diagnose MCP test suites with the botz MCP Swarm CLI. Skills install the botz host and its mcp-swarm extension on first use and run only when invoked by name.",
+      "category": "developer-tools"
+    }
+  ]
+}

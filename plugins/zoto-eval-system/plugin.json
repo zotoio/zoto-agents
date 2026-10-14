@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "zoto-eval-system",
+  "version": "0.3.1",
+  "description": "Generate, run, and consciously update static (pytest) + LLM (@cursor/sdk) evals when AI primitives change — every proposed change requires user confirmation. YAML+JSONSchema results, surgical update on git diff, sovereign user-authored cases, /canvas-rendered cross-run compare.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/zoto-agents",
+  "repository": "https://github.com/zotoio/zoto-agents",
+  "license": "MIT",
+  "keywords": [
+    "evals",
+    "testing",
+    "llm",
+    "pytest",
+    "cursor-sdk",
+    "evaluation"
+  ],
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "displayName": "Eval System",
+        "shortDescription": "Generate and update evals",
+        "longDescription": "Generate, run, and consciously update static (pytest) + LLM (@cursor/sdk) evals when AI primitives change — every proposed change requires user confirmation. YAML+JSONSchema results, surgical update on git diff, sovereign user-authored cases, /canvas-rendered cross-run compare.",
+        "developerName": "zotoio",
+        "category": "Developer Tools",
+        "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-eval-system"
+      }
+    }
+  }
+}

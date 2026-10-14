@@ -1,0 +1,34 @@
+{
+  "skill_name": "mcp-swarm",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/mcp-swarm Capture a suite from my MCP server at http://127.0.0.1:3000/mcp called demo and run it. botz isn't installed on this machine yet.",
+      "expected_output": "The assistant installs the botz host and the mcp-swarm extension, tells the user it did so, then captures, inspects, and runs the demo suite through `botz mcp-swarm`, reporting the verdict and report location.",
+      "files": [],
+      "assertions": [
+        "The assistant checks `botz --version` (or equivalent) before installing anything",
+        "The assistant checks the Node.js version is 22.13 or later before installing the host",
+        "The assistant installs the host with `npm install -g @zotoio/botz-cli` and tells the user it installed it",
+        "The assistant installs the extension with `botz plugins install mcp-swarm` only after `botz plugins info mcp-swarm --json` shows it is not installed",
+        "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm` or `swarm`",
+        "The assistant inspects captured steps (suite show or validate) before running the suite",
+        "The assistant reports the verdict, executed coverage, and report location rather than calling the run successful because a report exists",
+        "The summary names the MCP server by name and URL or command"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/mcp-swarm Load test the saved suite demo for 30 seconds against staging at https://staging.example/mcp. The token is in STAGING_TOKEN.",
+      "expected_output": "The assistant runs the existing suite with a target override, passes the credential as an environment reference, sets explicit load parameters, and preserves the exit status.",
+      "files": [],
+      "assertions": [
+        "The assistant reuses the existing demo suite instead of capturing a new one",
+        "The assistant passes the credential with `--bearer-env STAGING_TOKEN` and never prints the token value",
+        "The assistant sets `--duration-ms 30000` and an explicit `--concurrency`",
+        "The assistant uses `--url https://staging.example/mcp` as a run-time override without modifying the saved suite",
+        "The assistant interprets exit code 1 as a failed verdict and 2 as a configuration or execution error"
+      ]
+    }
+  ]
+}

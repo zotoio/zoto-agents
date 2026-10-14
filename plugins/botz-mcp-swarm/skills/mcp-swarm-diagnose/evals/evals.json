@@ -1,0 +1,30 @@
+{
+  "skill_name": "mcp-swarm-diagnose",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/mcp-swarm-diagnose My CI job running `botz mcp-swarm suite run --suite demo` exits with code 2. What's wrong?",
+      "expected_output": "The assistant treats exit code 2 as a configuration or execution error, starts with offline diagnostics, and reports missing credential names without their values.",
+      "files": [],
+      "assertions": [
+        "The assistant identifies exit code 2 as a configuration or execution error, not a failed assertion",
+        "The assistant runs `botz mcp-swarm suite validate --suite demo --json` and `botz mcp-swarm doctor --suite demo --json` before contacting the target",
+        "The assistant reports missing environment variable names without reading or printing secret values",
+        "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm`",
+        "The summary names the MCP server by name and URL or command"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/mcp-swarm-diagnose p95 latency doubled between base.json and head.json. Is this a regression?",
+      "expected_output": "The assistant compares the two reports and checks that the runs are comparable before attributing the change to a regression.",
+      "files": [],
+      "assertions": [
+        "The assistant runs `botz mcp-swarm compare --base base.json --head head.json`",
+        "The assistant checks target, workload, concurrency, duration, and enabled tool coverage are comparable before calling it a regression",
+        "The assistant separates telemetry delivery failures from test verdicts",
+        "The assistant does not re-run load against a target without the user's authorization"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "skill_name": "mcp-swarm-descriptions",
+  "evals": [
+    {
+      "id": 1,
+      "files": [],
+      "prompt": "/mcp-swarm-descriptions Models keep calling search_docs when they should call search_tickets on my support server. Review the descriptions.",
+      "expected_output": "The assistant reads the tool descriptions and schemas from the saved suite, identifies the confusable pair, proposes clearer descriptions, and labels the review with the server name and URL or command.",
+      "assertions": [
+        "The assistant reads descriptions from surface.tools in the saved suite.json (or captures or refreshes first if none exists)",
+        "The assistant identifies search_docs and search_tickets as a confusable pair and proposes descriptions that say when to use each",
+        "The assistant checks input property descriptions and side-effect annotations",
+        "The assistant presents a table of current description, issues, and proposed description per tool",
+        "The assistant states that the change must be made in the server's source and does not claim to have changed the server",
+        "The review is labelled with the server name and URL or command"
+      ]
+    },
+    {
+      "id": 2,
+      "files": [],
+      "prompt": "/mcp-swarm-descriptions I ran optimize earlier. Are the suggested descriptions any good, and how do I prove a new description helps?",
+      "expected_output": "The assistant reads the saved optimize drafts and history, explains their limits, and proposes a fair before/after measurement with tool evals using the same suite.",
+      "assertions": [
+        "The assistant reads .botz/mcp-swarm/data/optimize-drafts.json and optimize-history.json",
+        "The assistant checks the CLI version and, for 0.6.1 or earlier, explains that `before` is the tool name and benchDelta does not measure description quality",
+        "The assistant reviews each proposed `after` against the tool's current description and schema rather than accepting it as-is",
+        "The assistant explains that optimize itself does not measure whether a proposal is better",
+        "The assistant recommends running the same suite with --inference before and after the description change, without recapturing in between",
+        "The assistant suggests repeating each side more than once and comparing with the mcp-swarm-compare skill",
+        "The assistant does not run optimize unless the user asks, and on 0.6.1 or earlier never against a write-like tool"
+      ]
+    }
+  ]
+}

@@ -385,6 +385,59 @@ async function enforceJsonFirstNoColocatedTsEvals() {
   }
 }
 
+const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
+// OpenAI listing limits: https://developers.openai.com/plugins/deploy/submission
+const OPENAI_INTERFACE_LIMITS = { displayName: 30, shortDescription: 30, longDescription: 4000, developerName: 80 };
+
+/**
+ * Every plugin ships for Cursor, Claude Code, and Codex: an Agent Plugins
+ * `plugin.json` (with OpenAI metadata under `extensions["com.openai"]`) and a
+ * `.claude-plugin/plugin.json`, both matching the Cursor manifest's name and version.
+ */
+async function validateClientManifests(entryName, pluginDir, cursorManifest) {
+  const portable = await readJsonFile(path.join(pluginDir, "plugin.json"), `${entryName} Agent Plugins manifest`);
+  if (portable) {
+    if (portable.$schema !== AGENT_PLUGINS_SCHEMA) addError(`${entryName}: plugin.json "$schema" must be ${AGENT_PLUGINS_SCHEMA}`);
+    const openai = portable.extensions?.["com.openai"];
+    for (const [field, max] of Object.entries(OPENAI_INTERFACE_LIMITS)) {
+      const value = openai?.interface?.[field];
+      if (typeof value !== "string" || !value.trim()) addError(`${entryName}: plugin.json must set extensions["com.openai"].interface.${field}`);
+      else if (value.length > max) addError(`${entryName}: extensions["com.openai"].interface.${field} is ${value.length} characters; OpenAI allows ${max}`);
+    }
+    if (openai && "requires_local_executor" in openai && typeof openai.requires_local_executor !== "boolean") {
+      addError(`${entryName}: extensions["com.openai"].requires_local_executor must be a boolean`);
+    }
+  }
+  const claude = await readJsonFile(path.join(pluginDir, ".claude-plugin", "plugin.json"), `${entryName} Claude Code manifest`);
+  for (const [label, manifest] of [["plugin.json", portable], [".claude-plugin/plugin.json", claude]]) {
+    if (!manifest) continue;
+    if (manifest.name !== cursorManifest.name) addError(`${entryName}: ${label} name must be "${cursorManifest.name}"`);
+    if (manifest.version !== cursorManifest.version) addError(`${entryName}: ${label} version must match .cursor-plugin/plugin.json (${cursorManifest.version})`);
+  }
+}
+
+/** The Claude Code and Codex marketplaces list exactly the Cursor marketplace's plugins and paths. */
+async function validateClientMarketplaces(cursorEntries) {
+  const expected = new Map(cursorEntries.map(entry => [entry.name, `./${String(entry.source).replace(/^\.\//, "")}`]));
+  const clients = [
+    [".claude-plugin/marketplace.json", "Claude Code marketplace", entry => entry.source],
+    [".agents/plugins/marketplace.json", "Codex marketplace", entry => typeof entry.source === "string" ? entry.source : entry.source?.path],
+  ];
+  for (const [file, label, sourceOf] of clients) {
+    const marketplace = await readJsonFile(path.join(repoRoot, file), label);
+    if (!marketplace) continue;
+    const entries = Array.isArray(marketplace.plugins) ? marketplace.plugins : [];
+    const names = entries.map(entry => entry.name);
+    for (const [name, source] of expected) {
+      const entry = entries.find(candidate => candidate.name === name);
+      if (!entry) addError(`${label} (${file}) is missing plugin "${name}"`);
+      else if (sourceOf(entry) !== source) addError(`${label} (${file}): "${name}" source must be "${source}"`);
+      if (file.startsWith(".agents") && entry && typeof entry.category !== "string") addError(`${label} (${file}): "${name}" needs a category`);
+    }
+    for (const name of names) if (!expected.has(name)) addError(`${label} (${file}) lists "${name}", which is not in .cursor-plugin/marketplace.json`);
+  }
+}
+
 async function main() {
   const marketplacePath = path.join(
     repoRoot,
@@ -494,6 +547,7 @@ async function main() {
     if (!pluginManifest) {
       continue;
     }
+    await validateClientManifests(entry.name, pluginDir, pluginManifest);
 
     if (
       typeof pluginManifest.name !== "string" ||
@@ -543,6 +597,7 @@ async function main() {
     }
   }
 
+  await validateClientMarketplaces(Array.isArray(marketplace.plugins) ? marketplace.plugins : []);
   await enforceJsonFirstNoColocatedTsEvals();
 
   summarizeAndExit();
