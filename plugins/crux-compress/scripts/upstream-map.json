@@ -60,6 +60,14 @@
       "LICENSE.md": "LICENSE"
     }
   },
+  "derived": {
+    "$comment": "Generated from upstream files at the release commit, then rewritten like synced files.",
+    "templates/crux-memories.default.json": {
+      "from": "install.py",
+      "pythonLiteral": "DEFAULT_MEMORIES_CONFIG",
+      "note": "The .crux/crux-memories.json the installer writes for --with-memories"
+    }
+  },
   "rewrites": {
     "$comment": "Exact-string replacements applied to every synced text file, longest first. <plugin> is this plugin's install directory (see rules/crux-plugin-paths.mdc).",
     "python3 .cursor/hooks/": "python3 hooks/",
@@ -71,7 +79,9 @@
     ".cursor/rules/_CRUX-RULE.mdc": "<plugin>/rules/_CRUX-RULE.mdc",
     ".cursor/rules/crux-memories-integration.md": "<plugin>/rules/crux-memories-integration.crux.mdc",
     "`.cursor/hooks.json`": "`<plugin>/hooks/hooks.json`",
-    ".cursor/agents/crux/": "<plugin>/agents/"
+    ".cursor/agents/crux/": "<plugin>/agents/",
+    ".cursor/commands/crux/": "<plugin>/commands/",
+    ".cursor/commands/crux-compress.md": "<plugin>/commands/crux-compress.md"
   },
   "frontmatter": {
     "$comment": "Keys added to files whose upstream frontmatter lacks what plugin loaders and validate-template require. Existing keys are never overwritten.",

@@ -69,7 +69,7 @@ def _read_pending_index_rebuild() -> str | None:
         "[CRUX Memory Index Stale]\n\n"
         f"The memory index needs rebuilding — {count} memory file(s) changed since the last rebuild:\n"
         f"{file_list}\n"
-        "Run: `python .cursor/skills/crux/crux-skill-memory-index/scripts/memory-index.py`\n"
+        "Run: `python <plugin>/skills/crux-skill-memory-index/scripts/memory-index.py`\n"
         "to rebuild, then delete `.crux/pending-index-rebuild.json`."
     )
 
@@ -153,7 +153,7 @@ def _read_stale_refs_nudge() -> str | None:
         "  - Agents are not discovering memories (no MCP `memory-search` calls, no "
         "reads of `.crux/memory-index.yml`).\n"
         "  - Agents discover memories but forget the `[memory:Exact Title]` "
-        "annotation contract in `.cursor/rules/crux-memories-integration.md`.\n"
+        "annotation contract in `<plugin>/rules/crux-memories-integration.crux.mdc`.\n"
         "  - Subagents annotate but the parent agent strips or paraphrases away "
         "the markers before they reach the user-facing reply.\n\n"
         "Action: review the integration rule's Output Annotation and Subagent "

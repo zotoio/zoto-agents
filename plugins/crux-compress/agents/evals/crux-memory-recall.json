@@ -1,0 +1,23 @@
+{
+  "target_id": "agent:crux-memory-recall",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Recall memories about database migrations.",
+      "assertions": [
+        "Matching memories are shown in readable form",
+        "No memory file is modified"
+      ],
+      "expected_output": "The agent finds matching memories and shows them decompressed, read-only."
+    },
+    {
+      "id": 2,
+      "prompt": "Recall --total.",
+      "assertions": [
+        "The template `<plugin>/templates/recall-canvas.tsx.md` is used verbatim",
+        "Every memory in the corpus appears in the view"
+      ],
+      "expected_output": "The agent generates the Canvas visualisation from the recall canvas template."
+    }
+  ]
+}

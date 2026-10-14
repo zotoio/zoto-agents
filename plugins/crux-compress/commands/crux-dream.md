@@ -1,3 +1,8 @@
+---
+name: "crux-dream"
+description: "Post-execution memory extraction and REM sleep rebalancing."
+---
+
 # crux-dream
 
 Post-execution memory extraction and REM sleep rebalancing.
@@ -16,7 +21,7 @@ Post-execution memory extraction and REM sleep rebalancing.
 
 When this command is invoked, spawn one of the mode-scoped memory thin agents to handle the workflow — `crux-memory-dream` for a spec-name invocation, or `crux-memory-rem` for `--rem` / `--rem --yolo`. Each thin agent orchestrates the memory skills it needs (`crux-skill-memory-extract`, `crux-skill-memory-rebalance`, `crux-skill-memory-crud`, `crux-skill-memory-compress`, `crux-skill-memory-reference-tracker`, `crux-skill-memory-index`) to perform extraction or rebalancing.
 
-**User input escalation — CRITICAL**: This command uses **Pattern B (work first, then escalate)**. The subagent NEVER calls `AskQuestion` directly — the parent agent owns all user prompts and resumes the subagent with the answers. For the full Pattern A / Pattern B contract and the `needs_user_input` YAML schema, see `.cursor/skills/_memory-shared.md#user-input-escalation` and `AGENTS.md`.
+**User input escalation — CRITICAL**: This command uses **Pattern B (work first, then escalate)**. The subagent NEVER calls `AskQuestion` directly — the parent agent owns all user prompts and resumes the subagent with the answers. For the full Pattern A / Pattern B contract and the `needs_user_input` YAML schema, see `<plugin>/skills/_memory-shared.md#user-input-escalation` and `AGENTS.md`.
 
 **Foreground execution — CRITICAL**: The subagent MUST run in the **foreground** (`run_in_background: false`). Background subagents only return a truncated summary notification to the parent — the full analysis is lost. Foreground execution blocks the parent until the subagent completes and returns its **complete response**, which the parent then displays verbatim to the user.
 
@@ -73,5 +78,5 @@ When this command is invoked, spawn one of the mode-scoped memory thin agents to
 
 ## Related
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full
+See `<plugin>/skills/_memory-shared.md#related-commands--skills` for the full
 registry of memory commands and skills.

@@ -1,0 +1,23 @@
+{
+  "target_id": "agent:crux-cursor-memory-manager",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Run a dream pass for the payments-refactor spec.",
+      "assertions": [
+        "The work is routed to the `crux-memory-dream` agent",
+        "No memory is written without the parent collecting user decisions"
+      ],
+      "expected_output": "The deprecated dispatcher hands the work to the `crux-memory-dream` agent."
+    },
+    {
+      "id": 2,
+      "prompt": "Forget the memory about the old CI runner.",
+      "assertions": [
+        "The work is routed to the `crux-memory-forget` agent",
+        "Matches are returned for confirmation instead of being deleted directly"
+      ],
+      "expected_output": "The dispatcher routes deletion to `crux-memory-forget` and returns matches for confirmation."
+    }
+  ]
+}

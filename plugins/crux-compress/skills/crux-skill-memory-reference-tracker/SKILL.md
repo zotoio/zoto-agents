@@ -7,7 +7,7 @@ description: Track which memories are referenced in agent output, manage .refs.y
 
 Manages per-memory reference tracking files (`.refs.yml`) in the configured `trackingDir`. Tracker files are the single source of truth for how often, how recently, and by whom a memory was referenced. Memory frontmatter stays clean — it stores *what* a memory is, not *how often* it is used.
 
-> Config keys and defaults: see `.cursor/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative). This skill reads keys under `cruxMemories.referenceTracking.*` plus `cruxMemories.unitOfWork` (which determines the key name used in `recent_references[]` source entries).
+> Config keys and defaults: see `<plugin>/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative). This skill reads keys under `cruxMemories.referenceTracking.*` plus `cruxMemories.unitOfWork` (which determines the key name used in `recent_references[]` source entries).
 
 ## Operations
 
@@ -184,4 +184,4 @@ recent_references:
 | `last` | date | Yes | Date of most recent reference from this source |
 | `context` | string | No | Brief description of how the memory was used |
 
-> Out-of-scope and cross-skill delegation: see `.cursor/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.
+> Out-of-scope and cross-skill delegation: see `<plugin>/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.

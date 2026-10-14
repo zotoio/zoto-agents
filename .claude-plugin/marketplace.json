@@ -29,6 +29,12 @@
       "source": "./plugins/botz-mcp-swarm",
       "description": "Capture, run, and diagnose MCP test suites with the botz MCP Swarm CLI. Skills install the botz host and its mcp-swarm extension on first use and run only when invoked by name.",
       "category": "developer-tools"
+    },
+    {
+      "name": "crux-compress",
+      "source": "./plugins/crux-compress",
+      "description": "Compress rules, code, images, and web pages into CRUX notation, with CRUX memories and meditation. Packages the CRUX-Compress release; run /z-crux-init once per project. Hooks need Python 3.",
+      "category": "developer-tools"
     }
   ]
 }

@@ -1,0 +1,24 @@
+{
+  "skill_name": "crux-skill-memory-compress",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Memory compression is now enabled. Migrate the existing uncompressed memories in memories/.",
+      "expected_output": "The assistant reads .crux/crux-memories.json, finds uncompressed memories over the minimum size, compresses them, and archives the sources to the configured archive directory.",
+      "assertions": [
+        "The assistant reads compression settings from `.crux/crux-memories.json`",
+        "Only memories at or above `compressionMinLines` are compressed",
+        "Original sources are archived to the configured `compressionSourceArchive` directory"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Decompress memories/core/api-conventions.md so I can read it.",
+      "expected_output": "The assistant shows the memory in readable form without overwriting the compressed file unless asked.",
+      "assertions": [
+        "The assistant decompresses the CRUX body into readable text",
+        "The compressed memory file is not overwritten unless the user asks"
+      ]
+    }
+  ]
+}

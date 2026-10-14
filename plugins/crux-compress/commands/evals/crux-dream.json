@@ -1,0 +1,25 @@
+{
+  "target_id": "command:crux-dream",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/crux-dream checkout-redesign",
+      "assertions": [
+        "The assistant spawns the `crux-memory-dream` agent in the foreground",
+        "The parent, not the subagent, asks the user which candidates to keep",
+        "No memory is written before the user chooses"
+      ],
+      "expected_output": "The `crux-memory-dream` agent runs in the foreground, returns ranked memory candidates, and the parent asks the user which to keep before anything is written."
+    },
+    {
+      "id": 2,
+      "prompt": "/crux-dream --rem",
+      "assertions": [
+        "The assistant spawns the `crux-memory-rem` agent",
+        "Recommendations are shown to the user before any memory is changed",
+        "Paths to files shipped with the plugin are resolved under the plugin directory (`<plugin>/...`), not the project's `.cursor/`"
+      ],
+      "expected_output": "The `crux-memory-rem` agent proposes corpus-wide rebalancing and the parent collects the user's decisions."
+    }
+  ]
+}

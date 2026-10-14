@@ -1,0 +1,26 @@
+{
+  "target_id": "command:crux-compress",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/crux-compress @.cursor/rules/api-style.md",
+      "assertions": [
+        "The assistant delegates compression to the `crux-cursor-rule-manager` agent",
+        "The output is written next to the source as `api-style.crux.mdc` with `sourceChecksum` frontmatter",
+        "Token counts come from `<plugin>/skills/crux-utils/scripts/crux-utils.py`",
+        "A separate validation pass scores the compression"
+      ],
+      "expected_output": "The rule is compressed to `.cursor/rules/api-style.crux.mdc` by the `crux-cursor-rule-manager` agent, validated by a fresh agent instance, and the token reduction is reported."
+    },
+    {
+      "id": 2,
+      "prompt": "/crux-compress @docs/onboarding.md --40",
+      "assertions": [
+        "The compression target is 40% of the original tokens",
+        "The per-source-type prompt is loaded from `<plugin>/templates/compress-prompts.md`",
+        "Paths to files shipped with the plugin are resolved under the plugin directory (`<plugin>/...`), not the project's `.cursor/`"
+      ],
+      "expected_output": "The file is compressed targeting 40% of its original tokens, and the result is not written if the reduction is not significant."
+    }
+  ]
+}

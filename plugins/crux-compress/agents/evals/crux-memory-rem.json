@@ -1,0 +1,24 @@
+{
+  "target_id": "agent:crux-memory-rem",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Run REM sleep on the memory corpus.",
+      "assertions": [
+        "Recommendations are grouped by action",
+        "Conflicts between memories are reported",
+        "Nothing is changed before the parent resumes with decisions"
+      ],
+      "expected_output": "The agent returns promote, demote, archive, consolidate, and compress recommendations for the parent to confirm."
+    },
+    {
+      "id": 2,
+      "prompt": "Run REM sleep with --yolo.",
+      "assertions": [
+        "The agent applies the recommendations without a confirmation round",
+        "The response lists every change made"
+      ],
+      "expected_output": "The agent applies its recommendations without asking, as the --yolo mode describes."
+    }
+  ]
+}

@@ -18,7 +18,7 @@ Use this skill when:
 
 Before any operation:
 
-1. **Read config**: Load `.crux/crux-memories.json`. This skill needs `flags.enableMemories`, `cruxMemories.unitOfWork`, `cruxMemories.dream.*` (`maxCandidateFacts`, `maxUnrelatedChanges`, `stateFile`, `workDir`), `cruxMemories.storage.memoriesDir` / `agentMemoriesDir`, and `cruxMemories.typePriority`. Defaults and full key descriptions live in `.cursor/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
+1. **Read config**: Load `.crux/crux-memories.json`. This skill needs `flags.enableMemories`, `cruxMemories.unitOfWork`, `cruxMemories.dream.*` (`maxCandidateFacts`, `maxUnrelatedChanges`, `stateFile`, `workDir`), `cruxMemories.storage.memoriesDir` / `agentMemoriesDir`, and `cruxMemories.typePriority`. Defaults and full key descriptions live in `<plugin>/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
 2. **Guard check**: If `flags.enableMemories` is not `"true"`, refuse all operations and inform the caller that memories are disabled.
 
 ## Operations
@@ -251,7 +251,7 @@ All fields required except `conflicts` and `related_memories`. `type` must be on
 
 ## Response Format
 
-This skill follows **Pattern B** — perform analysis and ranking first, then return results for the calling agent to present. Do NOT call `AskQuestion`; the calling agent handles all user interaction (see `.cursor/skills/_memory-shared.md#user-input-escalation`). Include the following structure in your response:
+This skill follows **Pattern B** — perform analysis and ranking first, then return results for the calling agent to present. Do NOT call `AskQuestion`; the calling agent handles all user interaction (see `<plugin>/skills/_memory-shared.md#user-input-escalation`). Include the following structure in your response:
 
 ```
 Analysing {unitOfWork} "{work-item-id}"...
@@ -313,4 +313,4 @@ After the user confirms resolved bugs for deletion, delegate to `crux-skill-memo
 | Conflict detected with existing memory | Present conflict report, require user resolution (never auto-resolve) |
 | Config file missing or malformed | Report error with path and expected structure |
 
-> Out-of-scope and cross-skill delegation: see `.cursor/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.
+> Out-of-scope and cross-skill delegation: see `<plugin>/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.

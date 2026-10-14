@@ -23,7 +23,7 @@ This agent NEVER calls `AskQuestion`. All user interaction is handled by the par
 - **Primary pattern**: Pattern B (work first, then escalate) — analyse artefacts, rank candidates, detect conflicts, then return the full proposal with `needs_user_input` for parent-driven accept/skip decisions.
 - **Resume**: Parent collects user choices and resumes this agent with confirmed candidates.
 
-See `.cursor/skills/_memory-shared.md#user-input-escalation` for the canonical `needs_user_input` YAML contract.
+See `<plugin>/skills/_memory-shared.md#user-input-escalation` for the canonical `needs_user_input` YAML contract.
 
 ## Skills Used
 
@@ -78,4 +78,4 @@ Invoked as `/crux-dream <spec-name>`:
 - **Siblings**: `crux-memory-rem`, `crux-memory-recall`, `crux-memory-remember`, `crux-memory-forget`
 - **Not invoked**: `crux-memory-rem` (REM sleep is separate, invoked via `--rem`)
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full registry.
+See `<plugin>/skills/_memory-shared.md#related-commands--skills` for the full registry.

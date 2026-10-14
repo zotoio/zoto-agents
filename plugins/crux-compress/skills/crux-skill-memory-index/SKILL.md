@@ -18,13 +18,13 @@ Builds a prioritised index of all memory files by scanning the configured memory
 
 ```bash
 # Rebuild the index (uses default config path)
-python .cursor/skills/crux/crux-skill-memory-index/scripts/memory-index.py
+python <plugin>/skills/crux-skill-memory-index/scripts/memory-index.py
 
 # Rebuild with a custom config path
-python .cursor/skills/crux/crux-skill-memory-index/scripts/memory-index.py --config path/to/config.json
+python <plugin>/skills/crux-skill-memory-index/scripts/memory-index.py --config path/to/config.json
 
 # Post-dream rebuild (checks enableMemories flag, then rebuilds)
-python .cursor/skills/crux/crux-skill-memory-index/scripts/post-dream.py
+python <plugin>/skills/crux-skill-memory-index/scripts/post-dream.py
 ```
 
 ### Post-Dream Rebuild
@@ -35,13 +35,13 @@ The `post-dream.py` script is a convenience wrapper invoked programmatically by 
 2. Calls `memory-index.py` to rebuild the index
 3. The MCP server's file watcher detects the index timestamp change automatically
 
-This script is **not** a Cursor event hook and is **not** registered in `.cursor/hooks.json`.
+This script is **not** a Cursor event hook and is **not** registered in `<plugin>/hooks/hooks.json`.
 
 ## Configuration
 
 Reads `.crux/crux-memories.json` — uses `cruxMemories.storage.memoriesDir` / `agentMemoriesDir` / `indexFile`, `cruxMemories.referenceTracking.trackingDir`, and `cruxMemories.typePriority`.
 
-> Config keys and defaults: see `.cursor/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
+> Config keys and defaults: see `<plugin>/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
 
 ## Index File Format
 
@@ -96,4 +96,4 @@ memories:
 - `pyyaml` package installed
 - `.crux/crux-memories.json` must exist with valid config
 
-> Out-of-scope and cross-skill delegation: see `.cursor/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.
+> Out-of-scope and cross-skill delegation: see `<plugin>/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.

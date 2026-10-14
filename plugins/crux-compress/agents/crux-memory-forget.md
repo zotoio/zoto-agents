@@ -23,7 +23,7 @@ This agent NEVER calls `AskQuestion`. All user interaction is handled by the par
 - **Primary pattern**: Pattern B (work first, then escalate) — resolve input to matching memories, then return the match list with `needs_user_input` for parent-driven confirmation before deletion.
 - **Resume**: Parent collects the confirmed deletion list and resumes this agent to apply deletions.
 
-See `.cursor/skills/_memory-shared.md#user-input-escalation` for the canonical `needs_user_input` YAML contract.
+See `<plugin>/skills/_memory-shared.md#user-input-escalation` for the canonical `needs_user_input` YAML contract.
 
 ## Skills Used
 
@@ -69,4 +69,4 @@ Invoked as `/crux-forget <id|slug|path|"query"|∅>`:
 - **Siblings**: `crux-memory-dream`, `crux-memory-rem`, `crux-memory-recall`, `crux-memory-remember`
 - **Note**: REM sleep archives memories (non-destructive); Forget permanently deletes them.
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full registry.
+See `<plugin>/skills/_memory-shared.md#related-commands--skills` for the full registry.

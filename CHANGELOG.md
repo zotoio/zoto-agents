@@ -7,8 +7,13 @@ here. Per-plugin changes live in each plugin's own `CHANGELOG.md`:
 - [`plugins/zoto-spec-system/CHANGELOG.md`](plugins/zoto-spec-system/CHANGELOG.md)
 - [`plugins/zoto-cursor-top/CHANGELOG.md`](plugins/zoto-cursor-top/CHANGELOG.md)
 - [`plugins/botz-mcp-swarm/CHANGELOG.md`](plugins/botz-mcp-swarm/CHANGELOG.md)
+- [`plugins/crux-compress/CHANGELOG.md`](plugins/crux-compress/CHANGELOG.md)
 
 ## [unreleased] — 2026-10-14
+
+### `crux-compress` plugin
+
+- Add `crux-compress` 2.11.5, which packages the [CRUX-Compress](https://github.com/zotoio/CRUX-Compress) v2.11.5 release as a plugin and registers it in all three marketplaces. `plugins/crux-compress/scripts/sync-upstream.mjs` rebuilds it from a release.
 
 ### `/z-<skill>` commands
 

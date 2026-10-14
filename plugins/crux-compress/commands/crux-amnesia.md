@@ -1,3 +1,8 @@
+---
+name: "crux-amnesia"
+description: "Temporarily disable or restore ambient CRUX memory usage for the current chat session."
+---
+
 # crux-amnesia
 
 Temporarily disable or restore ambient CRUX memory usage for the current chat session.
@@ -56,5 +61,5 @@ Respond with a short status confirmation:
 
 ## Related
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full
+See `<plugin>/skills/_memory-shared.md#related-commands--skills` for the full
 registry of memory commands and skills.

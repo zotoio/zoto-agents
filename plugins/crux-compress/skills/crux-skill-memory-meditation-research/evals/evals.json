@@ -1,0 +1,23 @@
+{
+  "skill_name": "crux-skill-memory-meditation-research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Walk me through phases A to G of a research meditation.",
+      "expected_output": "The assistant summarises each research phase A through G as defined in the skill.",
+      "assertions": [
+        "All seven phases A through G are described",
+        "The description matches the skill's depth-first recursion"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "What does the depth-0 manager write in step 8 of a research meditation?",
+      "expected_output": "The assistant explains the K10c reflection that writes finalisation-enhancements.yml.",
+      "assertions": [
+        "The answer names `finalisation-enhancements.yml`",
+        "The answer ties step 8 to the K10c reflection"
+      ]
+    }
+  ]
+}

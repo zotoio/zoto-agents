@@ -16,7 +16,7 @@ Use this skill whenever you need to:
 - Delete a memory and its reference tracker
 - Validate a memory file against the required schema
 
-> Config keys and defaults: see `.cursor/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
+> Config keys and defaults: see `<plugin>/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
 
 ## Memory Frontmatter Schema
 
@@ -194,4 +194,4 @@ Check a memory file against the required schema.
 - Do not silently exceed `maxMemorySize` — always warn the user
 - Do not create memories when the feature flag `enableMemories` is `false` in config without notifying the user
 
-> Out-of-scope and cross-skill delegation: see `.cursor/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.
+> Out-of-scope and cross-skill delegation: see `<plugin>/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.

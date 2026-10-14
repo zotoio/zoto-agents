@@ -1,0 +1,24 @@
+{
+  "target_id": "agent:crux-cursor-meditation-guide",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Meditate on how we version our public APIs. Use research depth.",
+      "assertions": [
+        "The research protocol from `crux-skill-memory-meditation-research` is followed",
+        "Artefact filenames follow `crux-skill-memory-meditation-coordination`",
+        "Decisions are returned as `needs_user_input` instead of asking the user directly"
+      ],
+      "expected_output": "The guide runs the research protocol, writes artefacts with the coordination grammar, and returns needs_user_input for any decisions."
+    },
+    {
+      "id": 2,
+      "prompt": "Quick meditation: should we split the notifications service?",
+      "assertions": [
+        "The quick-mode protocol is followed",
+        "A report is produced with the meditation report skill"
+      ],
+      "expected_output": "The guide runs the quick 6-step protocol and produces the report."
+    }
+  ]
+}

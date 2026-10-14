@@ -1,3 +1,8 @@
+---
+name: "crux-recall"
+description: "Decompress, query, and display CRUX memories in human-readable form."
+---
+
 # crux-recall
 
 Decompress, query, and display CRUX memories in human-readable form.
@@ -24,7 +29,7 @@ Decompress, query, and display CRUX memories in human-readable form.
 
 When this command is invoked, spawn a `crux-memory-recall` subagent to query and display memories. Recall is **read-only** — it never modifies memory files on disk.
 
-**User input escalation — CRITICAL**: This command uses **Pattern B (work first, then escalate)**. The subagent NEVER calls `AskQuestion` directly — the parent agent handles every post-display prompt (delete, consolidate, promote, skip) and resumes the subagent with the answers. For the full Pattern A / Pattern B contract and the `needs_user_input` YAML schema, see `.cursor/skills/_memory-shared.md#user-input-escalation` and `AGENTS.md`.
+**User input escalation — CRITICAL**: This command uses **Pattern B (work first, then escalate)**. The subagent NEVER calls `AskQuestion` directly — the parent agent handles every post-display prompt (delete, consolidate, promote, skip) and resumes the subagent with the answers. For the full Pattern A / Pattern B contract and the `needs_user_input` YAML schema, see `<plugin>/skills/_memory-shared.md#user-input-escalation` and `AGENTS.md`.
 
 ### Argument Handling
 
@@ -88,5 +93,5 @@ If the user selects one or more actions, execute them in order:
 
 ## Related
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full
+See `<plugin>/skills/_memory-shared.md#related-commands--skills` for the full
 registry of memory commands and skills.

@@ -1,0 +1,25 @@
+{
+  "skill_name": "crux-skill-memory-crud",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Validate every memory file under memories/ and tell me which ones have broken frontmatter.",
+      "expected_output": "The assistant checks each memory file's frontmatter against the skill's schema and lists the invalid files with the problem in each.",
+      "assertions": [
+        "Every file under `memories/` is checked",
+        "Each invalid file is listed with the specific frontmatter problem",
+        "No memory file is changed during validation"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Create a learning memory: our payments API rate-limits at 50 requests per second per key.",
+      "expected_output": "A new memory file of type learning is created with valid frontmatter in the configured memories directory.",
+      "assertions": [
+        "The new file is written under the configured `memoriesDir`",
+        "The frontmatter sets the memory type to `learning`",
+        "The memory body records the 50 requests per second per key limit"
+      ]
+    }
+  ]
+}

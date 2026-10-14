@@ -1,0 +1,23 @@
+{
+  "skill_name": "crux-skill-memory-reference-tracker",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I used the api-conventions memory in that last answer. Record the reference.",
+      "expected_output": "The api-conventions tracker in the reference-tracking directory is created or updated, and the memory's strength counter matches it.",
+      "assertions": [
+        "The tracker is written in the configured reference-tracking directory",
+        "The memory's frontmatter strength matches the tracker count"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Clean up any memory trackers whose memories no longer exist.",
+      "expected_output": "The assistant lists orphaned .refs.yml trackers and removes them after confirmation.",
+      "assertions": [
+        "Only trackers with no matching memory are listed as orphaned",
+        "No tracker is deleted before the user confirms"
+      ]
+    }
+  ]
+}

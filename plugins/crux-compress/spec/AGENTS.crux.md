@@ -21,14 +21,14 @@ This repository uses CRUX notation for semantic compression. **Interpret CRUX ru
 
 | Agent | Definition | Purpose |
 |-------|-----------|---------|
-| `crux-cursor-rule-manager` | `.cursor/agents/crux/crux-cursor-rule-manager.md` | CRUX compression, decompression, and validation |
-| `crux-memory-dream` | `.cursor/agents/crux/crux-memory-dream.md` | Dream-mode memory extraction — ranks candidate facts from a completed unit of work, detects conflicts, flags resolved-bug redflags. Spawned by `/crux-dream <spec-name>`. |
-| `crux-memory-rem` | `.cursor/agents/crux/crux-memory-rem.md` | REM Sleep memory rebalancer — corpus-wide consistency, conflicts, promote/demote/archive/consolidate/compress recommendations. Spawned by `/crux-dream --rem` (and by `/crux-recall` when the user selects "Consolidate"). |
-| `crux-memory-recall` | `.cursor/agents/crux/crux-memory-recall.md` | Read-only memory query and display. Decompresses CRUX bodies on the fly and generates the interactive Canvas visualisation on `--total` using the template at `.cursor/agents/crux/templates/recall-canvas.tsx.md`. Spawned by `/crux-recall`. |
-| `crux-memory-remember` | `.cursor/agents/crux/crux-memory-remember.md` | Ad-hoc memory creation with parent-collected type/tags/description. Spawned by `/crux-remember`. |
-| `crux-memory-forget` | `.cursor/agents/crux/crux-memory-forget.md` | Memory deletion — resolves matches for parent-driven confirmation, then removes files and trackers. Spawned by `/crux-forget` (and by `/crux-recall` when the user selects "Delete"). |
-| `crux-cursor-memory-manager` | `.cursor/agents/crux/crux-cursor-memory-manager.md` | (deprecated dispatcher — see `crux-memory-*`; remove after one minor release once thin agents ship in dist). |
-| `crux-cursor-meditation-guide` | `.cursor/agents/crux/crux-cursor-meditation-guide.md` | Recursive memory-informed meditation guide. Owns the Meditate persona, Research Phases A–G, Quick 6-step protocol, Adversarial Review function, Ensemble Aggregation function, and the K10 finalisation-enhancements reflection function. Spawned by `/crux-meditate` for the entire subagent tree; never user-invoked directly. |
+| `crux-cursor-rule-manager` | `<plugin>/agents/crux-cursor-rule-manager.md` | CRUX compression, decompression, and validation |
+| `crux-memory-dream` | `<plugin>/agents/crux-memory-dream.md` | Dream-mode memory extraction — ranks candidate facts from a completed unit of work, detects conflicts, flags resolved-bug redflags. Spawned by `/crux-dream <spec-name>`. |
+| `crux-memory-rem` | `<plugin>/agents/crux-memory-rem.md` | REM Sleep memory rebalancer — corpus-wide consistency, conflicts, promote/demote/archive/consolidate/compress recommendations. Spawned by `/crux-dream --rem` (and by `/crux-recall` when the user selects "Consolidate"). |
+| `crux-memory-recall` | `<plugin>/agents/crux-memory-recall.md` | Read-only memory query and display. Decompresses CRUX bodies on the fly and generates the interactive Canvas visualisation on `--total` using the template at `<plugin>/agents/templates/recall-canvas.tsx.md`. Spawned by `/crux-recall`. |
+| `crux-memory-remember` | `<plugin>/agents/crux-memory-remember.md` | Ad-hoc memory creation with parent-collected type/tags/description. Spawned by `/crux-remember`. |
+| `crux-memory-forget` | `<plugin>/agents/crux-memory-forget.md` | Memory deletion — resolves matches for parent-driven confirmation, then removes files and trackers. Spawned by `/crux-forget` (and by `/crux-recall` when the user selects "Delete"). |
+| `crux-cursor-memory-manager` | `<plugin>/agents/crux-cursor-memory-manager.md` | (deprecated dispatcher — see `crux-memory-*`; remove after one minor release once thin agents ship in dist). |
+| `crux-cursor-meditation-guide` | `<plugin>/agents/crux-cursor-meditation-guide.md` | Recursive memory-informed meditation guide. Owns the Meditate persona, Research Phases A–G, Quick 6-step protocol, Adversarial Review function, Ensemble Aggregation function, and the K10 finalisation-enhancements reflection function. Spawned by `/crux-meditate` for the entire subagent tree; never user-invoked directly. |
 
 ### User Input Escalation — Subagent Protocol
 

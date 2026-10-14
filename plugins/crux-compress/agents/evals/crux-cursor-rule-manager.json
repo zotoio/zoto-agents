@@ -1,0 +1,24 @@
+{
+  "target_id": "agent:crux-cursor-rule-manager",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Compress .cursor/rules/testing.md into CRUX notation.",
+      "assertions": [
+        "The agent reads `CRUX.md` from the project root before compressing",
+        "The output file has `sourceChecksum` and token-count frontmatter",
+        "The source file is not modified"
+      ],
+      "expected_output": "The agent reads CRUX.md, compresses the rule, writes testing.crux.mdc with checksum frontmatter, and reports the reduction."
+    },
+    {
+      "id": 2,
+      "prompt": "Decompress .cursor/rules/testing.crux.mdc so I can read it.",
+      "assertions": [
+        "The answer is readable prose or markdown, not CRUX notation",
+        "The `.crux.mdc` file is not edited"
+      ],
+      "expected_output": "The agent expands the CRUX notation into readable markdown without editing the CRUX file."
+    }
+  ]
+}

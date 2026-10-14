@@ -1,0 +1,23 @@
+{
+  "skill_name": "crux-skill-memory-meditation-coordination",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "What files does a meditation run write to its working directory, and how are they named?",
+      "expected_output": "The assistant explains the artefact filename grammar from the skill, including init-suggestions and finalisation-enhancements files.",
+      "assertions": [
+        "The answer uses the filename grammar defined in the skill",
+        "The answer mentions `init-suggestions-{ts}.yml` and `finalisation-enhancements.yml`"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "During a meditation, how should an agent wait for its child agents' outputs?",
+      "expected_output": "The assistant describes the skill's prefix-glob polling rule and the rule against hard-coding filenames.",
+      "assertions": [
+        "The answer describes prefix-glob polling",
+        "The answer states that artefact filenames must not be hard-coded"
+      ]
+    }
+  ]
+}

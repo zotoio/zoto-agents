@@ -12,6 +12,7 @@ Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 | [zoto-eval-system](plugins/zoto-eval-system/) | Stamp static (pytest) and LLM (`@cursor/sdk`) eval suites side-by-side, detect drift when AI primitives change and update evals with user confirmation, and compare runs across models on a single `/canvas`. |
 | [zoto-cursor-top](plugins/zoto-cursor-top/) | Live, `htop`-style CLI that lists every Cursor agent on the current machine — IDE windows, `cursor-agent` CLI sessions, and Cloud Agent VMs — in one expandable parent-to-subagent tree with scrolling log tails. |
 | [botz-mcp-swarm](plugins/botz-mcp-swarm/) | Skills for the botz MCP Swarm CLI: capture, run, and diagnose MCP server test suites, installing the CLI on first use. |
+| [crux-compress](plugins/crux-compress/) | CRUX-Compress as a plugin: compress rules, code, images, and web pages into CRUX notation, with CRUX memories and meditation. |
 
 ## Install
 

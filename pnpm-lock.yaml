@@ -66,6 +66,8 @@ importers:
 
   plugins/botz-mcp-swarm: {}
 
+  plugins/crux-compress: {}
+
   plugins/zoto-cursor-top:
     dependencies:
       ink:

@@ -1,0 +1,24 @@
+{
+  "skill_name": "crux-skill-memory-meditation-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review the meditation output before it's finalised.",
+      "expected_output": "The assistant audits the output on the skill's 13 dimensions, classifies findings by severity, and loops at most three times.",
+      "assertions": [
+        "Findings are grouped by the skill's 13 dimensions",
+        "Each finding has a severity",
+        "The review loop runs at most three iterations"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "A MUST_FIX finding needs the user's decision. What does the review return?",
+      "expected_output": "The assistant returns a needs_user_input section in the skill's MUST_FIX schema, including the mandatory context field.",
+      "assertions": [
+        "The output uses `needs_user_input`",
+        "Each decision includes the mandatory `context` field"
+      ]
+    }
+  ]
+}

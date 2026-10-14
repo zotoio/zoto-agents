@@ -23,7 +23,7 @@ This agent NEVER calls `AskQuestion`. All user interaction is handled by the par
 - **Primary pattern**: Pattern A (parent pre-collects type, tags, description) — parent gathers all required fields before spawning this agent.
 - **Fallback**: Pattern B — if a conflict with an existing memory is detected, or if `maxMemorySize` would be exceeded, return `needs_user_input` for the parent to resolve.
 
-See `.cursor/skills/_memory-shared.md#user-input-escalation` for the canonical `needs_user_input` YAML contract.
+See `<plugin>/skills/_memory-shared.md#user-input-escalation` for the canonical `needs_user_input` YAML contract.
 
 ## Skills Used
 
@@ -71,4 +71,4 @@ Invoked as `/crux-remember ["insight"] [--type learning]`:
 - **Skills**: `crux-skill-memory-crud`, `crux-skill-memory-index`
 - **Siblings**: `crux-memory-dream`, `crux-memory-rem`, `crux-memory-recall`, `crux-memory-forget`
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full registry.
+See `<plugin>/skills/_memory-shared.md#related-commands--skills` for the full registry.

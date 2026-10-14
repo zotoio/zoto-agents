@@ -1,3 +1,8 @@
+---
+name: "crux-forget"
+description: "Remove memories from the CRUX memory corpus."
+---
+
 # crux-forget
 
 Remove memories from the CRUX memory corpus.
@@ -16,7 +21,7 @@ Remove memories from the CRUX memory corpus.
 
 ## Instructions
 
-This command uses **Pattern B (work first, then escalate)**. The subagent NEVER calls `AskQuestion` directly — the parent agent resolves the input to matches, confirms deletion with the user via `AskQuestion`, then resumes the subagent with the confirmed list. For the full Pattern A / Pattern B contract and the `needs_user_input` YAML schema, see `.cursor/skills/_memory-shared.md#user-input-escalation` and `AGENTS.md`.
+This command uses **Pattern B (work first, then escalate)**. The subagent NEVER calls `AskQuestion` directly — the parent agent resolves the input to matches, confirms deletion with the user via `AskQuestion`, then resumes the subagent with the confirmed list. For the full Pattern A / Pattern B contract and the `needs_user_input` YAML schema, see `<plugin>/skills/_memory-shared.md#user-input-escalation` and `AGENTS.md`.
 
 ### Argument Handling
 
@@ -50,5 +55,5 @@ This command uses **Pattern B (work first, then escalate)**. The subagent NEVER 
 
 ## Related
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full
+See `<plugin>/skills/_memory-shared.md#related-commands--skills` for the full
 registry of memory commands and skills.

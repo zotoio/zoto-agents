@@ -1,0 +1,24 @@
+{
+  "target_id": "agent:crux-memory-forget",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Forget memories matching 'jenkins'.",
+      "assertions": [
+        "Matching memories are listed",
+        "Nothing is deleted in this pass"
+      ],
+      "expected_output": "The agent returns the matching memories for confirmation and deletes nothing yet."
+    },
+    {
+      "id": 2,
+      "prompt": "Forget memories matching 'jenkins'. The user confirmed deleting all three matches.",
+      "assertions": [
+        "All three memories are deleted",
+        "Their `.refs.yml` trackers are removed",
+        "The memory index is rebuilt or flagged for rebuild"
+      ],
+      "expected_output": "The three memories and their reference trackers are removed and the index is updated."
+    }
+  ]
+}

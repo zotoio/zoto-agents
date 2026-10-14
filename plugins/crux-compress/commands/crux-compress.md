@@ -1,4 +1,6 @@
 ---
+name: "crux-compress"
+description: "Compress markdown rules, code files, images, and web pages into CRUX notation for token efficiency."
 generated: 2026-07-13 19:14
 sourceChecksum: "2919266716"
 cruxLevel: 25
@@ -18,7 +20,7 @@ If this body is CRUX-notated and you cannot decompress it from always-on rules a
 ```crux
 ⟦CRUX:crux-compress.source.mdx
 Κ{mgr=crux-cursor-rule-manager; util=crux-utils skill;
-  tpl=.cursor/commands/templates/compress-prompts.md;
+  tpl=<plugin>/templates/compress-prompts.md;
   reg=.crux/plugins/registry.json}
 
 Λ.usage{
@@ -109,6 +111,6 @@ R.validation{every compression followed by fresh mgr instance validation
   ≥90% excellent; 80-89% good; 70-79% marginal; <70% revise
   fresh agent ensures: no bias,independent eval,¬relies on CRUX spec knowledge}
 
-M.related{mgr;CRUX.md;.cursor/rules/_CRUX-RULE.mdc;util;tpl}
+M.related{mgr;CRUX.md;<plugin>/rules/_CRUX-RULE.mdc;util;tpl}
 ⟧
 ```

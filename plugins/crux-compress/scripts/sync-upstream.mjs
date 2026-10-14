@@ -58,6 +58,17 @@ export function addFrontmatter(text, keys) {
   return `---${eol}${lines.join(eol)}${eol}---${eol}${eol}${text}`;
 }
 
+/** JSON for a top-level `NAME = {...}` literal in a Python file, read with ast.literal_eval (nothing is executed). */
+function pythonLiteralAsJson(file, name) {
+  const program = [
+    "import ast, json, sys",
+    "tree = ast.parse(open(sys.argv[1], encoding='utf-8').read())",
+    "node = next(n.value for n in tree.body if isinstance(n, ast.Assign) and getattr(n.targets[0], 'id', None) == sys.argv[2])",
+    "print(json.dumps(ast.literal_eval(node), indent=2))",
+  ].join("\n");
+  return execFileSync("python3", ["-I", "-c", program, file, name], { encoding: "utf8" });
+}
+
 function parseArgs(argv) {
   const args = { ref: null, zip: null, raw: false, check: false };
   for (let i = 0; i < argv.length; i++) {
@@ -134,6 +145,14 @@ async function buildRelease(map, args) {
       sources.set(rel, Buffer.from(await (await fetchOk(url)).arrayBuffer()));
     }
 
+    const derived = new Map();
+    for (const [target, spec] of Object.entries(withoutComments(map.derived ?? {}))) {
+      const url = `https://raw.githubusercontent.com/${map.repo}/${release.commit}/${spec.from}`;
+      const source = path.join(work, path.basename(spec.from));
+      await fs.writeFile(source, Buffer.from(await (await fetchOk(url)).arrayBuffer()));
+      derived.set(target, { from: `${spec.from}#${spec.pythonLiteral}`, data: Buffer.from(pythonLiteralAsJson(source, spec.pythonLiteral)) });
+    }
+
     const rewrites = withoutComments(map.rewrites);
     const frontmatter = withoutComments(map.frontmatter);
     const files = new Map();
@@ -148,6 +167,11 @@ async function buildRelease(map, args) {
         out = Buffer.from(text, "utf8");
       }
       files.set(target, { from: rel, data: out, upstreamSha256: sha256(data), changed: !out.equals(data) });
+    }
+    for (const [target, { from, data }] of derived) {
+      if (files.has(target)) throw new Error(`${from} and ${files.get(target).from} both map to ${target}`);
+      const out = args.raw ? data : Buffer.from(applyRewrites(data.toString("utf8"), rewrites), "utf8");
+      files.set(target, { from, data: out, upstreamSha256: sha256(data), changed: !out.equals(data) });
     }
     for (const target of Object.keys(frontmatter)) {
       if (!files.has(target)) warnings.push(`frontmatter entry ${target} matches no synced file`);

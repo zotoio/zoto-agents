@@ -1,0 +1,23 @@
+{
+  "skill_name": "crux-skill-memory-index",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Rebuild the memory index.",
+      "expected_output": "The assistant runs memory-index.py from the plugin and reports the index written to the configured index file.",
+      "assertions": [
+        "The assistant runs `<plugin>/skills/crux-skill-memory-index/scripts/memory-index.py`",
+        "The index is written to the `indexFile` from `.crux/crux-memories.json`"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We just finished a dream run. Do the post-dream index step.",
+      "expected_output": "The assistant runs post-dream.py from the plugin and removes the pending rebuild flag once the index is rebuilt.",
+      "assertions": [
+        "The assistant runs `<plugin>/skills/crux-skill-memory-index/scripts/post-dream.py`",
+        "`.crux/pending-index-rebuild.json` is cleared after a successful rebuild"
+      ]
+    }
+  ]
+}

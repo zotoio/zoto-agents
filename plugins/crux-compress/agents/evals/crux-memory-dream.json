@@ -1,0 +1,24 @@
+{
+  "target_id": "agent:crux-memory-dream",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "Dream on the completed spec specs/search-relevance.",
+      "assertions": [
+        "Candidates are ranked and typed",
+        "The response has a `needs_user_input` section",
+        "No memory is written before the parent resumes the agent with decisions"
+      ],
+      "expected_output": "The agent extracts ranked candidates from the spec's artifacts and returns them with a needs_user_input section."
+    },
+    {
+      "id": 2,
+      "prompt": "Dream on specs/search-relevance. The user chose candidates 1 and 3.",
+      "assertions": [
+        "Only the chosen candidates are written",
+        "The memory index is rebuilt or flagged for rebuild"
+      ],
+      "expected_output": "Only candidates 1 and 3 are written as memories and the index is flagged for rebuild."
+    }
+  ]
+}

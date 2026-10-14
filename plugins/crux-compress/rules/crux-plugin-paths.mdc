@@ -1,0 +1,14 @@
+---
+description: Resolve <plugin> paths in CRUX Compress plugin files to this plugin's install directory.
+alwaysApply: true
+---
+
+# CRUX plugin paths
+
+Files in the `crux-compress` plugin write `<plugin>/...` for files that ship with the plugin, for example `<plugin>/skills/crux-utils/scripts/crux-utils.py` or `<plugin>/skills/_memory-shared.md`.
+
+- `<plugin>` is the directory that holds this plugin's `.cursor-plugin/plugin.json`: under `~/.cursor/plugins/` in Cursor, or `${CLAUDE_PLUGIN_ROOT}` in Claude Code.
+- Replace `<plugin>` with that absolute path before you read a file or run a script. Never look for these files under the project's `.cursor/` directory.
+- Paths without `<plugin>` are project paths, relative to the project root: `CRUX.md`, `AGENTS.md`, `.crux/`, `memories/`, and the project's own `.cursor/rules/`.
+
+If `CRUX.md` is missing from the project root, run the `crux-init` skill (`/z-crux-init`) before compressing or decompressing anything.

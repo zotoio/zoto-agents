@@ -23,7 +23,7 @@ This agent NEVER calls `AskQuestion`. All user interaction is handled by the par
 - **Primary pattern**: Pattern B (work first, then escalate) — scan the corpus, generate recommendations, then return the full REM analysis with `needs_user_input` for parent-driven all/select/skip decisions.
 - **Resume**: Parent collects user choices and resumes this agent with the confirmed action set.
 
-See `.cursor/skills/_memory-shared.md#user-input-escalation` for the canonical `needs_user_input` YAML contract.
+See `<plugin>/skills/_memory-shared.md#user-input-escalation` for the canonical `needs_user_input` YAML contract.
 
 ## Skills Used
 
@@ -70,4 +70,4 @@ Encourage users to run Dream (extraction) before REM (rebalancing) so new learni
 - **Siblings**: `crux-memory-dream`, `crux-memory-recall`, `crux-memory-remember`, `crux-memory-forget`
 - **Role**: Only full-corpus walker in the memory system.
 
-See `.cursor/skills/_memory-shared.md#related-commands--skills` for the full registry.
+See `<plugin>/skills/_memory-shared.md#related-commands--skills` for the full registry.

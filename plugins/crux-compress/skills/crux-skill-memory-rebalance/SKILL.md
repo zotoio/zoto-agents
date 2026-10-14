@@ -19,7 +19,7 @@ Use this skill when:
 
 Before any operation:
 
-1. **Read config**: Load `.crux/crux-memories.json`. This skill needs `cruxMemories.typeTransitions`, `demoteAfterDaysUnreferenced`, `archiveAfterDaysUnreferenced`, `typePriority`, `sizeUnit`, `compressionTarget`, `compressionMinLines`, `maxMemorySize`, `maxConsolidatedSize`, `storage.*`, `referenceTracking.trackingDir`, `referenceTracking.promotionToRuleThreshold`, plus the `flags.enableMemories`, `flags.enableMemoryCompression`, and `flags.enableMemoryConsolidation` gates. Defaults and full key descriptions live in `.cursor/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
+1. **Read config**: Load `.crux/crux-memories.json`. This skill needs `cruxMemories.typeTransitions`, `demoteAfterDaysUnreferenced`, `archiveAfterDaysUnreferenced`, `typePriority`, `sizeUnit`, `compressionTarget`, `compressionMinLines`, `maxMemorySize`, `maxConsolidatedSize`, `storage.*`, `referenceTracking.trackingDir`, `referenceTracking.promotionToRuleThreshold`, plus the `flags.enableMemories`, `flags.enableMemoryCompression`, and `flags.enableMemoryConsolidation` gates. Defaults and full key descriptions live in `<plugin>/skills/_memory-shared.md#config-reference` and `.crux/crux-memories.json` (authoritative).
 2. **Guard check**: If `flags.enableMemories` is not `"true"`, abort and inform the caller that memories are disabled.
 3. **`typeTransitions` values are read verbatim from config — do not hard-code promotion thresholds.**
 
@@ -492,7 +492,7 @@ After all changes are applied, write a summary to `{archiveDir}/rem-{yyyymmdd}.m
 After all changes are applied and the REM summary is written, rebuild the memory index to reflect the current state of the corpus:
 
 ```bash
-python .cursor/skills/crux/crux-skill-memory-index/scripts/memory-index.py
+python <plugin>/skills/crux-skill-memory-index/scripts/memory-index.py
 ```
 
 This is **mandatory** — skipping this step leaves the index stale, which causes downstream agents (Recall, Dream, session-start hooks) to reference moved, deleted, or renamed files. If the script fails, report the error but do not abort — the REM summary and applied changes are still valid.
@@ -532,4 +532,4 @@ When a memory transitions between types, follow this exact procedure:
 | Strength exceeds `promoteAt` but `promoteTo` is not in `typePriority` | Skip promotion, report config issue |
 | File move would overwrite an existing file | Return `needs_user_input` for the calling agent to confirm with the user |
 
-> Out-of-scope and cross-skill delegation: see `.cursor/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.
+> Out-of-scope and cross-skill delegation: see `<plugin>/skills/_memory-shared.md#cross-skill-boundaries` and the agent table in `AGENTS.md`.
