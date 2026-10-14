@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `mcp-swarm-compare`: `runs-dataset.mjs` takes the server name, version, and endpoint from each report's `server` field, so runs with `--url` or `--target-file` are labelled with the endpoint actually tested. Reports without it (CLI 0.6.1 and earlier) still fall back to the saved suite, are flagged in `comparability`, and have their suite endpoint written the same way the CLI writes it (no URL credentials or query, stdio paths as basenames). Each run row has `serverSource` (`report`, `suite`, or `null`).
+- `mcp-swarm-compare`: tools whose catalog schema hash changed between consecutive runs are listed in `comparability` and not scored for regressions, matching `botz mcp-swarm compare`. Only reports without a catalog get the "no tool catalog" note.
+- `mcp-swarm`: take the server label from the report's `server` field when present.
+
 ## 0.7.0
 
 - Add `mcp-swarm-guided`: question-driven target, credential, test-data, tool, and load selection, followed by capture, review, run, and summary. Tool selection defaults to all tools; write-like tools need per-tool confirmation and are never enabled on production.

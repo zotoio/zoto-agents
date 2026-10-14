@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { buildDataset, loadReports, renderHtml } from "../skills/mcp-swarm-compare/scripts/runs-dataset.mjs";
+import { buildDataset, endpointOf, loadReports, renderHtml } from "../skills/mcp-swarm-compare/scripts/runs-dataset.mjs";
 
 const tool = (toolName, p95, errorRate = 0, count = 100) => ({ toolName, count, errorRate, latencyMs: { p50: p95 / 2, p95, p99: p95 * 1.2 } });
 const report = (id, startedAt, toolSeries, extra = {}) => ({
@@ -97,3 +97,39 @@ test("warns when the server is unknown or differs between runs", () => withLayou
     assert.equal(buildDataset(loadReports([join(root, "runs")]), "Custom").title, "Custom");
   },
 ));
+
+test("prefers the server recorded in the report over the saved suite", () => withLayout(
+  { demo: suite("docs-server", { transport: "streamable-http", url: "https://docs.example/mcp" }) },
+  [
+    report("a", "2026-01-01", [tool("echo", 10)]),
+    report("b", "2026-01-02", [tool("echo", 10)], { server: { name: "docs-server", version: "2.2", transport: "streamable-http", endpoint: "https://staging.example/mcp" } }),
+  ],
+  root => {
+    const data = buildDataset(loadReports([join(root, "runs")]));
+    assert.deepEqual(data.runs.map(r => [r.server, r.serverVersion, r.endpoint, r.serverSource]), [
+      ["docs-server", "2.1", "https://docs.example/mcp", "suite"],
+      ["docs-server", "2.2", "https://staging.example/mcp", "report"],
+    ]);
+    const notes = data.comparability.join("\n");
+    assert.match(notes, /^a: report does not record its server/m);
+    assert.doesNotMatch(notes, /^b: report does not record its server/m);
+    assert.match(notes, /different servers or endpoints/);
+  },
+));
+
+test("writes suite endpoints the way reports do", () => {
+  assert.equal(endpointOf({ url: "https://" + "u:p@" + "docs.example/mcp?region=eu#x" }), "https://docs.example/mcp");
+  const abs = ["", "opt", "srv", "index.js"].join("/");
+  assert.equal(endpointOf({ command: "node", args: [abs, "~/cfg/app.json", "--config=" + abs, "two words"] }), 'node index.js app.json --config=index.js "two words"');
+});
+
+test("does not score tools whose schema changed between runs", () => withRuns([
+  report("a", "2026-01-01", [tool("echo", 10), tool("search", 10)], { catalog: [{ name: "echo", schemaHash: "e1" }, { name: "search", schemaHash: "s1" }] }),
+  report("b", "2026-01-02", [tool("echo", 20), tool("search", 30, 0.2)], { catalog: [{ name: "echo", schemaHash: "e1" }, { name: "search", schemaHash: "s2" }] }),
+], dir => {
+  const data = buildDataset(loadReports([dir]));
+  assert.deepEqual(data.regressions.map(r => `${r.tool}:${r.metric}`), ["echo:p95"]);
+  const notes = data.comparability.join("\n");
+  assert.match(notes, /b: schema changed since a for search/);
+  assert.doesNotMatch(notes, /no tool catalog/);
+}));

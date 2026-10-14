@@ -39,7 +39,7 @@ node <this skill's directory>/scripts/runs-dataset.mjs [--last <n>] [--suites <d
 
 It prints JSON with `title` and `servers` (each as `<server name> <version> (<URL or command>)`), `runs` (one row per run: verdict, silent green, mode, concurrency, call count, tool-eval pass rate), `rows` (one row per run and tool: count, error rate, p50/p95/p99, mean, std), `comparability` (reasons the runs may not be comparable), and `regressions` between consecutive runs. Regressions use the CLI's rules: p95 up more than 20%, or any error-rate increase.
 
-Run reports do not record which server they ran against, so the script reads each run's saved suite (`suites/<suite name>/suite.json` beside the runs directory, or `--suites <dir>`) for the server name, version, and URL or command. If a run used a target override (`--url` or `--target-file`), the suite shows the captured endpoint, not the one actually tested: pass `--title` naming the real server and endpoint, and say so in the summary.
+The script takes the server name, version, and URL or command from each report's `server` field, which records the live `initialize` result and the endpoint actually used, including a `--url` or `--target-file` override. URLs lose credentials and query strings, and stdio paths are reduced to their basename. Reports from CLI 0.6.1 and earlier have no `server` field. For those, the script reads the run's saved suite (`suites/<suite name>/suite.json` beside the runs directory, or `--suites <dir>`), and `serverSource` is `suite`. The suite shows the captured endpoint, not an override: if such a run used `--url` or `--target-file`, pass `--title` naming the real server and endpoint, and say so in the summary.
 
 For exactly two runs, also run the CLI's own comparison and treat it as authoritative:
 
@@ -55,7 +55,7 @@ Every output names the MCP server under test by its name and its URL or command:
 
 ## 3. Check comparability first
 
-Read `comparability` before drawing conclusions. Different suites, transports, modes, concurrency, iterations, hold durations, or parameters make latency differences meaningless on their own. Fewer than 30 samples per tool make p95 and p99 unreliable. Exclude silent-green runs and explain failed verdicts. Suite-run reports do not record the tool catalog, so a schema change on the server is invisible here; suggest `botz mcp-swarm suite refresh --suite <name> --dry-run` if the server may have changed.
+Read `comparability` before drawing conclusions. Different suites, transports, modes, concurrency, iterations, hold durations, or parameters make latency differences meaningless on their own. Fewer than 30 samples per tool make p95 and p99 unreliable. Exclude silent-green runs and explain failed verdicts. Reports carry the suite's tool `catalog`. A tool whose schema hash changed between two runs is listed in `comparability` and is not scored for regressions, matching `compare`. The catalog is the one recorded when the suite was captured or last refreshed, so suggest `botz mcp-swarm suite refresh --suite <name> --dry-run` if the server may have changed since. Reports without a catalog (CLI 0.6.1 and earlier) are listed, because schema changes involving them cannot be detected.
 
 ## 4. Visualise
 

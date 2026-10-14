@@ -14,7 +14,7 @@ Agent Skills for the [botz MCP Swarm CLI](https://github.com/zotoio/botz-mcp-swa
 
 The skills set `disable-model-invocation: true`: run them by name (for example `/mcp-swarm`). On first use they install the `botz` host (`@zotoio/botz-cli`) and its `mcp-swarm` extension if missing, so Node.js 22.13+ and npm are required. No MCP server or executable is bundled.
 
-Every suite, report summary, chart, and file the skills produce names the MCP server under test by its name and its URL or command. Run reports do not record the server, so the skills take it from the run's saved suite.
+Every suite, report summary, chart, and file the skills produce names the MCP server under test by its name and its URL or command. Run reports record the server and the endpoint actually used in their `server` field. For reports from CLI 0.6.1 and earlier, the skills take the server from the run's saved suite.
 
 `mcp-swarm-compare` ships `scripts/runs-dataset.mjs`, which needs only Node.js; `pnpm --filter @zoto-agents/botz-mcp-swarm test` runs its tests.
 

@@ -22,7 +22,7 @@ Run every command through the botz host as `botz mcp-swarm`. Do not use the stan
 
 ## Identify the server
 
-Name every suite after the MCP server it tests: pass `--name <server name>` to capture, using the server's own name (lowercase, non-alphanumerics replaced by `-`) or, before it is known, the URL host or command basename. The suite records the server's name and version (`surface.serverName`, `surface.serverVersion`) and its URL or command (`target`). Run reports record only the suite name, so in every summary, table, and chart state the server as `<server name> <version> (<URL or command>)`, taken from the suite or from `suite show`. When a run uses `--url` or `--target-file`, name the endpoint actually tested.
+Name every suite after the MCP server it tests: pass `--name <server name>` to capture, using the server's own name (lowercase, non-alphanumerics replaced by `-`) or, before it is known, the URL host or command basename. The suite records the server's name and version (`surface.serverName`, `surface.serverVersion`) and its URL or command (`target`). In every summary, table, and chart state the server as `<server name> <version> (<URL or command>)`, taken from the report's `server` field (`name`, `version`, `endpoint`). It records the endpoint actually tested, including a `--url` or `--target-file` override. Reports from CLI 0.6.1 and earlier have no `server` field: take the server from the suite or from `suite show`, and when such a run used `--url` or `--target-file`, name the endpoint actually tested.
 
 For a new target, capture a suite:
 

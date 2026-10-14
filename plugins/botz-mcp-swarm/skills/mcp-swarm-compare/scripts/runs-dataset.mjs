@@ -5,35 +5,58 @@
  * Usage:
  *   node runs-dataset.mjs [--last <n>] [--suites <dir>] [--title <text>] [--html <file>] <report.json | runs-dir>...
  *
- * Prints JSON { title, servers, runs, rows, comparability, regressions }. Run
- * reports do not record the server, so each run is matched to its saved suite
- * (<suites>/<manifestName>/suite.json; default: the suites/ directory beside
- * each report's runs directory) for the server name, version, and URL or
- * command. With --html, also writes a self-contained chart page (no network
- * requests).
+ * Prints JSON { title, servers, runs, rows, comparability, regressions }. The
+ * server name, version, and endpoint come from each report's `server` field.
+ * Reports from CLI versions that did not record it are matched to their saved
+ * suite (<suites>/<manifestName>/suite.json; default: the suites/ directory
+ * beside each report's runs directory) instead. With --html, also writes a
+ * self-contained chart page (no network requests).
  * Regression rules match `botz mcp-swarm compare`: p95 up more than 20%, or
  * any error-rate increase, between consecutive runs that both ran the tool.
+ * A tool whose catalog schema hash changed between the two runs is not scored.
  */
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, join, win32 } from "node:path";
 
 const MIN_SAMPLES = 30;
 
+// An absolute or ~/ path, alone or as a --flag= value, becomes its basename.
+const portable = part => {
+  const eq = part.startsWith("-") ? part.indexOf("=") : -1;
+  if (eq > 0) return part.slice(0, eq + 1) + portable(part.slice(eq + 1));
+  return win32.isAbsolute(part) || part.startsWith("~/") ? win32.basename(part) : part;
+};
+const quote = part => (part === "" || /\s|"/.test(part) ? JSON.stringify(part) : part);
+
+// Written the way the CLI writes a report's `server.endpoint`: a URL without userinfo, query, or
+// fragment, or the stdio command and arguments with absolute paths reduced to their basename.
 export function endpointOf(target) {
   if (!target) return null;
-  if (target.url) return target.url;
-  if (target.command) return [target.command, ...(target.args ?? [])].join(" ");
+  if (target.url) {
+    try {
+      const url = new URL(target.url);
+      return `${url.protocol}//${url.host}${url.pathname}`;
+    } catch {
+      return target.url.replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/@?#]*@/i, "$1").replace(/[?#].*$/, "");
+    }
+  }
+  if (target.command) return [target.command, ...(target.args ?? [])].map(part => quote(portable(part))).join(" ");
   return null;
 }
 
-// Each suite records serverName, serverVersion, and its target at capture time.
+// Reports record `server` (live initialize name and version, and the endpoint actually used).
+// Older reports fall back to the saved suite, which records its target at capture time.
 export function serverFor(report, file, suitesDir) {
+  if (report.server && typeof report.server === "object") {
+    const { name = null, version = null, endpoint = null } = report.server;
+    return { name, version, endpoint, suite: report.manifestName, source: "report" };
+  }
   const dir = suitesDir ?? join(dirname(dirname(file)), "suites");
   try {
     const suite = JSON.parse(readFileSync(join(dir, report.manifestName, "suite.json"), "utf8"));
-    return { name: suite.surface?.serverName ?? null, version: suite.surface?.serverVersion ?? null, endpoint: endpointOf(suite.target), suite: suite.name ?? report.manifestName };
+    return { name: suite.surface?.serverName ?? null, version: suite.surface?.serverVersion ?? null, endpoint: endpointOf(suite.target), suite: suite.name ?? report.manifestName, source: "suite" };
   } catch {
-    return { name: null, version: null, endpoint: null, suite: report.manifestName };
+    return { name: null, version: null, endpoint: null, suite: report.manifestName, source: null };
   }
 }
 
@@ -76,6 +99,7 @@ export function buildDataset(loaded, title) {
       server: server.name ?? null,
       serverVersion: server.version ?? null,
       endpoint: server.endpoint ?? null,
+      serverSource: server.source ?? null,
       startedAt: report.startedAt,
       verdict: report.verdict,
       silentGreen: Boolean(report.silentGreen),
@@ -105,6 +129,8 @@ export function buildDataset(loaded, title) {
   for (const run of runs) {
     if (!run.server && !run.endpoint) comparability.push(`${run.run_id}: no saved suite "${run.suite}" found, so the server name and URL or command are unknown; pass --suites <dir> or --title`);
   }
+  const fromSuite = runs.filter(r => r.serverSource === "suite").map(r => r.run_id);
+  if (fromSuite.length) comparability.push(`${fromSuite.join(", ")}: report does not record its server, so the server and endpoint come from the saved suite; a run with --url or --target-file tested a different endpoint than shown`);
   if (new Set(runs.map(r => `${r.server}|${r.endpoint}`)).size > 1) comparability.push("Runs come from different servers or endpoints; differences may reflect the server, not a regression.");
   if (loaded.length < 2) comparability.push("Fewer than two runs: nothing to compare.");
   const first = loaded[0] && shape(loaded[0].report);
@@ -123,21 +149,31 @@ export function buildDataset(loaded, title) {
   }
   const toolSets = new Set(loaded.map(({ report }) => report.toolSeries.map(t => t.toolName).sort().join(",")));
   if (toolSets.size > 1) comparability.push("The set of executed tools differs between runs; compare coverage before latency.");
-  if (loaded.some(({ report }) => !report.catalog)) comparability.push("Suite-run reports carry no tool catalog, so schema changes between runs are not detected; check suite refresh --dry-run if the server changed.");
+  const noCatalog = loaded.filter(({ report }) => !report.catalog?.length).map(({ report }) => report.id);
+  if (noCatalog.length) comparability.push(`${noCatalog.join(", ")}: report carries no tool catalog, so schema changes involving this run are not detected; check suite refresh --dry-run if the server changed.`);
 
   const regressions = [];
   for (let i = 1; i < loaded.length; i++) {
     const base = new Map(loaded[i - 1].report.toolSeries.map(t => [t.toolName, t]));
     const head = loaded[i].report;
+    const changed = schemaChanges(loaded[i - 1].report, head);
+    if (changed.size) comparability.push(`${head.id}: schema changed since ${loaded[i - 1].report.id} for ${[...changed].join(", ")}; latency and error rate for those tools are not scored`);
     for (const tool of head.toolSeries) {
       const prev = base.get(tool.toolName);
-      if (!prev) continue;
+      if (!prev || changed.has(tool.toolName)) continue;
       const pct = prev.latencyMs.p95 > 0 ? ((tool.latencyMs.p95 - prev.latencyMs.p95) / prev.latencyMs.p95) * 100 : 0;
       if (pct > 20) regressions.push({ base: loaded[i - 1].report.id, head: head.id, tool: tool.toolName, metric: "p95", from: prev.latencyMs.p95, to: tool.latencyMs.p95, changePct: pct });
       if (tool.errorRate > prev.errorRate) regressions.push({ base: loaded[i - 1].report.id, head: head.id, tool: tool.toolName, metric: "errorRate", from: prev.errorRate, to: tool.errorRate });
     }
   }
   return { title: title ?? `MCP Swarm runs: ${servers.join(", ")}`, servers, runs, rows, comparability, regressions };
+}
+
+// Tools present in both catalogs with different schema hashes, as `botz mcp-swarm compare` classifies them.
+function schemaChanges(base, head) {
+  if (!base.catalog?.length || !head.catalog?.length) return new Set();
+  const before = new Map(base.catalog.map(t => [t.name, t.schemaHash]));
+  return new Set(head.catalog.filter(t => before.has(t.name) && before.get(t.name) !== t.schemaHash).map(t => t.name));
 }
 
 const esc = value => String(value).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
