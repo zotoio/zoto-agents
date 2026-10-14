@@ -207,6 +207,40 @@ async function validateFrontmatterFile(
   }
 }
 
+// Plugins that predate the /z-<skill> command convention.
+const SKILL_COMMAND_EXEMPT = new Set(["zoto-spec-system", "zoto-eval-system", "zoto-cursor-top"]);
+
+/**
+ * Every skill gets a light wrapper command, commands/z-<skill>.md, whose frontmatter
+ * name is z-<skill> and whose body names the skill. The plugin's Cursor manifest
+ * must expose commands/.
+ */
+async function validateSkillCommands(pluginDir, pluginName, cursorManifest) {
+  if (SKILL_COMMAND_EXEMPT.has(pluginName)) return;
+  const skillsDir = path.join(pluginDir, "skills");
+  if (!(await pathExists(skillsDir))) return;
+  const skills = (await fs.readdir(skillsDir, { withFileTypes: true }))
+    .filter(entry => entry.isDirectory())
+    .map(entry => entry.name);
+  if (skills.length && cursorManifest.commands !== "./commands/") {
+    addError(`${pluginName}: .cursor-plugin/plugin.json must set "commands": "./commands/" for its /z-<skill> commands`);
+  }
+  for (const skill of skills) {
+    if (!(await pathExists(path.join(skillsDir, skill, "SKILL.md")))) continue;
+    const command = `z-${skill}`;
+    const file = path.join(pluginDir, "commands", `${command}.md`);
+    let content;
+    try { content = await fs.readFile(file, "utf8"); }
+    catch { addError(`${pluginName}: skill "${skill}" needs a wrapper command at commands/${command}.md`); continue; }
+    const frontmatter = parseFrontmatter(content);
+    if (frontmatter?.name !== command) addError(`${pluginName}: commands/${command}.md must set name: ${command}`);
+    if (!content.includes(`\`${skill}\``)) addError(`${pluginName}: commands/${command}.md must name the \`${skill}\` skill it wraps`);
+    if (!(await pathExists(path.join(pluginDir, "commands", "evals", `${command}.json`)))) {
+      addError(`${pluginName}: commands/${command}.md needs evals at commands/evals/${command}.json`);
+    }
+  }
+}
+
 async function validateComponentFrontmatter(pluginDir, pluginName) {
   const rulesDir = path.join(pluginDir, "rules");
   if (await pathExists(rulesDir)) {
@@ -617,6 +651,7 @@ async function main() {
     }
 
     await validateComponentFrontmatter(pluginDir, entry.name);
+    await validateSkillCommands(pluginDir, entry.name, pluginManifest);
 
     const hooksPath = path.join(pluginDir, "hooks", "hooks.json");
     if (!(await pathExists(hooksPath))) {

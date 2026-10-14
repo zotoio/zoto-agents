@@ -6,6 +6,10 @@
 - `mcp-swarm-compare`: tools whose catalog schema hash changed between consecutive runs are listed in `comparability` and not scored for regressions, matching `botz mcp-swarm compare`. Only reports without a catalog get the "no tool catalog" note.
 - `mcp-swarm`: take the server label from the report's `server` field when present.
 
+## 0.8.0
+
+- Add a `/z-<skill>` command for each skill (`/z-mcp-swarm`, `/z-mcp-swarm-guided`, `/z-mcp-swarm-compare`, `/z-mcp-swarm-descriptions`, `/z-mcp-swarm-record-replay`, `/z-mcp-swarm-diagnose`, `/z-mcp-swarm-upgrade`) that loads the skill with the text after the command as the request, with evals for each.
+
 ## 0.7.0
 
 - Add the plugin logo (`assets/logo.png`) for Cursor and as the OpenAI listing logo and composer icon.
