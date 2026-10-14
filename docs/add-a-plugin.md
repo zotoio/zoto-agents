@@ -28,11 +28,15 @@ Create a new folder:
 plugins/my-new-plugin/
 ```
 
-Add the required manifest:
+Add the required manifests, one per client, with the same `name` and `version`:
 
 ```text
-plugins/my-new-plugin/.cursor-plugin/plugin.json
+plugins/my-new-plugin/.cursor-plugin/plugin.json   # Cursor (example below)
+plugins/my-new-plugin/.claude-plugin/plugin.json   # Claude Code: name, version, description, author, homepage, repository, license, keywords
+plugins/my-new-plugin/plugin.json                  # Agent Plugins 1.0, read by Codex; see below
 ```
+
+The root `plugin.json` sets `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"`, the same identity fields, and OpenAI metadata under `extensions["com.openai"].interface` (at least `displayName`; also `shortDescription`, `longDescription`, `developerName`, `category`, `websiteURL`).
 
 Example manifest:
 
@@ -122,6 +126,13 @@ Edit `.cursor-plugin/marketplace.json` and append a new entry:
 
 `source` is the relative path from the repository root to the plugin folder.
 
+Add the plugin to the other two marketplaces as well:
+
+- `.claude-plugin/marketplace.json`: `{ "name": "my-new-plugin", "source": "./plugins/my-new-plugin", "description": "…" }`
+- `.agents/plugins/marketplace.json`: `{ "name": "my-new-plugin", "source": { "source": "local", "path": "./plugins/my-new-plugin" }, "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" }, "category": "Developer Tools" }`
+
+`validate-template` fails when a plugin is missing from either file or its manifests disagree on `name` or `version`.
+
 ### 6. Validate
 
 ```bash
@@ -136,7 +147,7 @@ Fix all reported errors before committing.
 
 - Plugin `name` not kebab-case.
 - `source` path in marketplace manifest does not match folder name.
-- Missing `.cursor-plugin/plugin.json` in plugin folder.
+- Missing `.cursor-plugin/plugin.json`, `.claude-plugin/plugin.json`, or `plugin.json` in plugin folder.
 - Missing frontmatter keys (`name`, `description`) in skills, agents, or commands.
 - Rule files missing frontmatter `description`.
 - Broken relative paths for `logo`, `hooks`, or `mcpServers` in manifest files.

@@ -1,0 +1,56 @@
+{
+  "name": "zoto-agents",
+  "interface": {
+    "displayName": "zoto agents"
+  },
+  "plugins": [
+    {
+      "name": "zoto-spec-system",
+      "source": {
+        "source": "local",
+        "path": "./plugins/zoto-spec-system"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "zoto-eval-system",
+      "source": {
+        "source": "local",
+        "path": "./plugins/zoto-eval-system"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "zoto-cursor-top",
+      "source": {
+        "source": "local",
+        "path": "./plugins/zoto-cursor-top"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "botz-mcp-swarm",
+      "source": {
+        "source": "local",
+        "path": "./plugins/botz-mcp-swarm"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "botz-mcp-swarm",
+  "version": "0.7.0",
+  "description": "Capture, run, and diagnose MCP test suites with the botz MCP Swarm CLI.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/zoto-agents/tree/main/plugins/botz-mcp-swarm",
+  "license": "MIT",
+  "repository": "https://github.com/zotoio/zoto-agents",
+  "keywords": [
+    "mcp",
+    "testing",
+    "load-testing"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "zoto-spec-system",
+  "version": "0.7.0",
+  "description": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification, live execution status aggregation, and no-restart token-budget configuration.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/zoto-agents",
+  "repository": "https://github.com/zotoio/zoto-agents",
+  "license": "MIT",
+  "keywords": [
+    "spec-creation",
+    "execution",
+    "specs",
+    "engineering",
+    "adversarial-verification"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Spec System",
+        "shortDescription": "Create, judge, and execute engineering specs",
+        "longDescription": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification, live execution status aggregation, and no-restart token-budget configuration.",
+        "developerName": "zotoio",
+        "category": "Developer Tools",
+        "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-spec-system"
+      }
+    }
+  }
+}
