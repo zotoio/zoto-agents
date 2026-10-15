@@ -35,6 +35,7 @@ Check for existing suites first (`botz mcp-swarm suite list --json`). Then ask:
 - **What to test:** an HTTP MCP endpoint (URL), a local stdio server (command and arguments), or one of the existing suites listed.
 - **The URL, or the command and its arguments.** For stdio, run from the directory the server expects; relative paths are stored relative to the Git root.
 - **Server name**, defaulting to the URL host or command basename. This becomes the suite name (lowercase, non-alphanumerics replaced by `-`) and labels every output. After capture, prefer the server's own reported name (`surface.serverName`).
+- **Other servers:** "Does the task you want to test use any other MCP servers, for example reading from one and writing to another?" Default: no. If yes, collect each one's URL or command, a short alias (`jira`, `slack`), and its credentials in step 2, and follow step 4a.
 
 From here on, refer to the server everywhere as `<server name> <version> (<URL or command>)`: in questions, summaries, file names, and any canvas or chart.
 
@@ -62,6 +63,17 @@ botz mcp-swarm suite capture --command <bin> --arg <a> --name <server name> [--e
 ```
 
 Capture lists the server's tools, resources, and prompts and contacts the server; it does not call tools without `--inference`.
+
+## 4a. More servers and the flow
+
+Only when the user named other servers. Capture the first server with `--alias <alias>`, then add each other one:
+
+```sh
+botz mcp-swarm suite server add --suite <name> --alias <alias> --url <url> [--bearer-env VAR]
+botz mcp-swarm suite server add --suite <name> --alias <alias> --command <bin> --arg <a> [--env-from K=VAR]
+```
+
+Then ask, in one call: which steps make up the task, in order (offer the tools from `suite server list` and `suite show`, grouped by server), and which values pass from one step's result to a later step (for example "the issue title from search_issues goes into create_issue's summary"). Write the steps into `suite.json`: a `"server": "<alias>"` on each step for a server other than the default, an extractor after each step whose value is passed on (`"path"` into the result, `"variable"`, `"required": true`), and `${variable}` in the later step's arguments. Use the `mcp-swarm-flow` skill's rules for paths and write-like tools. Run `suite validate`, show the user the "Cross-server data flows" list, and ask them to confirm those values may be sent between the servers before any run.
 
 ## 5. Review
 
@@ -98,6 +110,8 @@ botz mcp-swarm suite run --suite <name> [--inference] [--set k=v] [load flags] [
 Exit codes: 0 pass, 1 failed verdict, 2 configuration or execution error, 130 or 143 interrupted. A report is written to `.botz/mcp-swarm/runs/` (or the configured `runsDir`) as `botz-run-<timestamp>.json` and `.md`.
 
 ## 8. Summarise and offer next steps
+
+For a multi-server suite, report each server (`<alias>: <server name> (<URL or command>)`) with its calls, error rate, and p95 from the report's `servers`, then the flow: passes, failed passes, passes stopped at a missing value, and whole-pass p95. Name the first server whose calls failed.
 
 Report the server (`<server name> <version> (<URL or command>)`), the verdict, executed coverage (calls per tool against the enabled steps), failures with reasons, tool-eval results when inference was on, and the report paths. Never call a run successful because a report exists or when no enabled tool executed.
 

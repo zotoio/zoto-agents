@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add `mcp-swarm-flow` and `/z-mcp-swarm-flow`: turn a task described in words into a multi-server suite, with server aliases, required extractors between servers, write-like tool confirmation, and the cross-server data flows shown for approval before the first run.
+- `mcp-swarm`, `mcp-swarm-guided`, `mcp-swarm-diagnose`, `mcp-swarm-compare`, and `mcp-swarm-upgrade` cover multi-server suites: `suite server add`, `--target <alias>=<url>`, alias-prefixed credential flags, per-server results, flow latency, and skipped steps. `mcp-swarm-record-replay` and `mcp-swarm-descriptions` say they work one server at a time.
+- `mcp-swarm-compare`: `runs-dataset.mjs` keys multi-server tools as `<alias>/<tool>`, adds `serverRows`, `flowP95`, and `passesSkipped`, decides schema changes per server, and reports a flow p95 regression above 20%.
 - `mcp-swarm-compare`: `runs-dataset.mjs` takes the server name, version, and endpoint from each report's `server` field, so runs with `--url` or `--target-file` are labelled with the endpoint actually tested. Reports without it (CLI 0.6.1 and earlier) still fall back to the saved suite, are flagged in `comparability`, and have their suite endpoint written the same way the CLI writes it (no URL credentials or query, stdio paths as basenames). Each run row has `serverSource` (`report`, `suite`, or `null`).
 - `mcp-swarm-compare`: tools whose catalog schema hash changed between consecutive runs are listed in `comparability` and not scored for regressions, matching `botz mcp-swarm compare`. Only reports without a catalog get the "no tool catalog" note.
 - `mcp-swarm`: take the server label from the report's `server` field when present.

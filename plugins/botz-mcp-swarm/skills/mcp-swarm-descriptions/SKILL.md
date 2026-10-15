@@ -26,6 +26,8 @@ Descriptions live in the MCP server's source. This skill proposes changes; the u
 
 Name the MCP server under test by its name and its URL or command in the review table title, any canvas view, and the summary. Take them from the suite (`surface.serverName`, `surface.serverVersion`, `target`) or `botz mcp-swarm suite show`; if neither is available, ask the user. Write them as `<server name> <version> (<URL or command>)`.
 
+Review one server at a time. In a multi-server suite, the default server's tools are under `servers.<defaultServer>.surface.tools[]` (or the top-level `surface` in a version 1 suite) and each other server's under `servers.<alias>.surface.tools[]`; tool evals for a tool run against its own server.
+
 ## 1. Read the current descriptions
 
 Use the saved suite: `.botz/mcp-swarm/suites/<name>/suite.json` records what the server advertised at capture time under `surface.tools[]`: `name`, `description`, `inputSchema` (including each property's `description`), and `annotations` such as `readOnlyHint` and `destructiveHint`. If there is no suite, capture one (see the `mcp-swarm` skill). If the server may have changed since capture, `botz mcp-swarm suite refresh --suite <name> --dry-run` lists the differences without executing tools.

@@ -5,7 +5,7 @@
  * Usage:
  *   node runs-dataset.mjs [--last <n>] [--suites <dir>] [--title <text>] [--html <file>] <report.json | runs-dir>...
  *
- * Prints JSON { title, servers, runs, rows, comparability, regressions }. The
+ * Prints JSON { title, servers, runs, rows, serverRows, comparability, regressions }. The
  * server name, version, and endpoint come from each report's `server` field.
  * Reports from CLI versions that did not record it are matched to their saved
  * suite (<suites>/<manifestName>/suite.json; default: the suites/ directory
@@ -14,11 +14,16 @@
  * Regression rules match `botz mcp-swarm compare`: p95 up more than 20%, or
  * any error-rate increase, between consecutive runs that both ran the tool.
  * A tool whose catalog schema hash changed between the two runs is not scored.
+ * Multi-server runs key tools as `<server alias>/<tool>`, so two servers' tools
+ * with one name stay apart, and add one `serverRows` entry per run and server.
  */
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, win32 } from "node:path";
 
 const MIN_SAMPLES = 30;
+
+/** A tool's key: `<alias>/<tool>` on multi-server reports, else the tool name. */
+export const toolKey = (server, name) => (server ? `${server}/${name}` : name);
 
 // An absolute or ~/ path, alone or as a --flag= value, becomes its basename.
 const portable = part => {
@@ -109,12 +114,17 @@ export function buildDataset(loaded, title) {
       callCount: report.quotas?.callCount ?? null,
       toolEvalCount: evals.length,
       toolEvalPassRate: evals.length ? evals.filter(e => e.pass).length / evals.length : null,
+      serverCount: report.servers?.length ?? 1,
+      // Whole-pass latency; on multi-server runs, the time an agent-like flow takes end to end.
+      flowP95: report.flow?.passes ? report.flow.latencyMs.p95 : null,
+      passesSkipped: report.flow?.passesSkipped ?? null,
     };
   });
   const rows = loaded.flatMap(({ report }) => report.toolSeries.map(tool => ({
     run_id: report.id,
     startedAt: report.startedAt,
-    tool: tool.toolName,
+    tool: toolKey(tool.server, tool.toolName),
+    server: tool.server ?? null,
     count: tool.count,
     errorRate: tool.errorRate,
     p50: tool.latencyMs.p50,
@@ -124,8 +134,23 @@ export function buildDataset(loaded, title) {
     std: tool.latencyMs.std ?? null,
   })));
 
+  const serverRows = loaded.flatMap(({ report }) => ((report.servers?.length ?? 0) > 1 ? report.servers : []).map(item => ({
+    run_id: report.id,
+    startedAt: report.startedAt,
+    server: item.alias,
+    name: item.name ?? null,
+    endpoint: item.endpoint ?? null,
+    calls: item.calls,
+    errorRate: item.errorRate,
+    p50: item.latencyMs.p50,
+    p95: item.latencyMs.p95,
+    p99: item.latencyMs.p99,
+  })));
+
   const servers = [...new Set(runs.map(r => serverLabel({ name: r.server, version: r.serverVersion, endpoint: r.endpoint, suite: r.suite })))];
   const comparability = [];
+  const serverSets = new Set(loaded.map(({ report }) => (report.servers ?? []).map(item => `${item.alias}=${item.endpoint}`).sort().join(",")));
+  if (serverSets.size > 1) comparability.push("Runs call different sets of servers or endpoints; compare per-server rows before the flow as a whole.");
   for (const run of runs) {
     if (!run.server && !run.endpoint) comparability.push(`${run.run_id}: no saved suite "${run.suite}" found, so the server name and URL or command are unknown; pass --suites <dir> or --title`);
   }
@@ -144,36 +169,45 @@ export function buildDataset(loaded, title) {
     if (report.silentGreen) comparability.push(`${report.id}: silent green (no meaningful execution); exclude it from conclusions`);
     if (report.verdict !== "pass") comparability.push(`${report.id}: verdict ${report.verdict}${report.failReasons?.length ? ` (${report.failReasons.join("; ")})` : ""}`);
     for (const tool of report.toolSeries) {
-      if (tool.count < MIN_SAMPLES) comparability.push(`${report.id}: ${tool.toolName} has ${tool.count} samples; p95/p99 are unreliable below ${MIN_SAMPLES}`);
+      if (tool.count < MIN_SAMPLES) comparability.push(`${report.id}: ${toolKey(tool.server, tool.toolName)} has ${tool.count} samples; p95/p99 are unreliable below ${MIN_SAMPLES}`);
     }
+    if (report.flow?.passesSkipped) comparability.push(`${report.id}: ${report.flow.passesSkipped} passes stopped at a missing required variable; later servers saw less traffic`);
   }
-  const toolSets = new Set(loaded.map(({ report }) => report.toolSeries.map(t => t.toolName).sort().join(",")));
+  const toolSets = new Set(loaded.map(({ report }) => report.toolSeries.map(t => toolKey(t.server, t.toolName)).sort().join(",")));
   if (toolSets.size > 1) comparability.push("The set of executed tools differs between runs; compare coverage before latency.");
   const noCatalog = loaded.filter(({ report }) => !report.catalog?.length).map(({ report }) => report.id);
   if (noCatalog.length) comparability.push(`${noCatalog.join(", ")}: report carries no tool catalog, so schema changes involving this run are not detected; check suite refresh --dry-run if the server changed.`);
 
   const regressions = [];
   for (let i = 1; i < loaded.length; i++) {
-    const base = new Map(loaded[i - 1].report.toolSeries.map(t => [t.toolName, t]));
+    const base = new Map(loaded[i - 1].report.toolSeries.map(t => [toolKey(t.server, t.toolName), t]));
     const head = loaded[i].report;
     const changed = schemaChanges(loaded[i - 1].report, head);
     if (changed.size) comparability.push(`${head.id}: schema changed since ${loaded[i - 1].report.id} for ${[...changed].join(", ")}; latency and error rate for those tools are not scored`);
     for (const tool of head.toolSeries) {
-      const prev = base.get(tool.toolName);
-      if (!prev || changed.has(tool.toolName)) continue;
+      const key = toolKey(tool.server, tool.toolName);
+      const prev = base.get(key);
+      if (!prev || changed.has(key)) continue;
       const pct = prev.latencyMs.p95 > 0 ? ((tool.latencyMs.p95 - prev.latencyMs.p95) / prev.latencyMs.p95) * 100 : 0;
-      if (pct > 20) regressions.push({ base: loaded[i - 1].report.id, head: head.id, tool: tool.toolName, metric: "p95", from: prev.latencyMs.p95, to: tool.latencyMs.p95, changePct: pct });
-      if (tool.errorRate > prev.errorRate) regressions.push({ base: loaded[i - 1].report.id, head: head.id, tool: tool.toolName, metric: "errorRate", from: prev.errorRate, to: tool.errorRate });
+      if (pct > 20) regressions.push({ base: loaded[i - 1].report.id, head: head.id, tool: key, metric: "p95", from: prev.latencyMs.p95, to: tool.latencyMs.p95, changePct: pct });
+      if (tool.errorRate > prev.errorRate) regressions.push({ base: loaded[i - 1].report.id, head: head.id, tool: key, metric: "errorRate", from: prev.errorRate, to: tool.errorRate });
+    }
+    // Same rule as `botz mcp-swarm compare`: a multi-server flow whose whole-pass p95 rises more than 20%.
+    const before = loaded[i - 1].report.flow, after = head.flow;
+    const multi = (head.servers?.length ?? 0) > 1 || (loaded[i - 1].report.servers?.length ?? 0) > 1;
+    if (multi && before?.passes && after?.passes && before.latencyMs.p95 > 0) {
+      const pct = ((after.latencyMs.p95 - before.latencyMs.p95) / before.latencyMs.p95) * 100;
+      if (pct > 20) regressions.push({ base: loaded[i - 1].report.id, head: head.id, tool: "flow", metric: "p95", from: before.latencyMs.p95, to: after.latencyMs.p95, changePct: pct });
     }
   }
-  return { title: title ?? `MCP Swarm runs: ${servers.join(", ")}`, servers, runs, rows, comparability, regressions };
+  return { title: title ?? `MCP Swarm runs: ${servers.join(", ")}`, servers, runs, rows, serverRows, comparability, regressions };
 }
 
 // Tools present in both catalogs with different schema hashes, as `botz mcp-swarm compare` classifies them.
 function schemaChanges(base, head) {
   if (!base.catalog?.length || !head.catalog?.length) return new Set();
-  const before = new Map(base.catalog.map(t => [t.name, t.schemaHash]));
-  return new Set(head.catalog.filter(t => before.has(t.name) && before.get(t.name) !== t.schemaHash).map(t => t.name));
+  const before = new Map(base.catalog.map(t => [toolKey(t.server, t.name), t.schemaHash]));
+  return new Set(head.catalog.filter(t => before.has(toolKey(t.server, t.name)) && before.get(toolKey(t.server, t.name)) !== t.schemaHash).map(t => toolKey(t.server, t.name)));
 }
 
 const esc = value => String(value).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);

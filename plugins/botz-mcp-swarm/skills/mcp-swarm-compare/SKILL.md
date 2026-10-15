@@ -37,6 +37,8 @@ This skill ships `scripts/runs-dataset.mjs` next to this file. It needs only Nod
 node <this skill's directory>/scripts/runs-dataset.mjs [--last <n>] [--suites <dir>] [--title <text>] [--html <file>] <report.json | runs-dir>...
 ```
 
+Multi-server reports key each tool as `<alias>/<tool>`, so two servers' tools with the same name stay apart. They add `serverRows` (one row per run and server: calls, error rate, p50/p95/p99) and, on each run, `flowP95` (whole-pass latency) and `passesSkipped`. A whole-pass p95 rise of more than 20% between multi-server runs is a `flow` regression, as in `compare`.
+
 It prints JSON with `title` and `servers` (each as `<server name> <version> (<URL or command>)`), `runs` (one row per run: verdict, silent green, mode, concurrency, call count, tool-eval pass rate), `rows` (one row per run and tool: count, error rate, p50/p95/p99, mean, std), `comparability` (reasons the runs may not be comparable), and `regressions` between consecutive runs. Regressions use the CLI's rules: p95 up more than 20%, or any error-rate increase.
 
 The script takes the server name, version, and URL or command from each report's `server` field, which records the live `initialize` result and the endpoint actually used, including a `--url` or `--target-file` override. URLs lose credentials and query strings, and stdio paths are reduced to their basename. Reports from CLI 0.6.1 and earlier have no `server` field. For those, the script reads the run's saved suite (`suites/<suite name>/suite.json` beside the runs directory, or `--suites <dir>`), and `serverSource` is `suite`. The suite shows the captured endpoint, not an override: if such a run used `--url` or `--target-file`, pass `--title` naming the real server and endpoint, and say so in the summary.
@@ -64,6 +66,7 @@ Read `comparability` before drawing conclusions. Different suites, transports, m
 - p95 latency per tool across runs (one line per tool, x axis = run start time), with p50 and p99 available on hover;
 - error rate per tool across runs;
 - tool-eval pass rate per run, when any run has tool evals;
+- for multi-server runs, p95 and error rate per server across runs (from `serverRows`), and flow p95 per run;
 - a runs table (server, URL or command, verdict, silent green, mode, concurrency, calls, report file) and lists of regressions and comparability warnings;
 - tooltips that show the run id and report file name.
 
