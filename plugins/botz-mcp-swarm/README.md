@@ -5,7 +5,8 @@ Agent Skills for the [botz MCP Swarm CLI](https://github.com/zotoio/botz-mcp-swa
 | Skill | Command | Use it to |
 | --- | --- | --- |
 | `mcp-swarm-guided` | `/z-mcp-swarm-guided` | Be walked through testing a server: questions for the target, credentials, test data, tool selection, and load, then capture, review, run, and summary |
-| `mcp-swarm` | `/z-mcp-swarm` | Capture, validate, refresh, and run suites directly |
+| `mcp-swarm` | `/z-mcp-swarm` | Capture, validate, refresh, and run suites directly, including suites that call several servers |
+| `mcp-swarm-flow` | `/z-mcp-swarm-flow` | Turn a task described in words into a suite whose steps call several MCP servers in order and pass values between them |
 | `mcp-swarm-compare` | `/z-mcp-swarm-compare` | Compare two runs or a series, and chart latency, error rate, and tool-eval trends in Cursor's `/canvas` or a self-contained HTML page |
 | `mcp-swarm-descriptions` | `/z-mcp-swarm-descriptions` | Review a server's tool descriptions, examine `optimize` suggestions, and measure a change with tool evals |
 | `mcp-swarm-record-replay` | `/z-mcp-swarm-record-replay` | Record redacted wire traffic and replay it as recorded, at maximum rate, or paced |

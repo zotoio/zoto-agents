@@ -133,3 +133,31 @@ test("does not score tools whose schema changed between runs", () => withRuns([
   assert.match(notes, /b: schema changed since a for search/);
   assert.doesNotMatch(notes, /no tool catalog/);
 }));
+
+test("keeps same-named tools on different servers apart and scores the flow", () => withRuns([
+  report("a", "2026-01-01", [{ ...tool("search", 10), server: "github" }, { ...tool("search", 50), server: "jira" }], {
+    servers: [
+      { alias: "github", endpoint: "https://gh.example/mcp", calls: 100, errorRate: 0, latencyMs: { p50: 5, p95: 10, p99: 12 } },
+      { alias: "jira", endpoint: "https://jira.example/mcp", calls: 100, errorRate: 0, latencyMs: { p50: 25, p95: 50, p99: 60 } },
+    ],
+    flow: { passes: 100, passesFailed: 0, passesSkipped: 0, latencyMs: { p50: 40, p95: 80, p99: 90 } },
+    catalog: [{ server: "github", name: "search", schemaHash: "g1" }, { server: "jira", name: "search", schemaHash: "j1" }],
+  }),
+  report("b", "2026-01-02", [{ ...tool("search", 10), server: "github" }, { ...tool("search", 70), server: "jira" }], {
+    servers: [
+      { alias: "github", endpoint: "https://gh.example/mcp", calls: 100, errorRate: 0, latencyMs: { p50: 5, p95: 10, p99: 12 } },
+      { alias: "jira", endpoint: "https://jira.example/mcp", calls: 100, errorRate: 0, latencyMs: { p50: 35, p95: 70, p99: 80 } },
+    ],
+    flow: { passes: 100, passesFailed: 0, passesSkipped: 3, latencyMs: { p50: 50, p95: 110, p99: 120 } },
+    catalog: [{ server: "github", name: "search", schemaHash: "g2" }, { server: "jira", name: "search", schemaHash: "j1" }],
+  }),
+], dir => {
+  const data = buildDataset(loadReports([dir]));
+  assert.deepEqual([...new Set(data.rows.map(r => r.tool))].sort(), ["github/search", "jira/search"]);
+  assert.deepEqual(data.serverRows.map(r => `${r.run_id}:${r.server}`), ["a:github", "a:jira", "b:github", "b:jira"]);
+  assert.deepEqual(data.runs.map(r => r.flowP95), [80, 110]);
+  // github/search changed schema and is not scored; jira/search and the flow regressed.
+  assert.deepEqual(data.regressions.map(r => `${r.tool}:${r.metric}`), ["jira/search:p95", "flow:p95"]);
+  assert.match(data.comparability.join("\n"), /schema changed since a for github\/search/);
+  assert.match(data.comparability.join("\n"), /3 passes stopped at a missing required variable/);
+}));

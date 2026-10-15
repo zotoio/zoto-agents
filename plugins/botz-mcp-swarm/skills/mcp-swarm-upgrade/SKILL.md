@@ -117,3 +117,5 @@ Every previously saved suite should be listed and valid. Only run a suite agains
 | 0.6.1 | Service state `.swarm-data/` → `.botz/mcp-swarm/data/`, OTLP `.otel/` → `.botz/mcp-swarm/otel/` | `service-state` |
 
 The CLI still reads suites and credentials from the 0.5 locations, so an un-migrated project keeps working, but new files go to the new layout.
+
+Multi-server suites (`suite server add`, `schemaVersion: 2` suite files) need a CLI that has `botz mcp-swarm suite server --help`. Nothing moves on disk: single-server suites stay version 1, and a CLI without multi-server support refuses a version 2 suite with an upgrade message rather than running it against one server. After updating, check one multi-server suite with `suite validate`.

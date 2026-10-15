@@ -25,6 +25,18 @@
         "The assistant separates telemetry delivery failures from test verdicts",
         "The assistant does not re-run load against a target without the user's authorization"
       ]
+    },
+    {
+      "prompt": "/mcp-swarm-diagnose The triage run failed and the Jira and Slack steps show as skipped. Why?",
+      "expected_output": "The assistant explains that skipped steps did not run because a required extractor found nothing, finds the first failing server, and checks the extractor path and variables resolvedRate.",
+      "files": [],
+      "assertions": [
+        "The assistant reads the report's `servers`, `nodeOutcomes`, and `variables` before drawing conclusions",
+        "The assistant explains that skipped steps were not errors on Jira or Slack but the result of a missing required value upstream",
+        "The assistant names the first server, in step order, whose result caused the failure, or the extractor's path",
+        "The assistant does not print credential values"
+      ],
+      "id": 3
     }
   ]
 }
