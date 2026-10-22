@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRUX Compress — Zoto Agents</title>
+  <meta name="description" content="crux-compress — CRUX-Compress packaged as a plugin: compress rules, code, images, and web pages into CRUX notation, with CRUX memories and meditation.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CRUX Compress — Zoto Agents">
+  <meta property="og:description" content="Compress rules, code, images, and web pages into dense CRUX notation agents read directly.">
+  <meta property="og:url" content="https://zotoio.github.io/zoto-agents/crux-compress/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="CRUX Compress — Zoto Agents">
+  <meta name="twitter:description" content="CRUX-Compress for Cursor, Claude Code, and Codex.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
+</head>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <nav class="top-nav" aria-label="Main navigation">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="../spec-system/index.html" class="nav-dropdown-toggle">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../spec-system/index.html">Overview</a></li>
+            <li><a href="../spec-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../spec-system/design.html">Design</a></li>
+            <li><a href="../spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../eval-system/index.html">Overview</a></li>
+            <li><a href="../eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../eval-system/design.html">Design</a></li>
+            <li><a href="../eval-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../cursor-top/index.html" class="nav-dropdown-toggle">Cursor Top</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../cursor-top/index.html">Overview</a></li>
+            <li><a href="../cursor-top/quickstart.html">Quickstart</a></li>
+          </ul>
+        </li>
+        <li><a href="../mcp-swarm/index.html">MCP Swarm</a></li>
+        <li><a href="index.html" class="active">CRUX Compress</a></li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+      <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" aria-label="CRUX Compress sections">
+        <h3 class="sidebar-heading">CRUX Compress</h3>
+        <ul class="sidebar-list">
+          <li><a href="#overview" class="sidebar-link active">Overview</a></li>
+          <li><a href="#install" class="sidebar-link">Install</a></li>
+          <li><a href="#setup" class="sidebar-link">Set up a project</a></li>
+          <li><a href="#included" class="sidebar-link">What's included</a></li>
+          <li><a href="#usage" class="sidebar-link">Usage</a></li>
+          <li><a href="#configuration" class="sidebar-link">Configuration</a></li>
+          <li><a href="#hooks" class="sidebar-link">Hooks &amp; paths</a></li>
+          <li><a href="#upstream" class="sidebar-link">Update from upstream</a></li>
+          <li><a href="#troubleshooting" class="sidebar-link">Troubleshooting &amp; limits</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li>CRUX Compress</li>
+        </ul>
+
+        <h1 id="overview">CRUX Compress</h1>
+        <p>
+          <strong><a href="https://github.com/zotoio/CRUX-Compress" target="_blank" rel="noopener noreferrer">CRUX-Compress</a>, packaged as a plugin for Cursor, Claude Code, and Codex.</strong>
+          CRUX (Context Reduction Using X-encoding) compresses markdown rules, code files, images, and
+          web pages into a dense notation that agents read directly — usually to about a quarter of the
+          original tokens. The plugin also carries CRUX memories and meditation.
+        </p>
+        <p>
+          Plugin version <strong>2.11.8</strong> matches the CRUX-Compress release it packages. The release is
+          carried unchanged except for the path and frontmatter changes listed in
+          <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/crux-compress/scripts/upstream-map.json" target="_blank" rel="noopener noreferrer"><code>scripts/upstream-map.json</code></a>.
+        </p>
+
+        <h2 id="install">Install</h2>
+        <table>
+          <thead><tr><th>Client</th><th>Marketplace file</th><th>Install</th></tr></thead>
+          <tbody>
+            <tr><td>Cursor</td><td><code>.cursor-plugin/marketplace.json</code></td><td>Add <code>zotoio/zoto-agents</code> as a marketplace, then install <strong>crux-compress</strong>.</td></tr>
+            <tr><td>Claude Code</td><td><code>.claude-plugin/marketplace.json</code></td><td><code>/plugin marketplace add zotoio/zoto-agents</code>, then <code>/plugin install crux-compress@zoto-agents</code></td></tr>
+            <tr><td>Codex</td><td><code>.agents/plugins/marketplace.json</code></td><td><code>codex plugin marketplace add zotoio/zoto-agents</code>, then install from <code>/plugins</code></td></tr>
+          </tbody>
+        </table>
+        <p><strong>Requirements:</strong> Python 3 (<code>python3</code> on <code>PATH</code>) for the hooks and the <code>crux-utils</code> and memory-index scripts.</p>
+
+        <h2 id="setup">Set up a project</h2>
+        <p>Run once in each project, and again after updating the plugin:</p>
+        <pre><code>/z-crux-init
+/z-crux-init with memories</code></pre>
+        <p>
+          This copies the CRUX specification to <code>CRUX.md</code>, adds or refreshes the <code>&lt;CRUX&gt;</code>
+          block in <code>AGENTS.md</code>, and writes <code>.crux/crux.json</code>. With memories, it also creates
+          <code>.crux/crux-memories.json</code>, <code>memories/</code>, and <code>.crux/reference-tracking/</code>.
+          Memories stay off until you set <code>enableMemories</code> to <code>"true"</code>.
+        </p>
+        <p>
+          If the project already has CRUX from the upstream installer (files under <code>.cursor/agents/crux*</code>,
+          <code>.cursor/commands/crux*</code>, <code>.cursor/skills/crux*</code>, <code>.cursor/hooks/crux-*.py</code>),
+          <code>/z-crux-init</code> lists them and offers to remove them. Leaving them loads every CRUX agent and rule
+          twice and runs each hook twice.
+        </p>
+
+        <h2 id="included">What's included</h2>
+        <h3>Commands</h3>
+        <table>
+          <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>/crux-compress</code></td><td>Compress markdown rules, code files, images, and web pages into CRUX notation for token efficiency.</td></tr>
+            <tr><td><code>/crux-dream</code></td><td>Post-execution memory extraction and REM sleep rebalancing.</td></tr>
+            <tr><td><code>/crux-recall</code></td><td>Decompress, query, and display CRUX memories in human-readable form.</td></tr>
+            <tr><td><code>/crux-remember</code></td><td>Store ad-hoc memories outside of spec workflows; they join standard consolidation during REM sleep.</td></tr>
+            <tr><td><code>/crux-forget</code></td><td>Remove memories from the CRUX memory corpus.</td></tr>
+            <tr><td><code>/crux-amnesia</code></td><td>Temporarily disable or restore ambient CRUX memory usage for the current chat session.</td></tr>
+            <tr><td><code>/crux-meditate</code></td><td>Run a recursive, memory-informed meditation on a topic: research, adversarial review, and a final report.</td></tr>
+            <tr><td><code>/z-&lt;skill&gt;</code></td><td>One wrapper per skill, e.g. <code>/z-crux-init</code>, <code>/z-crux-utils</code>, <code>/z-crux-skill-memory-index</code>.</td></tr>
+          </tbody>
+        </table>
+        <h3>Agents, skills, rules, hooks</h3>
+        <table>
+          <thead><tr><th>Component</th><th>Contents</th></tr></thead>
+          <tbody>
+            <tr><td>Agents</td><td><code>crux-cursor-rule-manager</code>, <code>crux-cursor-meditation-guide</code>, <code>crux-cursor-memory-manager</code> (deprecated upstream), and the memory agents <code>crux-memory-dream</code>, <code>crux-memory-rem</code>, <code>crux-memory-recall</code>, <code>crux-memory-remember</code>, <code>crux-memory-forget</code>.</td></tr>
+            <tr><td>Skills</td><td><code>crux-init</code> (this plugin), <code>crux-utils</code> (token estimation and checksums), and the <code>crux-skill-memory-*</code> skills (compress, crud, extract, index, rebalance, reference-tracker, and the meditation steps).</td></tr>
+            <tr><td>Rules</td><td><code>_CRUX-RULE.mdc</code>, <code>crux-memories-integration.crux.mdc</code>, and <code>crux-plugin-paths.mdc</code> (this plugin).</td></tr>
+            <tr><td>Hooks</td><td>Session start (pending compressions, memory nudges), after file edit (queue changed <code>crux: true</code> sources, flag the memory index), after agent response (track <code>[memory:*]</code> references).</td></tr>
+          </tbody>
+        </table>
+        <p>The <code>crux-skill-memory-meditation-*</code> skills are steps of <code>/crux-meditate</code>, loaded by the <code>crux-cursor-meditation-guide</code> agent. Their <code>/z-</code> commands exist to inspect or reuse one step.</p>
+
+        <h2 id="usage">Usage</h2>
+        <pre><code>/crux-compress ALL                      # all eligible rules
+/crux-compress @path/to/file.md         # a specific file
+/crux-compress @f1.md @f2.md            # multiple files
+/crux-compress @file.md --minified      # single-line output
+/crux-compress ALL --force              # force recompression
+/crux-compress @file.md --40            # target 40% of original
+/crux-compress @script.sh               # a code file
+/crux-compress @image.png               # an image (semantic visual description)
+/crux-compress https://example.com      # a URL source</code></pre>
+        <p>Usage forms taken from <code>commands/crux-compress.md</code>.</p>
+
+        <h2 id="configuration">Configuration</h2>
+        <table>
+          <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>CRUX.md</code></td><td>The CRUX specification, copied into the project by <code>/z-crux-init</code>.</td></tr>
+            <tr><td><code>AGENTS.md</code></td><td>Gets a <code>&lt;CRUX&gt;</code> block, added or refreshed by <code>/z-crux-init</code>.</td></tr>
+            <tr><td><code>.crux/crux.json</code></td><td>Records the installed CRUX version.</td></tr>
+            <tr><td><code>.crux/crux-memories.json</code></td><td>Memory settings (from <code>templates/crux-memories.default.json</code>). Flags <code>enableMemories</code> and <code>enableMemoryCompression</code> default to <code>"false"</code>; storage defaults to <code>memories/</code> with the index at <code>.crux/memory-index.yml</code>.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="hooks">Hooks &amp; paths</h2>
+        <p>
+          <code>hooks/hooks.json</code> runs each hook as <code>python3 "${CURSOR_PLUGIN_ROOT:-.}"/hooks/&lt;hook&gt;.py</code>,
+          and the hooks read and write <code>.crux/</code> in <code>CURSOR_PROJECT_DIR</code>. The hooks file uses
+          Cursor's format, so <strong>Claude Code does not run these hooks</strong>.
+        </p>
+        <p>
+          Upstream files refer to their own files as <code>.cursor/...</code>; in the plugin those are written
+          <code>&lt;plugin&gt;/...</code>, and <code>rules/crux-plugin-paths.mdc</code> tells agents that
+          <code>&lt;plugin&gt;</code> is the plugin's install directory. Project paths (<code>CRUX.md</code>,
+          <code>AGENTS.md</code>, <code>.crux/</code>, <code>memories/</code>, your <code>.cursor/rules/</code>) are unchanged.
+        </p>
+
+        <h2 id="upstream">Update from upstream</h2>
+        <p>Maintainers rebuild the plugin from a CRUX-Compress GitHub release with <code>scripts/sync-upstream.mjs</code>:</p>
+        <pre><code class="language-bash">node scripts/sync-upstream.mjs --ref v2.11.8
+node scripts/sync-upstream.mjs
+node scripts/sync-upstream.mjs --check --ref v2.11.8</code></pre>
+        <p>
+          The script verifies every file against the release's <code>.crux/crux-release-files.json</code> checksums,
+          applies the rewrites in <code>scripts/upstream-map.json</code> (<code>--raw</code> skips content changes),
+          and writes <code>upstream.json</code>. <code>--check</code> writes nothing and exits non-zero if the plugin
+          differs from the release. Plugin-owned files (<code>crux-plugin-paths.mdc</code>, <code>skills/crux-init/</code>,
+          <code>commands/z-*.md</code>, <code>evals/</code>, manifests, <code>assets/</code>, <code>tests/</code>, README) are never touched by a sync.
+        </p>
+
+        <h2 id="troubleshooting">Troubleshooting &amp; limits</h2>
+        <ul>
+          <li><strong>Hooks don't fire:</strong> make sure <code>python3</code> is on <code>PATH</code>. Hooks run in Cursor only, not Claude Code.</li>
+          <li><strong>Everything loads twice:</strong> remove upstream-installer files under <code>.cursor/</code> — <code>/z-crux-init</code> lists them and offers to remove them.</li>
+          <li><strong>Memories do nothing:</strong> they're off by default; set <code>enableMemories</code> to <code>"true"</code> in <code>.crux/crux-memories.json</code>.</li>
+          <li><strong>Known upstream issue:</strong> <code>AGENTS.crux.md</code> is in the release zip but not its checksum manifest, so the sync can't verify it and warns.</li>
+        </ul>
+
+        <h2 id="see-also">See also</h2>
+        <div class="grid grid-3">
+          <a class="link-card" href="https://github.com/zotoio/zoto-agents/tree/main/plugins/crux-compress" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">Plugin source</span>
+            <span class="link-card-desc">Agents, skills, commands, rules, hooks, and the sync script.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="https://github.com/zotoio/CRUX-Compress" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">CRUX-Compress upstream</span>
+            <span class="link-card-desc">The release this plugin packages.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="../index.html#plugins">
+            <span class="link-card-title">All plugins</span>
+            <span class="link-card-desc">Spec System, Eval System, Cursor Top, and MCP Swarm.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+        </div>
+
+        <p>
+          Source-of-truth: <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/crux-compress/README.md" target="_blank" rel="noopener noreferrer"><code>plugins/crux-compress/README.md</code></a>.
+        </p>
+
+      </div>
+
+      <footer class="site-footer">
+        <p>CRUX Compress v2.11.8 · part of <strong>zoto-agents</strong> · MIT License</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
