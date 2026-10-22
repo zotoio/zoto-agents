@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Swarm — Zoto Agents</title>
+  <meta name="description" content="botz-mcp-swarm — Agent Skills for the botz MCP Swarm CLI: capture suites from live MCP servers, run repeatable assertions and load tests, diagnose failures, and upgrade saved suites.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="MCP Swarm — Zoto Agents">
+  <meta property="og:description" content="Capture, run, and diagnose MCP test suites with the botz MCP Swarm CLI.">
+  <meta property="og:url" content="https://zotoio.github.io/zoto-agents/mcp-swarm/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="MCP Swarm — Zoto Agents">
+  <meta name="twitter:description" content="Test and load-test MCP servers from Cursor, Claude Code, or Codex.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
+</head>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <nav class="top-nav" aria-label="Main navigation">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="../spec-system/index.html" class="nav-dropdown-toggle">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../spec-system/index.html">Overview</a></li>
+            <li><a href="../spec-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../spec-system/design.html">Design</a></li>
+            <li><a href="../spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../eval-system/index.html">Overview</a></li>
+            <li><a href="../eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../eval-system/design.html">Design</a></li>
+            <li><a href="../eval-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../cursor-top/index.html" class="nav-dropdown-toggle">Cursor Top</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../cursor-top/index.html">Overview</a></li>
+            <li><a href="../cursor-top/quickstart.html">Quickstart</a></li>
+          </ul>
+        </li>
+        <li><a href="index.html" class="active">MCP Swarm</a></li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+    <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" aria-label="MCP Swarm sections">
+        <h3 class="sidebar-heading">MCP Swarm</h3>
+        <ul class="sidebar-list">
+          <li><a href="#overview" class="sidebar-link active">Overview</a></li>
+          <li><a href="#install" class="sidebar-link">Install</a></li>
+          <li><a href="#setup" class="sidebar-link">First-run setup</a></li>
+          <li><a href="#skills" class="sidebar-link">Skills &amp; commands</a></li>
+          <li><a href="#usage" class="sidebar-link">Usage</a></li>
+          <li><a href="#configuration" class="sidebar-link">Configuration</a></li>
+          <li><a href="#exit-codes" class="sidebar-link">Exit codes &amp; CI</a></li>
+          <li><a href="#troubleshooting" class="sidebar-link">Troubleshooting</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li>MCP Swarm</li>
+        </ul>
+
+        <h1 id="overview">MCP Swarm</h1>
+        <p>
+          <strong>Agent Skills for the <a href="https://github.com/zotoio/botz-mcp-swarm-cli" target="_blank" rel="noopener noreferrer">botz MCP Swarm CLI</a>.</strong>
+          The <code>botz-mcp-swarm</code> plugin lets your agent capture test suites from live MCP
+          servers, run repeatable assertions and load tests, compare runs, review tool descriptions,
+          record and replay wire traffic, diagnose failures, and upgrade saved suites.
+        </p>
+        <p>
+          The plugin ships skills and slash commands only — no MCP server or executable is bundled.
+          On first use the skills install the <code>botz</code> host (<code>@zotoio/botz-cli</code>)
+          and its <code>mcp-swarm</code> extension if they are missing.
+        </p>
+
+        <h2 id="install">Install</h2>
+        <table>
+          <thead><tr><th>Client</th><th>Marketplace file</th><th>Install</th></tr></thead>
+          <tbody>
+            <tr><td>Cursor</td><td><code>.cursor-plugin/marketplace.json</code></td><td>Add <code>zotoio/zoto-agents</code> as a marketplace, then install <strong>botz-mcp-swarm</strong>.</td></tr>
+            <tr><td>Claude Code</td><td><code>.claude-plugin/marketplace.json</code></td><td><code>/plugin marketplace add zotoio/zoto-agents</code>, then <code>/plugin install botz-mcp-swarm@zoto-agents</code></td></tr>
+            <tr><td>Codex</td><td><code>.agents/plugins/marketplace.json</code></td><td><code>codex plugin marketplace add zotoio/zoto-agents</code>, then install from <code>/plugins</code></td></tr>
+          </tbody>
+        </table>
+        <p>
+          The plugin carries a manifest per client — <code>plugin.json</code>
+          (<a href="https://agent-plugins.org/" target="_blank" rel="noopener noreferrer">Agent Plugins 1.0</a>, with OpenAI metadata under
+          <code>extensions["com.openai"]</code>), <code>.cursor-plugin/plugin.json</code>, and
+          <code>.claude-plugin/plugin.json</code> — all discovering the same <code>skills/</code>.
+        </p>
+        <p><strong>Requirements:</strong> Node.js 22.13+, npm, and shell access. Live capture and runs need network access to the target MCP server.</p>
+
+        <h2 id="setup">First-run setup</h2>
+        <p>Every skill runs commands through the botz host as <code>botz mcp-swarm</code> (never the standalone <code>botz-mcp-swarm</code> or <code>swarm</code> executables). Before the first command in a session a skill:</p>
+        <ol>
+          <li>Runs <code>botz --version</code>. If missing, checks <code>node --version</code> (22.13+) and installs the host with <code>npm install -g @zotoio/botz-cli</code>, telling you it did so. If Node is too old or the global install fails, it stops and reports — it never uses <code>sudo</code> or changes npm configuration.</li>
+          <li>Runs <code>botz plugins info mcp-swarm --json</code>; if <code>installedVersion</code> is <code>null</code>, runs <code>botz plugins install mcp-swarm</code>.</li>
+          <li>Confirms with <code>botz mcp-swarm --version</code> and checks a subcommand's <code>--help</code> before unfamiliar options.</li>
+        </ol>
+        <pre><code class="language-bash">npm install -g @zotoio/botz-cli
+botz plugins install mcp-swarm
+botz mcp-swarm --version</code></pre>
+
+        <h2 id="skills">Skills &amp; commands</h2>
+        <p>
+          All skills set <code>disable-model-invocation: true</code>, so they never trigger on their own.
+          Run them by name (for example <code>/mcp-swarm</code>) or through their <code>/z-&lt;skill&gt;</code>
+          command — a light wrapper that loads the skill with the text after the command as the request.
+        </p>
+        <table>
+          <thead><tr><th>Skill</th><th>Command</th><th>Use it to</th></tr></thead>
+          <tbody>
+            <tr><td><code>mcp-swarm-guided</code></td><td><code>/z-mcp-swarm-guided</code></td><td>Be walked through testing a server: target, credentials, test data, tool selection, and load, then capture, review, run, and summary.</td></tr>
+            <tr><td><code>mcp-swarm</code></td><td><code>/z-mcp-swarm</code></td><td>Capture, validate, refresh, and run suites directly.</td></tr>
+            <tr><td><code>mcp-swarm-compare</code></td><td><code>/z-mcp-swarm-compare</code></td><td>Compare two runs or a series, and chart latency, error rate, and tool-eval trends in Cursor's <code>/canvas</code> or a self-contained HTML page.</td></tr>
+            <tr><td><code>mcp-swarm-descriptions</code></td><td><code>/z-mcp-swarm-descriptions</code></td><td>Review a server's tool descriptions, examine <code>optimize</code> suggestions, and measure a change with tool evals.</td></tr>
+            <tr><td><code>mcp-swarm-record-replay</code></td><td><code>/z-mcp-swarm-record-replay</code></td><td>Record redacted wire traffic and replay it as recorded, at maximum rate, or paced.</td></tr>
+            <tr><td><code>mcp-swarm-diagnose</code></td><td><code>/z-mcp-swarm-diagnose</code></td><td>Explain failed runs, missing credentials, and regressions.</td></tr>
+            <tr><td><code>mcp-swarm-upgrade</code></td><td><code>/z-mcp-swarm-upgrade</code></td><td>Update the CLI and migrate saved suites to the current layout.</td></tr>
+          </tbody>
+        </table>
+        <p><code>mcp-swarm-compare</code> ships <code>scripts/runs-dataset.mjs</code>, which needs only Node.js.</p>
+
+        <h2 id="usage">Usage</h2>
+        <h3>In your agent</h3>
+        <pre><code>/z-mcp-swarm-guided https://api.example.com/mcp
+/z-mcp-swarm capture http://127.0.0.1:3000/mcp as docs-server and run it
+/z-mcp-swarm run docs-server with concurrency 4 for 30 seconds
+/z-mcp-swarm-compare the last two docs-server runs
+/z-mcp-swarm-descriptions docs-server
+/z-mcp-swarm-record-replay record node server.mjs
+/z-mcp-swarm-diagnose why did the docs-server run exit 2?
+/z-mcp-swarm-upgrade preview only</code></pre>
+
+        <h3>CLI commands the skills run</h3>
+        <pre><code class="language-bash">botz mcp-swarm suite capture --url http://127.0.0.1:3000/mcp --name docs-server
+botz mcp-swarm suite show --suite docs-server
+botz mcp-swarm suite validate --suite docs-server --json
+botz mcp-swarm doctor --suite docs-server --json
+botz mcp-swarm suite run --suite docs-server --format json
+
+# Inspect server drift without executing target tools
+botz mcp-swarm suite refresh --suite docs-server --dry-run
+
+# Compare two run reports
+botz mcp-swarm compare --base base.json --head head.json</code></pre>
+        <p>
+          For stdio servers, substitute <code>--command &lt;bin&gt;</code> and repeated <code>--arg &lt;value&gt;</code> for
+          <code>--url</code>. Capture contacts the live server; review captured arguments and enabled steps
+          before running, because tool calls can change target data. Write-like tools are never silently enabled.
+        </p>
+        <p>
+          Every suite, report summary, and chart names the server under test as
+          <code>&lt;server name&gt; &lt;version&gt; (&lt;URL or command&gt;)</code>, taken from the report's
+          <code>server</code> field (or the saved suite for reports from CLI 0.6.1 and earlier).
+        </p>
+
+        <h2 id="configuration">Configuration</h2>
+        <table>
+          <thead><tr><th>Setting</th><th>Details</th></tr></thead>
+          <tbody>
+            <tr><td>Suite location</td><td><code>.botz/mcp-swarm/suites/&lt;name&gt;</code> at the Git root, or <code>~/.botz/mcp-swarm/suites</code> outside a repository.</td></tr>
+            <tr><td><code>suitesDir</code></td><td>Set in <code>.botz/mcp-swarm/settings.json</code> to store suites elsewhere.</td></tr>
+            <tr><td>Credentials</td><td>Pass environment references, e.g. <code>--bearer-env MCP_TOKEN</code> or <code>--header-env X-Api-Key=MCP_KEY</code> (stdio: <code>--env-from K=VAR</code>). Secrets are never printed or written to suite files. A <code>--url</code> / <code>--target-file</code> override replaces saved credentials.</td></tr>
+            <tr><td>Load</td><td><code>--duration-ms</code>, <code>--concurrency</code>, and optionally <code>--ramp-up-ms</code> / <code>--ramp-down-ms</code>.</td></tr>
+            <tr><td>Inference</td><td>Opt-in with <code>--inference</code>; needs model configuration. Ordinary capture and runs need no model credentials.</td></tr>
+            <tr><td>Legacy layout</td><td><code>.botz/suites</code> (pre-0.6) is still read; use <code>mcp-swarm-upgrade</code> to move it rather than editing it.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="exit-codes">Exit codes &amp; CI</h2>
+        <p>Use <code>--format json</code> or <code>--format junit</code> in CI and preserve the process exit status.</p>
+        <table>
+          <thead><tr><th>Exit</th><th>Meaning (saved-suite runs)</th></tr></thead>
+          <tbody>
+            <tr><td><code>0</code></td><td>Pass</td></tr>
+            <tr><td><code>1</code></td><td>Failed verdict (offline diagnostics also use 1 for failed checks)</td></tr>
+            <tr><td><code>2</code></td><td>Configuration / execution error</td></tr>
+            <tr><td><code>130</code> / <code>143</code></td><td>Interrupted</td></tr>
+          </tbody>
+        </table>
+        <p>A report existing, or a run where no enabled tools executed, is never treated as success. Manifest runs have different error semantics — inspect the report.</p>
+
+        <h2 id="troubleshooting">Troubleshooting &amp; limits</h2>
+        <ul>
+          <li><strong><code>botz</code> not found / install fails:</strong> install Node.js 22.13+ and retry; the skills won't use <code>sudo</code> or alter npm config.</li>
+          <li><strong>Failed or erroring run:</strong> start offline with <code>suite validate</code> and <code>doctor</code> (no target or model contact), or run <code>/z-mcp-swarm-diagnose</code>. Use <code>doctor --inference</code> for model configuration issues.</li>
+          <li><strong>Missing credentials:</strong> <code>doctor</code> reports missing environment-variable names without reading their values.</li>
+          <li><strong>Schema drift:</strong> <code>suite refresh --dry-run</code> diffs the live surface without executing tools; review before applying.</li>
+          <li><strong>Existing suite:</strong> capture refuses to overwrite unless <code>--force</code> is supplied.</li>
+          <li><strong>Old directories</strong> (<code>.botz/suites</code>, <code>.runs</code>, <code>.swarm-data</code>, <code>.otel</code>): run <code>/z-mcp-swarm-upgrade</code> (needs mcp-swarm 0.6.1+). Skills installed by CLI 0.6.x can be removed with <code>botz mcp-swarm skills uninstall</code>.</li>
+        </ul>
+
+        <h2 id="see-also">See also</h2>
+        <div class="grid grid-3">
+          <a class="link-card" href="https://github.com/zotoio/zoto-agents/tree/main/plugins/botz-mcp-swarm" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">Plugin source</span>
+            <span class="link-card-desc">Skills, commands, and evals for botz-mcp-swarm.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="https://github.com/zotoio/botz-mcp-swarm-cli" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">MCP Swarm CLI</span>
+            <span class="link-card-desc">The <code>botz mcp-swarm</code> extension the skills drive.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="../index.html#plugins">
+            <span class="link-card-title">All plugins</span>
+            <span class="link-card-desc">Spec System, Eval System, and Cursor Top.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+        </div>
+
+        <p>
+          Source-of-truth: <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/botz-mcp-swarm/README.md" target="_blank" rel="noopener noreferrer"><code>plugins/botz-mcp-swarm/README.md</code></a>.
+        </p>
+
+      </div>
+
+      <footer class="site-footer">
+        <p>MCP Swarm v0.8.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

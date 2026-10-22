@@ -31,6 +31,8 @@ site/
 ├── cursor-top/         Cursor Top documentation subtree
 │   ├── index.html
 │   └── quickstart.html
+├── mcp-swarm/          MCP Swarm (botz-mcp-swarm) documentation
+│   └── index.html
 ├── sitemap.xml
 └── robots.txt
 ```
@@ -67,6 +69,7 @@ After modifying the site, run a local preview and verify:
 3. All four Spec System pages load without errors.
 4. All four Eval System pages load without errors.
 5. Both Cursor Top pages (Overview, Quickstart) load without errors.
+   The MCP Swarm page (`/mcp-swarm/`) loads without errors.
 6. The 404 page (`/nonexistent`) renders the custom layout.
 7. Enable reduced-motion (browser DevTools → Rendering → Emulate CSS media `prefers-reduced-motion: reduce`) — the rain stops.
 8. Browser console is clean: no 404s, no script errors.
