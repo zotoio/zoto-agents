@@ -64,8 +64,8 @@ The site is deployed automatically by `.github/workflows/deploy-pages.yml` on ev
 
 After modifying the site, run a local preview and verify:
 
-1. Landing page (`/`) renders with the falling-glyphs rain canvas and a three-plugin grid.
-2. All three top-nav dropdown menus (Spec System, Eval System, Cursor Top) open and close.
+1. Landing page (`/`) renders with the falling-glyphs rain canvas and a five-plugin grid (spec-system, eval-system, cursor-top, botz-mcp-swarm, crux-compress).
+2. All three top-nav dropdown menus (Spec System, Eval System, Cursor Top) open and close, and the MCP Swarm link works.
 3. All four Spec System pages load without errors.
 4. All four Eval System pages load without errors.
 5. Both Cursor Top pages (Overview, Quickstart) load without errors.

@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zoto Agents — Spec, Eval &amp; Cursor Top plugins for Cursor</title>
-  <meta name="description" content="Three Cursor plugins for shipping engineering work with confidence: zoto-spec-system plans and verifies engineering specs, zoto-eval-system generates and updates static + LLM eval suites in lock-step with code, and zoto-cursor-top monitors every Cursor agent on your machine.">
+  <meta name="description" content="Five agent plugins for shipping engineering work with confidence: zoto-spec-system plans and verifies engineering specs, zoto-eval-system generates and updates static + LLM eval suites in lock-step with code, zoto-cursor-top monitors every Cursor agent on your machine, botz-mcp-swarm tests and load-tests MCP servers, and crux-compress compresses rules and context into CRUX notation.">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Zoto Agents — Spec, Eval &amp; Cursor Top plugins for Cursor">
-  <meta property="og:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Three peer Cursor plugins for structured engineering on top of Cursor — independent, composable, free.">
+  <meta property="og:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Five peer plugins for structured engineering on top of Cursor — independent, composable, free.">
   <meta property="og:url" content="https://zotoio.github.io/zoto-agents/">
   <meta property="og:site_name" content="Zoto Agents">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Zoto Agents — Spec, Eval &amp; Cursor Top plugins for Cursor">
-  <meta name="twitter:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Three peer Cursor plugins for structured engineering on top of Cursor.">
+  <meta name="twitter:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Five peer plugins for structured engineering on top of Cursor.">
 
   <!-- Favicon: shared with the hero / nav logo (retinted to the Matrix palette). -->
   <link rel="icon" type="image/svg+xml" href="images/logo.svg">
@@ -476,12 +476,14 @@
           <h1 class="hero-title">zoto-agents</h1>
           <p class="hero-tagline">Plan and verify your specs. Generate and update your evals. Watch every agent.</p>
           <p class="hero-description">
-            Three Cursor plugins, shipped together as peers. <strong>zoto-spec-system</strong>
+            Five plugins, shipped together as peers. <strong>zoto-spec-system</strong>
             decomposes complex initiatives into reviewable specs and runs them with
             adversarial verification. <strong>zoto-eval-system</strong> stamps static and LLM
             eval suites side-by-side and updates them with your confirmation when
             AI primitives change. <strong>zoto-cursor-top</strong> is a live, htop-style CLI
-            that shows every Cursor agent running on your machine.
+            that shows every Cursor agent running on your machine. <strong>botz-mcp-swarm</strong>
+            captures, runs, and diagnoses MCP test suites, and <strong>crux-compress</strong>
+            compresses rules and context into dense CRUX notation.
           </p>
           <div class="hero-actions">
             <a href="#plugins" class="btn btn-primary">Get Started</a>
@@ -575,6 +577,25 @@
               <div class="plugin-card-chips">
                 <a href="mcp-swarm/index.html#install" class="plugin-card-chip">Install</a>
                 <a href="https://github.com/zotoio/zoto-agents/tree/main/plugins/botz-mcp-swarm" class="plugin-card-chip" target="_blank" rel="noopener noreferrer">Source</a>
+              </div>
+            </article>
+            <!-- crux-compress: version sourced from plugins/crux-compress/.cursor-plugin/plugin.json -->
+            <article class="plugin-card">
+              <div class="plugin-card-header">
+                <h3 class="plugin-card-name">crux-compress</h3>
+                <span class="badge badge-accent">v2.11.8</span>
+              </div>
+              <p class="plugin-card-desc">
+                CRUX-Compress packaged as a plugin: compress rules, code, images, and web
+                pages into dense CRUX notation agents read directly, with CRUX memories
+                and meditation.
+              </p>
+              <div class="plugin-card-cta">
+                <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/crux-compress/README.md" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Read the Docs</a>
+              </div>
+              <div class="plugin-card-chips">
+                <a href="https://github.com/zotoio/CRUX-Compress" class="plugin-card-chip" target="_blank" rel="noopener noreferrer">Upstream</a>
+                <a href="https://github.com/zotoio/zoto-agents/tree/main/plugins/crux-compress" class="plugin-card-chip" target="_blank" rel="noopener noreferrer">Source</a>
               </div>
             </article>
           </div>
