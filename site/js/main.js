@@ -71,6 +71,7 @@
 
         function setOpen(open) {
           inner.classList.toggle("nav-open", open);
+          document.body.classList.toggle("nav-menu-open", open);
           btn.setAttribute("aria-expanded", String(open));
           btn.setAttribute("aria-label", open ? "Close site menu" : "Open site menu");
         }

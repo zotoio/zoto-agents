@@ -1197,15 +1197,37 @@ body.matrix-rain-soft .matrix-rain-canvas {
     top: var(--top-nav-height);
     left: 0;
     right: 0;
-    max-height: calc(100vh - var(--top-nav-height));
+    bottom: 0;
+    height: calc(100vh - var(--top-nav-height));
+    height: calc(100dvh - var(--top-nav-height));
     overflow-y: auto;
+    overscroll-behavior: contain;
     flex-direction: column;
     gap: 0;
     padding: var(--spacing-sm) 0;
-    background-color: var(--color-bg-secondary);
+    /* Solid fill (no theme var indirection) so nothing shows through. */
+    background-color: #141414;
+    background-color: var(--matrix-surface, #141414);
+    opacity: 1;
     border-bottom: 1px solid var(--color-border);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-    z-index: 150;
+    z-index: 1;
+  }
+
+  /* Lift the whole bar above every page stacking context (hero, canvas, sidebar). */
+  .top-nav:has(.nav-open),
+  body.nav-menu-open .top-nav {
+    z-index: 10000;
+    isolation: isolate;
+  }
+
+  /* Lock background scroll while the menu is open. */
+  body.nav-menu-open {
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  body.nav-menu-open .top-nav-links {
+    touch-action: pan-y;
   }
 
   .has-burger.nav-open .top-nav-links {
