@@ -1,6 +1,6 @@
 /**
  * Zoto Agents — Site scripts
- * Sidebar toggle, active page highlighting, smooth scroll,
+ * Sidebar toggle, mobile nav burger, active page highlighting, smooth scroll,
  * Prism.js init, and copy-to-clipboard for code blocks.
  */
 
@@ -44,6 +44,64 @@
           toggle.setAttribute("aria-expanded", "false");
         }
       });
+    }
+  }
+
+
+  /* Mobile top-nav burger: injected so every page shares one implementation. */
+  function initNavBurger() {
+    var navs = document.querySelectorAll(".top-nav-inner");
+    for (var n = 0; n < navs.length; n++) {
+      (function (inner, idx) {
+        var links = inner.querySelector(".top-nav-links");
+        if (!links || inner.querySelector(".nav-burger")) return;
+        if (!links.id) links.id = "top-nav-links" + (idx ? "-" + idx : "");
+
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "nav-burger";
+        btn.setAttribute("aria-controls", links.id);
+        btn.setAttribute("aria-expanded", "false");
+        btn.setAttribute("aria-label", "Open site menu");
+        btn.innerHTML = '<span class="nav-burger-label">Menu</span><span class="nav-burger-icon" aria-hidden="true"></span>';
+        inner.appendChild(btn);
+        inner.classList.add("has-burger");
+
+        var mq = window.matchMedia("(max-width: 768px)");
+
+        function setOpen(open) {
+          inner.classList.toggle("nav-open", open);
+          btn.setAttribute("aria-expanded", String(open));
+          btn.setAttribute("aria-label", open ? "Close site menu" : "Open site menu");
+        }
+
+        btn.addEventListener("click", function () {
+          setOpen(!inner.classList.contains("nav-open"));
+          if (inner.classList.contains("nav-open")) {
+            var first = links.querySelector("a");
+            if (first) first.focus();
+          }
+        });
+
+        links.addEventListener("click", function (e) {
+          if (e.target.closest && e.target.closest("a")) setOpen(false);
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && inner.classList.contains("nav-open")) {
+            setOpen(false);
+            btn.focus();
+          }
+        });
+
+        document.addEventListener("click", function (e) {
+          if (inner.classList.contains("nav-open") && !inner.contains(e.target)) setOpen(false);
+        });
+
+        var onChange = function () { if (!mq.matches) setOpen(false); };
+        if (mq.addEventListener) mq.addEventListener("change", onChange);
+        else if (mq.addListener) mq.addListener(onChange);
+      })(navs[n], n);
     }
   }
 
@@ -144,6 +202,7 @@
 
   function init() {
     initSidebarToggle();
+    initNavBurger();
     highlightActiveSidebarLink();
     initSmoothScroll();
     initPrism();
