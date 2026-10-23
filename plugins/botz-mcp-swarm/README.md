@@ -19,7 +19,7 @@ The skills set `disable-model-invocation: true`: run them by name (for example `
 
 Every suite, report summary, chart, and file the skills produce names the MCP server under test by its name and its URL or command. Run reports record the server and the endpoint actually used in their `server` field. For reports from CLI 0.6.1 and earlier, the skills take the server from the run's saved suite.
 
-`mcp-swarm-compare` ships `scripts/runs-dataset.mjs` and `mcp-swarm-report` ships `scripts/run-dataset.mjs`, which need only Node.js; `pnpm --filter @zoto-agents/botz-mcp-swarm test` runs its tests.
+`mcp-swarm-compare` ships `scripts/runs-dataset.mjs` and `mcp-swarm-report` ships `scripts/run-dataset.mjs`, which need only Node.js; `pnpm --filter @zoto-agents/botz-mcp-swarm test` runs its tests. `mcp-swarm-report` needs CLI >= 0.9.0 for full data (`sampleResults` with real tool responses and `timeSeries` covering the whole run); older reports fall back to recordings, tool evals, and the log tail.
 
 ## Install
 
