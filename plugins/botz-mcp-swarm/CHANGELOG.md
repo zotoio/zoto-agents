@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Plugin icon is now the green botz MCP Swarm mark used on the swarm dashboard and sign-in page: `assets/logo.svg` for the Cursor logo and OpenAI logo/composer icon, with a 256×256 `assets/logo.png`.
 - Add `mcp-swarm-analyse` and `/z-mcp-swarm-analyse`: run `botz mcp-swarm suite analyse`, show every proposal with its id, and accept (`--apply <ids>`) or reject (`--reject <ids>`) only the ids the user names. Never auto-accepts or uses `--apply all`. Server bugs and environment issues are report only. Service suites keep the service's rules: runners analyse, editors and admins accept.
 - Add `mcp-swarm-flow` and `/z-mcp-swarm-flow`: turn a task described in words into a multi-server suite, with server aliases, required extractors between servers, write-like tool confirmation, and the cross-server data flows shown for approval before the first run.
 - `mcp-swarm`, `mcp-swarm-guided`, `mcp-swarm-diagnose`, `mcp-swarm-compare`, and `mcp-swarm-upgrade` cover multi-server suites: `suite server add`, `--target <alias>=<url>`, alias-prefixed credential flags, per-server results, flow latency, and skipped steps. `mcp-swarm-record-replay` and `mcp-swarm-descriptions` say they work one server at a time.
