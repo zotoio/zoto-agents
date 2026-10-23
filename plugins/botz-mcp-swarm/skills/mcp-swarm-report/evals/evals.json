@@ -12,7 +12,8 @@
         "Selecting a tool shows its calls, error rate, p50/p95/p99, and errors by class",
         "The sample request and response are shown as pretty JSON labelled with `sample.source`, marked when truncated",
         "The canvas title names the MCP server by name and URL or command",
-        "The assistant does not contact the target or start a new run"
+        "The assistant does not contact the target or start a new run",
+        "The canvas request includes a calls/s and virtual users over time chart from `timeline`, labelled with `timelineSource`, with the selected tool's calls/s following the tool selector"
       ]
     },
     {
@@ -39,6 +40,18 @@
         "The canvas includes a servers table and the flow's whole-pass p95 and skipped passes",
         "Each server is named by alias, name, and URL or command",
         "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm`"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "/mcp-swarm-report Show TPS and virtual users over time for .botz/mcp-swarm/runs/botz-run-20261020T090000Z.json. It was a 30 minute soak.",
+      "expected_output": "The assistant builds the timeline, explains that measured TPS covers only the log tail on a long run, shows planned VUs as planned when no VU lines were logged, and never presents planned or missing data as measured.",
+      "files": [],
+      "assertions": [
+        "The assistant reads `timelineSource` and states whether TPS and virtual users are measured, planned (from load profile), or not captured",
+        "On a long run the assistant says measured TPS covers only the 2000-line log tail and earlier seconds are unknown, not zero",
+        "Planned virtual users are drawn dashed and labelled planned, not measured",
+        "The assistant does not start a new run to fill gaps"
       ]
     }
   ]

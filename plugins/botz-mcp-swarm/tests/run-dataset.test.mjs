@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
-import { buildRunDataset, clip, NO_SAMPLE, recordingSamples, renderHtml } from "../skills/mcp-swarm-report/scripts/run-dataset.mjs";
+import { buildRunDataset, buildTimeline, clip, NO_SAMPLE, plannedVus, recordingSamples, renderHtml } from "../skills/mcp-swarm-report/scripts/run-dataset.mjs";
 
 const here = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "report");
 const reportFile = join(here, "runs", "botz-run-20261023T020000Z.json");
@@ -80,4 +80,39 @@ test("renders a select with escaped, inert embedded data", () => {
   assert.doesNotMatch(html, /<img/);
   assert.doesNotMatch(html, /<[^>]+\s(src|href)=/);
   assert.match(html, /prefers-color-scheme:dark/);
+});
+
+test("measures TPS, errors, per-tool TPS, and VUs from the run log", () => {
+  const d = buildRunDataset({ file: reportFile, report, suite });
+  assert.deepEqual(d.timelineSource, { tps: "measured (log)", vus: "measured (log)" });
+  assert.equal(d.timeline.length, 60);
+  assert.equal(d.timeline.reduce((s, r) => s + r.tps, 0), 967);
+  assert.equal(d.timeline.reduce((s, r) => s + r.tpsErrors, 0), 19);
+  assert.equal(d.timeline[0].vus, 1);
+  assert.equal(d.timeline[30].vus, 4);
+  assert.equal(d.timeline.reduce((s, r) => s + (r.byTool.get_page ?? 0), 0), 475);
+});
+
+test("plans VUs from the load profile when the log has none, and says so", () => {
+  const lp = { maxConcurrency: 4, rampUpMs: 9000, durationMs: 10000, rampDownMs: 4000 };
+  assert.deepEqual([0, 2999, 3000, 9000, 15000, 21000, 24000].map(ms => plannedVus(ms, lp)), [1, 1, 2, 4, 4, 2, 0]);
+  const steps = report.log.filter(l => l.includes("mcp.step"));
+  const d = buildRunDataset({ file: reportFile, report: { ...report, log: steps }, suite });
+  assert.equal(d.timelineSource.vus, "planned (from load profile)");
+  assert.ok(d.timeline.every(r => r.vusSource === "planned"));
+  assert.ok(d.notes.some(n => /planned from the load profile/.test(n)));
+  assert.match(renderHtml(d), /planned, dashed/);
+});
+
+test("blanks seconds before a truncated log tail and reports not captured", () => {
+  const start = Date.parse("2026-10-23T02:00:00.000Z");
+  const lines = Array.from({ length: 2000 }, (_, i) => `${new Date(start + 30000 + i * 10).toISOString().slice(11, 23)}  mcp.step  node=s1 phase=done result=ok latencyMs=5`);
+  const tl = buildTimeline({ startedAt: "2026-10-23T02:00:00.000Z", durationMs: 60000, log: lines, loadProfile: { maxConcurrency: 2 } }, () => "search_docs");
+  assert.equal(tl.source.tps, "measured (log tail, partial)");
+  assert.equal(tl.timeline[10].tps, null);
+  assert.equal(tl.timeline[30].tps, 100);
+  const none = buildRunDataset({ file: reportFile, report: { ...report, log: undefined, loadProfile: undefined }, suite });
+  assert.deepEqual(none.timeline, []);
+  assert.deepEqual(none.timelineSource, { tps: "not captured", vus: "not captured" });
+  assert.match(renderHtml(none), /Not captured/);
 });
