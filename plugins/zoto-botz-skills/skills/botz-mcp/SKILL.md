@@ -171,8 +171,10 @@ output contract. Paths, commands, and tool names are verbatim.
 
 ## Edge cases
 
-- 401 -> the server needs a bearer token; configure it in MCP client config,
-  never inline in chat.
+- 401 -> in an IDE, ask the user to finish the server's GitHub sign-in
+  (MCP OAuth) and reconnect; headless/CI callers need a `bzt_` API key in
+  the `Authorization: Bearer` header from their secret store. Never ask for
+  or put a key inline in chat.
 - `action: "clarify"` from skill_request -> the brief was too thin; answer
   the returned questions from real task context and re-call with `answers`.
 - `action: "rejected"` from skill_request -> a near-duplicate exists (use the

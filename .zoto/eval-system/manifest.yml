@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-23T05:31:28.758Z
-git_ref: ff184c1a5419c2fc0da5281aa2ea43c95d9a7359
+updated_at: 2026-10-23T06:42:09.752Z
+git_ref: a90897b6bcd6fa384859ef4ec70ee011e8ef3c6f
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -456,7 +456,7 @@ targets:
   - id: skill:botz-mcp
     kind: skill
     path: plugins/zoto-botz-skills/skills/botz-mcp/SKILL.md
-    content_hash: 8bac24f272c6518ed627c3f86478105cc03ea41d0c630c767cd671f392da54dc
+    content_hash: c32d8ed0f2ce9a1b0009d7b0c252fb38e0a385d9318f0b3f60404541905731af
     public_surface:
       frontmatter:
         name: botz-mcp
