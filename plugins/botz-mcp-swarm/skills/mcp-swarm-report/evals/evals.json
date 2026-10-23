@@ -13,7 +13,8 @@
         "The sample request and response are shown as pretty JSON labelled with `sample.source`, marked when truncated",
         "The canvas title names the MCP server by name and URL or command",
         "The assistant does not contact the target or start a new run",
-        "The canvas request includes a calls/s and virtual users over time chart from `timeline`, labelled with `timelineSource`, with the selected tool's calls/s following the tool selector"
+        "The canvas request includes a calls/s and virtual users over time chart from `timeline`, labelled with `timelineSource`, with the selected tool's calls/s following the tool selector",
+        "The over-time chart has a response-time panel (overall p95 and p50, selected tool p95) stacked above the calls/s and virtual users panel on a shared time axis"
       ]
     },
     {
@@ -51,7 +52,8 @@
         "The assistant reads `timelineSource` and states whether TPS and virtual users are measured, planned (from load profile), or not captured",
         "On a long run the assistant says measured TPS covers only the 2000-line log tail and earlier seconds are unknown, not zero",
         "Planned virtual users are drawn dashed and labelled planned, not measured",
-        "The assistant does not start a new run to fill gaps"
+        "The assistant does not start a new run to fill gaps",
+        "Response time over time is reported with the same source label as TPS, and is `not captured` when the log lines carry no latency"
       ]
     }
   ]
