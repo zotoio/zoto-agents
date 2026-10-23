@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+- Sync the `botz-mcp` skill from zotoio/botz-mcp: on 401, IDE clients re-run the GitHub sign-in; only headless/CI callers use a `bzt_` API key as an `Authorization: Bearer` header.
+- Docs: IDE setup is URL + GitHub OAuth only; add a separate Headless / CI section.
+
 ## 0.2.0
 
 - Move the plugin into zoto-agents from `zotoio/botz-mcp` (`marketplace/botz-skills/`, published there as 0.1.0).
