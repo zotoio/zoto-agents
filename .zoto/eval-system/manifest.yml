@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-23T05:09:11.225Z
-git_ref: 4216e5745a90b47d1a0b08adb1de47b4258c23e3
+updated_at: 2026-10-23T05:31:28.758Z
+git_ref: ff184c1a5419c2fc0da5281aa2ea43c95d9a7359
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -59,6 +59,28 @@ targets:
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm/evals/evals.json
+  - id: skill:mcp-swarm-analyse
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/SKILL.md
+    content_hash: d75183dc923215da838595b05be0d5b4ec1033c89946869a24e61e5558a7ed12
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-analyse
+        description: Analyse a failed botz MCP Swarm run with the configured model,
+          review its proposed suite fixes one by one, and accept or reject them
+          by explicit proposal id. Nothing changes without a named id.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, shell access, and
+          botz-mcp-swarm-cli with `suite analyse`. Calling the model needs
+          SWARM_LLM_PROVIDER and its API key; reviewing a saved analysis does
+          not.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/evals/evals.json
   - id: skill:mcp-swarm-compare
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-compare/SKILL.md
@@ -431,6 +453,37 @@ targets:
           sourceChecksum tracking.
     eval_files:
       - plugins/crux-compress/skills/crux-utils/evals/evals.json
+  - id: skill:botz-mcp
+    kind: skill
+    path: plugins/zoto-botz-skills/skills/botz-mcp/SKILL.md
+    content_hash: 8bac24f272c6518ed627c3f86478105cc03ea41d0c630c767cd671f392da54dc
+    public_surface:
+      frontmatter:
+        name: botz-mcp
+        description: Consume skills and subagent definitions from a botz-mcp server with
+          zero-drift version pinning. Use whenever you need a capability you do
+          not already have - dynamically locate a skill (skill_search) or
+          subagent role (agent_search), download it (skill_get, served as a CRUX
+          Compress document; agent_get, an installable definition rendered for
+          your client), apply it, and report the outcome (skill_feedback,
+          optionally with tokens/seconds telemetry). Silently maintains a
+          .botz/skills.lock.json pinning every consumed artifact by permanent
+          guid + version so forks and evolutions never change behaviour
+          unexpectedly; checks skill_updates for enhancements and notifies the
+          user (or auto-accepts when configured). Also covers requesting new
+          primitives (skill_request / agent_request) - creation is
+          CONVERSATIONAL, so send rich colleague-grade briefs and answer the
+          server's clarifying elicitations from real task context - QSC search
+          objectives (quality/speed/cost), and reading CRUX notation
+          (compress.md) in place.
+        id: e15acdf95d3e485a93845e01468bb679
+        version: "3"
+        changelog: ""
+        "- 'v2": document whole-bundle CRUX serving and optional related-skill sourcing'
+        "- 'v3": conversational creation, subagent definitions (agent_* tools), QSC
+          objectives + telemetry'
+    eval_files:
+      - plugins/zoto-botz-skills/skills/botz-mcp/evals/evals.json
   - id: skill:zoto-cursor-top-monitor
     kind: skill
     path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
@@ -646,6 +699,18 @@ targets:
           or to assess and improve a spec before running zoto-execute-spec.
     eval_files:
       - plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
+  - id: command:z-mcp-swarm-analyse
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-analyse.md
+    content_hash: 6b74128e85d4a024f8a546c59fbca7f143b6fd5d34112e3a30058b59cc109cd5
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-analyse
+        description: '"Run the mcp-swarm-analyse skill. Analyse a failed botz MCP Swarm
+          run, review proposed suite fixes, and accept or reject them by
+          explicit proposal id."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-analyse.json
   - id: command:z-mcp-swarm-compare
     kind: command
     path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-compare.md
@@ -1004,6 +1069,18 @@ targets:
           CRUX sizes, and compute checksums for CRUX compression."'
     eval_files:
       - plugins/crux-compress/commands/evals/z-crux-utils.json
+  - id: command:z-botz-mcp
+    kind: command
+    path: plugins/zoto-botz-skills/commands/z-botz-mcp.md
+    content_hash: eae1621470f885805053ab4d91fe1c4be0dd6bacdff0022546fc7c3aa5578ecc
+    public_surface:
+      frontmatter:
+        name: z-botz-mcp
+        description: '"Run the botz-mcp skill. Find, download, pin, and apply a governed
+          skill or subagent from the botz.ai MCP server for the task at hand, or
+          request a new one."'
+    eval_files:
+      - plugins/zoto-botz-skills/commands/evals/z-botz-mcp.json
   - id: command:zoto-cursor-top-init
     kind: command
     path: plugins/zoto-cursor-top/commands/zoto-cursor-top-init.md
@@ -1697,34 +1774,3 @@ targets:
       workspace: .cursor
     eval_files:
       - .cursor/hooks/evals/hooks.json
-  - id: skill:botz-mcp
-    kind: skill
-    path: plugins/zoto-botz-skills/skills/botz-mcp/SKILL.md
-    content_hash: 8bac24f272c6518ed627c3f86478105cc03ea41d0c630c767cd671f392da54dc
-    public_surface:
-      frontmatter:
-        name: botz-mcp
-        description: Consume skills and subagent definitions from a botz-mcp server with
-          zero-drift version pinning. Use whenever you need a capability you do
-          not already have - dynamically locate a skill (skill_search) or
-          subagent role (agent_search), download it (skill_get, served as a CRUX
-          Compress document; agent_get, an installable definition rendered for
-          your client), apply it, and report the outcome (skill_feedback,
-          optionally with tokens/seconds telemetry). Silently maintains a
-          .botz/skills.lock.json pinning every consumed artifact by permanent
-          guid + version so forks and evolutions never change behaviour
-          unexpectedly; checks skill_updates for enhancements and notifies the
-          user (or auto-accepts when configured). Also covers requesting new
-          primitives (skill_request / agent_request) - creation is
-          CONVERSATIONAL, so send rich colleague-grade briefs and answer the
-          server's clarifying elicitations from real task context - QSC search
-          objectives (quality/speed/cost), and reading CRUX notation
-          (compress.md) in place.
-        id: e15acdf95d3e485a93845e01468bb679
-        version: "3"
-        changelog: ""
-        "- 'v2": document whole-bundle CRUX serving and optional related-skill sourcing'
-        "- 'v3": conversational creation, subagent definitions (agent_* tools), QSC
-          objectives + telemetry'
-    eval_files:
-      - plugins/zoto-botz-skills/skills/botz-mcp/evals/evals.json
