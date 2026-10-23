@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zoto Agents — Spec, Eval &amp; Cursor Top plugins for Cursor</title>
-  <meta name="description" content="Five agent plugins for shipping engineering work with confidence: zoto-spec-system plans and verifies engineering specs, zoto-eval-system generates and updates static + LLM eval suites in lock-step with code, zoto-cursor-top monitors every Cursor agent on your machine, botz-mcp-swarm tests and load-tests MCP servers, and crux-compress compresses rules and context into CRUX notation.">
+  <meta name="description" content="Six agent plugins for shipping engineering work with confidence: zoto-spec-system plans and verifies engineering specs, zoto-eval-system generates and updates static + LLM eval suites in lock-step with code, zoto-cursor-top monitors every Cursor agent on your machine, botz-mcp-swarm tests and load-tests MCP servers, and crux-compress compresses rules and context into CRUX notation, and zoto-botz-skills consumes governed skills from the hosted botz.ai MCP server.">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Zoto Agents — Spec, Eval &amp; Cursor Top plugins for Cursor">
-  <meta property="og:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Five peer plugins for structured engineering on top of Cursor — independent, composable, free.">
+  <meta property="og:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Six peer plugins for structured engineering on top of Cursor — independent, composable, free.">
   <meta property="og:url" content="https://zotoio.github.io/zoto-agents/">
   <meta property="og:site_name" content="Zoto Agents">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Zoto Agents — Spec, Eval &amp; Cursor Top plugins for Cursor">
-  <meta name="twitter:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Five peer plugins for structured engineering on top of Cursor.">
+  <meta name="twitter:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Six peer plugins for structured engineering on top of Cursor.">
 
   <!-- Favicon: shared with the hero / nav logo (retinted to the Matrix palette). -->
   <link rel="icon" type="image/svg+xml" href="images/logo.svg">
@@ -459,6 +459,7 @@
         </li>
         <li><a href="mcp-swarm/index.html">MCP Swarm</a></li>
         <li><a href="crux-compress/index.html">CRUX Compress</a></li>
+        <li><a href="botz-skills/index.html">Botz Skills</a></li>
         <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub &rarr;</a></li>
       </ul>
     </div>
@@ -477,14 +478,15 @@
           <h1 class="hero-title">zoto-agents</h1>
           <p class="hero-tagline">Plan and verify your specs. Generate and update your evals. Watch every agent.</p>
           <p class="hero-description">
-            Five plugins, shipped together as peers. <strong>zoto-spec-system</strong>
+            Six plugins, shipped together as peers. <strong>zoto-spec-system</strong>
             decomposes complex initiatives into reviewable specs and runs them with
             adversarial verification. <strong>zoto-eval-system</strong> stamps static and LLM
             eval suites side-by-side and updates them with your confirmation when
             AI primitives change. <strong>zoto-cursor-top</strong> is a live, htop-style CLI
             that shows every Cursor agent running on your machine. <strong>botz-mcp-swarm</strong>
-            captures, runs, and diagnoses MCP test suites, and <strong>crux-compress</strong>
-            compresses rules and context into dense CRUX notation.
+            captures, runs, and diagnoses MCP test suites, <strong>crux-compress</strong>
+            compresses rules and context into dense CRUX notation, and <strong>zoto-botz-skills</strong>
+            pulls governed, version-pinned skills from the hosted botz.ai MCP server.
           </p>
           <div class="hero-actions">
             <a href="#plugins" class="btn btn-primary">Get Started</a>
@@ -597,6 +599,26 @@
               <div class="plugin-card-chips">
                 <a href="https://github.com/zotoio/CRUX-Compress" class="plugin-card-chip" target="_blank" rel="noopener noreferrer">Upstream</a>
                 <a href="https://github.com/zotoio/zoto-agents/tree/main/plugins/crux-compress" class="plugin-card-chip" target="_blank" rel="noopener noreferrer">Source</a>
+              </div>
+            </article>
+            <!-- zoto-botz-skills: version sourced from plugins/zoto-botz-skills/.cursor-plugin/plugin.json -->
+            <article class="plugin-card">
+              <div class="plugin-card-header">
+                <h3 class="plugin-card-name">zoto-botz-skills</h3>
+                <span class="badge badge-accent">v0.2.0</span>
+              </div>
+              <p class="plugin-card-desc">
+                Governed Agent Skills and subagents from the hosted botz.ai MCP server:
+                located semantically, downloaded as CRUX, pinned by guid + version so
+                server-side evolution never drifts your agent. OAuth sign-in, no tokens.
+              </p>
+              <div class="plugin-card-cta">
+                <a href="botz-skills/index.html" class="btn btn-primary">Read the Docs</a>
+              </div>
+              <div class="plugin-card-chips">
+                <a href="botz-skills/index.html#install" class="plugin-card-chip">Install</a>
+                <a href="https://mcp.botz.ai" class="plugin-card-chip" target="_blank" rel="noopener noreferrer">mcp.botz.ai</a>
+                <a href="https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-botz-skills" class="plugin-card-chip" target="_blank" rel="noopener noreferrer">Source</a>
               </div>
             </article>
           </div>
@@ -746,6 +768,11 @@
             <a href="crux-compress/index.html" class="link-card">
               <span class="link-card-title">CRUX Compress</span>
               <span class="link-card-desc">Project setup, commands, memories, hooks, and upstream sync.</span>
+              <span class="link-card-arrow">&rarr;</span>
+            </a>
+            <a href="botz-skills/index.html" class="link-card">
+              <span class="link-card-title">Botz Skills</span>
+              <span class="link-card-desc">Connect to mcp.botz.ai, pinning, updates, and requesting new skills.</span>
               <span class="link-card-arrow">&rarr;</span>
             </a>
             <a href="https://github.com/zotoio/zoto-agents" class="link-card" target="_blank" rel="noopener noreferrer">

@@ -68,6 +68,8 @@ importers:
 
   plugins/crux-compress: {}
 
+  plugins/zoto-botz-skills: {}
+
   plugins/zoto-cursor-top:
     dependencies:
       ink:

@@ -34,6 +34,11 @@
       "name": "crux-compress",
       "source": "plugins/crux-compress",
       "description": "Compress rules, code, images, and web pages into CRUX notation, with CRUX memories and meditation. Packages the CRUX-Compress release; run /z-crux-init once per project. Hooks need Python 3."
+    },
+    {
+      "name": "zoto-botz-skills",
+      "source": "plugins/zoto-botz-skills",
+      "description": "Consume governed Agent Skills and subagents from the hosted botz.ai MCP server (https://mcp.botz.ai/mcp, OAuth sign-in) with zero-drift guid+version pinning and CRUX-compressed downloads."
     }
   ]
 }

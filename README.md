@@ -13,6 +13,7 @@ Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 | [zoto-cursor-top](plugins/zoto-cursor-top/) | Live, `htop`-style CLI that lists every Cursor agent on the current machine — IDE windows, `cursor-agent` CLI sessions, and Cloud Agent VMs — in one expandable parent-to-subagent tree with scrolling log tails. |
 | [botz-mcp-swarm](plugins/botz-mcp-swarm/) | Skills for the botz MCP Swarm CLI: capture, run, and diagnose MCP server test suites, installing the CLI on first use. |
 | [crux-compress](plugins/crux-compress/) | CRUX-Compress as a plugin: compress rules, code, images, and web pages into CRUX notation, with CRUX memories and meditation. |
+| [zoto-botz-skills](plugins/zoto-botz-skills/) | Consume governed skills and subagents from the hosted botz.ai MCP server (`https://mcp.botz.ai/mcp`, OAuth) with zero-drift guid+version pinning and CRUX-compressed downloads. |
 
 ## Install
 
