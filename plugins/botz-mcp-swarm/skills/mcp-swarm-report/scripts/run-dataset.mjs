@@ -6,7 +6,9 @@
  *   node run-dataset.mjs [--suites <dir>] [--recording [<alias>=]<file>]... [--max-sample-bytes <n>]
  *                        [--title <text>] [--html <file>] <report.json>
  *
- * Prints JSON { title, server, servers, run, flow, tools, nodes, toolEvals, scenarios, process, notes }.
+ * Prints JSON { title, server, servers, run, flow, tools, timeline, timelineSource, nodes, toolEvals, scenarios, process, notes }.
+ * timeline[] = { t (s from start), tps, tpsErrors, vus, vusSource, byTool }: TPS measured from report.log step
+ * lines; VUs measured from mcp.load.vus lines, else planned from loadProfile; otherwise "not captured".
  * Each tool carries `sample`: { request, response, source: { request, response }, truncated }.
  *   request:  report.redactedArgs (args actually sent, secrets redacted), else a recording,
  *             else a tool-eval call, else the suite step's args template.
@@ -62,6 +64,84 @@ export function recordingSamples(recording) {
     }
   }
   return out;
+}
+
+
+/** Planned active virtual users at `ms` from start, as the runner schedules them (vuStartOffsetMs, drain). */
+export function plannedVus(ms, lp) {
+  const n = lp?.maxConcurrency ?? 0;
+  if (!n) return null;
+  const up = lp.rampUpMs ?? 0, hold = lp.durationMs ?? 0, down = lp.rampDownMs ?? 0;
+  if (ms < 0) return 0;
+  if (ms <= up) return n <= 1 || up <= 0 ? n : Math.min(n, Math.floor((ms * (n - 1)) / up) + 1);
+  if (ms <= up + hold) return n;
+  if (down > 0 && ms <= up + hold + down) return Math.max(0, Math.round(n * (1 - (ms - up - hold) / down)));
+  return 0;
+}
+
+/** Milliseconds since the run started for a `HH:MM:SS.mmm` log time (UTC, as the CLI writes it). */
+function logMs(time, startMs) {
+  const m = /^(\d{2}):(\d{2}):(\d{2})\.(\d{3})/.exec(time);
+  if (!m) return null;
+  const day = new Date(startMs); day.setUTCHours(0, 0, 0, 0);
+  let at = day.getTime() + ((+m[1] * 60 + +m[2]) * 60 + +m[3]) * 1000 + +m[4];
+  if (at < startMs - 60000) at += 86400000; // crossed midnight
+  return at - startMs;
+}
+
+/**
+ * Per-second throughput and virtual users.
+ * TPS: measured from `mcp.step ... phase=done` lines in report.log (a tail of at most 2000 lines, so long
+ * runs cover only their end). VUs: measured from `mcp.load.vus active=` lines, else planned from loadProfile.
+ */
+export function buildTimeline(report, keyForNode) {
+  const startMs = Date.parse(report.startedAt);
+  const seconds = Math.max(1, Math.ceil((report.durationMs ?? 0) / 1000));
+  const calls = [], vusEvents = [];
+  for (const line of report.log ?? []) {
+    if (/\s{2}mcp\.step\s{2}/.test(line) && /phase=done/.test(line)) {
+      const ms = logMs(line, startMs);
+      if (ms == null) continue;
+      calls.push({ ms, ok: /result=ok\b/.test(line), node: /(?:^|\s)node=(\S+)/.exec(line)?.[1] ?? null });
+    } else if (/\s{2}mcp\.load\.vus\s{2}/.test(line)) {
+      const ms = logMs(line, startMs), active = /active=(\d+)/.exec(line);
+      if (ms != null && active) vusEvents.push({ ms, active: +active[1] });
+    }
+  }
+  const lp = report.loadProfile;
+  const tpsSource = calls.length ? "measured" : null;
+  const vusSource = vusEvents.length ? "measured" : (lp?.maxConcurrency ? "planned" : null);
+  const notes = [];
+  if (!tpsSource && !vusSource) return { timeline: [], source: { tps: "not captured", vus: "not captured" }, coverage: null, notes: ["Throughput and virtual users over time were not captured: the report has no step lines in log[] and no load profile."] };
+  const firstCall = calls.length ? Math.min(...calls.map(c => c.ms)) : null;
+  const coveredFrom = tpsSource ? Math.max(0, Math.floor(firstCall / 1000)) : null;
+  const truncated = tpsSource && (report.log?.length ?? 0) >= 2000 && coveredFrom > 1;
+  if (truncated) notes.push(`log[] is the CLI's 2000-line tail, so measured TPS covers only ${coveredFrom}s onward; earlier seconds are blank, not zero.`);
+  if (!tpsSource) notes.push("TPS not captured: report.log has no step lines.");
+  if (vusSource === "planned") notes.push("Virtual users are planned from the load profile (ramp-up, hold, ramp-down), not measured.");
+  const last = Math.max(seconds, ...calls.map(c => Math.ceil(c.ms / 1000)));
+  const timeline = [];
+  vusEvents.sort((a, b) => a.ms - b.ms);
+  let vi = 0, vusNow = 0;
+  for (let t = 0; t < last; t++) {
+    const inBucket = calls.filter(c => c.ms >= t * 1000 && c.ms < (t + 1) * 1000);
+    let vus = null;
+    if (vusSource === "measured") {
+      let peak = vusNow;
+      while (vi < vusEvents.length && vusEvents[vi].ms < (t + 1) * 1000) { vusNow = vusEvents[vi++].active; peak = Math.max(peak, vusNow); }
+      vus = peak;
+    } else if (vusSource === "planned") vus = plannedVus(t * 1000 + 500, lp);
+    const row = { t, tps: null, tpsErrors: null, vus, vusSource: vusSource ?? "not captured" };
+    if (tpsSource && !(truncated && t < coveredFrom)) {
+      row.tps = inBucket.length;
+      row.tpsErrors = inBucket.filter(c => !c.ok).length;
+      const byTool = {};
+      for (const c of inBucket) { const k = keyForNode(c.node); if (k) byTool[k] = (byTool[k] ?? 0) + 1; }
+      row.byTool = byTool;
+    }
+    timeline.push(row);
+  }
+  return { timeline, source: { tps: tpsSource ? (truncated ? "measured (log tail, partial)" : "measured (log)") : "not captured", vus: vusSource === "measured" ? "measured (log)" : vusSource === "planned" ? "planned (from load profile)" : "not captured" }, coverage: coveredFrom, notes };
 }
 
 export function buildRunDataset({ file, report, suite = null, suitesDir, recordings = [], title, maxSampleBytes = DEFAULT_MAX }) {
@@ -133,7 +213,13 @@ export function buildRunDataset({ file, report, suite = null, suitesDir, recordi
   if (tools.some(t => t.sample.source.response === NO_SAMPLE)) notes.push("Run reports do not record tool results; tools without a recording or tool-eval call have no sample response.");
   if (report.flow?.passesSkipped) notes.push(`${report.flow.passesSkipped} passes stopped at a missing required variable.`);
 
+  const keyForNode = id => { const n = nodes.get(id); const tool = n?.tool ?? (report.redactedArgs ?? []).find(a => a.nodeId === id)?.tool; return tool ? toolKey(multi ? nodeServer(id) : null, tool) : null; };
+  const tl = buildTimeline(report, keyForNode);
+  notes.push(...tl.notes);
+
   return {
+    timeline: tl.timeline,
+    timelineSource: tl.source,
     title: title ?? `MCP Swarm run ${report.id}: ${multi ? servers.map(s => `${s.alias}: ${s.name ?? "unknown"} (${s.endpoint ?? "endpoint unknown"})`).join(", ") : label}`,
     server: { ...server, label },
     servers,
@@ -174,8 +260,31 @@ function barChart(tools) {
   return `<h2>Latency per tool (p50 · p95 · p99)</h2><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Latency per tool">${bars}</svg>`;
 }
 
+
+const TL = { w: 720, h: 240, l: 44, r: 44, t: 10, b: 28 };
+function timelineChart(d) {
+  const tl = d.timeline, src = d.timelineSource;
+  if (!tl.length) return `<h2>Throughput and virtual users</h2><p class="muted">Not captured: TPS ${esc(src.tps)}, virtual users ${esc(src.vus)}.</p>`;
+  const maxT = Math.max(1, tl.length - 1), maxTps = Math.max(1, ...tl.map(r => r.tps ?? 0)), maxVu = Math.max(1, ...tl.map(r => r.vus ?? 0));
+  const x = t => TL.l + (t / maxT) * (TL.w - TL.l - TL.r), yL = v => TL.h - TL.b - (v / maxTps) * (TL.h - TL.t - TL.b), yR = v => TL.h - TL.b - (v / maxVu) * (TL.h - TL.t - TL.b);
+  const line = (rows, f, y) => rows.filter(r => f(r) != null).map(r => `${x(r.t).toFixed(1)},${y(f(r)).toFixed(1)}`).join(" ");
+  const ticks = [0, 0.5, 1].map(f => `<line class="grid" x1="${TL.l}" x2="${TL.w - TL.r}" y1="${yL(maxTps * f)}" y2="${yL(maxTps * f)}"/><text x="${TL.l - 4}" y="${yL(maxTps * f) + 4}" text-anchor="end">${Math.round(maxTps * f)}</text><text x="${TL.w - TL.r + 4}" y="${yR(maxVu * f) + 4}">${Math.round(maxVu * f)}</text>`).join("");
+  const xt = [0, 0.25, 0.5, 0.75, 1].map(f => `<text x="${x(maxT * f)}" y="${TL.h - 8}" text-anchor="middle">${Math.round(maxT * f)}s</text>`).join("");
+  const planned = tl[0].vusSource === "planned";
+  return `<h2>Throughput and virtual users</h2>
+<p class="muted">TPS: ${esc(src.tps)} · virtual users: ${esc(src.vus)}</p>
+<svg viewBox="0 0 ${TL.w} ${TL.h}" role="img" aria-label="Calls per second and virtual users over time" data-maxt="${maxT}" data-maxtps="${maxTps}">${ticks}${xt}
+<text x="${TL.l}" y="${TL.t + 2}" text-anchor="start" dy="-0">calls/s</text><text x="${TL.w - TL.r}" y="${TL.t + 2}" text-anchor="end">VUs</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="2" points="${line(tl, r => r.tps, yL)}"><title>Total calls/s</title></polyline>
+<polyline fill="none" stroke="#dc2626" stroke-width="1.5" points="${line(tl, r => r.tpsErrors, yL)}"><title>Errors/s</title></polyline>
+<polyline fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="${planned ? "6 4" : "0"}" points="${line(tl, r => r.vus, yR)}"><title>Virtual users (${esc(src.vus)})</title></polyline>
+<polyline id="tl-tool" fill="none" stroke="#ea580c" stroke-width="1.5" points=""><title>Selected tool calls/s</title></polyline>
+</svg>
+<div class="legend"><span><i style="background:#2563eb"></i>calls/s</span><span><i style="background:#dc2626"></i>errors/s</span><span><i style="background:#16a34a"></i>virtual users${planned ? " (planned, dashed)" : ""}</span><span><i style="background:#ea580c"></i><span id="tl-tool-label">selected tool</span> calls/s</span></div>`;
+}
+
 export function renderHtml(d) {
-  const data = JSON.stringify(d.tools).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+  const data = JSON.stringify({ tools: d.tools, timeline: d.timeline.map(r => ({ t: r.t, byTool: r.byTool ?? null })) }).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
   const r = d.run;
   const stat = (k, v, cls = "") => `<div class="stat"><div class="muted">${esc(k)}</div><div class="v ${cls}">${esc(v)}</div></div>`;
   const ok = r.verdict === "pass" && !r.silentGreen;
@@ -193,13 +302,15 @@ table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}td,th{bo
 .ok{color:var(--ok)}.bad{color:var(--bad)}.muted{color:var(--muted)}h2{font-size:16px;margin-top:28px}
 pre{background:var(--code);padding:10px;border-radius:6px;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-all}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media (max-width:700px){.pair{grid-template-columns:1fr}}
-select{font:inherit;padding:4px 8px;min-width:260px}
+select{font:inherit;padding:4px 8px;min-width:260px}.grid{stroke:var(--grid)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;color:var(--muted)}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
 </style></head><body><h1>${esc(d.title)}</h1>
 <p class="muted">Run <code>${esc(r.id)}</code> · suite ${esc(r.suite)} · ${esc(r.startedAt)} · report <code>${esc(r.file)}</code></p>
 <div class="stats">${stat("Verdict", `${r.verdict}${r.silentGreen ? " (silent green)" : ""}`, ok ? "ok" : "bad")}${stat("Calls", r.callCount ?? "–")}${stat("Error rate", pct(r.errorRate))}${stat("Concurrency", r.concurrencyUsed ?? "–")}${stat("Mode", r.mode)}${stat("Duration", ms(r.durationMs))}${d.flow ? stat("Flow p95", ms(d.flow.p95)) : ""}</div>
 ${r.failReasons.length ? `<h2>Fail reasons</h2><ul>${r.failReasons.map(f => `<li class="bad">${esc(f)}</li>`).join("")}</ul>` : ""}
 ${serverTable}
 ${barChart(d.tools)}
+${timelineChart(d)}
 <h2>Tool</h2>
 <label for="tool">Tool </label><select id="tool">${options}</select>
 <div id="detail">
@@ -217,7 +328,10 @@ ${evals}
 <h2>Notes</h2>${notes}
 <script type="application/json" id="tools-data">${data}</script>
 <script>
-(function(){var tools=JSON.parse(document.getElementById("tools-data").textContent),sel=document.getElementById("tool");
+(function(){var D=JSON.parse(document.getElementById("tools-data").textContent),tools=D.tools,tl=D.timeline,sel=document.getElementById("tool");
+var svg=document.querySelector("svg[data-maxt]");
+function drawTool(key){var pl=document.getElementById("tl-tool");if(!pl||!svg)return;var mt=+svg.dataset.maxt,mx=+svg.dataset.maxtps,W=720,H=240,L=44,R=44,T=10,B=28;
+var pts=tl.filter(function(r){return r.byTool}).map(function(r){var v=r.byTool[key]||0;return (L+r.t/mt*(W-L-R)).toFixed(1)+","+(H-B-v/mx*(H-T-B)).toFixed(1)});pl.setAttribute("points",pts.join(" "));document.getElementById("tl-tool-label").textContent=key;}
 function t(id,v){document.getElementById(id).textContent=v}
 function ms(v){return v==null?"–":Number(v).toFixed(1)+" ms"}function pc(v){return v==null?"–":(v*100).toFixed(1)+"%"}
 function show(i){var x=tools[i];if(!x)return;t("d-count",x.count);t("d-err",pc(x.errorRate));t("d-p50",ms(x.latencyMs.p50));t("d-p95",ms(x.latencyMs.p95));t("d-p99",ms(x.latencyMs.p99));
@@ -225,7 +339,7 @@ t("d-mean",x.latencyMs.mean==null?"–":ms(x.latencyMs.mean)+(x.latencyMs.std==n
 t("d-classes",x.errors.length?x.errors.map(function(e){return e.class+": "+e.count}).join(", "):"none");t("d-last",x.lastError||"–");
 t("d-reqsrc","Source: "+x.sample.source.request);t("d-req",x.sample.request==null?"(no sample captured)":x.sample.request);
 t("d-ressrc","Source: "+x.sample.source.response+(x.sample.truncated?" · truncated":""));t("d-res",x.sample.response==null?"(no sample captured)":x.sample.response);}
-sel.addEventListener("change",function(){show(sel.value)});show(0);})();
+sel.addEventListener("change",function(){show(sel.value);drawTool(tools[sel.value].key)});show(0);if(tools[0])drawTool(tools[0].key);})();
 </script>
 </body></html>`;
 }

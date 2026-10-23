@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-23T02:49:22.412Z
-git_ref: 4216e5745a90b47d1a0b08adb1de47b4258c23e3
+updated_at: 2026-10-23T02:56:11.865Z
+git_ref: aa8eabc9be1ed428f493baea880b3ec94522354b
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -198,7 +198,7 @@ targets:
   - id: skill:mcp-swarm-report
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-report/SKILL.md
-    content_hash: ba0ece237c0c882ad4934cfbc0bc220c56123a4fe7c877868bc75bb9afe41e55
+    content_hash: 62b4e444282c69388e122a1a2892bcbf70aa42fbdc9e34dff6cf95b15c0ebd33
     public_surface:
       frontmatter:
         name: mcp-swarm-report
