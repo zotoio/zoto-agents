@@ -161,15 +161,28 @@
         <h2 id="self-hosted">Self-hosted servers</h2>
         <p>
           To use your own <a href="https://github.com/zotoio/botz-mcp" target="_blank" rel="noopener noreferrer">botz-mcp</a> deployment, override the
-          <code>botz</code> entry's <code>url</code> in your project or user MCP config. If your server uses bearer tokens instead of OAuth,
-          add the header there; never commit a token.
+          <code>botz</code> entry's <code>url</code> in your project or user MCP config. IDE clients still sign in with GitHub OAuth;
+          no token or header is needed.
         </p>
+
+        <h2 id="headless">Headless &amp; CI</h2>
+        <p>
+          API keys are only for non-interactive callers (CI jobs, scripts, servers) that can't open a browser sign-in. An admin mints a
+          <code>bzt_</code> key in the botz management console at <code>/admin</code> &rarr; <strong>IAM &middot; API tokens</strong>; store it as a CI
+          secret and send it as an <code>Authorization: Bearer</code> header:
+        </p>
+        <pre><code># placeholder only - read the key from your CI secret store
+curl -sS https://mcp.botz.ai/mcp \
+  -H "Authorization: Bearer $BOTZ_API_KEY" \
+  -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'</code></pre>
+        <p>See <a href="https://mcp.botz.ai/docs/install#headless" target="_blank" rel="noopener noreferrer">Headless &amp; CI</a> in the botz-mcp docs.</p>
 
         <h2 id="troubleshooting">Troubleshooting</h2>
         <ul>
           <li><strong>No <code>skill_*</code> tools:</strong> check the <code>botz</code> server is enabled and finish the browser sign-in.</li>
           <li><strong>Sign-in loops:</strong> remove the saved <code>botz</code> credentials in your client and reconnect.</li>
-          <li><strong>Upgrading from 0.1.0:</strong> the old <code>botz-mcp</code> entry used <code>BOTZ_MCP_URL</code> and <code>BOTZ_TOKEN</code>; you can remove both variables.</li>
+          <li><strong>Upgrading from 0.1.0:</strong> the old <code>botz-mcp</code> entry used <code>BOTZ_MCP_URL</code> and <code>BOTZ_TOKEN</code>; remove both. IDE clients need only the URL and GitHub sign-in.</li>
         </ul>
 
         <h2 id="see-also">See also</h2>

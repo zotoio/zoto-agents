@@ -36,6 +36,21 @@ the first time it connects. There are no tokens or environment variables to
 set, and none are stored in the plugin. To use a self-hosted botz-mcp server,
 override the `botz` entry's `url` in your own MCP config.
 
+## Headless / CI
+
+IDE clients never need a token. API keys are only for non-interactive callers
+(CI jobs, scripts, servers): mint a `bzt_` key in the botz management console
+at `/admin` → **IAM · API tokens**, store it as a CI secret, and send it as an
+`Authorization: Bearer` header:
+
+```bash
+# placeholder only - read the key from your CI secret store
+curl -sS https://mcp.botz.ai/mcp \
+  -H "Authorization: Bearer $BOTZ_API_KEY" \
+  -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
 ## Contents
 
 | Path | What |
