@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-23T02:44:17.913Z
-git_ref: 469a11d95d06d6780893b72b5f66c70d264f7368
+updated_at: 2026-10-23T05:22:11.516Z
+git_ref: 8a3944656bc22d4811766b5a1aa4f607dbc66211
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -41,7 +41,7 @@ targets:
   - id: skill:mcp-swarm
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm/SKILL.md
-    content_hash: c764f2219078af3c427cf902b83bd08a6dbc7614e195a5d6957f1c8fa477c688
+    content_hash: eae0a103ece8d349ef945a9ffb59e013bfe00d28abbdc1c6ff5057ad8faf246a
     public_surface:
       frontmatter:
         name: mcp-swarm
@@ -108,7 +108,7 @@ targets:
   - id: skill:mcp-swarm-diagnose
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/SKILL.md
-    content_hash: 95017154bd88c16080fc99827c397ed473a848af703fde3f5f783a9368e0d7f5
+    content_hash: aca44e0258509ddab75ed8368d747467a8ffcc2987d805c384eee407b5321db8
     public_surface:
       frontmatter:
         name: mcp-swarm-diagnose
@@ -154,7 +154,7 @@ targets:
   - id: skill:mcp-swarm-guided
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-guided/SKILL.md
-    content_hash: 736e68dfc268d1305e1bbacaf7d7a14c1bf55097041ff9ac62c86e60a3d6fbeb
+    content_hash: 8f807f95ad2b8d6857a1fc5b084f4c560feae0837452e4c6f68d6b7ad4a49b39
     public_surface:
       frontmatter:
         name: mcp-swarm-guided
@@ -195,6 +195,29 @@ targets:
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/evals/evals.json
+  - id: skill:mcp-swarm-report
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-report/SKILL.md
+    content_hash: 5c4c68024f950cedfdde1e001ddca7f2e5a250384aa973a5b8aed7e37856a596
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-report
+        description: Visualise one botz MCP Swarm run in Cursor's /canvas or a
+          self-contained HTML page, with a tool selector showing each tool's
+          latency, errors, and a sample request and response. Use after a run,
+          or to explain a run report.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Reads
+          an existing run report, its saved suite, and optional record-replay
+          recordings; does not contact the target.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-report/evals/evals.json
   - id: skill:mcp-swarm-upgrade
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/SKILL.md
@@ -725,6 +748,19 @@ targets:
           create fixtures."'
     eval_files:
       - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-record-replay.json
+  - id: command:z-mcp-swarm-report
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-report.md
+    content_hash: f5fdf4dcfb927e23923580bda2fa3fd7936054cb88cf7e0e78cee5cb622307a6
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-report
+        description: "\"Run the mcp-swarm-report skill. Visualise one botz MCP Swarm run
+          in Cursor's /canvas or a self-contained HTML page, with a tool
+          selector showing each tool's latency, errors, and a sample request and
+          response. Use after a run, or to explain a run report.\""
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-report.json
   - id: command:z-mcp-swarm-upgrade
     kind: command
     path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-upgrade.md

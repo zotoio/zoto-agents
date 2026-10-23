@@ -7,6 +7,7 @@ Agent Skills for the [botz MCP Swarm CLI](https://github.com/zotoio/botz-mcp-swa
 | `mcp-swarm-guided` | `/z-mcp-swarm-guided` | Be walked through testing a server: questions for the target, credentials, test data, tool selection, and load, then capture, review, run, and summary |
 | `mcp-swarm` | `/z-mcp-swarm` | Capture, validate, refresh, and run suites directly, including suites that call several servers |
 | `mcp-swarm-flow` | `/z-mcp-swarm-flow` | Turn a task described in words into a suite whose steps call several MCP servers in order and pass values between them |
+| `mcp-swarm-report` | `/z-mcp-swarm-report` | Visualise one run in Cursor's `/canvas` or a self-contained HTML page, with a tool selector showing each tool's latency, errors, and a sample request and response |
 | `mcp-swarm-compare` | `/z-mcp-swarm-compare` | Compare two runs or a series, and chart latency, error rate, and tool-eval trends in Cursor's `/canvas` or a self-contained HTML page |
 | `mcp-swarm-descriptions` | `/z-mcp-swarm-descriptions` | Review a server's tool descriptions, examine `optimize` suggestions, and measure a change with tool evals |
 | `mcp-swarm-record-replay` | `/z-mcp-swarm-record-replay` | Record redacted wire traffic and replay it as recorded, at maximum rate, or paced |
@@ -17,7 +18,7 @@ The skills set `disable-model-invocation: true`: run them by name (for example `
 
 Every suite, report summary, chart, and file the skills produce names the MCP server under test by its name and its URL or command. Run reports record the server and the endpoint actually used in their `server` field. For reports from CLI 0.6.1 and earlier, the skills take the server from the run's saved suite.
 
-`mcp-swarm-compare` ships `scripts/runs-dataset.mjs`, which needs only Node.js; `pnpm --filter @zoto-agents/botz-mcp-swarm test` runs its tests.
+`mcp-swarm-compare` ships `scripts/runs-dataset.mjs` and `mcp-swarm-report` ships `scripts/run-dataset.mjs`, which need only Node.js; `pnpm --filter @zoto-agents/botz-mcp-swarm test` runs its tests. `mcp-swarm-report` needs CLI >= 0.9.0 for full data (`sampleResults` with real tool responses and `timeSeries` covering the whole run); older reports fall back to recordings, tool evals, and the log tail.
 
 ## Install
 
