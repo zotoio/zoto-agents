@@ -34,6 +34,7 @@ site/
 ├── mcp-swarm/          MCP Swarm (botz-mcp-swarm) documentation
 │   └── index.html
 ├── crux-compress/      CRUX Compress documentation
+├── botz-skills/        Botz Skills documentation
 │   └── index.html
 ├── sitemap.xml
 └── robots.txt
@@ -66,13 +67,14 @@ The site is deployed automatically by `.github/workflows/deploy-pages.yml` on ev
 
 After modifying the site, run a local preview and verify:
 
-1. Landing page (`/`) renders with the falling-glyphs rain canvas and a five-plugin grid (spec-system, eval-system, cursor-top, botz-mcp-swarm, crux-compress).
-2. All three top-nav dropdown menus (Spec System, Eval System, Cursor Top) open and close, and the MCP Swarm and CRUX Compress links work.
+1. Landing page (`/`) renders with the falling-glyphs rain canvas and a six-plugin grid (spec-system, eval-system, cursor-top, botz-mcp-swarm, crux-compress, zoto-botz-skills).
+2. All three top-nav dropdown menus (Spec System, Eval System, Cursor Top) open and close, and the MCP Swarm, CRUX Compress, and Botz Skills links work.
 3. All four Spec System pages load without errors.
 4. All four Eval System pages load without errors.
 5. Both Cursor Top pages (Overview, Quickstart) load without errors.
    The MCP Swarm page (`/mcp-swarm/`) loads without errors.
    The CRUX Compress page (`/crux-compress/`) loads without errors.
+   The Botz Skills page (`/botz-skills/`) loads without errors.
 6. The 404 page (`/nonexistent`) renders the custom layout.
 7. Enable reduced-motion (browser DevTools → Rendering → Emulate CSS media `prefers-reduced-motion: reduce`) — the rain stops.
 8. Browser console is clean: no 404s, no script errors.

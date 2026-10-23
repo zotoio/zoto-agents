@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Botz Skills — Zoto Agents</title>
+  <meta name="description" content="zoto-botz-skills — consume governed Agent Skills and subagents from the hosted botz.ai MCP server with zero-drift version pinning.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Botz Skills — Zoto Agents">
+  <meta property="og:description" content="Governed, version-pinned skills from mcp.botz.ai for your agent.">
+  <meta property="og:url" content="https://zotoio.github.io/zoto-agents/botz-skills/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Botz Skills — Zoto Agents">
+  <meta name="twitter:description" content="botz.ai skills for Cursor, Claude Code, and Codex.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
+</head>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <nav class="top-nav" aria-label="Main navigation">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="../spec-system/index.html" class="nav-dropdown-toggle">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../spec-system/index.html">Overview</a></li>
+            <li><a href="../spec-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../spec-system/design.html">Design</a></li>
+            <li><a href="../spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../eval-system/index.html">Overview</a></li>
+            <li><a href="../eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../eval-system/design.html">Design</a></li>
+            <li><a href="../eval-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../cursor-top/index.html" class="nav-dropdown-toggle">Cursor Top</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../cursor-top/index.html">Overview</a></li>
+            <li><a href="../cursor-top/quickstart.html">Quickstart</a></li>
+          </ul>
+        </li>
+        <li><a href="../mcp-swarm/index.html">MCP Swarm</a></li>
+        <li><a href="../crux-compress/index.html">CRUX Compress</a></li>
+        <li><a href="index.html" class="active">Botz Skills</a></li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+      <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" aria-label="Botz Skills sections">
+        <h3 class="sidebar-heading">Botz Skills</h3>
+        <ul class="sidebar-list">
+          <li><a href="#overview" class="sidebar-link active">Overview</a></li>
+          <li><a href="#install" class="sidebar-link">Install</a></li>
+          <li><a href="#connect" class="sidebar-link">Connect &amp; sign in</a></li>
+          <li><a href="#included" class="sidebar-link">What's included</a></li>
+          <li><a href="#usage" class="sidebar-link">Usage</a></li>
+          <li><a href="#pinning" class="sidebar-link">Pinning &amp; updates</a></li>
+          <li><a href="#self-hosted" class="sidebar-link">Self-hosted servers</a></li>
+          <li><a href="#troubleshooting" class="sidebar-link">Troubleshooting</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li>Botz Skills</li>
+        </ul>
+
+        <h1 id="overview">Botz Skills</h1>
+        <p>
+          <strong>Governed Agent Skills and subagents from <a href="https://mcp.botz.ai" target="_blank" rel="noopener noreferrer">botz.ai</a>, for Cursor, Claude Code, and Codex.</strong>
+          The plugin connects your agent to the hosted botz.ai MCP server and ships the <code>botz-mcp</code>
+          client skill. Your agent finds a skill for the task, downloads it as a compact
+          <a href="../crux-compress/index.html">CRUX</a> document, pins it by permanent guid and version, and applies it.
+          You just ask for the work.
+        </p>
+        <p>
+          Plugin version <strong>0.2.0</strong>. The skill is authored in
+          <a href="https://github.com/zotoio/botz-mcp" target="_blank" rel="noopener noreferrer">zotoio/botz-mcp</a>; this plugin carries a copy.
+        </p>
+
+        <h2 id="install">Install</h2>
+        <table>
+          <thead><tr><th>Client</th><th>Marketplace file</th><th>Install</th></tr></thead>
+          <tbody>
+            <tr><td>Cursor</td><td><code>.cursor-plugin/marketplace.json</code></td><td>Add <code>zotoio/zoto-agents</code> as a marketplace, then install <strong>zoto-botz-skills</strong>.</td></tr>
+            <tr><td>Claude Code</td><td><code>.claude-plugin/marketplace.json</code></td><td><code>/plugin marketplace add zotoio/zoto-agents</code>, then <code>/plugin install zoto-botz-skills@zoto-agents</code></td></tr>
+            <tr><td>Codex</td><td><code>.agents/plugins/marketplace.json</code></td><td><code>codex plugin marketplace add zotoio/zoto-agents</code>, then install from <code>/plugins</code></td></tr>
+          </tbody>
+        </table>
+        <p><strong>Requirements:</strong> an MCP client that supports streamable HTTP and MCP OAuth. Nothing to install locally.</p>
+
+        <h2 id="connect">Connect &amp; sign in</h2>
+        <p>The plugin adds one MCP server, <code>botz</code>:</p>
+        <pre><code class="language-json">{
+  "mcpServers": {
+    "botz": { "url": "https://mcp.botz.ai/mcp" }
+  }
+}</code></pre>
+        <p>
+          The first time your client connects, it opens a browser window to sign in with OAuth. There are no
+          tokens or environment variables to set, and the plugin stores no credentials. Claude Code reads the same
+          entry from <code>.mcp.json</code> (with <code>"type": "http"</code>).
+        </p>
+
+        <h2 id="included">What's included</h2>
+        <table>
+          <thead><tr><th>Component</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>skills/botz-mcp</code></td><td>Client skill: search, download, pin, apply, and give feedback on skills and subagents.</td></tr>
+            <tr><td><code>/z-botz-mcp</code></td><td>Shortcut command that runs the skill with your request.</td></tr>
+            <tr><td><code>mcp.json</code>, <code>.mcp.json</code></td><td>The <code>botz</code> server entry for Cursor and Claude Code.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="usage">Usage</h2>
+        <p>Ask for work as usual. When the agent needs a capability it doesn't have, the skill:</p>
+        <ol>
+          <li>searches with <code>skill_search</code> (or <code>agent_search</code> for subagent roles),</li>
+          <li>downloads the match with <code>skill_get</code> / <code>agent_get</code> as a CRUX document,</li>
+          <li>records it in <code>.botz/skills.lock.json</code>, applies it, and reports back with <code>skill_feedback</code>.</li>
+        </ol>
+        <p>If nothing fits, it sends a brief with <code>skill_request</code>. Creation is conversational, so the server may ask follow-up questions.</p>
+        <pre><code class="language-bash">/z-botz-mcp find a skill for writing release notes
+/z-botz-mcp check for skill updates</code></pre>
+
+        <h2 id="pinning">Pinning &amp; updates</h2>
+        <ul>
+          <li><strong>Zero drift:</strong> every skill you use is pinned by guid and version. Forks, combinations, and evolutions on the server never change what a pinned project receives.</li>
+          <li><strong>Updates:</strong> once per session the skill calls <code>skill_updates</code> and tells you about enhancements, with the changelog.</li>
+          <li><strong>Auto-accept:</strong> say "auto accept skill updates" to set <code>"evolution": "auto"</code> in the lockfile.</li>
+        </ul>
+
+        <h2 id="self-hosted">Self-hosted servers</h2>
+        <p>
+          To use your own <a href="https://github.com/zotoio/botz-mcp" target="_blank" rel="noopener noreferrer">botz-mcp</a> deployment, override the
+          <code>botz</code> entry's <code>url</code> in your project or user MCP config. If your server uses bearer tokens instead of OAuth,
+          add the header there; never commit a token.
+        </p>
+
+        <h2 id="troubleshooting">Troubleshooting</h2>
+        <ul>
+          <li><strong>No <code>skill_*</code> tools:</strong> check the <code>botz</code> server is enabled and finish the browser sign-in.</li>
+          <li><strong>Sign-in loops:</strong> remove the saved <code>botz</code> credentials in your client and reconnect.</li>
+          <li><strong>Upgrading from 0.1.0:</strong> the old <code>botz-mcp</code> entry used <code>BOTZ_MCP_URL</code> and <code>BOTZ_TOKEN</code>; you can remove both variables.</li>
+        </ul>
+
+        <h2 id="see-also">See also</h2>
+        <div class="grid grid-3">
+          <a class="link-card" href="https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-botz-skills" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">Plugin source</span>
+            <span class="link-card-desc">Skill, command, MCP config, and manifests.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="https://github.com/zotoio/botz-mcp" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">botz-mcp server</span>
+            <span class="link-card-desc">The server behind mcp.botz.ai, and the canonical skill.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="../index.html#plugins">
+            <span class="link-card-title">All plugins</span>
+            <span class="link-card-desc">Spec System, Eval System, Cursor Top, MCP Swarm, and CRUX Compress.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+        </div>
+
+        <p>
+          Source-of-truth: <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-botz-skills/README.md" target="_blank" rel="noopener noreferrer"><code>plugins/zoto-botz-skills/README.md</code></a>.
+        </p>
+
+      </div>
+
+      <footer class="site-footer">
+        <p>Botz Skills v0.2.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "skill_name": "botz-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write release notes for the changes merged this week. Use a shared skill if there is one.",
+      "expected_output": "The assistant searches the botz server for a release-notes skill, downloads it, records it in .botz/skills.lock.json by guid and version, applies it, and reports the outcome with skill_feedback.",
+      "assertions": [
+        "The assistant calls `skill_search` before writing the notes",
+        "The downloaded skill is pinned in `.botz/skills.lock.json` by guid and version",
+        "The assistant applies the downloaded skill to the task",
+        "The assistant reports the outcome with `skill_feedback`"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We already pinned the summarise-document skill last week. Use it again to summarise docs/design.md.",
+      "expected_output": "The assistant reuses the pinned guid and version from the lockfile rather than fetching the latest, and mentions any available update from skill_updates without silently switching.",
+      "assertions": [
+        "The assistant requests the version recorded in `.botz/skills.lock.json`",
+        "The assistant does not silently upgrade to a newer version",
+        "If `skill_updates` reports an enhancement, the user is told about it"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need a skill that checks Terraform plans for public S3 buckets and nothing in the catalogue fits.",
+      "expected_output": "After a search finds no good match, the assistant sends a rich brief with skill_request and answers any clarifying questions from the task context.",
+      "assertions": [
+        "The assistant searches before requesting a new skill",
+        "The `skill_request` brief describes the goal, inputs, and expected output",
+        "The assistant answers the server's clarifying questions from the task context instead of guessing"
+      ]
+    }
+  ]
+}

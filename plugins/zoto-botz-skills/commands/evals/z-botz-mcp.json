@@ -1,0 +1,24 @@
+{
+  "target_id": "command:z-botz-mcp",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-botz-mcp find a skill for writing release notes",
+      "assertions": [
+        "The assistant follows the `botz-mcp` skill's instructions for the request",
+        "The assistant searches the botz MCP server (skill_search) rather than inventing a skill",
+        "The assistant passes the text after `/z-botz-mcp` to the skill as the user's request"
+      ],
+      "expected_output": "The command hands the request to the `botz-mcp` skill, which locates, downloads, and pins a matching skill."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-botz-mcp",
+      "assertions": [
+        "The assistant starts the `botz-mcp` skill from its first step",
+        "The assistant does not perform actions the skill does not describe"
+      ],
+      "expected_output": "With no arguments the skill starts from its first step and its own workflow and safety rules apply."
+    }
+  ]
+}
