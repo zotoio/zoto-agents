@@ -25,6 +25,18 @@
         "The assistant reports the frames replayed and the error count, not only the exit status",
         "The summary names the server and its URL or command"
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "/mcp-swarm-record-replay Record traffic for my multi-server triage suite so I can replay it.",
+      "expected_output": "The assistant records and replays each server separately and names each recording with the server name and alias.",
+      "files": [],
+      "assertions": [
+        "The assistant records each server separately rather than one recording for the whole multi-server suite",
+        "Recording files are named `recording-<server name>-<alias>-<timestamp>.json`",
+        "Recordings stay redacted and no credential values are printed",
+        "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm`"
+      ]
     }
   ]
 }
