@@ -38,6 +38,15 @@ Distinguish configuration/execution errors from failed assertions, SLO failures,
 
 Inspect enabled steps and actual operation counts. A green-looking summary with no meaningful execution is not evidence of correctness. Preserve assertions while fixing malformed arguments or credential references. If target schema drift is suspected, `suite refresh --suite demo --dry-run` contacts the server without executing its tools; review the diff before applying refresh.
 
+For a multi-server suite (a report with more than one entry in `servers`), read per server before anything else:
+
+- Find the first server, in step order, whose calls failed. Later servers often fail only because of it.
+- Steps counted under `nodeOutcomes[].skipped`, and passes in `flow.passesSkipped`, did not run because a required extractor found nothing (`extract_missing: <name> (<path>)`). That is a problem with the earlier server's result or the extractor's path, not with the server that was skipped. Check `variables` for the extractor's `resolvedRate`.
+- `session failed on <alias>` or `Session warm-up failed on <alias>` means that server could not be reached; check its target, credentials (variables named `SWARM_TARGET_<ALIAS>_...`), and `doctor --suite <name>` for its stdio executable.
+- `suite <name> has N servers; use --target <alias>=<url>` means `--url` was used on a multi-server suite. `"<alias>" is not a server` names a step, `--target`, or credential prefix with an unknown alias.
+- `Server <alias> error_rate|p95|p99 ... exceeds max` is a per-server objective, judged over every tool call on that server.
+- `suite validate` reports `${name} is not set before this step` and duplicate extractor variables; a step whose tool is not on its server is an error in a multi-server suite.
+
 For two existing JSON reports:
 
 ```sh

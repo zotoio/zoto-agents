@@ -25,6 +25,18 @@
         "The assistant suggests comparing with `botz mcp-swarm suite validate` and a diff of suite.json",
         "The assistant asks the user which copy to keep before applying"
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "/mcp-swarm-upgrade My suite has schemaVersion 2 and the CLI says to upgrade. What do I do?",
+      "expected_output": "The assistant explains that schemaVersion 2 is a multi-server suite needing a newer CLI, updates the CLI, confirms suite server support, and validates a multi-server suite without moving files.",
+      "files": [],
+      "assertions": [
+        "The assistant checks for multi-server support with `botz mcp-swarm suite server --help`",
+        "The assistant explains that single-server suites stay version 1 and nothing moves on disk",
+        "After updating, the assistant runs `botz mcp-swarm suite validate` on a multi-server suite",
+        "The assistant does not hand-edit the suite to downgrade it to version 1"
+      ]
     }
   ]
 }

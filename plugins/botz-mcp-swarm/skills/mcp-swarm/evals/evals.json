@@ -29,6 +29,18 @@
         "The assistant uses `--url https://staging.example/mcp` as a run-time override without modifying the saved suite",
         "The assistant interprets exit code 1 as a failed verdict and 2 as a configuration or execution error"
       ]
+    },
+    {
+      "prompt": "/mcp-swarm Run the triage suite against the staging Jira server at https://jira-staging.example/mcp; its token is in JIRA_STAGING_TOKEN. The suite also calls GitHub and Slack.",
+      "expected_output": "The assistant overrides only the Jira server with --target, passes its credential with an alias prefix, and reports results per server and for the flow.",
+      "files": [],
+      "assertions": [
+        "The assistant uses `--target jira=https://jira-staging.example/mcp` (with the suite's Jira alias), not `--url`",
+        "The assistant passes the credential as `--bearer-env jira=JIRA_STAGING_TOKEN` and never prints the token value",
+        "The assistant does not modify the saved suite to change the target",
+        "The summary reports each server's results from the report's `servers` and the flow, naming each server by alias, name, and URL or command"
+      ],
+      "id": 3
     }
   ]
 }

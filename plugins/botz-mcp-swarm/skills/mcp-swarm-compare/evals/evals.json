@@ -28,6 +28,19 @@
         "The assistant excludes or calls out silent-green runs",
         "The assistant does not start new load runs to fill gaps without being asked"
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "/mcp-swarm-compare Compare the last two runs of the triage flow suite, which calls github, jira and slack.",
+      "expected_output": "The assistant builds the dataset, keeps tools keyed as <alias>/<tool>, charts per-server rows and whole-pass latency, and reports flow regressions with numbers.",
+      "files": [],
+      "assertions": [
+        "Tools are labelled `<alias>/<tool>` so same-named tools on different servers stay separate",
+        "The canvas or HTML includes per-server rows from `serverRows` (calls, error rate, p50/p95/p99)",
+        "A whole-pass p95 rise above 20% is reported as a `flow` regression with before and after values",
+        "Each server is named by alias, name, and URL or command",
+        "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm`"
+      ]
     }
   ]
 }

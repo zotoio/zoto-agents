@@ -28,6 +28,20 @@
         "The assistant still confirms authorization before sending traffic",
         "The assistant does not pass --force to capture without asking"
       ]
+    },
+    {
+      "prompt": "/mcp-swarm-guided I want to test our GitHub MCP server at https://gh-mcp.example/mcp together with our Jira MCP server, because our agent reads issues from one and files tickets in the other.",
+      "expected_output": "The assistant captures GitHub with an alias, adds Jira as a second server, asks which steps and values make up the task, wires them with required extractors, and shows the cross-server data flows for confirmation before running.",
+      "files": [],
+      "assertions": [
+        "The assistant asks for the Jira server's URL or command and the environment variable names for both servers' credentials",
+        "The assistant captures with `--alias` and adds Jira with `botz mcp-swarm suite server add`",
+        "The assistant asks which values pass from one step to a later step",
+        "Extractors that feed another server's step set `required: true`",
+        "The assistant shows the Cross-server data flows from `suite validate` and asks for confirmation before running",
+        "Write-like tools such as creating a ticket need explicit per-tool confirmation"
+      ],
+      "id": 3
     }
   ]
 }

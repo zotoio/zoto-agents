@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-14T05:48:19.958Z
-git_ref: 4f4278ac9eea119c3ff6d5c15c721ed04c735039
+updated_at: 2026-10-23T02:44:17.913Z
+git_ref: 469a11d95d06d6780893b72b5f66c70d264f7368
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -41,7 +41,7 @@ targets:
   - id: skill:mcp-swarm
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm/SKILL.md
-    content_hash: 3f411c0d2682b88c1ef9c54b9e2559a7701a1e998ff2835eb5527950a4204027
+    content_hash: c764f2219078af3c427cf902b83bd08a6dbc7614e195a5d6957f1c8fa477c688
     public_surface:
       frontmatter:
         name: mcp-swarm
@@ -62,7 +62,7 @@ targets:
   - id: skill:mcp-swarm-compare
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-compare/SKILL.md
-    content_hash: 6d8bb1e1ad04ad7c15b6de5fb058a1d4355e9a4542065329ba35881704ef4a77
+    content_hash: 5b359b1d91f3a58bf2fff6abc16c0fcb9e99932d403360bf0663e92bf4be9c31
     public_surface:
       frontmatter:
         name: mcp-swarm-compare
@@ -84,7 +84,7 @@ targets:
   - id: skill:mcp-swarm-descriptions
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/SKILL.md
-    content_hash: 27720a2afe4bc8432133f6aad6ad8ac9c40ed9402a5c09f2e69f27b283d1a188
+    content_hash: 87fa174bdecc6fdfd130f07e6b42b0ea5523472fe55037360be1b1a369fc696c
     public_surface:
       frontmatter:
         name: mcp-swarm-descriptions
@@ -108,7 +108,7 @@ targets:
   - id: skill:mcp-swarm-diagnose
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/SKILL.md
-    content_hash: da096bb7642c34c97de66720f3140d638daebeb05357a7f78621a3d1602f6def
+    content_hash: 95017154bd88c16080fc99827c397ed473a848af703fde3f5f783a9368e0d7f5
     public_surface:
       frontmatter:
         name: mcp-swarm-diagnose
@@ -126,10 +126,35 @@ targets:
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/evals/evals.json
+  - id: skill:mcp-swarm-flow
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-flow/SKILL.md
+    content_hash: 3f5151307aead0ba4507125ec2c87ce0646793658ae924cbb2e26dd38f2b6f71
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-flow
+        description: 'Turn a task described in words, such as "find an open bug in
+          GitHub, file it in Jira, tell #triage", into a botz MCP Swarm suite
+          whose steps call several MCP servers in order and pass values between
+          them. Use to load-test or regression-test an agent-like workflow that
+          spans MCP servers.'
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Needs
+          a CLI with multi-server suites (`botz mcp-swarm suite server --help`).
+          Contacts each MCP server to read its tools; runs call tools on every
+          server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-flow/evals/evals.json
   - id: skill:mcp-swarm-guided
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-guided/SKILL.md
-    content_hash: 1401f9e50fb3449985841b29c3c51febde2fec677d1055e6ba0947f486a8e12c
+    content_hash: 736e68dfc268d1305e1bbacaf7d7a14c1bf55097041ff9ac62c86e60a3d6fbeb
     public_surface:
       frontmatter:
         name: mcp-swarm-guided
@@ -151,7 +176,7 @@ targets:
   - id: skill:mcp-swarm-record-replay
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/SKILL.md
-    content_hash: eac67ce385d1773dbf2e09c0b9c274bd053960957f742657ee40ac8d3ccd81f7
+    content_hash: 7fde0278bf6fce67356d2d4b3f041d435b45837d435a5e4b91baafce0a1fd208
     public_surface:
       frontmatter:
         name: mcp-swarm-record-replay
@@ -173,7 +198,7 @@ targets:
   - id: skill:mcp-swarm-upgrade
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/SKILL.md
-    content_hash: a0862db3a8bb1eceab50446665bf28dd319733724e82c121347b0abf628b24bc
+    content_hash: 2786aa47e44b4f9b84dfdbf3f4716db7912fd64a06e2021fd310d3117dfa725c
     public_surface:
       frontmatter:
         name: mcp-swarm-upgrade
@@ -660,6 +685,18 @@ targets:
           performance regressions from CLI diagnostics and run reports."'
     eval_files:
       - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-diagnose.json
+  - id: command:z-mcp-swarm-flow
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-flow.md
+    content_hash: 7e422763f5d1b311202b213dccabad4e67cb1637c8e495a54c04488b10f681b0
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-flow
+        description: '"Run the mcp-swarm-flow skill. Turn a task described in words into
+          a botz MCP Swarm suite whose steps call several MCP servers in order
+          and pass values between them."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-flow.json
   - id: command:z-mcp-swarm-guided
     kind: command
     path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-guided.md

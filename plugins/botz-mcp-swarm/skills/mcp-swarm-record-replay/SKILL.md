@@ -20,6 +20,8 @@ Run every command through the botz host as `botz mcp-swarm`. Do not use the stan
 2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null`, run `botz plugins install mcp-swarm`.
 3. Confirm with `botz mcp-swarm --version`, and check the relevant subcommand's `--help` before using unfamiliar options.
 
+Recording and replay work on one server at a time. For a multi-server suite, record and replay each server separately, naming its alias in the file name (`recording-<server name>-<alias>-<timestamp>.json`).
+
 ## Identify the server
 
 Name the MCP server under test by its name and its URL or command in the recording file name (`recording-<server name>-<timestamp>.json`, server name in lowercase with non-alphanumerics replaced by `-`), the replay summary, and any comparison. Take them from the suite (`surface.serverName`, `surface.serverVersion`, `target`) or `botz mcp-swarm suite show`; if neither is available, ask the user. Write them as `<server name> <version> (<URL or command>)`.
