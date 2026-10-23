@@ -68,3 +68,5 @@ To turn a task described in words into a flow, use the `mcp-swarm-flow` skill.
 Use environment references for credentials, such as `--bearer-env MCP_TOKEN` or `--header-env X-Api-Key=MCP_KEY`. Do not print secret values or put credentials in suite files. A target override (`--url` or `--target-file`) replaces saved credentials; supply the override's credentials explicitly.
 
 For sustained load, set explicit `--duration-ms`, `--concurrency`, and optionally `--ramp-up-ms`/`--ramp-down-ms`. For CI, use `--format json` or `--format junit`, and preserve the process exit status. Saved-suite runs exit 0 for pass, 1 for failed verdict, 2 for configuration/execution errors, 130/143 for interruption. Report verdict, executed coverage, failures, and report locations; never call a run successful just because a report exists or no enabled tools executed.
+
+After reporting the verdict, offer to visualise the run with the `mcp-swarm-report` skill (`/z-mcp-swarm-report`): a canvas or HTML page with per-tool latency, errors, and sample requests and responses.

@@ -1,0 +1,25 @@
+{
+  "target_id": "command:z-mcp-swarm-report",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-mcp-swarm-report the latest docs-server run",
+      "assertions": [
+        "The assistant follows the `mcp-swarm-report` skill's instructions for the request",
+        "The assistant runs the skill's setup step (checks `botz --version` and the mcp-swarm extension) before other botz commands",
+        "Every MCP Swarm command uses `botz mcp-swarm`"
+      ],
+      "expected_output": "The command hands the request to the `mcp-swarm-report` skill, which runs as if invoked directly."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-mcp-swarm-report .botz/mcp-swarm/runs/botz-run-20261023T020000Z.json with recording-docs-server.json",
+      "assertions": [
+        "The assistant passes the text after `/z-mcp-swarm-report` to the `mcp-swarm-report` skill as the user's request",
+        "The assistant does not perform actions the skill does not describe",
+        "Any summary names the MCP server by name and URL or command"
+      ],
+      "expected_output": "The arguments reach the skill unchanged and the skill's own workflow and safety rules apply."
+    }
+  ]
+}

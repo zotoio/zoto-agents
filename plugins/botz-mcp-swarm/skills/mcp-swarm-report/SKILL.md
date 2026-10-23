@@ -1,0 +1,68 @@
+---
+name: mcp-swarm-report
+description: Visualise one botz MCP Swarm run in Cursor's /canvas or a self-contained HTML page, with a tool selector showing each tool's latency, errors, and a sample request and response. Use after a run, or to explain a run report.
+license: MIT
+disable-model-invocation: true
+compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Reads an existing run report, its saved suite, and optional record-replay recordings; does not contact the target.
+metadata:
+  author: zotoio
+  cli-host: "@zotoio/botz-cli"
+  cli-package: "@zotoio/botz-mcp-swarm-cli"
+---
+
+# Visualise an MCP Swarm run
+
+## Setup
+
+Run every command through the botz host as `botz mcp-swarm`. Do not use the standalone `botz-mcp-swarm` or `swarm` executables. Before the first command in a session:
+
+1. Run `botz --version`. If `botz` is not found, check `node --version` (22.13 or later is required), then install the host with `npm install -g @zotoio/botz-cli` and tell the user you installed it. If Node is too old or the global install fails, for example with a permissions error, stop and report it; do not use `sudo` or change npm configuration.
+2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null`, run `botz plugins install mcp-swarm`.
+3. Confirm with `botz mcp-swarm --version`, and check the relevant subcommand's `--help` before using unfamiliar options.
+
+## 1. Find the report
+
+Use the report the user names. Otherwise take the newest `botz-run-<timestamp>.json` in `.botz/mcp-swarm/runs/` at the Git root, in `runsDir` from `.botz/mcp-swarm/settings.json`, or in the `--output` directory used for the run. Do not start a new run to produce one unless the user asks and the target is one they are authorized to test.
+
+Look for record-replay recordings of the same server (`recording-<server name>-<timestamp>.json`, or `recording-<server name>-<alias>-<timestamp>.json` for a multi-server suite) next to the reports or where the user keeps them. They are the only source of real tool responses.
+
+## 2. Build the dataset
+
+This skill ships `scripts/run-dataset.mjs` next to this file. It needs only Node.js:
+
+```sh
+node <this skill's directory>/scripts/run-dataset.mjs [--suites <dir>] [--recording [<alias>=]<file>]... [--max-sample-bytes 4096] [--title <text>] [--html <file>] <report.json>
+```
+
+Prefix a recording with its server alias for multi-server suites (`--recording jira=recording-jira-mcp-jira-….json`). It prints JSON with `title`, `server`, `servers` (multi-server: alias, name, URL or command, calls, error rate, p95), `run` (verdict, silent green, fail reasons, mode, load profile, calls, concurrency, error rate), `flow` (whole-pass latency and skipped passes), `tools`, `nodes`, `toolEvals`, `scenarios`, `process`, and `notes`.
+
+Each `tools[]` entry has `key` (`<alias>/<tool>` on multi-server runs), `count`, `errorRate`, `errors` (count per error class), `lastError`, `latencyMs` (p50, p90, p95, p99, mean, std), bytes, `writeLike`, and `sample`:
+
+- `sample.request`: pretty JSON of the arguments. Source, in order: `report.redactedArgs` (the first arguments actually sent for that step, secrets redacted by the CLI), a recording, a tool-eval call, then the suite step's `args` template before substitution.
+- `sample.response`: pretty JSON of the result. Source: a recording, else a tool-eval call (a call the model made during tool evals, not load traffic). Run reports do not record tool results, so otherwise it is `null` and `sample.source.response` is `no sample captured`.
+- `sample.source` names both sources; `sample.truncated` is true when either was cut to `--max-sample-bytes`.
+
+Never fill a missing sample yourself, and never call the target to get one.
+
+## Identify the server
+
+Every output names the MCP server under test by its name and its URL or command: the canvas title, the HTML page title and file name, and the summary. Use the dataset's `title` (and `servers` with aliases for multi-server runs). If `notes` say the server is unknown, ask the user and pass `--title`. Never present an unlabelled chart or summary.
+
+## 3. Visualise
+
+**Cursor:** hand the dataset to the `/canvas` tool. Do not draw charts in text. Title the canvas with the dataset's `title`, and ask for:
+
+- a header with the verdict (red when not `pass` or silent green), fail reasons, and stat cards for calls, error rate, concurrency, mode, duration, and flow p95 when present;
+- on multi-server runs, a servers table (alias, server, URL or command, calls, error rate, p95);
+- p50, p95, and p99 latency per tool as bars, and errors per tool by error class;
+- a **tool selector** (a dropdown or tabs over `tools[].key`, held in canvas state, defaulting to the first tool with errors, else the first tool). Selecting a tool shows its calls, error rate, p50/p95/p99, mean ± std, errors by class, and last error, and its sample request and sample response side by side as pretty-printed JSON in scrollable code blocks, each labelled with `sample.source` and marked when truncated, or showing "no sample captured";
+- the tool-eval results table and scenario outcomes when present, and worker and server memory and CPU over time from `process` when present;
+- the `notes` list.
+
+Pass every row; do not aggregate, downsample, or edit the samples.
+
+**Claude Code, Codex, and other clients without a canvas:** write the HTML page with `--html`, saved next to the report as `report-<server name>-<run id>.html` (server name in lowercase with non-alphanumerics replaced by `-`), and give the user its path. The page has the same tool `<select>`, is self-contained, and makes no network requests. If the client can display HTML itself, it may show the page there instead.
+
+## 4. Summarise
+
+Report, in this order: the server (name and URL or command, per alias for multi-server) and the run; the verdict and fail reasons, saying so plainly when the run was silent green; the slowest tools and the tools with errors, with numbers; where the samples came from, saying when a response is from tool evals rather than load traffic or was not captured; and the output path or canvas. Recordings can hold real data; do not paste sample contents into chat beyond what the user asks for.

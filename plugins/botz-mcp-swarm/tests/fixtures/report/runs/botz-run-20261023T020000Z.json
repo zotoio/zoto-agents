@@ -1,0 +1,15 @@
+{"id":"run-20261023-0200","manifestName":"docs-server","manifestHash":"abc","startedAt":"2026-10-23T02:00:00.000Z","finishedAt":"2026-10-23T02:01:00.000Z","durationMs":60000,
+ "verdict":"fail","failReasons":["get_page error rate 4.0% above SLO 1%"],"silentGreen":false,"mode":"soak","transport":"streamable-http",
+ "server":{"name":"docs-server","version":"1.4.0","transport":"streamable-http","endpoint":"http://127.0.0.1:3000/mcp"},
+ "sessionMetrics":{"transport":"streamable-http","started":4,"active":0,"failed":0},
+ "loadProfile":{"durationMs":60000,"rampUpMs":10000,"maxConcurrency":4,"jitterMs":0,"rampDownMs":0},
+ "toolSeries":[
+  {"toolName":"search_docs","count":480,"errorRate":0,"errorClass":{"none":480,"protocol":0,"application":0,"timeout":0,"transport":0,"quota":0,"allowlist":0,"auth":0},"latencyMs":{"p50":42.1,"p95":118.4,"p99":201.7,"mean":55.3,"std":31.2},"bytesIn":960000,"bytesOut":48000},
+  {"toolName":"get_page","count":475,"errorRate":0.04,"errorClass":{"none":456,"protocol":0,"application":12,"timeout":7,"transport":0,"quota":0,"allowlist":0,"auth":0},"latencyMs":{"p50":88.0,"p95":310.5,"p99":702.2,"mean":120.9,"std":95.4},"bytesIn":4100000,"bytesOut":30000},
+  {"toolName":"list_tags","count":12,"errorRate":0,"errorClass":{"none":12,"protocol":0,"application":0,"timeout":0,"transport":0,"quota":0,"allowlist":0,"auth":0},"latencyMs":{"p50":9.0,"p95":14.0,"p99":15.0},"bytesIn":3000,"bytesOut":400}],
+ "rpcSeries":[],"scenarioOutcomes":[],"quotas":{"concurrencyUsed":4,"callCount":967,"maxPayloadBytesSeen":40210},
+ "catalog":[{"name":"search_docs","schemaHash":"h1"},{"name":"get_page","schemaHash":"h2"},{"name":"list_tags","schemaHash":"h3"}],
+ "nodeOutcomes":[{"nodeId":"s1","label":"search","count":480,"errorCount":0},{"nodeId":"s2","label":"page","count":475,"errorCount":19,"errorMessage":"Page not found: getting-started-v2"},{"nodeId":"s3","label":"tags","count":12,"errorCount":0}],
+ "redactedArgs":[{"nodeId":"s1","tool":"search_docs","args":{"query":"authentication","limit":5,"apiKey":"[redacted]"}},{"nodeId":"s2","tool":"get_page","args":{"slug":"getting-started"}}],
+ "toolEvals":[{"id":"e1","nodeId":"s3","tool":"list_tags","polarity":"positive","prompt":"What tags exist?","pass":true,"judge":"jev","toolCalls":[{"name":"list_tags","arguments":{},"result":{"content":[{"type":"text","text":"[\"auth\",\"billing\",\"cli\"]"}]}}],"polarityPass":true,"assertions":[]},
+  {"id":"e2","nodeId":"s1","tool":"search_docs","polarity":"negative","prompt":"Say hello","pass":false,"judge":"jev","toolCalls":[],"polarityPass":false,"assertions":[],"reason":"model called no tool but assertion expected none; judge disagreed"}]}

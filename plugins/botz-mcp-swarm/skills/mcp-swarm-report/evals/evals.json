@@ -1,0 +1,45 @@
+{
+  "skill_name": "mcp-swarm-report",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/mcp-swarm-report Show me the last docs-server run in a canvas. I recorded traffic earlier in recording-docs-server-20261023T010000Z.json.",
+      "expected_output": "The assistant builds the dataset with run-dataset.mjs and the recording, then asks /canvas for a labelled per-run view with a stateful tool selector showing per-tool stats and pretty-printed sample request and response with their sources.",
+      "files": [],
+      "assertions": [
+        "The assistant runs `run-dataset.mjs` with `--recording recording-docs-server-20261023T010000Z.json` and the newest run report",
+        "The canvas request includes a tool selector (dropdown or tabs) held in canvas state",
+        "Selecting a tool shows its calls, error rate, p50/p95/p99, and errors by class",
+        "The sample request and response are shown as pretty JSON labelled with `sample.source`, marked when truncated",
+        "The canvas title names the MCP server by name and URL or command",
+        "The assistant does not contact the target or start a new run"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/mcp-swarm-report I'm in Claude Code. Visualise .botz/mcp-swarm/runs/botz-run-20261023T020000Z.json; there's no recording.",
+      "expected_output": "The assistant writes the self-contained HTML page with --html next to the report, gives its path, and explains which samples come from redactedArgs or tool evals and which have no sample captured.",
+      "files": [],
+      "assertions": [
+        "The assistant runs `run-dataset.mjs` with `--html` and saves the page as `report-<server name>-<run id>.html` next to the report",
+        "The assistant gives the user the HTML path and says it has a tool select",
+        "The summary says sample requests come from `report.redactedArgs` and that tools without a recording or tool-eval call have no sample response",
+        "A response taken from a tool eval is described as a model-driven call, not load traffic",
+        "The assistant does not invent sample responses or call the server to get one"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/mcp-swarm-report Visualise the triage flow run; it calls github, jira and slack. I have recording-jira-mcp-jira-20261022.json for Jira.",
+      "expected_output": "The assistant passes the recording with its alias, keeps tools keyed as <alias>/<tool>, shows the servers table and flow p95, and names each server by alias, name, and URL or command.",
+      "files": [],
+      "assertions": [
+        "The recording is passed as `--recording jira=recording-jira-mcp-jira-20261022.json`",
+        "The tool selector lists tools as `<alias>/<tool>`",
+        "The canvas includes a servers table and the flow's whole-pass p95 and skipped passes",
+        "Each server is named by alias, name, and URL or command",
+        "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm`"
+      ]
+    }
+  ]
+}

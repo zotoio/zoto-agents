@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.9.0
 
+- Add `mcp-swarm-report` and `/z-mcp-swarm-report`: visualise one run in `/canvas` or a self-contained HTML page. `scripts/run-dataset.mjs` builds per-tool latency, error classes, last error, and a sample request and response capped at 4 KB with their source: requests from `report.redactedArgs`, then a record-replay recording, a tool-eval call, or the suite step template; responses from a recording, then a tool-eval call, else `no sample captured`. Multi-server tools are keyed `<alias>/<tool>`. The canvas and the HTML page both have a tool selector.
+- `mcp-swarm`, `mcp-swarm-guided`, and `mcp-swarm-diagnose` offer the report after a run or for a failing run.
 - Add `mcp-swarm-flow` and `/z-mcp-swarm-flow`: turn a task described in words into a multi-server suite, with server aliases, required extractors between servers, write-like tool confirmation, and the cross-server data flows shown for approval before the first run.
 - `mcp-swarm`, `mcp-swarm-guided`, `mcp-swarm-diagnose`, `mcp-swarm-compare`, and `mcp-swarm-upgrade` cover multi-server suites: `suite server add`, `--target <alias>=<url>`, alias-prefixed credential flags, per-server results, flow latency, and skipped steps. `mcp-swarm-record-replay` and `mcp-swarm-descriptions` say they work one server at a time.
 - `mcp-swarm-compare`: `runs-dataset.mjs` keys multi-server tools as `<alias>/<tool>`, adds `serverRows`, `flowP95`, and `passesSkipped`, decides schema changes per server, and reports a flow p95 regression above 20%.

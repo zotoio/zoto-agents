@@ -54,3 +54,5 @@ botz mcp-swarm compare --base base.json --head head.json
 ```
 
 Compare target, workload, concurrency, duration, and enabled tool coverage before attributing latency or error changes to a regression. Separate telemetry delivery failures from test verdicts. Re-run only within the user's authorized target and load limits, and summarize the observed cause, correction, and remaining uncertainty.
+
+To show the user a failing run, offer the `mcp-swarm-report` skill (`/z-mcp-swarm-report`): its tool selector shows each tool's errors by class, last error, and sample request and response.
