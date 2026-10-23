@@ -150,3 +150,74 @@ test("draws two panels and a selector script that parses and defaults to a faili
   assert.doesNotThrow(() => new vm.Script(js));
   assert.match(js, /findIndex\(function\(x\)\{return x\.errorRate>0\}\)/);
 });
+
+const v2File = join(here, "runs", "botz-run-20261023T030000Z.json");
+const v2 = load(v2File);
+
+test("CLI >= 0.9.0: takes samples from sampleResults ahead of recordings and tool evals", () => {
+  const d = buildRunDataset({ file: v2File, report: v2, suite, recordings: [recording] });
+  for (const t of d.tools) assert.deepEqual(t.sample.source, { request: "sampleResults", response: "sampleResults" });
+  const page = d.tools.find(t => t.key === "get_page");
+  assert.equal(page.sample.kind, "success");
+  assert.match(page.sample.response, /Getting started/);
+  assert.equal(page.sample.errorSample.errorClass, "application");
+  assert.match(page.sample.errorSample.request, /getting-started-v2/);
+  const search = d.tools.find(t => t.key === "search_docs");
+  assert.equal(search.sample.truncated, true);
+  assert.equal(search.sample.responseBytes, 6342);
+  assert.match(search.sample.request, /\[redacted\]/);
+  assert.ok(!d.notes.some(n => /predates CLI 0\.9\.0/.test(n)));
+  assert.ok(d.notes.some(n => /truncated by the CLI/.test(n)));
+});
+
+test("CLI >= 0.9.0: falls back to recordings, then tool evals, when a tool has no sampleResults entry", () => {
+  const partial = { ...v2, sampleResults: v2.sampleResults.filter(s => s.tool === "get_page") };
+  const d = buildRunDataset({ file: v2File, report: partial, suite, recordings: [recording] });
+  assert.match(d.tools.find(t => t.key === "search_docs").sample.source.response, /^recording /);
+  assert.match(d.tools.find(t => t.key === "list_tags").sample.source.response, /^toolEvals e1/);
+  assert.equal(d.tools.find(t => t.key === "get_page").sample.source.response, "sampleResults");
+});
+
+test("CLI >= 0.9.0: builds the timeline from timeSeries, whole run, no partial flag", () => {
+  const d = buildRunDataset({ file: v2File, report: v2, suite });
+  assert.deepEqual(d.timelineSource, { tps: "measured (timeSeries)", latency: "measured (timeSeries)", vus: "measured (timeSeries)" });
+  assert.equal(d.timeline.length, 60);
+  assert.ok(d.timeline.every(r => r.vusSource === "timeSeries" && r.tps != null));
+  assert.equal(d.timeline.reduce((s, r) => s + r.tps, 0), 958);
+  assert.equal(d.timeline.reduce((s, r) => s + r.tpsErrors, 0), 19);
+  assert.equal(d.timeline[30].vus, 4);
+  assert.equal(d.timeline[59].latency, null);
+  assert.ok(d.timeline[40].byToolLatency.get_page.p95 > d.timeline[20].byToolLatency.get_page.p95);
+  assert.ok(!d.notes.some(n => /2000-line tail|planned from the load profile/.test(n)));
+  const html = renderHtml(d);
+  assert.match(html, /measured \(timeSeries\)/);
+  assert.match(html, /id="d-errwrap"/);
+  const js = html.slice(html.lastIndexOf("<script>") + 8, html.lastIndexOf("</script>"));
+  assert.doesNotThrow(() => new vm.Script(js));
+});
+
+test("fills seconds missing from a sparse timeSeries as idle and keeps the last VUs", () => {
+  const tl = buildTimeline({ timeSeries: [
+    { t: 0, calls: 2, errors: 0, byTool: { a: { calls: 2, errors: 0 } }, vus: 2, latency: { p50: 5, p95: 9 }, byToolLatency: { a: { p50: 5, p95: 9 } } },
+    { t: 3, calls: 1, errors: 1, byTool: { a: { calls: 1, errors: 1 } }, vus: 3, latency: { p50: 7, p95: 7 }, byToolLatency: { a: { p50: 7, p95: 7 } } },
+  ] }, () => null, n => `x/${n}`);
+  assert.equal(tl.timeline.length, 4);
+  assert.deepEqual(tl.timeline.map(r => [r.tps, r.vus]), [[2, 2], [0, 2], [0, 2], [1, 3]]);
+  assert.equal(tl.timeline[1].latency, null);
+  assert.deepEqual(tl.timeline[3].byTool, { "x/a": 1 });
+});
+
+test("multi-server sampleResults follow the entry's node to its alias", () => {
+  const multi = {
+    ...v2,
+    toolSeries: [{ ...v2.toolSeries[0], server: "docs" }, { ...v2.toolSeries[0], server: "wiki" }],
+    servers: [{ alias: "docs", calls: 1, errorRate: 0 }, { alias: "wiki", calls: 1, errorRate: 0 }],
+    sampleResults: [{ tool: "search_docs", success: { atMs: 1, latencyMs: 2, nodeId: "w1", args: { q: "wiki" }, response: { ok: 1 } } }],
+    redactedArgs: undefined, toolEvals: [],
+  };
+  const s = { defaultServer: "docs", nodes: [{ id: "s1", method: "tools/call", tool: "search_docs" }, { id: "w1", server: "wiki", method: "tools/call", tool: "search_docs" }] };
+  const d = buildRunDataset({ file: v2File, report: multi, suite: s });
+  assert.equal(d.tools[0].sample.source.response, NO_SAMPLE);
+  assert.equal(d.tools[1].sample.source.response, "sampleResults");
+  assert.ok(d.notes.some(n => /tools by name only/.test(n)));
+});

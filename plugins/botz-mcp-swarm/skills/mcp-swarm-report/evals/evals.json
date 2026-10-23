@@ -55,6 +55,18 @@
         "The assistant does not start a new run to fill gaps",
         "Response time over time is reported with the same source label as TPS, and is `not captured` when the log lines carry no latency"
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "/mcp-swarm-report Visualise .botz/mcp-swarm/runs/botz-run-20261023T030000Z.json from CLI 0.9.0 as HTML.",
+      "expected_output": "The assistant writes the HTML page, and says the samples (including real tool responses and the first error per tool) come from the report's sampleResults and the timeline comes from timeSeries covering the whole run.",
+      "files": [],
+      "assertions": [
+        "The summary says sample requests and responses come from `sampleResults` (load traffic, not tool evals), and mentions the first error sample for tools that failed",
+        "The summary says the timeline is `measured (timeSeries)` for the whole run, without a log-tail caveat",
+        "Payloads marked truncated are described as truncated by the CLI, not re-fetched",
+        "The assistant does not call the server or start a new run"
+      ]
     }
   ]
 }

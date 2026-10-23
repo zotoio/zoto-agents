@@ -9,8 +9,12 @@
  * Prints JSON { title, server, servers, run, flow, tools, timeline, timelineSource, nodes, toolEvals, scenarios, process, notes }.
  * timeline[] = { t (s from start), tps, tpsErrors, latency {p50,p95}, vus, vusSource, byTool, byToolLatency }: TPS measured from report.log step
  * lines; VUs measured from mcp.load.vus lines, else planned from loadProfile; otherwise "not captured".
- * Each tool carries `sample`: { request, response, source: { request, response }, truncated }.
- *   request:  report.redactedArgs (args actually sent, secrets redacted), else a recording,
+ * With CLI >= 0.9.0 the timeline comes from report.timeSeries (per-second buckets for the whole run; vusSource
+ * "timeSeries", never partial) and falls back to log parsing for older reports.
+ * Each tool carries `sample`: { request, response, source: { request, response }, truncated, errorSample }.
+ *   CLI >= 0.9.0: report.sampleResults (first success, else first error; source "sampleResults"), with the first
+ *             error in `errorSample` { request, response, errorClass, errorMessage, atMs, latencyMs, nodeId, truncated }.
+ *   Otherwise request:  report.redactedArgs (args actually sent, secrets redacted), else a recording,
  *             else a tool-eval call, else the suite step's args template.
  *   response: a record-replay recording, else a tool-eval call's result. Run reports do not
  *             record tool results, so without either the response is null and its source is
@@ -101,7 +105,41 @@ function logMs(time, startMs) {
  * TPS: measured from `mcp.step ... phase=done` lines in report.log (a tail of at most 2000 lines, so long
  * runs cover only their end). VUs: measured from `mcp.load.vus active=` lines, else planned from loadProfile.
  */
-export function buildTimeline(report, keyForNode) {
+/** Pretty-print a truncated JSON-string payload when it still parses; keep it as-is otherwise. */
+function payload(v) {
+  if (typeof v !== "string") return v;
+  try { return JSON.parse(v); } catch { return v; }
+}
+
+/**
+ * Per-second timeline from report.timeSeries (CLI >= 0.9.0). Buckets cover the whole run; when the CLI emits
+ * only active seconds (very long runs), missing seconds are filled as idle with the last known VUs.
+ * `keyForTool(name)` maps the bucket's bare tool name to the dataset's tool key (null drops it).
+ */
+export function timelineFromSeries(series, keyForTool = n => n) {
+  const byT = new Map(series.map(b => [b.t, b]));
+  const last = Math.max(...series.map(b => b.t));
+  const timeline = [];
+  let vus = 0;
+  for (let t = 0; t <= last; t++) {
+    const b = byT.get(t);
+    if (b) vus = b.vus ?? vus;
+    const byTool = {}, byToolLatency = {};
+    for (const [name, c] of Object.entries(b?.byTool ?? {})) {
+      const k = keyForTool(name);
+      if (!k) continue;
+      byTool[k] = (byTool[k] ?? 0) + c.calls;
+      const l = b.byToolLatency?.[name];
+      if (l && c.calls) byToolLatency[k] = { p50: l.p50, p95: l.p95 };
+    }
+    const calls = b?.calls ?? 0;
+    timeline.push({ t, tps: calls, tpsErrors: b?.errors ?? 0, latency: calls && b.latency ? { p50: b.latency.p50, p95: b.latency.p95 } : null, vus, vusSource: "timeSeries", byTool, byToolLatency });
+  }
+  return { timeline, source: { tps: "measured (timeSeries)", latency: "measured (timeSeries)", vus: "measured (timeSeries)" }, coverage: 0, notes: [] };
+}
+
+export function buildTimeline(report, keyForNode, keyForTool) {
+  if (Array.isArray(report.timeSeries) && report.timeSeries.length) return timelineFromSeries(report.timeSeries, keyForTool);
   const startMs = Date.parse(report.startedAt);
   const seconds = Math.max(1, Math.ceil((report.durationMs ?? 0) / 1000));
   const calls = [], vusEvents = [];
@@ -187,9 +225,36 @@ export function buildRunDataset({ file, report, suite = null, suitesDir, recordi
     return null;
   };
 
+  // CLI >= 0.9.0: first success and first error per tool. Entries name the tool only, so on multi-server
+  // runs an entry belongs to an alias through its nodeId (or to the only alias exposing that tool).
+  const aliasesFor = name => report.toolSeries.filter(x => x.toolName === name).map(x => x.server ?? null);
+  const entryFits = (e, alias, name) => !multi || !e || (e.nodeId && nodeServer(e.nodeId) ? nodeServer(e.nodeId) === alias : aliasesFor(name).length === 1);
+  const fromSamples = (alias, name) => {
+    const s = (report.sampleResults ?? []).find(x => x.tool === name);
+    if (!s) return null;
+    const success = entryFits(s.success, alias, name) ? s.success : undefined, error = entryFits(s.error, alias, name) ? s.error : undefined;
+    return success || error ? { success, error } : null;
+  };
+
   const tools = report.toolSeries.map(t => {
     const alias = t.server ?? null;
     const key = toolKey(alias, t.toolName);
+    const sr = fromSamples(alias, t.toolName);
+    if (sr) {
+      const main = sr.success ?? sr.error;
+      const req = clip(payload(main.args), maxSampleBytes), res = clip(payload(main.response ?? (main.errorMessage ? { error: main.errorMessage } : undefined)), maxSampleBytes);
+      let errorSample = null;
+      if (sr.error) {
+        const eq = clip(payload(sr.error.args), maxSampleBytes), er = clip(payload(sr.error.response), maxSampleBytes);
+        errorSample = { request: eq.text, response: er.text, errorClass: sr.error.errorClass ?? null, errorMessage: sr.error.errorMessage ?? null, atMs: sr.error.atMs ?? null, latencyMs: sr.error.latencyMs ?? null, nodeId: sr.error.nodeId ?? null, truncated: Boolean(sr.error.truncated) || eq.truncated || er.truncated };
+      }
+      t = { ...t, _sample: {
+        request: req.text, response: res.text,
+        source: { request: "sampleResults", response: "sampleResults" },
+        kind: sr.success ? "success" : "error", atMs: main.atMs ?? null, latencyMs: main.latencyMs ?? null, nodeId: main.nodeId ?? null, responseBytes: main.responseBytes ?? null,
+        truncated: Boolean(main.truncated) || req.truncated || res.truncated, errorSample,
+      } };
+    }
     const sent = (report.redactedArgs ?? []).find(a => (a.tool ?? nodes.get(a.nodeId)?.tool) === t.toolName && (!multi || nodeServer(a.nodeId) === alias));
     const rec = fromRecording(alias, t.toolName);
     const ev = fromEvals(alias, t.toolName);
@@ -207,14 +272,14 @@ export function buildRunDataset({ file, report, suite = null, suitesDir, recordi
     const req = clip(request, maxSampleBytes), res = clip(response, maxSampleBytes);
     const errors = Object.entries(t.errorClass ?? {}).filter(([k, v]) => k !== "none" && v > 0).map(([cls, count]) => ({ class: cls, count }));
     const outcomes = (report.nodeOutcomes ?? []).filter(o => (nodes.get(o.nodeId)?.tool ?? (report.redactedArgs ?? []).find(a => a.nodeId === o.nodeId)?.tool) === t.toolName && (!multi || nodeServer(o.nodeId) === alias));
-    const lastError = outcomes.find(o => o.errorMessage)?.errorMessage ?? null;
+    const lastError = outcomes.find(o => o.errorMessage)?.errorMessage ?? t._sample?.errorSample?.errorMessage ?? null;
     return {
       key, tool: t.toolName, server: alias,
       count: t.count, errorRate: t.errorRate, errors, lastError,
       latencyMs: { p50: t.latencyMs.p50, p90: t.latencyMs.p90 ?? null, p95: t.latencyMs.p95, p99: t.latencyMs.p99, mean: t.latencyMs.mean ?? null, std: t.latencyMs.std ?? null },
       bytesIn: t.bytesIn ?? null, bytesOut: t.bytesOut ?? null,
       writeLike: Boolean((report.catalog ?? []).find(c => c.name === t.toolName && (c.server ?? null) === alias)?.writeLike),
-      sample: { request: req.text, response: res.text, source: { request: requestSource, response: responseSource }, truncated: req.truncated || res.truncated },
+      sample: t._sample ?? { request: req.text, response: res.text, source: { request: requestSource, response: responseSource }, truncated: req.truncated || res.truncated, errorSample: null },
     };
   });
 
@@ -225,12 +290,16 @@ export function buildRunDataset({ file, report, suite = null, suitesDir, recordi
   if (report.silentGreen) notes.push("Silent green: the run did no meaningful work; do not read the numbers as a pass.");
   if (report.verdict !== "pass") notes.push(`Verdict ${report.verdict}${report.failReasons?.length ? `: ${report.failReasons.join("; ")}` : ""}`);
   for (const t of tools) if (t.count < 30) notes.push(`${t.key}: ${t.count} samples; p95/p99 are unreliable below 30.`);
-  if (!report.redactedArgs) notes.push("Report has no redactedArgs (older CLI); sample requests come from recordings, tool evals, or suite templates.");
-  if (tools.some(t => t.sample.source.response === NO_SAMPLE)) notes.push("Run reports do not record tool results; tools without a recording or tool-eval call have no sample response.");
+  if (!report.redactedArgs && !report.sampleResults) notes.push("Report has no redactedArgs (older CLI); sample requests come from recordings, tool evals, or suite templates.");
+  if (tools.some(t => t.sample.source.response === NO_SAMPLE)) notes.push(report.sampleResults ? "Some tools have no entry in sampleResults and no recording or tool-eval call, so they have no sample response." : "Run reports before CLI 0.9.0 do not record tool results; tools without a recording or tool-eval call have no sample response. Upgrade to CLI >= 0.9.0 for sampleResults.");
+  if (!report.sampleResults && !report.timeSeries) notes.push("Report predates CLI 0.9.0 (no sampleResults or timeSeries); samples and the timeline use fallbacks. Upgrade to CLI >= 0.9.0 for full data.");
+  if (tools.some(t => t.sample.truncated && t.sample.source.response === "sampleResults")) notes.push("Some sampleResults payloads were truncated by the CLI (stored as JSON strings) and are shown as captured.");
   if (report.flow?.passesSkipped) notes.push(`${report.flow.passesSkipped} passes stopped at a missing required variable.`);
 
   const keyForNode = id => { const n = nodes.get(id); const tool = n?.tool ?? (report.redactedArgs ?? []).find(a => a.nodeId === id)?.tool; return tool ? toolKey(multi ? nodeServer(id) : null, tool) : null; };
-  const tl = buildTimeline(report, keyForNode);
+  const keyForTool = name => { const as = aliasesFor(name); return !multi ? toolKey(null, name) : as.length === 1 ? toolKey(as[0], name) : null; };
+  if (multi && (report.timeSeries ?? []).some(b => Object.keys(b.byTool ?? {}).some(n => !keyForTool(n)))) notes.push("timeSeries keys tools by name only; tools exposed by more than one server are left out of per-tool lines.");
+  const tl = buildTimeline(report, keyForNode, keyForTool);
   notes.push(...tl.notes);
 
   return {
@@ -352,6 +421,7 @@ ${timelineChart(d)}
 </tbody></table>
 <div class="pair"><div><h3>Sample request</h3><p class="muted" id="d-reqsrc"></p><pre id="d-req"></pre></div>
 <div><h3>Sample response</h3><p class="muted" id="d-ressrc"></p><pre id="d-res"></pre></div></div>
+<div id="d-errwrap" hidden><h3>First error sample</h3><p class="muted" id="d-errsrc"></p><div class="pair"><pre id="d-ereq"></pre><pre id="d-eres"></pre></div></div>
 </div>
 ${evals}
 <h2>Notes</h2>${notes}
@@ -371,7 +441,8 @@ function show(i){var x=tools[i];if(!x)return;t("d-count",x.count);t("d-err",pc(x
 t("d-mean",x.latencyMs.mean==null?"–":ms(x.latencyMs.mean)+(x.latencyMs.std==null?"":" ± "+ms(x.latencyMs.std)));
 t("d-classes",x.errors.length?x.errors.map(function(e){return e.class+": "+e.count}).join(", "):"none");t("d-last",x.lastError||"–");
 t("d-reqsrc","Source: "+x.sample.source.request);t("d-req",x.sample.request==null?"(no sample captured)":x.sample.request);
-t("d-ressrc","Source: "+x.sample.source.response+(x.sample.truncated?" · truncated":""));t("d-res",x.sample.response==null?"(no sample captured)":x.sample.response);}
+t("d-ressrc","Source: "+x.sample.source.response+(x.sample.kind?" ("+x.sample.kind+(x.sample.atMs!=null?" at "+(x.sample.atMs/1000).toFixed(1)+"s":"")+(x.sample.latencyMs!=null?", "+ms(x.sample.latencyMs):"")+(x.sample.responseBytes!=null?", "+x.sample.responseBytes+" bytes":"")+")":"")+(x.sample.truncated?" · truncated":""));t("d-res",x.sample.response==null?"(no sample captured)":x.sample.response);
+var es=x.sample.errorSample,ew=document.getElementById("d-errwrap");ew.hidden=!es||x.sample.kind==="error";if(es){t("d-errsrc","sampleResults · "+(es.errorClass||"error")+(es.errorMessage?": "+es.errorMessage:"")+(es.atMs!=null?" · at "+(es.atMs/1000).toFixed(1)+"s":"")+(es.truncated?" · truncated":""));t("d-ereq",es.request==null?"(none)":es.request);t("d-eres",es.response==null?"(none)":es.response);}}
 sel.addEventListener("change",function(){show(sel.value);drawTool(tools[sel.value].key)});var first=Math.max(0,tools.findIndex(function(x){return x.errorRate>0}));sel.value=String(first);show(first);if(tools[first])drawTool(tools[first].key);})();
 </script>
 </body></html>`;

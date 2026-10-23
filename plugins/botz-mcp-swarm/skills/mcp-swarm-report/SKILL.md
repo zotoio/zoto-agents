@@ -38,15 +38,19 @@ Prefix a recording with its server alias for multi-server suites (`--recording j
 
 Each `tools[]` entry has `key` (`<alias>/<tool>` on multi-server runs), `count`, `errorRate`, `errors` (count per error class), `lastError`, `latencyMs` (p50, p90, p95, p99, mean, std), bytes, `writeLike`, and `sample`:
 
+- **CLI >= 0.9.0 (full data):** the report's `sampleResults` holds each tool's first successful and first failed call (redacted args, the actual response, latency, node, response bytes, error class and message). When a tool has an entry, `sample.request` and `sample.response` come from it (the success, else the error), `sample.source` is `{ request: "sampleResults", response: "sampleResults" }`, `sample.kind` is `success` or `error`, `sample.atMs`/`latencyMs`/`nodeId`/`responseBytes` describe the call, and `sample.errorSample` holds the first error (`request`, `response`, `errorClass`, `errorMessage`, `atMs`, `latencyMs`, `nodeId`, `truncated`) or `null`. Payloads the CLI truncated arrive as JSON strings and are shown as captured, with `sample.truncated` true. On multi-server runs an entry belongs to the alias of its `nodeId`. Tools without an entry, and reports from older CLIs, use the fallbacks below.
 - `sample.request`: pretty JSON of the arguments. Source, in order: `report.redactedArgs` (the first arguments actually sent for that step, secrets redacted by the CLI), a recording, a tool-eval call, then the suite step's `args` template before substitution.
-- `sample.response`: pretty JSON of the result. Source: a recording, else a tool-eval call (a call the model made during tool evals, not load traffic). Run reports do not record tool results, so otherwise it is `null` and `sample.source.response` is `no sample captured`.
+- `sample.response`: pretty JSON of the result. Source: a recording, else a tool-eval call (a call the model made during tool evals, not load traffic). Run reports before CLI 0.9.0 do not record tool results, so otherwise it is `null` and `sample.source.response` is `no sample captured`.
 - `sample.source` names both sources; `sample.truncated` is true when either was cut to `--max-sample-bytes`.
+
+The HTML page also shows the first error sample under the success sample when both exist.
 
 Never fill a missing sample yourself, and never call the target to get one.
 
 `timeline[]` has one row per second from the run start: `t` (seconds), `tps` (completed calls), `tpsErrors`, `latency` (`{ p50, p95 }` in ms of the calls completed that second, or `null`), `byTool` (calls per tool key), `byToolLatency` (`{ p50, p95 }` per tool key), `vus` (active virtual users), and `vusSource`. `timelineSource` says where each came from:
 
-- TPS and response time are `measured (log)` from the `mcp.step … phase=done` lines (count and `latencyMs`) in the report's `log`. The CLI keeps only the last 2000 log lines, so on a long run it is `measured (log tail, partial)` and earlier seconds have `tps: null` and `latency: null` (unknown, not zero). Response time is `not captured` when the lines carry no `latencyMs`.
+- **CLI >= 0.9.0:** when the report has `timeSeries` (per-second buckets for the whole run, not limited by the log tail), every row comes from it: `timelineSource` is `measured (timeSeries)` for TPS, response time, and VUs, `vusSource` is `timeSeries`, and nothing is partial. Seconds the CLI omits (it emits only active seconds on very long runs) are idle rows with the last known VUs; idle seconds have `latency: null`. `timeSeries` names tools without an alias, so on multi-server runs a tool exposed by more than one server is left out of the per-tool lines (noted).
+- Otherwise, TPS and response time are `measured (log)` from the `mcp.step … phase=done` lines (count and `latencyMs`) in the report's `log`. The CLI keeps only the last 2000 log lines, so on a long run it is `measured (log tail, partial)` and earlier seconds have `tps: null` and `latency: null` (unknown, not zero). Response time is `not captured` when the lines carry no `latencyMs`.
 - Virtual users are `measured (log)` from `mcp.load.vus` lines, otherwise `planned (from load profile)` from `loadProfile` (ramp-up, hold, ramp-down), which is the schedule, not what ran.
 - Either is `not captured` when the report has neither; `timeline` is then empty.
 
