@@ -117,6 +117,7 @@ Report the server (`<server name> <version> (<URL or command>)`), the verdict, e
 
 Then ask what to do next:
 
+- visualise this run, with a tool selector showing each tool's latency, errors, and sample request and response (the `mcp-swarm-report` skill);
 - compare with earlier runs of this server (the `mcp-swarm-compare` skill);
 - review the server's tool descriptions (`mcp-swarm-descriptions`);
 - investigate a failure (`mcp-swarm-diagnose`);

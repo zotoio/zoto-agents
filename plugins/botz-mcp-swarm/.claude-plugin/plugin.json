@@ -1,6 +1,6 @@
 {
   "name": "botz-mcp-swarm",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Capture, run, and diagnose MCP test suites with the botz MCP Swarm CLI.",
   "author": {
     "name": "zotoio",

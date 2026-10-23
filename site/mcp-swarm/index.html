@@ -145,6 +145,7 @@ botz mcp-swarm --version</code></pre>
           <tbody>
             <tr><td><code>mcp-swarm-guided</code></td><td><code>/z-mcp-swarm-guided</code></td><td>Be walked through testing a server: target, credentials, test data, tool selection, and load, then capture, review, run, and summary.</td></tr>
             <tr><td><code>mcp-swarm</code></td><td><code>/z-mcp-swarm</code></td><td>Capture, validate, refresh, and run suites directly.</td></tr>
+            <tr><td><code>mcp-swarm-report</code></td><td><code>/z-mcp-swarm-report</code></td><td>Visualise one run in Cursor's <code>/canvas</code> or a self-contained HTML page, with a tool selector showing each tool's latency, errors, and a sample request and response.</td></tr>
             <tr><td><code>mcp-swarm-compare</code></td><td><code>/z-mcp-swarm-compare</code></td><td>Compare two runs or a series, and chart latency, error rate, and tool-eval trends in Cursor's <code>/canvas</code> or a self-contained HTML page.</td></tr>
             <tr><td><code>mcp-swarm-descriptions</code></td><td><code>/z-mcp-swarm-descriptions</code></td><td>Review a server's tool descriptions, examine <code>optimize</code> suggestions, and measure a change with tool evals.</td></tr>
             <tr><td><code>mcp-swarm-record-replay</code></td><td><code>/z-mcp-swarm-record-replay</code></td><td>Record redacted wire traffic and replay it as recorded, at maximum rate, or paced.</td></tr>
@@ -152,7 +153,7 @@ botz mcp-swarm --version</code></pre>
             <tr><td><code>mcp-swarm-upgrade</code></td><td><code>/z-mcp-swarm-upgrade</code></td><td>Update the CLI and migrate saved suites to the current layout.</td></tr>
           </tbody>
         </table>
-        <p><code>mcp-swarm-compare</code> ships <code>scripts/runs-dataset.mjs</code>, which needs only Node.js.</p>
+        <p><code>mcp-swarm-compare</code> ships <code>scripts/runs-dataset.mjs</code> and <code>mcp-swarm-report</code> ships <code>scripts/run-dataset.mjs</code>; both need only Node.js.</p>
 
         <h2 id="usage">Usage</h2>
         <h3>In your agent</h3>
@@ -250,7 +251,7 @@ botz mcp-swarm compare --base base.json --head head.json</code></pre>
       </div>
 
       <footer class="site-footer">
-        <p>MCP Swarm v0.8.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+        <p>MCP Swarm v0.9.0 · part of <strong>zoto-agents</strong> · MIT License</p>
       </footer>
     </main>
   </div>
