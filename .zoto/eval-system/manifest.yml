@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-23T02:44:17.913Z
-git_ref: 469a11d95d06d6780893b72b5f66c70d264f7368
+updated_at: 2026-10-23T04:24:20.099Z
+git_ref: 4216e5745a90b47d1a0b08adb1de47b4258c23e3
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -59,6 +59,28 @@ targets:
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm/evals/evals.json
+  - id: skill:mcp-swarm-analyse
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/SKILL.md
+    content_hash: d75183dc923215da838595b05be0d5b4ec1033c89946869a24e61e5558a7ed12
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-analyse
+        description: Analyse a failed botz MCP Swarm run with the configured model,
+          review its proposed suite fixes one by one, and accept or reject them
+          by explicit proposal id. Nothing changes without a named id.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, shell access, and
+          botz-mcp-swarm-cli with `suite analyse`. Calling the model needs
+          SWARM_LLM_PROVIDER and its API key; reviewing a saved analysis does
+          not.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/evals/evals.json
   - id: skill:mcp-swarm-compare
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-compare/SKILL.md
@@ -646,6 +668,18 @@ targets:
           or to assess and improve a spec before running zoto-execute-spec.
     eval_files:
       - plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
+  - id: command:z-mcp-swarm-analyse
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-analyse.md
+    content_hash: 6b74128e85d4a024f8a546c59fbca7f143b6fd5d34112e3a30058b59cc109cd5
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-analyse
+        description: '"Run the mcp-swarm-analyse skill. Analyse a failed botz MCP Swarm
+          run, review proposed suite fixes, and accept or reject them by
+          explicit proposal id."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-analyse.json
   - id: command:z-mcp-swarm-compare
     kind: command
     path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-compare.md

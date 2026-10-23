@@ -1,0 +1,25 @@
+{
+  "target_id": "command:z-mcp-swarm-analyse",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-mcp-swarm-analyse why did the demo run fail, and what should change?",
+      "assertions": [
+        "The assistant follows the `mcp-swarm-analyse` skill's instructions for the request",
+        "The assistant runs the skill's setup step (checks `botz --version` and the mcp-swarm extension) before other botz commands",
+        "The assistant does not apply any proposal without explicit ids from the user"
+      ],
+      "expected_output": "The command hands the request to the `mcp-swarm-analyse` skill, which runs as if invoked directly."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-mcp-swarm-analyse accept p1, reject p3 from runs/demo-123.analysis.json",
+      "assertions": [
+        "The assistant passes the text after `/z-mcp-swarm-analyse` to the `mcp-swarm-analyse` skill as the user's request",
+        "The assistant uses only the ids p1 and p3",
+        "Every MCP Swarm command uses `botz mcp-swarm`"
+      ],
+      "expected_output": "The arguments reach the skill unchanged and the skill's own workflow and safety rules apply."
+    }
+  ]
+}
