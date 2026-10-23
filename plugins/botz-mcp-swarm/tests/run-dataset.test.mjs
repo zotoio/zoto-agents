@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
+import vm from "node:vm";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
-import { buildRunDataset, buildTimeline, clip, NO_SAMPLE, plannedVus, recordingSamples, renderHtml } from "../skills/mcp-swarm-report/scripts/run-dataset.mjs";
+import { buildRunDataset, buildTimeline, clip, NO_SAMPLE, percentiles, plannedVus, recordingSamples, renderHtml } from "../skills/mcp-swarm-report/scripts/run-dataset.mjs";
 
 const here = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "report");
 const reportFile = join(here, "runs", "botz-run-20261023T020000Z.json");
@@ -84,7 +85,7 @@ test("renders a select with escaped, inert embedded data", () => {
 
 test("measures TPS, errors, per-tool TPS, and VUs from the run log", () => {
   const d = buildRunDataset({ file: reportFile, report, suite });
-  assert.deepEqual(d.timelineSource, { tps: "measured (log)", vus: "measured (log)" });
+  assert.deepEqual(d.timelineSource, { tps: "measured (log)", latency: "measured (log)", vus: "measured (log)" });
   assert.equal(d.timeline.length, 60);
   assert.equal(d.timeline.reduce((s, r) => s + r.tps, 0), 967);
   assert.equal(d.timeline.reduce((s, r) => s + r.tpsErrors, 0), 19);
@@ -113,6 +114,39 @@ test("blanks seconds before a truncated log tail and reports not captured", () =
   assert.equal(tl.timeline[30].tps, 100);
   const none = buildRunDataset({ file: reportFile, report: { ...report, log: undefined, loadProfile: undefined }, suite });
   assert.deepEqual(none.timeline, []);
-  assert.deepEqual(none.timelineSource, { tps: "not captured", vus: "not captured" });
+  assert.deepEqual(none.timelineSource, { tps: "not captured", latency: "not captured", vus: "not captured" });
   assert.match(renderHtml(none), /Not captured/);
+});
+
+test("computes per-second overall and per-tool p50/p95 from the log", () => {
+  assert.equal(percentiles([]), null);
+  assert.deepEqual(percentiles([5, 1, 3, 2, 4]), { p50: 3, p95: 5 });
+  const d = buildRunDataset({ file: reportFile, report, suite });
+  assert.equal(d.timelineSource.latency, "measured (log)");
+  const spike = d.timeline[40], calm = d.timeline[20];
+  assert.ok(spike.byToolLatency.get_page.p95 > calm.byToolLatency.get_page.p95);
+  assert.ok(spike.latency.p95 >= spike.latency.p50);
+  for (const [k, l] of Object.entries(calm.byToolLatency)) assert.ok(calm.byTool[k] > 0 && l.p95 >= l.p50);
+  const noLat = buildRunDataset({ file: reportFile, report: { ...report, log: report.log.map(l => l.replace(/ latencyMs=\d+/, "")) }, suite });
+  assert.equal(noLat.timelineSource.latency, "not captured");
+  assert.ok(noLat.timeline.every(r => r.latency === null));
+});
+
+test("leaves latency blank before a truncated log tail", () => {
+  const start = Date.parse("2026-10-23T02:00:00.000Z");
+  const lines = Array.from({ length: 2000 }, (_, i) => `${new Date(start + 30000 + i * 10).toISOString().slice(11, 23)}  mcp.step  node=s1 phase=done result=ok latencyMs=${i % 10}`);
+  const tl = buildTimeline({ startedAt: "2026-10-23T02:00:00.000Z", durationMs: 60000, log: lines }, () => "search_docs");
+  assert.equal(tl.source.latency, "measured (log tail, partial)");
+  assert.equal(tl.timeline[10].latency, null);
+  assert.deepEqual(tl.timeline[30].byToolLatency.search_docs, { p50: 4, p95: 9 });
+});
+
+test("draws two panels and a selector script that parses and defaults to a failing tool", () => {
+  const html = renderHtml(buildRunDataset({ file: reportFile, report, suite }));
+  for (const id of ["tl-tool", "tl-tool-lat"]) assert.match(html, new RegExp(`id="${id}"`));
+  assert.match(html, />Response time \(ms\)</);
+  assert.match(html, />Calls\/s</);
+  const js = html.slice(html.lastIndexOf("<script>") + 8, html.lastIndexOf("</script>"));
+  assert.doesNotThrow(() => new vm.Script(js));
+  assert.match(js, /findIndex\(function\(x\)\{return x\.errorRate>0\}\)/);
 });

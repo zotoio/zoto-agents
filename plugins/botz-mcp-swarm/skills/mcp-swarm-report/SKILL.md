@@ -44,9 +44,9 @@ Each `tools[]` entry has `key` (`<alias>/<tool>` on multi-server runs), `count`,
 
 Never fill a missing sample yourself, and never call the target to get one.
 
-`timeline[]` has one row per second from the run start: `t` (seconds), `tps` (completed calls), `tpsErrors`, `byTool` (calls per tool key), `vus` (active virtual users), and `vusSource`. `timelineSource` says where each came from:
+`timeline[]` has one row per second from the run start: `t` (seconds), `tps` (completed calls), `tpsErrors`, `latency` (`{ p50, p95 }` in ms of the calls completed that second, or `null`), `byTool` (calls per tool key), `byToolLatency` (`{ p50, p95 }` per tool key), `vus` (active virtual users), and `vusSource`. `timelineSource` says where each came from:
 
-- TPS is `measured (log)` from the `mcp.step … phase=done` lines in the report's `log`. The CLI keeps only the last 2000 log lines, so on a long run it is `measured (log tail, partial)` and earlier seconds have `tps: null` (unknown, not zero).
+- TPS and response time are `measured (log)` from the `mcp.step … phase=done` lines (count and `latencyMs`) in the report's `log`. The CLI keeps only the last 2000 log lines, so on a long run it is `measured (log tail, partial)` and earlier seconds have `tps: null` and `latency: null` (unknown, not zero). Response time is `not captured` when the lines carry no `latencyMs`.
 - Virtual users are `measured (log)` from `mcp.load.vus` lines, otherwise `planned (from load profile)` from `loadProfile` (ramp-up, hold, ramp-down), which is the schedule, not what ran.
 - Either is `not captured` when the report has neither; `timeline` is then empty.
 
@@ -61,14 +61,17 @@ Every output names the MCP server under test by its name and its URL or command:
 - a header with the verdict (red when not `pass` or silent green), fail reasons, and stat cards for calls, error rate, concurrency, mode, duration, and flow p95 when present;
 - on multi-server runs, a servers table (alias, server, URL or command, calls, error rate, p95);
 - p50, p95, and p99 latency per tool as bars, and errors per tool by error class;
-- a dual-axis line chart over `timeline` (x = seconds from start): calls/s and errors/s on the left axis, virtual users on the right, with the TPS and VU sources from `timelineSource` in the subtitle. Draw planned VUs dashed and label them "planned (from load profile)"; leave `tps: null` seconds as gaps; show "not captured" instead of the chart when `timeline` is empty. Add the selected tool's calls/s (`byTool[key]`) as a further line that follows the tool selector;
+- one chart over `timeline` as two stacked panels sharing the x axis (seconds from start), with each panel's axis title above its plot area, not on it:
+  - top, **Response time (ms)**: overall p95 (strong) and p50 (lighter) from `latency`, plus the selected tool's p95 from `byToolLatency[key]`;
+  - bottom, **Calls/s** on the left axis and **Virtual users** on the right: calls/s, errors/s, virtual users, plus the selected tool's calls/s from `byTool[key]`;
+  - a subtitle with the response-time, TPS, and VU sources from `timelineSource`; planned VUs dashed and labelled "planned (from load profile)"; `null` seconds drawn as gaps; "not captured" instead of the chart when `timeline` is empty. The selected-tool lines follow the tool selector;
 - a **tool selector** (a dropdown or tabs over `tools[].key`, held in canvas state, defaulting to the first tool with errors, else the first tool). Selecting a tool shows its calls, error rate, p50/p95/p99, mean ± std, errors by class, and last error, and its sample request and sample response side by side as pretty-printed JSON in scrollable code blocks, each labelled with `sample.source` and marked when truncated, or showing "no sample captured";
 - the tool-eval results table and scenario outcomes when present, and worker and server memory and CPU over time from `process` when present;
 - the `notes` list.
 
 Pass every row; do not aggregate, downsample, or edit the samples.
 
-**Claude Code, Codex, and other clients without a canvas:** write the HTML page with `--html`, saved next to the report as `report-<server name>-<run id>.html` (server name in lowercase with non-alphanumerics replaced by `-`), and give the user its path. The page has the same timeline chart and tool `<select>`, which also redraws the selected tool's calls/s line, is self-contained, and makes no network requests. If the client can display HTML itself, it may show the page there instead.
+**Claude Code, Codex, and other clients without a canvas:** write the HTML page with `--html`, saved next to the report as `report-<server name>-<run id>.html` (server name in lowercase with non-alphanumerics replaced by `-`), and give the user its path. The page has the same two-panel chart and tool `<select>`, which also redraws the selected tool's p95 and calls/s lines, is self-contained, and makes no network requests. If the client can display HTML itself, it may show the page there instead.
 
 ## 4. Summarise
 
