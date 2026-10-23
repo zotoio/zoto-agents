@@ -1,0 +1,25 @@
+{
+  "name": "zoto-botz-skills",
+  "version": "0.2.0",
+  "description": "Consume governed Agent Skills and subagents from the hosted botz.ai MCP server (https://mcp.botz.ai/mcp, OAuth sign-in) with zero-drift version pinning.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-botz-skills",
+  "repository": "https://github.com/zotoio/zoto-agents",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "mcp",
+    "crux",
+    "agent-skills",
+    "governance"
+  ],
+  "displayName": "Botz Skills",
+  "category": "developer-tools",
+  "logo": "assets/logo.svg",
+  "skills": "./skills/",
+  "commands": "./commands/",
+  "mcp": "./mcp.json"
+}

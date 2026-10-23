@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "botz": {
+      "type": "http",
+      "url": "https://mcp.botz.ai/mcp"
+    }
+  }
+}

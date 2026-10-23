@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "zoto-botz-skills",
+  "version": "0.2.0",
+  "description": "Consume governed Agent Skills and subagents from the hosted botz.ai MCP server (https://mcp.botz.ai/mcp, OAuth sign-in) with zero-drift version pinning.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-botz-skills",
+  "repository": "https://github.com/zotoio/zoto-agents",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "mcp",
+    "crux",
+    "agent-skills",
+    "governance"
+  ],
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": false,
+      "interface": {
+        "displayName": "Botz Skills",
+        "shortDescription": "Governed skills from botz.ai",
+        "longDescription": "Connects your agent to the hosted botz.ai MCP server (https://mcp.botz.ai/mcp, OAuth sign-in, no static tokens). The botz-mcp skill locates skills and subagents semantically, downloads them as token-frugal CRUX documents, pins each by permanent guid and version in .botz/skills.lock.json, surfaces evolution updates, and requests new primitives conversationally when nothing fits.",
+        "developerName": "zotoio",
+        "category": "Developer Tools",
+        "websiteURL": "https://zotoio.github.io/zoto-agents/botz-skills/",
+        "composerIcon": "./assets/logo.svg",
+        "logo": "./assets/logo.svg"
+      }
+    }
+  }
+}

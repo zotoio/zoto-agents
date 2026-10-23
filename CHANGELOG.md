@@ -8,6 +8,13 @@ here. Per-plugin changes live in each plugin's own `CHANGELOG.md`:
 - [`plugins/zoto-cursor-top/CHANGELOG.md`](plugins/zoto-cursor-top/CHANGELOG.md)
 - [`plugins/botz-mcp-swarm/CHANGELOG.md`](plugins/botz-mcp-swarm/CHANGELOG.md)
 - [`plugins/crux-compress/CHANGELOG.md`](plugins/crux-compress/CHANGELOG.md)
+- [`plugins/zoto-botz-skills/CHANGELOG.md`](plugins/zoto-botz-skills/CHANGELOG.md)
+
+## [unreleased] — 2026-10-23
+
+### `zoto-botz-skills` plugin
+
+- Add `zoto-botz-skills` 0.2.0, moved from `zotoio/botz-mcp` (`marketplace/botz-skills/`). It ships the `botz-mcp` client skill, `/z-botz-mcp`, and a `botz` MCP entry for `https://mcp.botz.ai/mcp` (OAuth, no static tokens), and is registered in all three marketplaces. Docs page at `site/botz-skills/`.
 
 ## [unreleased] — 2026-10-14
 
