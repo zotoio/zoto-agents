@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-23T06:42:09.752Z
-git_ref: a90897b6bcd6fa384859ef4ec70ee011e8ef3c6f
+updated_at: 2026-10-25T09:05:34.291Z
+git_ref: 94b4804ca9f3268b32caae5a771bb800bdc56933
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -456,32 +456,32 @@ targets:
   - id: skill:botz-mcp
     kind: skill
     path: plugins/zoto-botz-skills/skills/botz-mcp/SKILL.md
-    content_hash: c32d8ed0f2ce9a1b0009d7b0c252fb38e0a385d9318f0b3f60404541905731af
+    content_hash: 792715feef3ea10d69d7aefb33fc31dfe55e4f6223248e237b9ca48c5b6c7895
     public_surface:
       frontmatter:
         name: botz-mcp
         description: Consume skills and subagent definitions from a botz-mcp server with
           zero-drift version pinning. Use whenever you need a capability you do
           not already have - dynamically locate a skill (skill_search) or
-          subagent role (agent_search), download it (skill_get, served as a CRUX
-          Compress document; agent_get, an installable definition rendered for
-          your client), apply it, and report the outcome (skill_feedback,
-          optionally with tokens/seconds telemetry). Silently maintains a
+          subagent role (agent_search), download its default unified CRUX bundle
+          via skill_get_compressed (incorporating SKILL.md + all references and
+          scripts in one call; or use skill_get for plain Markdown +
+          skill_resource_get on demand; agent_get for installable client
+          definitions), apply it, and report the outcome (skill_feedback, with
+          optional tokens/seconds telemetry). Silently maintains
           .botz/skills.lock.json pinning every consumed artifact by permanent
-          guid + version so forks and evolutions never change behaviour
-          unexpectedly; checks skill_updates for enhancements and notifies the
-          user (or auto-accepts when configured). Also covers requesting new
-          primitives (skill_request / agent_request) - creation is
-          CONVERSATIONAL, so send rich colleague-grade briefs and answer the
-          server's clarifying elicitations from real task context - QSC search
-          objectives (quality/speed/cost), and reading CRUX notation
-          (compress.md) in place.
+          guid + version; checks skill_updates for enhancements. Also covers
+          conversational creation (skill_request / agent_request), QSC
+          objectives, and reading CRUX notation in place.
         id: e15acdf95d3e485a93845e01468bb679
-        version: "3"
+        version: "4"
         changelog: ""
         "- 'v2": document whole-bundle CRUX serving and optional related-skill sourcing'
         "- 'v3": conversational creation, subagent definitions (agent_* tools), QSC
           objectives + telemetry'
+        "- 'v4": prefer skill_get_compressed (unified CRUX incorporating all references
+          and scripts); skill_get + skill_resource_get as plain-markdown
+          alternative'
     eval_files:
       - plugins/zoto-botz-skills/skills/botz-mcp/evals/evals.json
   - id: skill:zoto-cursor-top-monitor
