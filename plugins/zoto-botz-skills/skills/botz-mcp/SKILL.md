@@ -1,11 +1,12 @@
 ---
 name: botz-mcp
-description: Consume skills and subagent definitions from a botz-mcp server with zero-drift version pinning. Use whenever you need a capability you do not already have - dynamically locate a skill (skill_search) or subagent role (agent_search), download it (skill_get, served as a CRUX Compress document; agent_get, an installable definition rendered for your client), apply it, and report the outcome (skill_feedback, optionally with tokens/seconds telemetry). Silently maintains a .botz/skills.lock.json pinning every consumed artifact by permanent guid + version so forks and evolutions never change behaviour unexpectedly; checks skill_updates for enhancements and notifies the user (or auto-accepts when configured). Also covers requesting new primitives (skill_request / agent_request) - creation is CONVERSATIONAL, so send rich colleague-grade briefs and answer the server's clarifying elicitations from real task context - QSC search objectives (quality/speed/cost), and reading CRUX notation (compress.md) in place.
+description: Consume skills and subagent definitions from a botz-mcp server with zero-drift version pinning. Use whenever you need a capability you do not already have - dynamically locate a skill (skill_search) or subagent role (agent_search), download its default unified CRUX bundle via skill_get_compressed (incorporating SKILL.md + all references and scripts in one call; or use skill_get for plain Markdown + skill_resource_get on demand; agent_get for installable client definitions), apply it, and report the outcome (skill_feedback, with optional tokens/seconds telemetry). Silently maintains .botz/skills.lock.json pinning every consumed artifact by permanent guid + version; checks skill_updates for enhancements. Also covers conversational creation (skill_request / agent_request), QSC objectives, and reading CRUX notation in place.
 id: e15acdf95d3e485a93845e01468bb679
-version: 3
+version: 4
 changelog:
 - 'v2: document whole-bundle CRUX serving and optional related-skill sourcing'
 - 'v3: conversational creation, subagent definitions (agent_* tools), QSC objectives + telemetry'
+- 'v4: prefer skill_get_compressed (unified CRUX incorporating all references and scripts); skill_get + skill_resource_get as plain-markdown alternative'
 ---
 
 # Consuming skills via botz-mcp
@@ -39,20 +40,31 @@ Maintain `.botz/skills.lock.json` at the consuming repo root:
 ## Workflow
 
 1. `skill_search(query)` - describe the needed capability in plain language.
-2. Pick the best match and check the lock:
-   - guid in lock -> `skill_get(name=<guid>, version=<pinned>)`. Pinned reads
-     are immutable snapshots: forks, evolutions, or combinations of that
-     skill can NEVER change what you receive.
-   - not in lock -> `skill_get(name=<guid>)` (latest), then pin
+2. Pick the best match and check the lock — **prefer `skill_get_compressed` by default**:
+   - guid in lock -> `skill_get_compressed(name=<guid>, version=<pinned>)`.
+     Pinned reads are immutable snapshots: forks, evolutions, or combinations
+     of that skill can NEVER change what you receive.
+   - not in lock -> `skill_get_compressed(name=<guid>)` (latest), then pin
      `{guid: latest_version}` in the lock.
-3. The body arrives as a CRUX Compress document (`format: "crux"`) - read it
-   in place with the legend below; never ask for decompression. The document
-   compresses the ENTIRE skill bundle: SKILL.md plus every bundled reference
-   file, so nothing else needs fetching. `raw=true` exists only for quoting
-   original markdown (bundled files are then listed under `resources`).
+3. **Preferred CRUX Bundle vs Plain Markdown Alternative:**
+   - **Default (`skill_get_compressed`):** Every skill and agent on `botz-mcp`
+     carries a default CRUX-compressed version (`format: "crux"`, `crux_body`)
+     that incorporates the main `SKILL.md` body **plus all bundled
+     `references/` and `scripts/`** (`includes_references: true`,
+     `includes_scripts: true`) in a single self-contained payload. Read it in
+     place with the CRUX legend below; no separate `skill_resource_get` calls
+     are needed.
+   - **Alternative (`skill_get` + `skill_resource_get`):** When you need the
+     plain Markdown `SKILL.md` (for example to quote verbatim prose or inspect
+     one script file), call `skill_get(name=<guid>, raw=true)` to receive the
+     plain Markdown skill and its `resources` path list, and then request
+     individual `references/` or `scripts/` files on demand via
+     `skill_resource_get(name=<guid>, path="<references|scripts>/<file>")` as
+     required.
 4. OPTIONAL cross-skill sourcing: when the skill's `related` list (or body)
    names other skills and the task actually needs those capabilities, fetch
-   them too via `skill_get` (pin them in the lock like any other skill).
+   them too via `skill_get_compressed` (or `skill_get`) and pin them in the
+   lock like any other skill.
    Skip them when the primary skill suffices - related skills are optional.
 5. Apply the skill: follow its steps, honour edge cases, produce its output
    format.
@@ -117,7 +129,10 @@ skills; the lock file treats them identically (pin by guid + version).
    handshake and renders the right dialect (`.cursor/agents/<name>.md` for
    Cursor, `.claude/agents/<name>.md` for Claude Code; pass `client` to
    override). Write the file verbatim to the install path, then spawn the
-   subagent per your client's mechanism.
+   subagent per your client's mechanism. To inspect or apply the agent's
+   unified CRUX bundle (incorporating its system prompt plus all bundled
+   `references/` and `scripts/` in one call), use `agent_get_compressed(name)`
+   or `skill_get_compressed(name)`.
 3. Report outcomes with `skill_feedback` using the agent's name/guid, like
    any other artifact.
 

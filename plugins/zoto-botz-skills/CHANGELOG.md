@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+
+- Sync `botz-mcp` skill (v4) from `zotoio/botz-mcp`: reinforce preference for `skill_get_compressed` (and `agent_get_compressed`) which returns the default unified CRUX bundle incorporating the main skill/agent Markdown plus all `references/` and `scripts/` in a single call; document `skill_get(raw=true)` + `skill_resource_get` as the plain-Markdown alternative.
+
 ## 0.2.1
 
 - Sync the `botz-mcp` skill from zotoio/botz-mcp: on 401, IDE clients re-run the GitHub sign-in; only headless/CI callers use a `bzt_` API key as an `Authorization: Bearer` header.

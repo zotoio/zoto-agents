@@ -6,7 +6,7 @@ from the user. Docs: <https://zotoio.github.io/zoto-agents/botz-skills/>
 
 - **Locate** skills (`skill_search`) and subagents (`agent_search`)
   semantically and **download** them as token-frugal
-  [CRUX Compress](https://compress.md) documents (`skill_get` / `agent_get`).
+  [CRUX Compress](https://compress.md) bundles via `skill_get_compressed` / `agent_get_compressed` (incorporating `SKILL.md` + all `references/` and `scripts/` in one call; or plain Markdown via `skill_get` + `skill_resource_get` on demand; `agent_get` for installable client definitions).
 - **Zero drift**: every consumed artifact is pinned by permanent guid +
   version in `.botz/skills.lock.json`. Server-side forks, combinations, or
   evolutions never change what a pinned consumer receives.
