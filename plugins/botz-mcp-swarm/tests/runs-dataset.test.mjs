@@ -161,3 +161,14 @@ test("keeps same-named tools on different servers apart and scores the flow", ()
   assert.match(data.comparability.join("\n"), /schema changed since a for github\/search/);
   assert.match(data.comparability.join("\n"), /3 passes stopped at a missing required variable/);
 }));
+
+test("flags suite limit changes (maxCallCount and maxPayloadBytes) in comparability", () => withRuns([
+  report("a", "2026-01-01", [tool("echo", 10)], { limits: { maxCallCount: 100000, maxPayloadBytes: 1048576 } }),
+  report("b", "2026-01-02", [tool("echo", 10)], { limits: { maxCallCount: 500, maxPayloadBytes: 262144 } }),
+], dir => {
+  const data = buildDataset(loadReports([dir]));
+  assert.deepEqual(data.runs.map(r => [r.maxCallCount, r.maxPayloadBytes]), [[100000, 1048576], [500, 262144]]);
+  const notes = data.comparability.join("\n");
+  assert.match(notes, /b: maxCallCount differs from the first run \(100000 → 500\)/);
+  assert.match(notes, /b: maxPayloadBytes differs from the first run \(1048576 → 262144\)/);
+}));

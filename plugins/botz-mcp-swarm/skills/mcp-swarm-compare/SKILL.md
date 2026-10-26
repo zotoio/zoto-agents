@@ -57,7 +57,7 @@ Every output names the MCP server under test by its name and its URL or command:
 
 ## 3. Check comparability first
 
-Read `comparability` before drawing conclusions. Different suites, transports, modes, concurrency, iterations, hold durations, or parameters make latency differences meaningless on their own. Fewer than 30 samples per tool make p95 and p99 unreliable. Exclude silent-green runs and explain failed verdicts. Reports carry the suite's tool `catalog`. A tool whose schema hash changed between two runs is listed in `comparability` and is not scored for regressions, matching `compare`. The catalog is the one recorded when the suite was captured or last refreshed, so suggest `botz mcp-swarm suite refresh --suite <name> --dry-run` if the server may have changed since. Reports without a catalog (CLI 0.6.1 and earlier) are listed, because schema changes involving them cannot be detected.
+Read `comparability` before drawing conclusions. Different suites, transports, modes, concurrency, iterations, hold durations, suite `limits` (`maxCallCount`, `maxPayloadBytes`), or parameters make latency differences meaningless on their own. Fewer than 30 samples per tool make p95 and p99 unreliable. Exclude silent-green runs and explain failed verdicts. Reports carry the suite's tool `catalog`. A tool whose schema hash changed between two runs is listed in `comparability` and is not scored for regressions, matching `compare`. The catalog is the one recorded when the suite was captured or last refreshed, so suggest `botz mcp-swarm suite refresh --suite <name> --dry-run` if the server may have changed since. Reports without a catalog (CLI 0.6.1 and earlier) are listed, because schema changes involving them cannot be detected.
 
 ## 4. Visualise
 

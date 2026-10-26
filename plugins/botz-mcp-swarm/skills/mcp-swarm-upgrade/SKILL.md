@@ -118,4 +118,15 @@ Every previously saved suite should be listed and valid. Only run a suite agains
 
 The CLI still reads suites and credentials from the 0.5 locations, so an un-migrated project keeps working, but new files go to the new layout.
 
-Multi-server suites (`suite server add`, `schemaVersion: 2` suite files) need a CLI that has `botz mcp-swarm suite server --help`. Nothing moves on disk: single-server suites stay version 1, and a CLI without multi-server support refuses a version 2 suite with an upgrade message rather than running it against one server. After updating, check one multi-server suite with `suite validate`.
+Multi-server suites (`suite server add`, `schemaVersion: 2` suite files) need a CLI that has `botz mcp-swarm suite server --help` (`0.11.1+`). Nothing moves on disk: single-server suites stay version 1, and a CLI without multi-server support refuses a version 2 suite with an upgrade message rather than running it against one server. After updating, check one multi-server suite with `suite validate`.
+
+## Feature highlights through CLI 0.11.2
+
+| Release | Highlights (no file moves required) |
+| --- | --- |
+| 0.8.0 | Automatic rate-limit retries with exponential backoff + jitter (`load.retry`, `rate_limit` error class separate from `auth`, `report.retries`) |
+| 0.9.0 | `suite analyse` (`--apply <ids>`, `--reject <ids>`), `loadTimeline` (overall and per-tool active VUs & TPS over time), `sampleResults`, and `timeSeries` |
+| 0.10.0 | Configurable suite `limits` (`maxCallCount`, `maxPayloadBytes`, `--max-call-count`, `--max-payload-bytes`, `SWARM_MAX_CALL_COUNT`, `SWARM_MAX_PAYLOAD_BYTES`, `report.limits`) |
+| 0.11.0 | Graceful `rampDown` (`--ramp-down-strategy graceful|immediate`, `--drain-timeout-ms`, `report.rampDown` counting drain cut-offs as cancelled rather than errors) |
+| 0.11.1 | Multi-server suites (`schemaVersion: 2`, `servers`, `suite server`, `--target <alias>=<url>`), multi-server graceful ramp-down, and `sampleResults` extractor redaction |
+| 0.11.2 | Current release: `@cursor/sdk` `^1.0.40` bump fixing the `grok-4.7` default variant on local runtime |

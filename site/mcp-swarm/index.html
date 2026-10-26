@@ -144,25 +144,31 @@ botz mcp-swarm --version</code></pre>
           <thead><tr><th>Skill</th><th>Command</th><th>Use it to</th></tr></thead>
           <tbody>
             <tr><td><code>mcp-swarm-guided</code></td><td><code>/z-mcp-swarm-guided</code></td><td>Be walked through testing a server: target, credentials, test data, tool selection, and load, then capture, review, run, and summary.</td></tr>
-            <tr><td><code>mcp-swarm</code></td><td><code>/z-mcp-swarm</code></td><td>Capture, validate, refresh, and run suites directly.</td></tr>
+            <tr><td><code>mcp-swarm</code></td><td><code>/z-mcp-swarm</code></td><td>Capture, validate, refresh, and run suites directly, including suites that call several servers.</td></tr>
+            <tr><td><code>mcp-swarm-flow</code></td><td><code>/z-mcp-swarm-flow</code></td><td>Turn a task described in words into a suite whose steps call several MCP servers in order and pass values between them.</td></tr>
+            <tr><td><code>mcp-swarm-report</code></td><td><code>/z-mcp-swarm-report</code></td><td>Visualise one run in Cursor's <code>/canvas</code> or a self-contained HTML page, with VUs/TPS over time (<code>loadTimeline</code>/<code>timeSeries</code>) and a tool selector showing each tool's latency, errors, and sample request and response.</td></tr>
             <tr><td><code>mcp-swarm-compare</code></td><td><code>/z-mcp-swarm-compare</code></td><td>Compare two runs or a series, and chart latency, error rate, and tool-eval trends in Cursor's <code>/canvas</code> or a self-contained HTML page.</td></tr>
             <tr><td><code>mcp-swarm-descriptions</code></td><td><code>/z-mcp-swarm-descriptions</code></td><td>Review a server's tool descriptions, examine <code>optimize</code> suggestions, and measure a change with tool evals.</td></tr>
             <tr><td><code>mcp-swarm-record-replay</code></td><td><code>/z-mcp-swarm-record-replay</code></td><td>Record redacted wire traffic and replay it as recorded, at maximum rate, or paced.</td></tr>
             <tr><td><code>mcp-swarm-diagnose</code></td><td><code>/z-mcp-swarm-diagnose</code></td><td>Explain failed runs, missing credentials, and regressions.</td></tr>
+            <tr><td><code>mcp-swarm-analyse</code></td><td><code>/z-mcp-swarm-analyse</code></td><td>Have the model propose suite fixes for a failed run; review and accept or reject each proposal by explicit id.</td></tr>
             <tr><td><code>mcp-swarm-upgrade</code></td><td><code>/z-mcp-swarm-upgrade</code></td><td>Update the CLI and migrate saved suites to the current layout.</td></tr>
           </tbody>
         </table>
-        <p><code>mcp-swarm-compare</code> ships <code>scripts/runs-dataset.mjs</code>, which needs only Node.js.</p>
+        <p><code>mcp-swarm-compare</code> ships <code>scripts/runs-dataset.mjs</code> and <code>mcp-swarm-report</code> ships <code>scripts/run-dataset.mjs</code>; both need only Node.js.</p>
 
         <h2 id="usage">Usage</h2>
         <h3>In your agent</h3>
         <pre><code>/z-mcp-swarm-guided https://api.example.com/mcp
 /z-mcp-swarm capture http://127.0.0.1:3000/mcp as docs-server and run it
 /z-mcp-swarm run docs-server with concurrency 4 for 30 seconds
+/z-mcp-swarm-flow find an open bug in GitHub, file it in Jira, and post to #triage
+/z-mcp-swarm-report the latest docs-server run
 /z-mcp-swarm-compare the last two docs-server runs
 /z-mcp-swarm-descriptions docs-server
 /z-mcp-swarm-record-replay record node server.mjs
 /z-mcp-swarm-diagnose why did the docs-server run exit 2?
+/z-mcp-swarm-analyse why did the docs-server run fail, and what should change?
 /z-mcp-swarm-upgrade preview only</code></pre>
 
         <h3>CLI commands the skills run</h3>
@@ -172,8 +178,17 @@ botz mcp-swarm suite validate --suite docs-server --json
 botz mcp-swarm doctor --suite docs-server --json
 botz mcp-swarm suite run --suite docs-server --format json
 
+# Add a second server to a multi-server suite and override one server at run time
+botz mcp-swarm suite capture --url https://gh.example/mcp --name triage --alias github --bearer-env GH_TOKEN
+botz mcp-swarm suite server add --suite triage --alias jira --url https://jira.example/mcp --bearer-env JIRA_TOKEN
+botz mcp-swarm suite run --suite triage --target jira=https://staging-jira.example/mcp --bearer-env jira=JIRA_STAGING_TOKEN
+
 # Inspect server drift without executing target tools
 botz mcp-swarm suite refresh --suite docs-server --dry-run
+
+# Propose reviewed fixes for a failed run and apply or reject by explicit id
+botz mcp-swarm suite analyse docs-server --format json
+botz mcp-swarm suite analyse docs-server --from .botz/mcp-swarm/runs/botz-run-123.analysis.json --apply p1
 
 # Compare two run reports
 botz mcp-swarm compare --base base.json --head head.json</code></pre>
@@ -194,9 +209,11 @@ botz mcp-swarm compare --base base.json --head head.json</code></pre>
           <tbody>
             <tr><td>Suite location</td><td><code>.botz/mcp-swarm/suites/&lt;name&gt;</code> at the Git root, or <code>~/.botz/mcp-swarm/suites</code> outside a repository.</td></tr>
             <tr><td><code>suitesDir</code></td><td>Set in <code>.botz/mcp-swarm/settings.json</code> to store suites elsewhere.</td></tr>
-            <tr><td>Credentials</td><td>Pass environment references, e.g. <code>--bearer-env MCP_TOKEN</code> or <code>--header-env X-Api-Key=MCP_KEY</code> (stdio: <code>--env-from K=VAR</code>). Secrets are never printed or written to suite files. A <code>--url</code> / <code>--target-file</code> override replaces saved credentials.</td></tr>
-            <tr><td>Load</td><td><code>--duration-ms</code>, <code>--concurrency</code>, and optionally <code>--ramp-up-ms</code> / <code>--ramp-down-ms</code>.</td></tr>
-            <tr><td>Inference</td><td>Opt-in with <code>--inference</code>; needs model configuration. Ordinary capture and runs need no model credentials.</td></tr>
+            <tr><td>Credentials</td><td>Pass environment references, e.g. <code>--bearer-env MCP_TOKEN</code> or <code>--header-env X-Api-Key=MCP_KEY</code> (stdio: <code>--env-from K=VAR</code>). For multi-server suites, prefix with the server alias (<code>--bearer-env jira=JIRA_TOKEN</code>, <code>--header-env jira:X-Api-Key=JIRA_KEY</code>) and override endpoints with <code>--target &lt;alias&gt;=&lt;url&gt;</code>. Secrets are never printed or written to suite files.</td></tr>
+            <tr><td>Load &amp; ramp-down</td><td><code>--duration-ms</code>, <code>--concurrency</code>, <code>--ramp-up-ms</code>, <code>--ramp-down-ms</code>, <code>--ramp-down-strategy &lt;graceful|immediate&gt;</code> (default <code>graceful</code>), and <code>--drain-timeout-ms &lt;ms&gt;</code>. Passes or session opens cut off after the drain deadline count under <code>report.rampDown</code> as cancelled rather than errors.</td></tr>
+            <tr><td>Suite limits</td><td><code>limits</code> in <code>suite.json</code> (<code>maxCallCount</code> default 100000, <code>maxPayloadBytes</code> default 1048576), overridden with <code>--max-call-count &lt;n&gt;</code> / <code>--max-payload-bytes &lt;n&gt;</code> or <code>SWARM_MAX_CALL_COUNT</code> / <code>SWARM_MAX_PAYLOAD_BYTES</code> (recorded in <code>report.limits</code>).</td></tr>
+            <tr><td>Rate-limit retries</td><td>HTTP 429, <code>Retry-After</code> headers, and rate-limit errors use the <code>rate_limit</code> error class (separate from <code>auth</code>) and are retried automatically with exponential backoff + jitter (<code>load.retry</code>; <code>{ "enabled": false }</code> disables it), recorded in <code>report.retries</code>.</td></tr>
+            <tr><td>Inference &amp; analyse</td><td>Opt-in with <code>--inference</code> for model evals, or <code>suite analyse &lt;suite&gt;</code> to propose reviewed fixes (<code>--apply &lt;ids&gt;</code> / <code>--reject &lt;ids&gt;</code>). Ordinary capture and runs need no model credentials.</td></tr>
             <tr><td>Legacy layout</td><td><code>.botz/suites</code> (pre-0.6) is still read; use <code>mcp-swarm-upgrade</code> to move it rather than editing it.</td></tr>
           </tbody>
         </table>
@@ -250,7 +267,7 @@ botz mcp-swarm compare --base base.json --head head.json</code></pre>
       </div>
 
       <footer class="site-footer">
-        <p>MCP Swarm v0.8.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+        <p>MCP Swarm v0.9.0 · part of <strong>zoto-agents</strong> · MIT License</p>
       </footer>
     </main>
   </div>

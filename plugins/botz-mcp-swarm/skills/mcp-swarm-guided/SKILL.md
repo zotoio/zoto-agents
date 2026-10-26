@@ -99,7 +99,9 @@ Ask for a profile, recommending the lightest that answers the user's question, a
 | Smoke (default): each enabled step once | none |
 | Light load | `--concurrency 2 --duration-ms 30000 --ramp-up-ms 5000` |
 | Sustained | `--concurrency 4 --duration-ms 120000 --ramp-up-ms 10000 --ramp-down-ms 5000` |
-| Custom | ask for concurrency, duration, and ramp times |
+| Custom | ask for concurrency, duration, ramp times, and optional ramp-down strategy (`--ramp-down-strategy graceful|immediate`, `--drain-timeout-ms <ms>`) or suite limits (`--max-call-count <n>`, `--max-payload-bytes <n>`) |
+
+Graceful ramp-down is the default (`load.rampDown: { strategy, drainTimeoutMs, passEstimateMs }`): virtual users retire linearly across `rampDownMs` and finish in-flight passes, and any pass or server session open cut off after the drain deadline counts as cancelled (`report.rampDown.cancelledByRampDown` / `incompletePasses`), not as an error. Suite call-count and payload limits default to 100000 calls and 1048576 bytes and can be set in `suite.json` under `limits`, via `--max-call-count` / `--max-payload-bytes`, or via `SWARM_MAX_CALL_COUNT` / `SWARM_MAX_PAYLOAD_BYTES` (recorded in `report.limits`).
 
 ## 7. Run
 
@@ -113,11 +115,12 @@ Exit codes: 0 pass, 1 failed verdict, 2 configuration or execution error, 130 or
 
 For a multi-server suite, report each server (`<alias>: <server name> (<URL or command>)`) with its calls, error rate, and p95 from the report's `servers`, then the flow: passes, failed passes, passes stopped at a missing value, and whole-pass p95. Name the first server whose calls failed.
 
-Report the server (`<server name> <version> (<URL or command>)`), the verdict, executed coverage (calls per tool against the enabled steps), failures with reasons, tool-eval results when inference was on, and the report paths. Never call a run successful because a report exists or when no enabled tool executed.
+Report the server (`<server name> <version> (<URL or command>)`), the verdict, executed coverage (calls per tool against the enabled steps), overall and per-tool peak/average active VUs and TPS from `report.loadTimeline.summary` (`overall` and `tools`), enforced `report.limits` and `report.rampDown` cut-offs (`incompletePasses`, `cancelledByRampDown`, `skippedPasses`) when present, failures with reasons, tool-eval results when inference was on, and the report paths. Never call a run successful because a report exists or when no enabled tool executed.
 
 Then ask what to do next:
 
+- visualise this run, with a tool selector showing each tool's latency, errors, and sample request and response (the `mcp-swarm-report` skill);
 - compare with earlier runs of this server (the `mcp-swarm-compare` skill);
 - review the server's tool descriptions (`mcp-swarm-descriptions`);
-- investigate a failure (`mcp-swarm-diagnose`);
+- investigate a failure (`mcp-swarm-diagnose`) or have the model propose reviewed suite fixes (`mcp-swarm-analyse`);
 - rerun with a different load profile, or stop.

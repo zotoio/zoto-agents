@@ -92,6 +92,8 @@ const shape = report => ({
   concurrency: report.loadProfile?.maxConcurrency ?? null,
   iterations: report.loadProfile?.iterations ?? null,
   holdMs: report.loadProfile?.durationMs ?? null,
+  maxCallCount: report.limits?.maxCallCount ?? null,
+  maxPayloadBytes: report.limits?.maxPayloadBytes ?? null,
   params: JSON.stringify(report.params ?? {}),
 });
 
@@ -112,6 +114,7 @@ export function buildDataset(loaded, title) {
       ...shape(report),
       durationMs: report.durationMs,
       callCount: report.quotas?.callCount ?? null,
+      limits: report.limits ?? null,
       toolEvalCount: evals.length,
       toolEvalPassRate: evals.length ? evals.filter(e => e.pass).length / evals.length : null,
       serverCount: report.servers?.length ?? 1,
