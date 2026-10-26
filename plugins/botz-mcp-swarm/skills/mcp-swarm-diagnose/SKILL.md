@@ -36,7 +36,14 @@ Validation checks suite structure and parameter examples. Doctor checks credenti
 
 Distinguish configuration/execution errors from failed assertions, SLO failures, and interrupted runs. Saved-suite run exit codes are 0 pass, 1 failed verdict, 2 configuration/execution error, and 130/143 interruption. Offline diagnostics use 1 for failed checks. Manifest runs have different error semantics; inspect their report rather than inferring the cause from exit 1 alone.
 
-Inspect enabled steps and actual operation counts. A green-looking summary with no meaningful execution is not evidence of correctness. Preserve assertions while fixing malformed arguments or credential references. If target schema drift is suspected, `suite refresh --suite demo --dry-run` contacts the server without executing its tools; review the diff before applying refresh.
+Inspect enabled steps, actual operation counts, and `report.loadTimeline.summary` (`overall` and `tools`) for overall and per-tool peak/average active VUs and TPS. A green-looking summary with no meaningful execution is not evidence of correctness. Preserve assertions while fixing malformed arguments or credential references. If target schema drift is suspected, `suite refresh --suite demo --dry-run` contacts the server without executing its tools; review the diff before applying refresh.
+
+Check rate-limit retries, suite limits, and ramp-down accounting in the report before treating transient or drain-time events as server bugs:
+
+- **Rate-limit retries (`report.retries`, `nodeOutcomes[].retries`):** HTTP 429 responses, `Retry-After` headers, and rate-limit / quota messages are classified as `rate_limit` (separate from `auth`) and retried automatically with exponential backoff and full jitter (`load.retry`, or `retry: { enabled: false }` to disable). Retries are counted separately in `report.retries` and `nodeOutcomes[].retries` and do not count toward the suite's error limit until retries are exhausted.
+- **Suite limits (`report.limits`):** `maxCallCount` (default 100000) and `maxPayloadBytes` (default 1048576) are configured via `limits` in `suite.json`, `--max-call-count <n>` / `--max-payload-bytes <n>` on `run --suite`, or `SWARM_MAX_CALL_COUNT` / `SWARM_MAX_PAYLOAD_BYTES`. Check `report.limits` and `quotas` when a run stops early or fails with `quota` errors.
+- **Graceful ramp-down (`report.rampDown`):** with graceful ramp-down (`load.rampDown: { strategy: "graceful" | "immediate", drainTimeoutMs, passEstimateMs }`, `--ramp-down-strategy`, `--drain-timeout-ms`), passes or server session opens cut off after the drain deadline on any server are recorded in `report.rampDown` (`incompletePasses`, `cancelledByRampDown`, `skippedPasses`) as cancelled rather than errors or unreachable servers, and do not fail the suite.
+- **Extractor sample redaction (`sampleResults`):** when a suite uses `extract` steps, both `redactedArgs` and `sampleResults` redact extracted variable values to `${name}` in `args`, and `sampleResults` omits raw response bodies so extracted secrets never leak into reports.
 
 For a multi-server suite (a report with more than one entry in `servers`), read per server before anything else:
 
@@ -55,4 +62,4 @@ botz mcp-swarm compare --base base.json --head head.json
 
 Compare target, workload, concurrency, duration, and enabled tool coverage before attributing latency or error changes to a regression. Separate telemetry delivery failures from test verdicts. Re-run only within the user's authorized target and load limits, and summarize the observed cause, correction, and remaining uncertainty.
 
-To show the user a failing run, offer the `mcp-swarm-report` skill (`/z-mcp-swarm-report`): its tool selector shows each tool's errors by class, last error, and sample request and response.
+To show the user a failing run, offer the `mcp-swarm-report` skill (`/z-mcp-swarm-report`): its tool selector shows each tool's errors by class, last error, sample request and response, and VUs/TPS over time. To have the configured model propose reviewed JSON-patch fixes for a failed run, offer the `mcp-swarm-analyse` skill (`/z-mcp-swarm-analyse`).

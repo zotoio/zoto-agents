@@ -1,6 +1,6 @@
 ---
 name: z-mcp-swarm-report
-description: "Run the mcp-swarm-report skill. Visualise one botz MCP Swarm run in Cursor's /canvas or a self-contained HTML page, with a tool selector showing each tool's latency, errors, and a sample request and response. Use after a run, or to explain a run report."
+description: "Run the mcp-swarm-report skill. Visualise one botz MCP Swarm run in Cursor's /canvas or a self-contained HTML page, with overall and per-tool VUs/TPS over time (loadTimeline/timeSeries) and a tool selector showing each tool's latency, errors, and sample request/response."
 ---
 
 # z-mcp-swarm-report

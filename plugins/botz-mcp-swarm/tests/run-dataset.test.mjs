@@ -221,3 +221,67 @@ test("multi-server sampleResults follow the entry's node to its alias", () => {
   assert.equal(d.tools[1].sample.source.response, "sampleResults");
   assert.ok(d.notes.some(n => /tools by name only/.test(n)));
 });
+
+test("CLI >= 0.9.0: prefers loadTimeline for VUs/TPS and surfaces overall and per-tool peak/avg summary", () => {
+  const withLt = {
+    ...v2,
+    limits: { maxCallCount: 50000, maxPayloadBytes: 524288 },
+    rampDown: { strategy: "graceful", drainDeadlineMs: 65000, incompletePasses: 2, cancelledByRampDown: 3, skippedPasses: 1 },
+    loadTimeline: {
+      bucketMs: 1000,
+      durationMs: 2000,
+      points: [
+        { tMs: 0, vus: 2, tps: 14, errors: 1, tools: { get_page: { calls: 8, errors: 1, peakInFlight: 2 }, search_docs: { calls: 6, errors: 0, peakInFlight: 1 } } },
+        { tMs: 1000, vus: 4, tps: 20, errors: 0, tools: { get_page: { calls: 10, errors: 0, peakInFlight: 3 }, search_docs: { calls: 10, errors: 0, peakInFlight: 2 } } },
+      ],
+      summary: {
+        overall: { peakVus: 4, avgVus: 3, peakTps: 20, avgTps: 17, calls: 34, errors: 1 },
+        tools: {
+          get_page: { peakVus: 3, avgVus: 2.5, peakTps: 10, avgTps: 9, calls: 18, errors: 1 },
+          search_docs: { peakVus: 2, avgVus: 1.5, peakTps: 10, avgTps: 8, calls: 16, errors: 0 },
+        },
+      },
+    },
+  };
+  const d = buildRunDataset({ file: v2File, report: withLt, suite });
+  assert.deepEqual(d.timelineSource, { tps: "measured (loadTimeline)", latency: "measured (timeSeries)", vus: "measured (loadTimeline)" });
+  assert.equal(d.timeline.length, 2);
+  assert.equal(d.timeline[1].vus, 4);
+  assert.equal(d.timeline[1].tps, 20);
+  assert.equal(d.timeline[1].byToolInFlight.get_page, 3);
+  assert.ok(d.timeline[0].latency.p95 >= d.timeline[0].latency.p50);
+  assert.deepEqual(d.loadTimeline.summary.overall, {
+    peakVus: 4, avgVus: 3, peakActiveVus: 4, avgActiveVus: 3, peakTps: 20, avgTps: 17, calls: 34, errors: 1,
+  });
+  assert.deepEqual(d.run.limits, { maxCallCount: 50000, maxPayloadBytes: 524288 });
+  assert.deepEqual(d.run.rampDown, { strategy: "graceful", drainDeadlineMs: 65000, incompletePasses: 2, cancelledByRampDown: 3, skippedPasses: 1 });
+  const page = d.tools.find(t => t.key === "get_page");
+  assert.deepEqual(page.load, {
+    peakVus: 3, avgVus: 2.5, peakActiveVus: 3, avgActiveVus: 2.5, peakTps: 10, avgTps: 9, calls: 18, errors: 1,
+  });
+  assert.ok(d.notes.some(n => /Ramp-down \(graceful\): 2 incomplete passes, 3 calls cancelled/.test(n)));
+  const html = renderHtml(d);
+  assert.match(html, /Peak \/ avg VUs/);
+  assert.match(html, /4 \/ 3/);
+  assert.match(html, /Peak \/ avg TPS/);
+  assert.match(html, /20 \/ 17/);
+});
+
+test("notes extractor sample redaction when suite uses extractors", () => {
+  const extSuite = {
+    defaultServer: "docs",
+    nodes: [
+      { id: "s1", type: "sampler", method: "tools/call", tool: "search_docs", args: { q: "open" } },
+      { id: "e1", type: "extractor", path: "structuredContent.id", variable: "docId", required: true },
+      { id: "s2", type: "sampler", method: "tools/call", tool: "get_page", args: { slug: "${docId}" } },
+    ],
+  };
+  const extReport = {
+    ...v2,
+    sampleResults: [
+      { tool: "get_page", success: { atMs: 10, latencyMs: 5, nodeId: "s2", args: { slug: "${docId}" }, responseBytes: 120 } },
+    ],
+  };
+  const d = buildRunDataset({ file: v2File, report: extReport, suite: extSuite });
+  assert.ok(d.notes.some(n => /sampleResults redacts extracted variable values to \$\{name\} in args and omits response bodies/.test(n)));
+});

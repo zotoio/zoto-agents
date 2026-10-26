@@ -6,11 +6,11 @@
  *   node run-dataset.mjs [--suites <dir>] [--recording [<alias>=]<file>]... [--max-sample-bytes <n>]
  *                        [--title <text>] [--html <file>] <report.json>
  *
- * Prints JSON { title, server, servers, run, flow, tools, timeline, timelineSource, nodes, toolEvals, scenarios, process, notes }.
- * timeline[] = { t (s from start), tps, tpsErrors, latency {p50,p95}, vus, vusSource, byTool, byToolLatency }: TPS measured from report.log step
- * lines; VUs measured from mcp.load.vus lines, else planned from loadProfile; otherwise "not captured".
- * With CLI >= 0.9.0 the timeline comes from report.timeSeries (per-second buckets for the whole run; vusSource
- * "timeSeries", never partial) and falls back to log parsing for older reports.
+ * Prints JSON { title, server, servers, run, flow, loadTimeline, tools, timeline, timelineSource, nodes, toolEvals, scenarios, process, notes }.
+ * timeline[] = { t (s from start), tps, tpsErrors, latency {p50,p95}, vus, vusSource, byTool, byToolInFlight, byToolLatency }:
+ * With CLI >= 0.9.0 the timeline prefers report.loadTimeline (buckets/points and summary.overall / summary.tools with
+ * peakActiveVus, avgActiveVus, peakTps, avgTps) alongside report.timeSeries (per-second latency p50/p95 and byToolLatency
+ * for the whole run; never partial), falling back to report.log step/vus lines and loadProfile for older reports.
  * Each tool carries `sample`: { request, response, source: { request, response }, truncated, errorSample }.
  *   CLI >= 0.9.0: report.sampleResults (first success, else first error; source "sampleResults"), with the first
  *             error in `errorSample` { request, response, errorClass, errorMessage, atMs, latencyMs, nodeId, truncated }.
@@ -116,6 +116,122 @@ function payload(v) {
  * only active seconds (very long runs), missing seconds are filled as idle with the last known VUs.
  * `keyForTool(name)` maps the bucket's bare tool name to the dataset's tool key (null drops it).
  */
+/** Normalize a loadTimeline stats block so both peakVus/avgVus and peakActiveVus/avgActiveVus are present. */
+export function normalizeLoadStats(s) {
+  if (!s || typeof s !== "object") return null;
+  const peakVus = s.peakVus ?? s.peakActiveVus ?? 0;
+  const avgVus = s.avgVus ?? s.avgActiveVus ?? 0;
+  const peakTps = s.peakTps ?? 0;
+  const avgTps = s.avgTps ?? 0;
+  return {
+    peakVus,
+    avgVus,
+    peakActiveVus: peakVus,
+    avgActiveVus: avgVus,
+    peakTps,
+    avgTps,
+    calls: s.calls ?? 0,
+    errors: s.errors ?? 0,
+  };
+}
+
+/** Normalize report.loadTimeline (buckets/points and summary.overall / summary.tools). */
+export function normalizeLoadTimeline(lt, keyForTool = n => n) {
+  if (!lt || typeof lt !== "object") return null;
+  const bucketMs = lt.bucketMs ?? 1000;
+  const durationMs = lt.durationMs ?? null;
+  const raw = Array.isArray(lt.buckets) ? lt.buckets : Array.isArray(lt.points) ? lt.points : [];
+  const buckets = raw.map(p => {
+    const tMs = p.tMs ?? (p.t ?? 0) * 1000;
+    const t = p.t ?? Math.round(tMs / 1000);
+    const tools = {};
+    for (const [name, tp] of Object.entries(p.tools ?? p.byTool ?? {})) {
+      const k = keyForTool(name);
+      if (!k) continue;
+      tools[k] = {
+        calls: tp.calls ?? 0,
+        errors: tp.errors ?? 0,
+        peakInFlight: tp.peakInFlight ?? tp.inFlight ?? tp.vus ?? 0,
+      };
+    }
+    return {
+      t,
+      tMs,
+      vus: p.vus ?? p.activeVus ?? 0,
+      tps: p.tps ?? p.calls ?? 0,
+      errors: p.errors ?? 0,
+      tools,
+    };
+  });
+  const overall = normalizeLoadStats(lt.summary?.overall);
+  const tools = {};
+  for (const [name, s] of Object.entries(lt.summary?.tools ?? {})) {
+    const k = keyForTool(name);
+    if (!k) continue;
+    tools[k] = normalizeLoadStats(s);
+  }
+  return {
+    bucketMs,
+    durationMs,
+    buckets,
+    points: buckets,
+    summary: { overall, tools },
+  };
+}
+
+/**
+ * Timeline from report.loadTimeline (CLI >= 0.9.0). When report.timeSeries is also present, per-second
+ * p50/p95 latency and byToolLatency are merged from timeSeries so both panels have full-run measured data.
+ */
+export function timelineFromLoadTimeline(lt, keyForTool = n => n, timeSeries = null) {
+  const norm = normalizeLoadTimeline(lt, keyForTool);
+  const seriesByT = Array.isArray(timeSeries) && timeSeries.length ? new Map(timeSeries.map(b => [b.t, b])) : null;
+  const bucketSec = Math.max(1, (norm.bucketMs ?? 1000) / 1000);
+  const timeline = norm.buckets.map(p => {
+    const b = seriesByT?.get(p.t);
+    const byTool = {}, byToolInFlight = {}, byToolLatency = {};
+    for (const [k, tp] of Object.entries(p.tools ?? {})) {
+      const spanSec = norm.durationMs != null ? Math.max(1, Math.min(norm.bucketMs ?? 1000, norm.durationMs - p.tMs)) / 1000 : bucketSec;
+      byTool[k] = Math.round(((tp.calls ?? 0) / spanSec) * 100) / 100;
+      byToolInFlight[k] = tp.peakInFlight ?? 0;
+    }
+    if (b) {
+      for (const [name, c] of Object.entries(b.byTool ?? {})) {
+        const k = keyForTool(name);
+        if (!k) continue;
+        const l = b.byToolLatency?.[name];
+        if (l && c.calls) byToolLatency[k] = { p50: l.p50, p95: l.p95 };
+      }
+    }
+    const latency = b && (b.calls ?? p.tps) && b.latency ? { p50: b.latency.p50, p95: b.latency.p95 } : (p.latency ?? null);
+    return {
+      t: p.t,
+      tMs: p.tMs,
+      tps: p.tps,
+      tpsErrors: p.errors,
+      latency,
+      vus: p.vus,
+      vusSource: "loadTimeline",
+      byTool,
+      byToolInFlight,
+      byToolLatency,
+    };
+  });
+  const hasLatency = timeline.some(r => r.latency != null);
+  const notes = [];
+  if ((norm.bucketMs ?? 1000) > 1000) notes.push(`loadTimeline uses ${(norm.bucketMs ?? 1000) / 1000}s buckets (widened to cap long runs at 600 points).`);
+  return {
+    timeline,
+    source: {
+      tps: "measured (loadTimeline)",
+      latency: hasLatency ? (seriesByT ? "measured (timeSeries)" : "measured (loadTimeline)") : "not captured",
+      vus: "measured (loadTimeline)",
+    },
+    coverage: 0,
+    notes,
+  };
+}
+
 export function timelineFromSeries(series, keyForTool = n => n) {
   const byT = new Map(series.map(b => [b.t, b]));
   const last = Math.max(...series.map(b => b.t));
@@ -139,6 +255,8 @@ export function timelineFromSeries(series, keyForTool = n => n) {
 }
 
 export function buildTimeline(report, keyForNode, keyForTool) {
+  const ltBuckets = report.loadTimeline?.buckets ?? report.loadTimeline?.points;
+  if (Array.isArray(ltBuckets) && ltBuckets.length) return timelineFromLoadTimeline(report.loadTimeline, keyForTool, report.timeSeries);
   if (Array.isArray(report.timeSeries) && report.timeSeries.length) return timelineFromSeries(report.timeSeries, keyForTool);
   const startMs = Date.parse(report.startedAt);
   const seconds = Math.max(1, Math.ceil((report.durationMs ?? 0) / 1000));
@@ -292,19 +410,34 @@ export function buildRunDataset({ file, report, suite = null, suitesDir, recordi
   for (const t of tools) if (t.count < 30) notes.push(`${t.key}: ${t.count} samples; p95/p99 are unreliable below 30.`);
   if (!report.redactedArgs && !report.sampleResults) notes.push("Report has no redactedArgs (older CLI); sample requests come from recordings, tool evals, or suite templates.");
   if (tools.some(t => t.sample.source.response === NO_SAMPLE)) notes.push(report.sampleResults ? "Some tools have no entry in sampleResults and no recording or tool-eval call, so they have no sample response." : "Run reports before CLI 0.9.0 do not record tool results; tools without a recording or tool-eval call have no sample response. Upgrade to CLI >= 0.9.0 for sampleResults.");
-  if (!report.sampleResults && !report.timeSeries) notes.push("Report predates CLI 0.9.0 (no sampleResults or timeSeries); samples and the timeline use fallbacks. Upgrade to CLI >= 0.9.0 for full data.");
-  if (tools.some(t => t.sample.truncated && t.sample.source.response === "sampleResults")) notes.push("Some sampleResults payloads were truncated by the CLI (stored as JSON strings) and are shown as captured.");
-  if (report.flow?.passesSkipped) notes.push(`${report.flow.passesSkipped} passes stopped at a missing required variable.`);
-
   const keyForNode = id => { const n = nodes.get(id); const tool = n?.tool ?? (report.redactedArgs ?? []).find(a => a.nodeId === id)?.tool; return tool ? toolKey(multi ? nodeServer(id) : null, tool) : null; };
   const keyForTool = name => { const as = aliasesFor(name); return !multi ? toolKey(null, name) : as.length === 1 ? toolKey(as[0], name) : null; };
-  if (multi && (report.timeSeries ?? []).some(b => Object.keys(b.byTool ?? {}).some(n => !keyForTool(n)))) notes.push("timeSeries keys tools by name only; tools exposed by more than one server are left out of per-tool lines.");
+  const loadTimeline = normalizeLoadTimeline(report.loadTimeline, keyForTool);
+  for (const t of tools) t.load = loadTimeline?.summary?.tools?.[t.key] ?? loadTimeline?.summary?.tools?.[t.tool] ?? null;
+
+  const hasExtractors = [...nodes.values()].some(n => n.type === "extractor" || n.method === "extract");
+  const extractorRedacted = (report.sampleResults ?? []).some(s => s.success && s.success.response === undefined && /\$\{[^}]+\}/.test(JSON.stringify(s.success.args ?? {})));
+  if ((hasExtractors && report.sampleResults?.length) || extractorRedacted) {
+    notes.push("Suite uses extractors: sampleResults redacts extracted variable values to ${name} in args and omits response bodies so extracted values never reach the report.");
+  }
+  if (!report.sampleResults && !report.timeSeries && !report.loadTimeline) notes.push("Report predates CLI 0.9.0 (no sampleResults, loadTimeline, or timeSeries); samples and the timeline use fallbacks. Upgrade to CLI >= 0.9.0 for full data.");
+  if (tools.some(t => t.sample.truncated && t.sample.source.response === "sampleResults")) notes.push("Some sampleResults payloads were truncated by the CLI (stored as JSON strings) and are shown as captured.");
+  if (report.flow?.passesSkipped) notes.push(`${report.flow.passesSkipped} passes stopped at a missing required variable.`);
+  if (report.rampDown && (report.rampDown.cancelledByRampDown || report.rampDown.incompletePasses || report.rampDown.skippedPasses)) {
+    notes.push(`Ramp-down (${report.rampDown.strategy ?? "graceful"}): ${report.rampDown.incompletePasses ?? 0} incomplete passes, ${report.rampDown.cancelledByRampDown ?? 0} calls cancelled after the drain deadline, ${report.rampDown.skippedPasses ?? 0} passes skipped (excluded from error rate and verdict).`);
+  }
+
+  const ltPoints = report.loadTimeline?.buckets ?? report.loadTimeline?.points ?? [];
+  if (multi && ((report.timeSeries ?? []).some(b => Object.keys(b.byTool ?? {}).some(n => !keyForTool(n))) || ltPoints.some(p => Object.keys(p.tools ?? p.byTool ?? {}).some(n => !keyForTool(n))))) {
+    notes.push("timeSeries and loadTimeline key tools by name only; tools exposed by more than one server are left out of per-tool lines.");
+  }
   const tl = buildTimeline(report, keyForNode, keyForTool);
   notes.push(...tl.notes);
 
   return {
     timeline: tl.timeline,
     timelineSource: tl.source,
+    loadTimeline,
     title: title ?? `MCP Swarm run ${report.id}: ${multi ? servers.map(s => `${s.alias}: ${s.name ?? "unknown"} (${s.endpoint ?? "endpoint unknown"})`).join(", ") : label}`,
     server: { ...server, label },
     servers,
@@ -312,6 +445,9 @@ export function buildRunDataset({ file, report, suite = null, suitesDir, recordi
       id: report.id, file: basename(file), suite: report.manifestName, startedAt: report.startedAt, durationMs: report.durationMs,
       verdict: report.verdict, silentGreen: Boolean(report.silentGreen), failReasons: report.failReasons ?? [],
       mode: report.mode, transport: report.transport, loadProfile: report.loadProfile ?? null,
+      limits: report.limits ?? null,
+      rampDown: report.rampDown ?? null,
+      loadSummary: loadTimeline?.summary?.overall ?? null,
       callCount: report.quotas?.callCount ?? null, concurrencyUsed: report.quotas?.concurrencyUsed ?? null,
       errorRate: report.quotas?.callCount ? tools.reduce((s, t) => s + t.errorRate * t.count, 0) / tools.reduce((s, t) => s + t.count, 0) : null,
       retries: report.retries?.total ?? 0,
@@ -404,7 +540,7 @@ select{font:inherit;padding:4px 8px;min-width:260px}.grid{stroke:var(--grid)}
 .legend{display:flex;flex-wrap:wrap;gap:12px;color:var(--muted)}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
 </style></head><body><h1>${esc(d.title)}</h1>
 <p class="muted">Run <code>${esc(r.id)}</code> · suite ${esc(r.suite)} · ${esc(r.startedAt)} · report <code>${esc(r.file)}</code></p>
-<div class="stats">${stat("Verdict", `${r.verdict}${r.silentGreen ? " (silent green)" : ""}`, ok ? "ok" : "bad")}${stat("Calls", r.callCount ?? "–")}${stat("Error rate", pct(r.errorRate))}${stat("Concurrency", r.concurrencyUsed ?? "–")}${stat("Mode", r.mode)}${stat("Duration", ms(r.durationMs))}${d.flow ? stat("Flow p95", ms(d.flow.p95)) : ""}</div>
+<div class="stats">${stat("Verdict", `${r.verdict}${r.silentGreen ? " (silent green)" : ""}`, ok ? "ok" : "bad")}${stat("Calls", r.callCount ?? "–")}${stat("Error rate", pct(r.errorRate))}${stat("Concurrency", r.concurrencyUsed ?? "–")}${r.loadSummary ? `${stat("Peak / avg VUs", `${r.loadSummary.peakActiveVus} / ${r.loadSummary.avgActiveVus}`)}${stat("Peak / avg TPS", `${r.loadSummary.peakTps} / ${r.loadSummary.avgTps}`)}` : ""}${stat("Mode", r.mode)}${stat("Duration", ms(r.durationMs))}${d.flow ? stat("Flow p95", ms(d.flow.p95)) : ""}</div>
 ${r.failReasons.length ? `<h2>Fail reasons</h2><ul>${r.failReasons.map(f => `<li class="bad">${esc(f)}</li>`).join("")}</ul>` : ""}
 ${serverTable}
 ${barChart(d.tools)}
