@@ -66,6 +66,7 @@ const GITIGNORE_LINES: readonly string[] = [
   ".env",
   ".env.*",
   "!.env.example",
+  ".zoto/eval-system/.last-drift-check",
 ];
 
 function parseArgs(argv: string[]): CliOptions {

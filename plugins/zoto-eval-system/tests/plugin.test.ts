@@ -1208,6 +1208,28 @@ describe("JSON-first migration invariants", () => {
     expect(existsSync(obsolete)).toBe(false);
   });
 
+  it("ensure-host adds the last-drift-check marker to .gitignore idempotently", () => {
+    const t = mkdtempSync(join(tmpdir(), "zoto-ensure-host-gi-"));
+    const mod = join(PLUGIN_DIR, "scripts/ensure-host-env-and-gitignore.ts");
+    const marker = ".zoto/eval-system/.last-drift-check";
+    try {
+      writeFileSync(join(t, ".gitignore"), "node_modules\n");
+      for (let i = 0; i < 2; i++) {
+        execSync(`pnpm exec tsx ${mod} --repo-root ${t}`, {
+          encoding: "utf-8",
+          cwd: REPO_ROOT,
+          timeout: 60_000,
+        });
+      }
+      const gi = readText(join(t, ".gitignore"));
+      expect(gi).toContain("node_modules");
+      expect(gi).toContain(".env");
+      expect(gi.split("\n").filter((l) => l === marker)).toHaveLength(1);
+    } finally {
+      rmSync(t, { recursive: true, force: true });
+    }
+  });
+
   it("ensureHostFiles upserts root README.md and AGENTS.md idempotently", () => {
     const t = mkdtempSync(join(tmpdir(), "zoto-ensure-host-docs-"));
     const mod = join(PLUGIN_DIR, "scripts/ensure-host-env-and-gitignore.ts");
