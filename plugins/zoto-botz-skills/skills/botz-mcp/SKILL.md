@@ -1,210 +1,196 @@
 ---
 name: botz-mcp
-description: Consume skills and subagent definitions from a botz-mcp server with zero-drift version pinning. Use whenever you need a capability you do not already have - dynamically locate a skill (skill_search) or subagent role (agent_search), download its default unified CRUX bundle via skill_get_compressed (incorporating SKILL.md + all references and scripts in one call; or use skill_get for plain Markdown + skill_resource_get on demand; agent_get for installable client definitions), apply it, and report the outcome (skill_feedback, with optional tokens/seconds telemetry). Silently maintains .botz/skills.lock.json pinning every consumed artifact by permanent guid + version; checks skill_updates for enhancements. Also covers conversational creation (skill_request / agent_request), QSC objectives, and reading CRUX notation in place.
+description: Consume, stage, and install governed Agent Skills and subagent definitions from a botz-mcp server with zero-drift version pinning and SHA-256 verification. Use whenever you need a capability you do not already have - dynamically locate a skill (skill_search) or subagent role (agent_search), fetch its unified CRUX bundle (skill_get_compressed / agent_get_compressed) or plain Markdown + bundled resources (skill_get, skill_resources_get, skill_install, agent_install, or skill:// MCP resource templates with ETag/TTL caching), apply it, and report the outcome (skill_feedback with tokens/seconds telemetry). Silently maintains .botz/skills.lock.json and checks updates_check / skill_updates plus skill_diff / agent_diff.
 id: e15acdf95d3e485a93845e01468bb679
-version: 4
+version: 5
+compatibility: "Cursor, Claude Code, Codex, OpenClaw, and any MCP client supporting streamable HTTP (/mcp)"
 changelog:
 - 'v2: document whole-bundle CRUX serving and optional related-skill sourcing'
 - 'v3: conversational creation, subagent definitions (agent_* tools), QSC objectives + telemetry'
 - 'v4: prefer skill_get_compressed (unified CRUX incorporating all references and scripts); skill_get + skill_resource_get as plain-markdown alternative'
+- 'v5: add silent staging (.botz/staged/), skill_install/agent_install, batch skill_resources_get, RFC 6570 MCP resource templates (skill://{name}@{version}/resources/{path} & /bundle) with ETag/TTL caching, updates_check + skill_diff/agent_diff, requires preflight, and brief secret redaction'
 ---
 
-# Consuming skills via botz-mcp
+# Consuming & installing skills via botz-mcp
 
-botz-mcp is an MCP server (streamable HTTP, endpoint `/mcp`) holding a
-governed corpus of Agent Skills. Every skill has a **permanent guid** (`id`),
-a `short_id` slug (`name@short_id`), and an immutable **version** history.
-Never guess at a workflow you don't know: locate a skill, load it, follow it.
-Keep ALL of the mechanics below invisible - the user just asks for work.
+`botz-mcp` is an MCP server (streamable HTTP, endpoint `/mcp`) holding a
+governed corpus of Agent Skills and Subagent Definitions. Every artifact has a
+**permanent guid** (`id`), a `short_id` slug (`name@short_id`), an immutable
+**version** snapshot history (`.versions/v<N>/`), and a `sha256` content digest.
+Never guess at a workflow you don't know: locate a skill, load or stage it,
+follow it, and report reality. Keep lockfile and staging mechanics invisible to
+the user unless they ask.
 
-## The lockfile (handle silently)
+## Lockfile & optional repo policy (handle silently)
 
-Maintain `.botz/skills.lock.json` at the consuming repo root:
+Maintain `.botz/skills.lock.json` at the consuming repo root (v1 lockfiles
+without `schema_version` remain supported and are upgraded in place):
 
 ```json
 {
+  "schema_version": 2,
   "evolution": "notify",
+  "default_variant": "crux",
   "skills": {
-    "<guid>": { "slug": "summarise-document@1f3a9c2b", "version": 2,
-                "last_used": "2026-07-04" }
-  }
+    "<guid>": {
+      "slug": "clarify-brief@7f2f85fb",
+      "version": 1,
+      "variant": "crux",
+      "sha256": "<sha256>",
+      "installed_paths": [".botz/staged/clarify-brief@1/crux/SKILL.md"],
+      "resource_hashes": { "scripts/validate-output.py": "<sha256>" },
+      "last_used": "2026-10-26"
+    }
+  },
+  "agents": {}
 }
 ```
 
-- Create it (with `"evolution": "notify"`) on first use; update it after
-  every consumption. Never ask the user about lockfile mechanics.
-- `evolution` modes: `"notify"` (default - report enhancements, keep pins)
-  or `"auto"` (accept enhancements automatically). Change it only when the
-  user asks (e.g. "auto accept skill updates").
+- `evolution` modes: `"notify"` (default — report enhancements, keep pins),
+  `"patch-auto"` (auto-adopt when `breaking: false`), `"pin"` (never prompt),
+  or `"auto"` (adopt latest automatically and state what changed in one line).
+- If `.botz/policy.json` exists in the workspace, honour its constraints
+  (`allowed_publishers`, `min_security_score`, `allow_scripts`,
+  `default_variant`) before staging or executing bundled scripts.
+
+## Two consumption modes
+
+Choose the mode that matches the user's intent:
+
+1. **Mode A — Ephemeral / Staged Execution (default for one-off tasks):**
+   - Call `skill_get_compressed(name=<guid>, version=<pinned>)` (or latest if
+     unpinned, then record in `.botz/skills.lock.json`).
+   - Every CRUX bundle (`SKILL.crux.md`) is LLM-compiled via `CRUX.md` and
+     carries provenance frontmatter (`sourceUrl`, `sourceRawUrl`,
+     `sourceVersion`, `sourceSha256`, `cruxBaseLevel`, `cruxLevel`,
+     `cruxVerified: true`) plus symbolic encodings of all bundled
+     `references/`, `scripts/`, and `assets/`.
+   - **When executing a bundled script (`scripts/*.py`) or validating against
+     `assets/*.schema.json`:** materialize the frozen bundle into
+     `.botz/staged/<slug>@v<version>/<variant>/` using ONE batch call:
+     `skill_resources_get(name=<guid>, paths="*", version=<pinned>)` (or read
+     `skill://{name}@{version}/bundle`), verify each file's `sha256`, mark
+     `scripts/*` executable (`chmod 0755`), and ensure `.botz/staged/` is in
+     `.gitignore`. Execute scripts from the staged directory and clean up or
+     reuse by `(guid, version, sha256)`.
+2. **Mode B — Persistent Workspace / User Installation (when the user asks to
+   install a skill/agent or reuse it natively across sessions):**
+   - Call `skill_install(name=<guid>, version=<pinned>, variant="crux"|"plain", scope="workspace"|"user")`
+     or `agent_install(name=<guid>, version=<pinned>, variant="crux"|"plain", scope="workspace"|"user")`.
+   - The server auto-detects your client dialect from the MCP handshake
+     (`cursor` -> `.cursor/skills/<slug>/` & `.cursor/agents/<slug>.md`,
+     `claude-code` -> `.claude/skills/<slug>/` & `.claude/agents/<slug>.md`,
+     `codex` -> `.agents/skills/<slug>/` & `.agents/agents/<slug>.md`,
+     `canonical` -> `skills/<slug>/` & `agents/<slug>/`).
+   - Write every entry in `files[]` to `target_dir`, verify `sha256`, set
+     `0755` when `executable: true`, and merge `lockfile_entry` into
+     `.botz/skills.lock.json`.
+   - Note: when `variant="crux"`, the installed `SKILL.md` (or agent file)
+     contains the CRUX-compressed document with `sourceUrl` and `sourceRawUrl`
+     in frontmatter so your host loads the token-frugal artifact natively while
+     retaining a 1-click link to the immutable plain Markdown source.
+
+## MCP Resource Templates & Configurable Caching
+
+In addition to tools, `botz-mcp` exposes RFC 6570 MCP Resource Templates via
+`resources/templates/list` and `resources/read`:
+
+| URI Template | Returns | Cache Policy (`_meta`) |
+| --- | --- | --- |
+| `skill://{name}/SKILL.md` · `skill://{name}@{version}/SKILL.md` | Plain Markdown `SKILL.md` | Unpinned: TTL + ETag · `@version`: `immutable: true` |
+| `skill://{name}/SKILL.crux.md` · `skill://{name}@{version}/SKILL.crux.md` | Verified `SKILL.crux.md` bundle | Unpinned: TTL + ETag · `@version`: `immutable: true` |
+| `skill://{name}/resources/{+path}` · `skill://{name}@{version}/resources/{+path}` | Individual file in `references/`, `scripts/`, or `assets/` (served from frozen snapshot when `@version` is pinned) | Unpinned: TTL + ETag · `@version`: `immutable: true` |
+| `skill://{name}/bundle` · `skill://{name}@{version}/bundle` | Full JSON manifest + all bundled files + `sha256` digests in one read | Unpinned: TTL + ETag · `@version`: `immutable: true` |
+| `agent://{name}/AGENT.md` · `agent://{name}@{version}/AGENT.md` | Rendered client agent definition | Unpinned: TTL + ETag · `@version`: `immutable: true` |
+| `agent://{name}/AGENT.crux.md` · `agent://{name}@{version}/AGENT.crux.md` | Verified `AGENT.crux.md` bundle | Unpinned: TTL + ETag · `@version`: `immutable: true` |
+
+- **Client caching rules:** Every resource read includes `_meta` with `etag`
+  (`"<sha256>"`), `sha256`, `immutable`, `ttl_seconds`, and `cache_control`:
+  - Version-pinned URIs (`@{version}`) are **immutable forever**
+    (`cache_control: "public, max-age=31536000, immutable"`). Once cached in
+    `.botz/staged/` with a matching `sha256`, never re-fetch them.
+  - Unpinned URIs (`skill://{name}/...`) carry `ttl_seconds` (configurable in
+    `/admin#settings`, default `3600`s) and support MCP `resources/subscribe`
+    (`notifications/resources/updated` fires immediately when a skill evolves
+    or promotes).
+- **Partial plain-Markdown reads:** When using `skill_get(name, raw=true)` on a
+  large skill, pass `sections=["Workflow", "Output contract"]` to load only
+  matching `##` headings and save context tokens.
+
+## Dependency & environment preflight (`requires`)
+
+Before running any bundled script in `scripts/`:
+1. Inspect `requires` in the skill metadata (`bins`, `env`, `packages`).
+2. Verify required binaries (`shutil.which`) and environment variable **names**
+   (check presence only — never print or transmit secret values).
+3. If Python scripts carry PEP 723 `# /// script` headers, prefer running them
+   with `uv run scripts/<name>.py` (or `python3 scripts/<name>.py` when only
+   stdlib/installed packages are needed).
 
 ## Workflow
 
-1. `skill_search(query)` - describe the needed capability in plain language.
-2. Pick the best match and check the lock — **prefer `skill_get_compressed` by default**:
-   - guid in lock -> `skill_get_compressed(name=<guid>, version=<pinned>)`.
-     Pinned reads are immutable snapshots: forks, evolutions, or combinations
-     of that skill can NEVER change what you receive.
-   - not in lock -> `skill_get_compressed(name=<guid>)` (latest), then pin
-     `{guid: latest_version}` in the lock.
-3. **Preferred CRUX Bundle vs Plain Markdown Alternative:**
-   - **Default (`skill_get_compressed`):** Every skill and agent on `botz-mcp`
-     carries a default CRUX-compressed version (`format: "crux"`, `crux_body`)
-     that incorporates the main `SKILL.md` body **plus all bundled
-     `references/` and `scripts/`** (`includes_references: true`,
-     `includes_scripts: true`) in a single self-contained payload. Read it in
-     place with the CRUX legend below; no separate `skill_resource_get` calls
-     are needed.
-   - **Alternative (`skill_get` + `skill_resource_get`):** When you need the
-     plain Markdown `SKILL.md` (for example to quote verbatim prose or inspect
-     one script file), call `skill_get(name=<guid>, raw=true)` to receive the
-     plain Markdown skill and its `resources` path list, and then request
-     individual `references/` or `scripts/` files on demand via
-     `skill_resource_get(name=<guid>, path="<references|scripts>/<file>")` as
-     required.
-4. OPTIONAL cross-skill sourcing: when the skill's `related` list (or body)
-   names other skills and the task actually needs those capabilities, fetch
-   them too via `skill_get_compressed` (or `skill_get`) and pin them in the
-   lock like any other skill.
-   Skip them when the primary skill suffices - related skills are optional.
-5. Apply the skill: follow its steps, honour edge cases, produce its output
-   format.
-6. Report reality: `skill_feedback(name, "worked"|"failed")`.
-7. Gap (`covered=false`)? `skill_request(need, context)` - the server matches
-   or authors a new skill; pin whatever you end up using. Creation is
-   CONVERSATIONAL - see "Requesting new primitives" below before calling.
-8. Every response carries a `gov` block: if `flag: "low_pr"` appears, treat
-   the result with caution and verify before relying on it.
+1. `skill_search(query)` (or `agent_search(query)`) — describe the needed
+   capability. Each result includes `token_estimates` (`plain_tokens`,
+   `crux_tokens`, `bundle_tokens`, `crux_reduction_pct`).
+2. Load or stage the best match (`skill_get_compressed` by default, or
+   `skill://{name}@{version}/SKILL.crux.md`).
+3. If `cruxVerified` is `false` or you need exact prose/lines from a reference,
+   follow `sourceRawUrl` or fetch the specific file via
+   `skill://{name}@{version}/resources/{path}` / `skill_resources_get`.
+4. Optionally source complements listed in `relationships` / `related` when the
+   task genuinely spans phases.
+5. Apply the workflow, run any bundled validation script
+   (`python3 scripts/validate-output.py < output.json`), and report reality:
+   `skill_feedback(name, "worked"|"failed", tokens=<approx>, seconds=<wall>)`.
+6. Gap (`covered=false`)? Call `skill_request(need, context)` or
+   `agent_request(need, context)` with a rich conversational brief.
 
-## Requesting new primitives (be conversational)
+## Requesting new primitives & secret redaction
 
-Rule of thumb: TERSE ON READS, CONVERSATIONAL ON WRITES. Searches and gets
-stay short; whenever you ask the server to CREATE something (`skill_request`),
-write to it the way you would brief a skilled colleague. Generation quality is
-bounded by brief quality - you are sitting on the full task context, so hand
-it over:
+- **TERSE ON READS, CONVERSATIONAL ON WRITES.** Include the task narrative,
+  what existing skills fell short, 1–2 concrete input/output examples, target
+  environment, and success criteria in `context`.
+- **Mandatory secret hygiene:** Before calling `skill_request` or
+  `agent_request`, strip all credentials, API keys (`sk-`, `ghp_`, `bzt_`,
+  `AKIA...`), `Bearer` tokens, private URLs with embedded credentials, and
+  `.env` secret values from `need`, `context`, and `answers`. Replace them with
+  `<REDACTED>`.
 
-- the task narrative: what you are actually doing and why the capability is
-  needed now;
-- what you already tried, and why the nearest existing skills fell short;
-- one or two CONCRETE input/output examples taken from the real task;
-- environment, tools, formats, edge cases, and success criteria.
+## Session evolution check & diffs
 
-Put all of this in `context` on the first call. A one-line `need` plus an
-empty `context` is a BAD brief and will trigger a clarification round.
-
-Example - bad: `skill_request(need="parse invoices")`.
-Example - good: `skill_request(need="parse supplier invoices into a ledger
-schema", context="Working through ~200 PDF invoices from 12 suppliers in
-data/invoices/. Need line items with VAT split out; output must match the
-JSON schema in ledger/schema.json (example row attached below). Tried the
-generic pdf-extract skill - it loses table structure on multi-page invoices.
-Success = every invoice in the sample set round-trips into the schema with
-totals matching. Input example: ... Output example: ...")`.
-
-Clarification exchanges (answer from REAL task context, never invent):
-
-- If your client supports MCP elicitation, the server may ask clarifying
-  questions MID-CALL when the brief is thin. Answer them conversationally
-  from the task at hand; the call then continues and returns the result.
-- Without elicitation support you may get `action: "clarify"` with the
-  questions. Answer them all in one string and re-call `skill_request` with
-  the same `need` plus your answers in the `answers` parameter.
-- For expensive or high-stakes primitives, pass `review=true` (elicitation
-  clients only): the server shows you the draft BEFORE persisting; approve,
-  request one revision round (approve=false + changes), or reject
-  (approve=false, no changes).
-
-## Subagent definitions (agent_* tools)
-
-The corpus also holds SUBAGENT DEFINITIONS - reusable specialist personas you
-can install and spawn. Same identity, pinning, and feedback machinery as
-skills; the lock file treats them identically (pin by guid + version).
-
-1. Need a specialist role (reviewer, triager, researcher...)? `agent_search`
-   first; `agent_request` only when `covered=false` (same conversational
-   brief rules as skill_request - describe the delegation scenario, the tasks
-   the subagent will receive, allowed tools, and the output it must return).
-2. `agent_get(name)` returns `definition` (exact file content) and
-   `install_path` - the server auto-detects your client from the MCP
-   handshake and renders the right dialect (`.cursor/agents/<name>.md` for
-   Cursor, `.claude/agents/<name>.md` for Claude Code; pass `client` to
-   override). Write the file verbatim to the install path, then spawn the
-   subagent per your client's mechanism. To inspect or apply the agent's
-   unified CRUX bundle (incorporating its system prompt plus all bundled
-   `references/` and `scripts/` in one call), use `agent_get_compressed(name)`
-   or `skill_get_compressed(name)`.
-3. Report outcomes with `skill_feedback` using the agent's name/guid, like
-   any other artifact.
-
-## QSC objectives and telemetry
-
-- Searches accept `objective`: `balanced` (default), `quality`, `speed`, or
-  `cost`. Use `speed`/`cost` when the user's task is latency- or budget-
-  sensitive; objectives only ever act as a capped tiebreak among semantically
-  strong matches, so relevance is never sacrificed.
-- After applying a skill, include measured telemetry in feedback when you
-  can estimate it: `skill_feedback(name, outcome, tokens=<approx LLM tokens
-  the application consumed>, seconds=<wall seconds>)`. This builds the
-  measured speed/cost profiles that make objective-aware ranking work for
-  everyone. Report honestly - telemetry is damped and audited server-side.
-
-## Evolution check (once per session)
-
-Before first skill use in a session, call `skill_updates(pins)` with the
-lock entries (`[{"id": ..., "version": ...}, ...]`):
-
-- All `current` -> proceed silently.
-- Some `behind` and evolution=`notify` -> finish the user's task on the
-  pinned versions first, then append one short line, e.g.:
-  "Skill update available: summarise-document v3 (v2: risk-first ordering).
-  Say 'accept skill updates' to adopt, or 'auto accept' to always adopt."
-  Only bump the lock after the user accepts.
-- Some `behind` and evolution=`auto` -> bump pins to latest, use them now,
-  and mention in one line what was adopted.
-- `unknown` (id retired) -> keep using the pinned snapshot if retrievable;
-  otherwise search for a replacement and tell the user what changed.
+Once per session before first skill use, call `updates_check(pins)` (or
+`skill_updates(pins)`) with your lockfile entries:
+- `current` -> proceed silently.
+- `yanked` -> warn immediately (`yanked_reason`), inspect `skill_diff` /
+  `agent_diff`, and switch to the latest non-yanked version.
+- `behind` -> when `evolution="notify"`, finish the task on the pinned snapshot
+  first, then mention the update in one line (use `skill_diff(name, from_version, to_version)`
+  if the user asks what changed). When `evolution="auto"` (or `"patch-auto"` on
+  non-breaking updates), adopt and re-stage automatically.
 
 ## Reading CRUX Compress documents
 
-Spec: `CRUX.md` (https://compress.md). Shape: frontmatter (`generated`,
-`sourceChecksum`, `cruxLevel`, `beforeTokens`, `afterTokens`, `reducedBy`)
-plus a `crux` fenced block `⟦CRUX:source ... ⟧`. Interpret in place:
+Spec: `CRUX.md` (`zotoio/CRUX-Compress`). Interpret `⟦CRUX:...⟧` blocks in place:
 
 | Marker | Meaning |
 | --- | --- |
 | `Ρ{}` `Κ{}` | purpose/context · concepts/definitions |
 | `R{}` `P{}` | requirements · policies/constraints |
-| `Λ{}` `Γ{}` | commands/actions · workflows/orchestration |
-| `Π{}` `Φ{}` `M{}` `Ω{}` | architecture · config · state · quality gates |
+| `Λ{}` `Γ{}` | commands/scripts · workflows/orchestration |
+| `Π{}` `Φ{}` `M{}` `Ω{}` | architecture · config · schemas/state · quality gates/outputs |
 | `→` `←` `»` | maps to · derives from · then (sequence) |
 | `\|` `&` `¬` `∀` `∃` `∋` | or · and · not · for all · exists · contains |
 | `⊤` `⊥` `@` `=` | true · false · at path · defined as |
 | `?` `!` `⊛` `≻` | optional · required · critical · preferred over |
 
-Treat `Γ` blocks as the workflow, `R`/`P` as hard constraints, `Ω` as the
-output contract. Paths, commands, and tool names are verbatim.
-
-## Edge cases
-
-- 401 -> in an IDE, ask the user to finish the server's GitHub sign-in
-  (MCP OAuth) and reconnect; headless/CI callers need a `bzt_` API key in
-  the `Authorization: Bearer` header from their secret store. Never ask for
-  or put a key inline in chat.
-- `action: "clarify"` from skill_request -> the brief was too thin; answer
-  the returned questions from real task context and re-call with `answers`.
-- `action: "rejected"` from skill_request -> a near-duplicate exists (use the
-  skill named in `reason`/`nearest`), or you rejected the draft at review.
-- Draft skills (`status: "draft"`) are quarantined server-side; an operator
-  can `skill_promote` them.
-- Feedback not accepted -> anti-gaming gate (no recent load, or already
-  voted today); not an error.
-- `format: "raw"` despite CRUX -> compression refused or model down; the
-  body is plain markdown, proceed normally.
-- Pinned snapshot missing (`no snapshot vN`) -> the lock predates history;
-  load latest, re-pin, and tell the user the skill advanced.
+Treat `Γ` blocks as the workflow, `R`/`P` as hard constraints, `M.schema`/`Ω`
+as the output contract, and `Λ.script` as bundled script interfaces. All file
+paths, CLI flags, function names, and schema property keys are preserved
+verbatim inside the CRUX notation.
 
 ## Output
 
-After applying a consumed skill, state: skill slug + version used (e.g.
-`summarise-document@1f3a9c2b v2`), CRUX or raw, the action taken, feedback
-reported, and any pending enhancement notice.
+After applying a consumed skill or subagent, state: slug + version used (e.g.
+`clarify-brief@7f2f85fb v1`), mode (`CRUX` or `plain`, staged or installed),
+validation result, feedback reported (`reason_code` if rate-limited), and any
+pending update notice.
