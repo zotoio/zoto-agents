@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## [0.10.0] - 2026-10-28
+
+- Update skills and docs for `@zotoio/botz-mcp-swarm-cli >= 0.12.0` and Swarm service (`swarm.botz.ai`) unified suite workspace:
+  - **Suite version history, changelogs, and per-version disable flag (`0.12.0`):** `project suite versions <project>`, `project suite disable-version <project> --version <n>`, and `project suite enable-version <project> --version <n>`. Each version records a deterministic diff changelog (plus async LLM changelog on the service). Disabled versions are refused by `startSuiteRun` (`suite_version_disabled`), while their stored runs and step details remain inspectable.
+  - **Latest-version-only editing rule:** Only the latest suite version (`vN`) and its latest run are editable to create `vN+1`; earlier versions (`v1..v(N-1)`) are strictly read-only for config, step definitions, and JEV eval definitions so edits never fork from an older version and skip newer changes.
+  - **Inline JEV eval editing, testing, and batch version saving:** On the Swarm service, `EvalResultsPanel` supports inline editing of multiple eval prompts and assertion criteria, per-card and bulk `Test inline` (LLM probe + JEV judge) and `Re-judge assertions` (fast JEV re-score against existing transcript), and `Save all to new suite version (vN+1)`.
+  - **Highlighted `Analyse Run` workflow:** `Analyse Run` is surfaced as a primary CTA across the unified suite workspace and works on all completed runs (errors, eval failures, and latency/SLO diagnostics).
+  - **Remote MCP server OpenTelemetry instrumentation (Python & Node.js):** Document how Swarm propagates `X-Swarm-Run-Id: <runId>` on MCP HTTP calls, how remote Python (`psutil`) and Node.js (`AsyncLocalStorage`) MCP servers tag `process.runtime.rss.bytes`, `process.runtime.cpu.ratio`, and RPC/tool histograms with `run.id`, and how secret attributes are scrubbed on both client and server before ZSTD `otel_batches.parquet` compaction.
+
 ## [0.9.0] - 2026-10-26
 
 - Plugin icon is now the green botz MCP Swarm mark used on the swarm dashboard and sign-in page: `assets/logo.svg` for the Cursor logo and OpenAI logo/composer icon, with a 256×256 `assets/logo.png`.

@@ -63,3 +63,5 @@ botz mcp-swarm compare --base base.json --head head.json
 Compare target, workload, concurrency, duration, and enabled tool coverage before attributing latency or error changes to a regression. Separate telemetry delivery failures from test verdicts. Re-run only within the user's authorized target and load limits, and summarize the observed cause, correction, and remaining uncertainty.
 
 To show the user a failing run, offer the `mcp-swarm-report` skill (`/z-mcp-swarm-report`): its tool selector shows each tool's errors by class, last error, sample request and response, and VUs/TPS over time. To have the configured model propose reviewed JSON-patch fixes for a failed run, offer the `mcp-swarm-analyse` skill (`/z-mcp-swarm-analyse`).
+
+- **Disabled suite versions (`suite_version_disabled`, CLI `>= 0.12.0`):** If a run is refused with `suite_version_disabled`, that specific version was marked disabled. Inspect version history with `botz mcp-swarm project suite versions <project>` and either run the latest version or re-enable the version with `botz mcp-swarm project suite enable-version <project> --version <n>`.
