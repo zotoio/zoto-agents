@@ -76,3 +76,10 @@ Rate-limited MCP calls (HTTP 429, `Retry-After` headers, and server rate-limit e
 For CI, use `--format json` or `--format junit`, and preserve the process exit status. Saved-suite runs exit 0 for pass, 1 for failed verdict, 2 for configuration/execution errors, 130/143 for interruption. Report verdict, executed coverage, overall and per-tool peak/average active VUs and TPS from `report.loadTimeline.summary` (`overall` and `tools`), retry counts (`report.retries`) and ramp-down cut-offs (`report.rampDown`) when non-zero, failures, and report locations; never call a run successful just because a report exists or no enabled tools executed.
 
 After reporting the verdict, offer to visualise the run with the `mcp-swarm-report` skill (`/z-mcp-swarm-report`): a canvas or HTML page with per-tool latency, errors, and sample requests and responses.
+
+## Suite versions, changelogs, and remote OTLP (`>= 0.12.0`)
+
+- **Version history & changelogs:** `botz mcp-swarm project suite versions <project> [--suite <id>] [--json]` lists every stored version (`v1..vN`), parent version (`basedOn`), status (`latest`, `read-only`, or `disabled`), and generated changelog.
+- **Per-version disable:** `botz mcp-swarm project suite disable-version <project> --version <n>` prevents a version from being executed again (`suite_version_disabled`) while keeping its stored run reports and step configurations inspectable. `enable-version` re-enables it.
+- **Latest-only editing:** Only the latest suite version (`vN`) is editable to create `vN+1`; older versions are read-only for config, step definitions, and JEV eval definitions so edits never skip newer changes.
+- **Remote MCP server OTLP correlation:** During HTTP/SSE runs, Swarm sends `X-Swarm-Run-Id: <runId>` on every MCP request. Remote Python (`psutil`) and Node.js (`AsyncLocalStorage`) servers can tag `process.runtime.rss.bytes`, `process.runtime.cpu.ratio`, and `mcp.tool.call.duration` with `run.id` and POST redacted OTLP JSON batches to `/otlp/v1/metrics` and `/otlp/v1/traces` with header `X-Swarm-Token`.

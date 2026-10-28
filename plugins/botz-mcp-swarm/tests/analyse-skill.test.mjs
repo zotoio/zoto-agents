@@ -28,13 +28,13 @@ test("command and evals are wired", () => {
   assert.match(read("README.md"), /\/z-mcp-swarm-analyse/);
 });
 
-test("plugin v0.9.0 manifests, site page, and 10 skills/commands are aligned", () => {
+test("plugin v0.10.0 manifests, site page, and 10 skills/commands are aligned", () => {
   for (const mf of ["package.json", "plugin.json", ".cursor-plugin/plugin.json", ".claude-plugin/plugin.json"]) {
-    assert.equal(JSON.parse(read(mf)).version, "0.9.0", mf);
+    assert.equal(JSON.parse(read(mf)).version, "0.10.0", mf);
   }
   const readme = read("README.md");
   const site = read("../../site/mcp-swarm/index.html");
-  assert.match(site, /MCP Swarm v0\.9\.0/);
+  assert.match(site, /MCP Swarm v0\.10\.0/);
   const expectedSkills = [
     "mcp-swarm-guided", "mcp-swarm", "mcp-swarm-flow", "mcp-swarm-report", "mcp-swarm-compare",
     "mcp-swarm-descriptions", "mcp-swarm-record-replay", "mcp-swarm-diagnose", "mcp-swarm-analyse", "mcp-swarm-upgrade",
@@ -49,5 +49,5 @@ test("plugin v0.9.0 manifests, site page, and 10 skills/commands are aligned", (
   assert.match(read("skills/mcp-swarm/SKILL.md"), /--ramp-down-strategy/);
   assert.match(read("skills/mcp-swarm/SKILL.md"), /rate_limit/);
   assert.match(read("skills/mcp-swarm-diagnose/SKILL.md"), /cancelledByRampDown/);
-  assert.match(read("skills/mcp-swarm-upgrade/SKILL.md"), /0\.11\.2/);
+  assert.match(read("skills/mcp-swarm-upgrade/SKILL.md"), /0\.12\.0/);
 });
