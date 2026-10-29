@@ -1,10 +1,10 @@
 {
   "name": "@zoto-agents/zoto-botz-skills",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "botz.ai skills client packaged as an agent plugin.",
   "type": "module",
   "scripts": {
-    "test": "node --test \"tests/*.test.mjs\""
+    "test": "node --test tests/*.test.mjs"
   }
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0 (2026-10-29)
+
+- Upgraded `botz-mcp` client skill to v7 and added `references/chained-workflows.md`:
+  - Documented the canonical chained and batched agent loop: `search -> select -> use (get_compressed + batch resources) -> feedback -> evolve (targeted refinement) / fork (structural divergence) / create (net-new) -> select (@canary / draft) -> test -> rate (sampling/feedback) -> promote`.
+  - Documented how draft versions created via `skill_evolve` enter canary A/B testing (`@live` vs `@canary`), how agent result scoring via MCP `sampling/createMessage` and `skill_feedback` automatically promotes high-performing `@canary` drafts to `@live`, and how admin clients can immediately promote via MCP `skill_promote` while non-admin clients use Console review.
+  - Documented 24-hour rolling per-user and per-team generation quotas (default `10/24h`) and graceful read-only degradation.
+
 ## 0.4.0 (2026-10-29)
 
 - Upgraded `botz-mcp` client skill to v6 covering all 7 MCP specification stages on `https://mcp.botz.ai/mcp`:

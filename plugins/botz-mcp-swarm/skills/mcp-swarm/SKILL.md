@@ -1,20 +1,40 @@
 ---
 name: mcp-swarm
-description: Capture, validate, refresh, and run MCP test suites with the botz MCP Swarm CLI. Use for testing MCP servers, repeatable tool assertions, load tests, and CI reports.
+description: Capture, validate, refresh, and run MCP test suites locally or via the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth 2.1 sign-in), and register distributed VU/OTEL workers with the botz MCP Swarm CLI. Use for testing MCP servers, repeatable tool assertions, central or distributed load tests, and CI reports.
 license: MIT
 disable-model-invocation: true
-compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Live capture and runs require access to the target MCP server.
+compatibility: Requires Node.js 22.13+, npm, and shell access for CLI commands, or an MCP client supporting streamable HTTP + OAuth 2.1 for central server tools (https://swarm.botz.ai/mcp). Installs the botz host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
 metadata:
   author: zotoio
   cli-host: "@zotoio/botz-cli"
   cli-package: "@zotoio/botz-mcp-swarm-cli"
+  mcp-server: "https://swarm.botz.ai/mcp"
 ---
 
-# MCP Swarm suites
+# MCP Swarm suites & central server
 
-## Setup
+## Central Swarm MCP Server (`https://swarm.botz.ai/mcp`) & OAuth Sign-In
 
-Run every command through the botz host as `botz mcp-swarm`. Do not use the standalone `botz-mcp-swarm` or `swarm` executables. Before the first command in a session:
+The `botz-mcp-swarm` plugin includes an optional default MCP server entry (`swarm` in `mcp.json` and `.mcp.json`) pointing at the central Swarm control plane:
+
+```json
+{
+  "mcpServers": {
+    "swarm": {
+      "type": "http",
+      "url": "https://swarm.botz.ai/mcp"
+    }
+  }
+}
+```
+
+- **Interactive IDE OAuth 2.1 + PKCE + DCR (default):** When enabled in Cursor, Claude Code, or Codex, `https://swarm.botz.ai/mcp` advertises RFC 9728 Protected Resource Metadata (`/.well-known/oauth-protected-resource`) and RFC 8414 OAuth 2.1 Authorization Server Metadata (`/.well-known/oauth-authorization-server`). Your IDE opens a browser sign-in flow automatically—no static tokens or environment variables are stored in the plugin.
+- **Headless / CI `Bearer bzt_...` Authentication:** Non-interactive callers can mint a scoped `bzt_...` IAM key (`viewer`, `runner`, `editor`, `operator`, `owner`, or `service_bridge`) in Swarm Studio (`/settings` -> **IAM & API Keys**) and pass `Authorization: Bearer $SWARM_TOKEN`.
+- **When to use MCP tools vs CLI:** When the `swarm` MCP server is connected, you can inspect projects (`swarm_projects_list`, `swarm_project_get`), apply load presets (`swarm_load_presets_list`, `swarm_suite_conversational_update`), start/monitor central runs (`swarm_run_start`, `swarm_run_progress`, `swarm_run_get`), query correlated server telemetry (`swarm_server_telemetry_get`), and run AI root-cause analysis (`swarm_run_analyse`) directly via MCP tools, or use the CLI below for local/remote execution and distributed worker fleets.
+
+## CLI Setup
+
+Run every CLI command through the botz host as `botz mcp-swarm`. Do not use the standalone `botz-mcp-swarm` or `swarm` executables. Before the first command in a session:
 
 1. Run `botz --version`. If `botz` is not found, check `node --version` (22.13 or later is required), then install the host with `npm install -g @zotoio/botz-cli` and tell the user you installed it. If Node is too old or the global install fails, for example with a permissions error, stop and report it; do not use `sudo` or change npm configuration.
 2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null`, run `botz plugins install mcp-swarm`.
@@ -76,6 +96,21 @@ Rate-limited MCP calls (HTTP 429, `Retry-After` headers, and server rate-limit e
 For CI, use `--format json` or `--format junit`, and preserve the process exit status. Saved-suite runs exit 0 for pass, 1 for failed verdict, 2 for configuration/execution errors, 130/143 for interruption. Report verdict, executed coverage, overall and per-tool peak/average active VUs and TPS from `report.loadTimeline.summary` (`overall` and `tools`), retry counts (`report.retries`) and ramp-down cut-offs (`report.rampDown`) when non-zero, failures, and report locations; never call a run successful just because a report exists or no enabled tools executed.
 
 After reporting the verdict, offer to visualise the run with the `mcp-swarm-report` skill (`/z-mcp-swarm-report`): a canvas or HTML page with per-tool latency, errors, and sample requests and responses.
+
+## Central Swarm Suite Execution & Distributed VU/OTEL Worker Mode (`>= 0.14.0`)
+
+- **Triggering a Suite Run on the Central Swarm Server (`run --remote` / `--server`):**
+  - Execute a project or suite remotely on the central Swarm control plane (`https://swarm.botz.ai` by default, or `SWARM_SERVER_URL`), streaming live progress/VUs/latency and returning the full `RunReport`:
+    ```sh
+    botz mcp-swarm run --suite proj-botz-mcp --remote --preset baseline --token $SWARM_TOKEN
+    botz mcp-swarm suite run --suite proj-botz-mcp --server https://swarm.botz.ai --dispatch worker --format json
+    ```
+  - Pass `--dispatch worker` to distribute the suite's virtual users across registered remote CLI workers connected to the central Swarm hub.
+- **Starting a Distributed VU & OTEL Worker (`botz mcp-swarm worker`):**
+  - Start the CLI as a long-running worker node that registers with the central Swarm server (`--server`, defaulting to `SWARM_SERVER_URL` or `https://swarm.botz.ai`), advertises its VU capacity (`--max-vus <n>`) and capabilities, executes assigned VU slices (`User-Agent: botz-mcp-swarm/<version> (mcp-tester)`), and exports OpenTelemetry spans and metrics (`/otlp/v1/traces` and `/otlp/v1/metrics` plus real-time worker progress frames) back to the central Swarm server:
+    ```sh
+    botz mcp-swarm worker --server https://swarm.botz.ai --token $SWARM_WORKER_TOKEN --max-vus 25 --otel-export
+    ```
 
 ## Suite versions, changelogs, and remote OTLP (`>= 0.12.0`)
 

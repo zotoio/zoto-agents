@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "swarm": {
+      "type": "http",
+      "url": "https://swarm.botz.ai/mcp"
+    }
+  }
+}

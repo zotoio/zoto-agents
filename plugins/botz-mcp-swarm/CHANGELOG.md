@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [0.12.0] - 2026-10-29
+
+- Bundled default central MCP server `swarm` (`https://swarm.botz.ai/mcp`, `type: "http"`) in `mcp.json` and `.mcp.json` with OAuth 2.1 + PKCE + DCR sign-in (and headless `Bearer bzt_...` support), wired in `.cursor-plugin/plugin.json` (`"mcp": "./mcp.json"`).
+- Updated `mcp-swarm` skill and docs for `@zotoio/botz-mcp-swarm-cli >= 0.14.0`:
+  - **Central Swarm Suite Execution (`run --remote` / `--server https://swarm.botz.ai`)**: Trigger a suite run on the central Swarm server, stream real-time progress/VU/latency events, and retrieve the full `RunReport`.
+  - **Distributed VU & OTEL Worker Mode (`botz mcp-swarm worker`)**: Defaults `--server` to `https://swarm.botz.ai`, registers worker capabilities and `--max-vus`, accepts distributed VU slice assignments (`User-Agent: botz-mcp-swarm/<version> (mcp-tester)`), and streams OpenTelemetry traces/metrics (`/otlp/v1/traces`, `/otlp/v1/metrics`, and worker progress events) to the central Swarm server.
+
 ## [0.11.0] - 2026-10-29
 
 - Updated skills and docs for `@zotoio/botz-mcp-swarm-cli >= 0.13.0` and the 28-tool `https://swarm.botz.ai/mcp` Streamable-HTTP MCP Server:

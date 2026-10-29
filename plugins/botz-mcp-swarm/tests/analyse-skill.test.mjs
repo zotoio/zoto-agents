@@ -28,13 +28,26 @@ test("command and evals are wired", () => {
   assert.match(read("README.md"), /\/z-mcp-swarm-analyse/);
 });
 
-test("plugin v0.11.0 manifests, site page, and 10 skills/commands are aligned", () => {
+test("mcp.json and .mcp.json configure central https://swarm.botz.ai/mcp with OAuth and no static credentials", () => {
+  for (const file of ["mcp.json", ".mcp.json"]) {
+    const raw = read(file);
+    const parsed = JSON.parse(raw);
+    assert.deepEqual(Object.keys(parsed.mcpServers), ["swarm"]);
+    assert.equal(parsed.mcpServers.swarm.type, "http");
+    assert.equal(parsed.mcpServers.swarm.url, "https://swarm.botz.ai/mcp");
+    assert.doesNotMatch(raw, /headers|Authorization|Bearer|\$\{env:/i);
+  }
+  const cursorPlugin = JSON.parse(read(".cursor-plugin/plugin.json"));
+  assert.equal(cursorPlugin.mcp, "./mcp.json");
+});
+
+test("plugin v0.12.0 manifests, site page, and 10 skills/commands are aligned", () => {
   for (const mf of ["package.json", "plugin.json", ".cursor-plugin/plugin.json", ".claude-plugin/plugin.json"]) {
-    assert.equal(JSON.parse(read(mf)).version, "0.11.0", mf);
+    assert.equal(JSON.parse(read(mf)).version, "0.12.0", mf);
   }
   const readme = read("README.md");
   const site = read("../../site/mcp-swarm/index.html");
-  assert.match(site, /MCP Swarm v0\.11\.0/);
+  assert.match(site, /MCP Swarm v0\.12\.0/);
   const expectedSkills = [
     "mcp-swarm-guided", "mcp-swarm", "mcp-swarm-flow", "mcp-swarm-report", "mcp-swarm-compare",
     "mcp-swarm-descriptions", "mcp-swarm-record-replay", "mcp-swarm-diagnose", "mcp-swarm-analyse", "mcp-swarm-upgrade",
@@ -44,10 +57,14 @@ test("plugin v0.11.0 manifests, site page, and 10 skills/commands are aligned", 
     assert.match(site, new RegExp(`<code>${name}</code>`));
     assert.match(read(`commands/z-${name}.md`), new RegExp(name));
   }
-  assert.match(read("skills/mcp-swarm/SKILL.md"), /loadTimeline\.summary/);
-  assert.match(read("skills/mcp-swarm/SKILL.md"), /--max-call-count/);
-  assert.match(read("skills/mcp-swarm/SKILL.md"), /--ramp-down-strategy/);
-  assert.match(read("skills/mcp-swarm/SKILL.md"), /rate_limit/);
+  const mainSkill = read("skills/mcp-swarm/SKILL.md");
+  assert.match(mainSkill, /https:\/\/swarm\.botz\.ai\/mcp/);
+  assert.match(mainSkill, /--remote/);
+  assert.match(mainSkill, /--max-vus/);
+  assert.match(mainSkill, /loadTimeline\.summary/);
+  assert.match(mainSkill, /--max-call-count/);
+  assert.match(mainSkill, /--ramp-down-strategy/);
+  assert.match(mainSkill, /rate_limit/);
   assert.match(read("skills/mcp-swarm-diagnose/SKILL.md"), /cancelledByRampDown/);
   assert.match(read("skills/mcp-swarm-upgrade/SKILL.md"), /0\.12\.0/);
 });

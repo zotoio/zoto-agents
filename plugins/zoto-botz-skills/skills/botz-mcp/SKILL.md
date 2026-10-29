@@ -1,8 +1,8 @@
 ---
 name: botz-mcp
-description: Consume, stage, and install governed Agent Skills and subagent definitions from a botz-mcp server with zero-drift version pinning and SHA-256 verification. Use whenever you need a capability you do not already have - dynamically locate a skill (skill_search) or subagent role (agent_search), fetch its unified CRUX bundle (skill_get_compressed / agent_get_compressed) or plain Markdown + bundled resources (skill_get, skill_resources_get, skill_install, agent_install, or skill:// MCP resource templates with ETag/TTL caching), apply it, and report the outcome (skill_feedback with tokens/seconds telemetry). Silently maintains .botz/skills.lock.json and checks updates_check / skill_updates plus skill_diff / agent_diff.
+description: Consume, stage, evolve, test, and install governed Agent Skills and subagent definitions from a botz-mcp server with zero-drift version pinning, canary A/B evaluation, and SHA-256 verification. Use whenever you need a capability you do not already have - follow the chained workflow (search -> select -> use -> feedback -> evolve/fork/create -> select @canary -> test -> rate -> promote), fetch unified CRUX bundles (skill_get_compressed / agent_get_compressed) or batched resources (skill_resources_get, skill_install, agent_install, or skill:// MCP resource templates with ETag/TTL caching), score outcomes via sampling/feedback, and promote verified versions.
 id: e15acdf95d3e485a93845e01468bb679
-version: 6
+version: 7
 compatibility: "Cursor, Claude Code, Codex, OpenClaw, and any MCP client supporting streamable HTTP (/mcp)"
 changelog:
 - 'v2: document whole-bundle CRUX serving and optional related-skill sourcing'
@@ -10,9 +10,10 @@ changelog:
 - 'v4: prefer skill_get_compressed (unified CRUX incorporating all references and scripts); skill_get + skill_resource_get as plain-markdown alternative'
 - 'v5: add silent staging (.botz/staged/), skill_install/agent_install, batch skill_resources_get, RFC 6570 MCP resource templates (skill://{name}@{version}/resources/{path} & /bundle) with ETag/TTL caching, updates_check + skill_diff/agent_diff, requires preflight, and brief secret redaction'
 - 'v6: document all 7 MCP specification coverage stages (24 tools with outputSchema + structuredContent, 5-field ToolAnnotations, 4 @mcp.prompt slash workflows /use_skill, /author_skill, /evolve_skill, /delegate_subagent, 4-stage notifications/progress, completion/complete autocomplete, client sampling/createMessage & roots/list workspace detection, binary BlobResourceContents on skill://{name}/illustration, resourceLinks, notifications/resources/list_changed, BoundedMemoryEventStore SSE resumability, and swarm_run_completed lifecycle)'
+- 'v7: add canonical chained & batched workflow reference (references/chained-workflows.md) covering search -> select -> use -> feedback -> evolve/fork/create -> select (@canary) -> test -> rate (sampling/feedback) -> promote, canary A/B testing (@live vs @canary), admin MCP promotion vs Console governance, and 24-hour generation quota graceful read-only degradation'
 ---
 
-# Consuming & installing skills via botz-mcp
+# Consuming, evolving & installing skills via botz-mcp
 
 `botz-mcp` is an MCP server (streamable HTTP, endpoint `/mcp`) holding a
 governed corpus of Agent Skills and Subagent Definitions. Every artifact has a
@@ -21,6 +22,35 @@ governed corpus of Agent Skills and Subagent Definitions. Every artifact has a
 Never guess at a workflow you don't know: locate a skill, load or stage it,
 follow it, and report reality. Keep lockfile and staging mechanics invisible to
 the user unless they ask.
+
+## Chained & Batched Agent Loop (`references/chained-workflows.md`)
+
+See [`references/chained-workflows.md`](references/chained-workflows.md) for the complete reference on chaining and batching `botz-mcp` tools across the full skill lifecycle:
+
+```text
+search -> select -> use (get_compressed + batch resources) -> feedback
+  -> evolve (targeted refinement -> @canary draft) / fork (structural divergence) / create (skill_request)
+  -> select (@canary / draft vN+1) -> test -> rate (sampling/createMessage + skill_feedback) -> promote
+```
+
+1. **Search & Select (`skill_search` / `agent_search` -> Pin Check)**:
+   - Query semantically with QSC `objective` (`"balanced"`, `"quality"`, `"speed"`, `"cost"`).
+   - Check `.botz/skills.lock.json` via a single batched `updates_check(pins)` call at session start.
+2. **Use (`skill_get_compressed` + Batched `skill_resources_get`)**:
+   - Fetch the unified CRUX bundle (`SKILL.crux.md`) via `skill_get_compressed(name, version)`.
+   - When executing bundled scripts or schemas, batch-fetch all files in one call via `skill_resources_get(name, paths="*", version)` (or `skill://{name}@{version}/bundle`).
+3. **Feedback (`skill_feedback`)**:
+   - Report `"worked"` or `"failed"` with `tokens` and `seconds` telemetry after every use.
+4. **Adapt When a Retrieved Skill Is Not Quite Right (`evolve` vs `fork` vs `create`)**:
+   - **Targeted refinement (`skill_evolve(name, instruction)`)**: Keeps the same permanent GUID and creates a new **draft / `@canary` version** (`vN+1`) alongside the current `@live` (`vN`) version.
+   - **Structural or domain divergence (`skill_fork(source, new_name, modification)`)**: Mints a new permanent GUID with `derived_from` lineage when larger architectural changes are required.
+   - **Composite or net-new capability (`skill_combine` / `skill_request` / `agent_request`)**: Creates a new governed skill or subagent when `covered=false`.
+5. **Select `@canary`, Test, Rate & Promote (`select -> test -> rate -> promote`)**:
+   - **Select & Test**: Fetch the new `@canary` draft explicitly (`skill_get_compressed(name, version=vN+1)` or `skill://{slug}@canary/SKILL.crux.md`), stage its resources, and run its validation scripts on real inputs.
+   - **Rate & Canary A/B Testing (`@live` vs `@canary`)**: Evolved draft versions enter canary A/B evaluation against the existing `@live` version. Agent result scoring via MCP `sampling/createMessage` and `skill_feedback(name, outcome, tokens, seconds)` scores each run. When the `@canary` draft achieves strong ratings over the sampling window with zero safety regressions, it is **automatically promoted** to `@live`.
+   - **Promote (`skill_promote` vs Console)**: Authenticated **admin** clients can immediately promote a draft/canary version via MCP `skill_promote(name, catalog)`. Standard non-admin clients rely on automatic canary promotion or operator approval in the Botz Web Console (`/admin#corpus` and `/console`).
+6. **24-Hour Generation Quotas & Graceful Read-Only Degradation**:
+   - Authoring/mutation tools enforce a rolling 24h quota per user and per team (default `10/24h`). When exhausted (`reason_code="generation_quota_24h_exceeded"`), all read-only and feedback tools (`skill_search`, `skill_get_compressed`, `skill_resources_get`, `skill_install`, `skill_feedback`) remain 100% available—degrade gracefully to the closest `@live` skill without retrying mutations in a loop.
 
 ## Lockfile & optional repo policy (handle silently)
 
@@ -118,8 +148,7 @@ In addition to tools, `botz-mcp` exposes RFC 6570 MCP Resource Templates via
   large skill, pass `sections=["Workflow", "Output contract"]` to load only
   matching `##` headings and save context tokens.
 
-
-## MCP Specification Coverage (v6 — All 7 Stages)
+## MCP Specification Coverage (v7 — All 7 Stages)
 
 The hosted `https://mcp.botz.ai/mcp` server implements all 7 stages of the Model Context Protocol (`2025-03-26`, `2025-06-18`, `2025-11-25`):
 
@@ -128,7 +157,7 @@ The hosted `https://mcp.botz.ai/mcp` server implements all 7 stages of the Model
 3. **4 `@mcp.prompt` Slash-Command Workflows**: Invoke `/use_skill(task, objective)`, `/author_skill(need, context)`, `/evolve_skill(name, improvement)`, or `/delegate_subagent(role, task, client)` via `prompts/list` and `prompts/get`.
 4. **Real-Time Progress (`notifications/progress`)**: Authoring and mutation tools (`skill_request`, `agent_request`, `skill_evolve`, `skill_fork`, `skill_combine`) emit 4-stage progress updates (`1/4 Coverage Check` → `2/4 Draft Synthesis` → `3/4 Safety Scan & CRUX Compile` → `4/4 Index & Publish`).
 5. **Autocomplete (`completion/complete`)**: Prefix autocomplete for `ref/resource` (`skill://` and `agent://` `{name}`, `{version}`, `{path}`, `{client_id}`) and `ref/prompt` arguments.
-6. **Client Sampling (`sampling/createMessage`) & Workspace Roots (`roots/list`)**: `skill_install` and `agent_install` inspect `roots/list` to return `detected_workspace_roots`; `skill_request(..., use_client_sampling=True)` can request a draft synthesis hint from the client IDE's LLM.
+6. **Client Sampling (`sampling/createMessage`) & Workspace Roots (`roots/list`)**: `skill_install` and `agent_install` inspect `roots/list` to return `detected_workspace_roots`; `skill_request(..., use_client_sampling=True)` and canary result evaluation invoke `sampling/createMessage`.
 7. **Binary `BlobResourceContents`, `list_changed` & SSE Resumability**: `skill://{name}/illustration` and `skill://{name}@{version}/illustration` serve WebP illustrations as base64 `BlobResourceContents`; mutations emit `notifications/resources/list_changed`; and `BoundedMemoryEventStore` replays missed SSE events via `Last-Event-ID`.
 
 ## Dependency & environment preflight (`requires`)
@@ -156,19 +185,18 @@ Before running any bundled script in `scripts/`:
 5. Apply the workflow, run any bundled validation script
    (`python3 scripts/validate-output.py < output.json`), and report reality:
    `skill_feedback(name, "worked"|"failed", tokens=<approx>, seconds=<wall>)`.
-6. Gap (`covered=false`)? Call `skill_request(need, context)` or
-   `agent_request(need, context)` with a rich conversational brief.
+6. If the retrieved skill needs refinement, call `skill_evolve(name, instruction)` to create a new `@canary` draft version (or `skill_fork` for larger structural divergence; `skill_request` / `agent_request` when `covered=false`), then select, test, rate via sampling/feedback, and promote (see [`references/chained-workflows.md`](references/chained-workflows.md)).
 
 ## Requesting new primitives & secret redaction
 
 - **TERSE ON READS, CONVERSATIONAL ON WRITES.** Include the task narrative,
   what existing skills fell short, 1–2 concrete input/output examples, target
   environment, and success criteria in `context`.
-- **Mandatory secret hygiene:** Before calling `skill_request` or
-  `agent_request`, strip all credentials, API keys (`sk-`, `ghp_`, `bzt_`,
-  `AKIA...`), `Bearer` tokens, private URLs with embedded credentials, and
-  `.env` secret values from `need`, `context`, and `answers`. Replace them with
-  `<REDACTED>`.
+- **Mandatory secret hygiene:** Before calling `skill_request`, `agent_request`,
+  `skill_evolve`, `skill_fork`, or `skill_combine`, strip all credentials, API
+  keys (`sk-`, `ghp_`, `bzt_`, `AKIA...`), `Bearer` tokens, private URLs with
+  embedded credentials, and `.env` secret values from `need`, `context`,
+  `instruction`, `modification`, and `answers`. Replace them with `<REDACTED>`.
 
 ## Session evolution check & diffs
 
@@ -207,4 +235,4 @@ verbatim inside the CRUX notation.
 After applying a consumed skill or subagent, state: slug + version used (e.g.
 `clarify-brief@7f2f85fb v1`), mode (`CRUX` or `plain`, staged or installed),
 validation result, feedback reported (`reason_code` if rate-limited), and any
-pending update notice.
+pending update or canary promotion notice.

@@ -7,6 +7,10 @@ from the user. Docs: <https://zotoio.github.io/zoto-agents/botz-skills/>
 - **Locate** skills (`skill_search`) and subagents (`agent_search`)
   semantically and **download** them as token-frugal
   [CRUX Compress](https://compress.md) bundles via `skill_get_compressed` / `agent_get_compressed` (incorporating `SKILL.md` + all `references/` and `scripts/` in one call; or plain Markdown via `skill_get` + `skill_resource_get` on demand; `agent_get` for installable client definitions).
+- **Chained & Batched Lifecycle (`references/chained-workflows.md`)**: Guides agents through the canonical loop:
+  `search -> select -> use (get_compressed + batch resources) -> feedback -> evolve (for targeted refinements) / fork (for structural divergence) / create (for net-new capabilities) -> select (@canary / draft) -> test -> rate (agent result scoring via sampling/feedback) -> promote`.
+- **Canary A/B Testing & Promotion**: Draft versions created via `skill_evolve` enter canary A/B testing (`@live` vs `@canary`). High ratings from agent result scoring via MCP `sampling/createMessage` and `skill_feedback` automatically promote `@canary` to `@live`. Admin clients can promote immediately via MCP `skill_promote`; standard clients manage promotion in the Web Console.
+- **24-Hour Generation Quotas**: Enforces rolling 24h per-user and per-team authoring quotas (default `10/24h`), degrading gracefully to read-only (`skill_search`, `skill_get_compressed`, `skill_resources_get`, `skill_feedback`) when exhausted.
 - **Zero drift**: every consumed artifact is pinned by permanent guid +
   version in `.botz/skills.lock.json`. Server-side forks, combinations, or
   evolutions never change what a pinned consumer receives.
@@ -16,8 +20,7 @@ from the user. Docs: <https://zotoio.github.io/zoto-agents/botz-skills/>
 - **Self-extending**: uncovered needs go through `skill_request` /
   `agent_request`; creation is conversational, so the server can ask
   clarifying questions mid-request.
-
-- **Full 7-Stage MCP Spec Support (v0.4.0 / Skill v6)**: Supports all 24 tools (`outputSchema` + `structuredContent`, 5-field `ToolAnnotations`), 4 `@mcp.prompt` slash commands (`/use_skill`, `/author_skill`, `/evolve_skill`, `/delegate_subagent`), 16 resource URI templates (including `skill://{name}/illustration` binary `BlobResourceContents`), `completion/complete`, 4-stage `notifications/progress`, and client `sampling/createMessage` + `roots/list` workspace detection.
+- **Full 7-Stage MCP Spec Support (v0.5.0 / Skill v7)**: Supports all 24 tools (`outputSchema` + `structuredContent`, 5-field `ToolAnnotations`), 4 `@mcp.prompt` slash commands (`/use_skill`, `/author_skill`, `/evolve_skill`, `/delegate_subagent`), 16 resource URI templates (including `skill://{name}/illustration` binary `BlobResourceContents`), `completion/complete`, 4-stage `notifications/progress`, and client `sampling/createMessage` + `roots/list` workspace detection.
 
 ## Install
 
@@ -57,12 +60,13 @@ curl -sS https://mcp.botz.ai/mcp \
 
 | Path | What |
 | --- | --- |
-| `skills/botz-mcp/` | The client skill (canonical copy lives in [zotoio/botz-mcp](https://github.com/zotoio/botz-mcp) `skills/botz-mcp/SKILL.md`) |
+| `skills/botz-mcp/` | The client skill (`SKILL.md` v7, canonical copy in [zotoio/botz-mcp](https://github.com/zotoio/botz-mcp)) |
+| `skills/botz-mcp/references/chained-workflows.md` | Canonical chained & batched workflow guide (`search -> select -> use -> feedback -> evolve/fork/create -> select -> test -> rate -> promote`, canary A/B testing, and 24h quotas) |
 | `commands/z-botz-mcp.md` | `/z-botz-mcp` shortcut for the skill |
 | `mcp.json` / `.mcp.json` | `botz` MCP server entry (Cursor / Claude Code) |
 
 ## Keeping the skill in sync
 
 The skill is authored in `zotoio/botz-mcp`. After it changes there, copy
-`skills/botz-mcp/SKILL.md` into `plugins/zoto-botz-skills/skills/botz-mcp/`,
+`skills/botz-mcp/SKILL.md` and `skills/botz-mcp/references/chained-workflows.md` into `plugins/zoto-botz-skills/skills/botz-mcp/`,
 bump the version in all four manifests, and add a CHANGELOG entry.

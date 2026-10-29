@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "botz-mcp-swarm",
-  "version": "0.11.0",
-  "description": "Capture, run, and diagnose MCP test suites with the botz MCP Swarm CLI.",
+  "version": "0.12.0",
+  "description": "Connect to the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth sign-in) and capture, run, and diagnose MCP test suites with the botz MCP Swarm CLI.",
   "author": {
     "name": "zotoio",
     "email": "plugins@zotoio.com"
@@ -21,7 +21,7 @@
       "interface": {
         "displayName": "MCP Swarm",
         "shortDescription": "Test and load-test MCP servers",
-        "longDescription": "Skills for the botz MCP Swarm CLI: capture suites from live MCP servers, run repeatable assertions and load tests, diagnose failures, and upgrade saved suites. The skills install the botz host and its mcp-swarm extension on first use.",
+        "longDescription": "Connects your agent to the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth 2.1 sign-in) and ships skills for the botz MCP Swarm CLI: capture suites from live MCP servers, trigger central or local load runs, register distributed VU/OTEL workers, diagnose failures, and upgrade saved suites.",
         "developerName": "zotoio",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/botz-mcp-swarm",

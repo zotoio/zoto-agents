@@ -5,7 +5,7 @@
   "description": "CRUX-Compress packaged as an agent plugin.",
   "type": "module",
   "scripts": {
-    "test": "node --test \"tests/*.test.mjs\"",
+    "test": "node --test tests/*.test.mjs",
     "sync-upstream": "node scripts/sync-upstream.mjs",
     "check-upstream": "node scripts/sync-upstream.mjs --check --ref v2.11.8"
   }
