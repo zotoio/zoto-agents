@@ -1,6 +1,6 @@
 # MCP Swarm
 
-**Test any MCP server, end to end.** Introspect, generate suites, run evals and load tests, and get optimisation advice, in CI or on your laptop.
+**From introspection to optimisation.** Point swarm at any MCP server and it builds, runs and scores the tests for you.
 
 Agent Skills and optional central MCP server (`https://swarm.botz.ai/mcp` with OAuth 2.1 sign-in) for the [botz MCP Swarm CLI](https://github.com/zotoio/botz-mcp-swarm-cli): introspect live MCP servers, generate test suites from tool schemas, annotations and intents, run contract/schema checks, evals and load tests locally or on the central Swarm server, get optimisation recommendations, register distributed VU/OTEL workers, diagnose failures, and upgrade saved suites.
 
