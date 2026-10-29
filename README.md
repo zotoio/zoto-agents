@@ -146,3 +146,7 @@ zoto-agents/
 ## License
 
 Each plugin is individually licensed. See the `LICENSE` file in each plugin directory.
+
+## Security
+
+CI actions are SHA-pinned, workflows default to a read-only token, and Dependabot proposes grouped updates weekly: [docs/security/ci-supply-chain.md](docs/security/ci-supply-chain.md).
