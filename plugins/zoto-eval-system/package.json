@@ -22,19 +22,19 @@
     "@cursor/sdk": "^1.2.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
-    "dotenv": "^17.4.2",
-    "jest": "^30.0.0",
-    "js-yaml": "^4.1.1",
+    "dotenv": "^18.0.9",
+    "jest": "^30.5.2",
+    "js-yaml": "^5.5.0",
     "json-source-map": "^0.6.1",
-    "minimatch": "^10.2.5",
-    "tsx": "^4.19.0",
-    "typescript": "^5.8.0",
-    "vitest": "^4.1.5",
-    "yaml": "^2.6.1"
+    "minimatch": "^10.2.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
-    "tsup": "^8.4.0",
-    "vitest": "^3.1.0"
+    "tsup": "^9.0.0",
+    "vitest": "^5.0.5"
   }
 }
