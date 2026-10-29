@@ -2,7 +2,7 @@
 name: botz-mcp
 description: Consume, stage, evolve, test, and install governed Agent Skills and subagent definitions from a botz-mcp server with zero-drift version pinning, canary A/B evaluation, and SHA-256 verification. Use whenever you need a capability you do not already have - follow the chained workflow (search -> select -> use -> feedback -> evolve/fork/create -> select @canary -> test -> rate -> promote), fetch unified CRUX bundles (skill_get_compressed / agent_get_compressed) or batched resources (skill_resources_get, skill_install, agent_install, or skill:// MCP resource templates with ETag/TTL caching), score outcomes via sampling/feedback, and promote verified versions.
 id: e15acdf95d3e485a93845e01468bb679
-version: 7
+version: 8
 compatibility: "Cursor, Claude Code, Codex, OpenClaw, and any MCP client supporting streamable HTTP (/mcp)"
 changelog:
 - 'v2: document whole-bundle CRUX serving and optional related-skill sourcing'
@@ -10,6 +10,7 @@ changelog:
 - 'v4: prefer skill_get_compressed (unified CRUX incorporating all references and scripts); skill_get + skill_resource_get as plain-markdown alternative'
 - 'v5: add silent staging (.botz/staged/), skill_install/agent_install, batch skill_resources_get, RFC 6570 MCP resource templates (skill://{name}@{version}/resources/{path} & /bundle) with ETag/TTL caching, updates_check + skill_diff/agent_diff, requires preflight, and brief secret redaction'
 - 'v6: document all 7 MCP specification coverage stages (24 tools with outputSchema + structuredContent, 5-field ToolAnnotations, 4 @mcp.prompt slash workflows /use_skill, /author_skill, /evolve_skill, /delegate_subagent, 4-stage notifications/progress, completion/complete autocomplete, client sampling/createMessage & roots/list workspace detection, binary BlobResourceContents on skill://{name}/illustration, resourceLinks, notifications/resources/list_changed, BoundedMemoryEventStore SSE resumability, and swarm_run_completed lifecycle)'
+- 'v8: preferred skills - agents carry preferred_skills (ids) + preferred_skill_uris (botz://skill/<id>) frontmatter (top 5 same-catalogue skills, auto-ranked); load them on demand via agent_preferred_skills(include_bodies) or skill_get(name=<id>)'
 - 'v7: add canonical chained & batched workflow reference (references/chained-workflows.md) covering search -> select -> use -> feedback -> evolve/fork/create -> select (@canary) -> test -> rate (sampling/feedback) -> promote, canary A/B testing (@live vs @canary), admin MCP promotion vs Console governance, and 24-hour generation quota graceful read-only degradation'
 ---
 
@@ -51,6 +52,22 @@ search -> select -> use (get_compressed + batch resources) -> feedback
    - **Promote (`skill_promote` vs Console)**: Authenticated **admin** clients can immediately promote a draft/canary version via MCP `skill_promote(name, catalog)`. Standard non-admin clients rely on automatic canary promotion or operator approval in the Botz Web Console (`/admin#corpus` and `/console`).
 6. **24-Hour Generation Quotas & Graceful Read-Only Degradation**:
    - Authoring/mutation tools enforce a rolling 24h quota per user and per team (default `10/24h`). When exhausted (`reason_code="generation_quota_24h_exceeded"`), all read-only and feedback tools (`skill_search`, `skill_get_compressed`, `skill_resources_get`, `skill_install`, `skill_feedback`) remain 100% available—degrade gracefully to the closest `@live` skill without retrying mutations in a loop.
+
+## Preferred skills (agents)
+
+Every subagent served by botz-mcp carries up to 5 **preferred skills** from its
+own catalogue (auto-ranked; operators may pin or exclude). They appear as
+`preferred_skills:` (skill ids) and `preferred_skill_uris:` (`botz://skill/<id>`)
+in the agent's served frontmatter, and as `preferred_skills` entries (`skill_id`,
+`score`, `source: auto|pinned`, `reason`) in `agent_get` results.
+
+- When you run or install an agent, do **not** preload all of them. Fetch a
+  preferred skill only when the task needs it: `skill_get(name=<skill_id>)`,
+  the `botz://skill/<id>` resource, or `agent_preferred_skills(name,
+  include_bodies=true)` to pull them all in one call.
+- Prefer a preferred skill over a fresh `skill_search` when it fits; they are
+  the agent's most relevant same-catalogue skills.
+- Skill results expose `preferred_by` (agents that prefer the skill).
 
 ## Lockfile & optional repo policy (handle silently)
 
