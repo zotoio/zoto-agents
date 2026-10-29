@@ -21,6 +21,7 @@
  *             "no sample captured".
  * With --html, also writes a self-contained page with a tool <select>; it makes no network requests.
  */
+import { randomBytes } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, basename } from "node:path";
 import { serverFor, serverLabel, toolKey } from "../../mcp-swarm-compare/scripts/runs-dataset.mjs";
@@ -45,9 +46,21 @@ function suiteNodes(suite) {
   return map;
 }
 
+export const SAFE_ID_RE = /^[a-zA-Z0-9._-]{1,128}$/;
+
+/** AGENTS-03: manifestName comes from an untrusted report; only a plain id may become a path segment. */
+export function safeManifestName(name) {
+  if (typeof name !== "string") return null;
+  const base = basename(name);
+  if (base !== name || base === "." || base === ".." || !SAFE_ID_RE.test(base)) return null;
+  return base;
+}
+
 function loadSuite(report, file, suitesDir) {
   const dir = suitesDir ?? join(dirname(dirname(file)), "suites");
-  try { return JSON.parse(readFileSync(join(dir, report.manifestName, "suite.json"), "utf8")); } catch { return null; }
+  const name = safeManifestName(report?.manifestName);
+  if (!name) return null;
+  try { return JSON.parse(readFileSync(join(dir, name, "suite.json"), "utf8")); } catch { return null; }
 }
 
 /**
@@ -518,6 +531,7 @@ ${xt}</svg>
 }
 
 export function renderHtml(d) {
+  const cspNonce = randomBytes(16).toString("base64");
   const data = JSON.stringify({ tools: d.tools, timeline: d.timeline.map(r => ({ t: r.t, byTool: r.byTool ?? null, byToolLatency: r.byToolLatency ?? null })), geom: { ...TL, latTop: TLY.lat, loadTop: TLY.load } }).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
   const r = d.run;
   const stat = (k, v, cls = "") => `<div class="stat"><div class="muted">${esc(k)}</div><div class="v ${cls}">${esc(v)}</div></div>`;
@@ -526,7 +540,7 @@ export function renderHtml(d) {
   const serverTable = d.servers.length ? `<h2>Servers</h2><table><thead><tr><th>Alias</th><th>Server</th><th>URL or command</th><th>Calls</th><th>Errors</th><th>p95</th></tr></thead><tbody>${d.servers.map(s => `<tr><td>${esc(s.alias)}</td><td>${esc(s.name ?? "unknown")}</td><td><code>${esc(s.endpoint ?? "unknown")}</code></td><td>${esc(s.calls)}</td><td>${pct(s.errorRate)}</td><td>${ms(s.p95)}</td></tr>`).join("")}</tbody></table>` : "";
   const evals = d.toolEvals.length ? `<h2>Tool evals</h2><table><thead><tr><th>Case</th><th>Tool</th><th>Polarity</th><th>Result</th><th>Reason</th></tr></thead><tbody>${d.toolEvals.map(e => `<tr><td>${esc(e.id)}</td><td>${esc(e.tool)}</td><td>${esc(e.polarity)}</td><td class="${e.pass ? "ok" : "bad"}">${e.pass ? "pass" : "fail"}</td><td>${esc(e.reason ?? "")}</td></tr>`).join("")}</tbody></table>` : "";
   const notes = d.notes.length ? `<ul>${d.notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul>` : `<p class="muted">None.</p>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(d.title)}</title><style>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'nonce-${cspNonce}'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(d.title)}</title><style>
 :root{--bg:#fff;--fg:#111827;--muted:#6b7280;--grid:#e5e7eb;--ok:#15803d;--bad:#b91c1c;--code:#f3f4f6}
 @media (prefers-color-scheme:dark){:root{--bg:#0f172a;--fg:#e5e7eb;--muted:#94a3b8;--grid:#334155;--ok:#4ade80;--bad:#f87171;--code:#1e293b}}
 body{background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif;margin:0 auto;max-width:980px;padding:16px}
@@ -562,7 +576,7 @@ ${timelineChart(d)}
 ${evals}
 <h2>Notes</h2>${notes}
 <script type="application/json" id="tools-data">${data}</script>
-<script>
+<script nonce="${cspNonce}">
 (function(){var D=JSON.parse(document.getElementById("tools-data").textContent),tools=D.tools,tl=D.timeline,sel=document.getElementById("tool");
 var svg=document.querySelector("svg[data-maxt]");
 function drawTool(key){if(!svg)return;var g=D.geom,mt=+svg.dataset.maxt,mms=+svg.dataset.maxms,mtps=+svg.dataset.maxtps;

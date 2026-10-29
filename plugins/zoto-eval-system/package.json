@@ -19,7 +19,7 @@
     "uninstall-local": "tsx scripts/uninstall-local.ts"
   },
   "dependencies": {
-    "@cursor/sdk": "^1.0.12",
+    "@cursor/sdk": "^1.2.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "dotenv": "^17.4.2",

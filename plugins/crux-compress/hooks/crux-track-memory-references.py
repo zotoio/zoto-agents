@@ -21,6 +21,19 @@ from pathlib import Path
 
 MEMORIES_CONFIG = Path(".crux/crux-memories.json")
 ANNOTATION_RE = re.compile(r"\[memory:([^\]]+)\]")
+SLUG_RE = re.compile(r"^[a-zA-Z0-9_-]{1,128}$")
+
+
+def _safe_tracker_path(tracking_dir: Path, slug: str) -> Path | None:
+    """AGENTS-01: slugs come from a repo-controlled index; refuse anything that
+    is not a plain slug or that would resolve outside the tracking directory."""
+    if not isinstance(slug, str) or not SLUG_RE.match(slug):
+        return None
+    base = tracking_dir.resolve()
+    candidate = (tracking_dir / f"{slug}.refs.yml").resolve()
+    if not candidate.is_relative_to(base):
+        return None
+    return candidate
 
 
 def _load_config() -> dict | None:
@@ -224,7 +237,9 @@ def _update_tracker(
     max_refs_stored: int,
 ) -> None:
     """Create or update a .refs.yml tracker for the given slug."""
-    tracker_path = tracking_dir / f"{slug}.refs.yml"
+    tracker_path = _safe_tracker_path(tracking_dir, slug)
+    if tracker_path is None:
+        return
     today = date.today().isoformat()
     source_key = "conversation_id"
     source_val = f"auto-hook-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M')}"

@@ -110,13 +110,13 @@
     "hooks/crux-session-start.py": {
       "from": ".cursor/hooks/crux-session-start.py",
       "upstreamSha256": "f2dd33843b10eef6c3d356b8bc93c987fd8d4c9dfcc0d1a4986331d2dee1663a",
-      "sha256": "3c1d470a49a128e61ea9160e601640f2a8c581d4574d8843614c926465de6905",
+      "sha256": "6672526344338f4dfde40a1f058c02a39412053d4e4d2bbbf05b7af60ddb53da",
       "changed": true
     },
     "hooks/crux-track-memory-references.py": {
       "from": ".cursor/hooks/crux-track-memory-references.py",
-      "upstreamSha256": "8ae8c1f151ad3d63c294eb07db1d6ff179930c15c25008583a60eea470d9643e",
-      "sha256": "8ae8c1f151ad3d63c294eb07db1d6ff179930c15c25008583a60eea470d9643e",
+      "upstreamSha256": "f603b768d59b83575061ebcfb01f966b77fbbf80cce19e61d34faf439b91f767",
+      "sha256": "f603b768d59b83575061ebcfb01f966b77fbbf80cce19e61d34faf439b91f767",
       "changed": false
     },
     "hooks/hooks.json": {
