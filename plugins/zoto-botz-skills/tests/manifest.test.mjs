@@ -18,7 +18,7 @@ test("mcp.json points at the hosted OAuth endpoint with no static credentials", 
 
 test("manifests agree on name and version", () => {
   const cursor = json(".cursor-plugin/plugin.json");
-  assert.equal(cursor.version, "0.5.0");
+  assert.equal(cursor.version, "0.7.0");
   for (const p of [".claude-plugin/plugin.json", "plugin.json", "package.json"]) {
     assert.equal(json(p).version, cursor.version, p);
   }
@@ -44,5 +44,6 @@ test("chained-workflows reference documents full lifecycle, canary A/B testing, 
 
   const skill = readFileSync(join(root, "skills/botz-mcp/SKILL.md"), "utf8");
   assert.match(skill, /references\/chained-workflows\.md/);
-  assert.match(skill, /version: 7/);
+  assert.match(skill, /version: 9/);
+  assert.match(skill, /botz:\/\/\{org\}\/\{catalogue\}\/skill/);
 });

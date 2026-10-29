@@ -48,7 +48,7 @@ search ──► select ──► use (get_compressed + batch resources) ──�
      ```json
      { "tool": "skill_resources_get", "arguments": { "name": "<guid-or-slug>", "paths": "*", "version": 3 } }
      ```
-     *(Alternatively, read the RFC 6570 resource URI `skill://{name}@{version}/bundle`.)*
+     *(Alternatively, read the canonical RFC 6570 resource URI `botz://{org}/{catalogue}/skill/{id}@{version}/bundle`; the un-prefixed `skill://{name}@{version}/bundle` form is deprecated.)*
    - Verify SHA-256 digests, stage into `.botz/staged/<slug>@v<version>/`, run the workflow, and execute any bundled validation script.
 4. **Feedback (`skill_feedback`)**
    - Always close the read loop by reporting actual execution telemetry:
