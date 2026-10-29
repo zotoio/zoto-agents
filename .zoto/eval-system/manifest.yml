@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-29T00:09:26.620Z
-git_ref: 2ae2f4a57c25a9ff394ccfcde13310d5be4a9182
+updated_at: 2026-10-29T04:52:07.202Z
+git_ref: 5f521ef985213075505f3fdacd8e1cfb549e4f07
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -41,22 +41,26 @@ targets:
   - id: skill:mcp-swarm
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm/SKILL.md
-    content_hash: 2a0c3efdf3f5c7fb9a5608c6080aba93b2b1f3f21cd2bfe026cda23a9fb92aab
+    content_hash: b01b250177712986660f02eea8623e03450f5c3be39fb5563c07978fdd059aad
     public_surface:
       frontmatter:
         name: mcp-swarm
-        description: Capture, validate, refresh, and run MCP test suites with the botz
+        description: Capture, validate, refresh, and run MCP test suites locally or via
+          the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth
+          2.1 sign-in), and register distributed VU/OTEL workers with the botz
           MCP Swarm CLI. Use for testing MCP servers, repeatable tool
-          assertions, load tests, and CI reports.
+          assertions, central or distributed load tests, and CI reports.
         license: MIT
         disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Live
-          capture and runs require access to the target MCP server.
+        compatibility: Requires Node.js 22.13+, npm, and shell access for CLI commands,
+          or an MCP client supporting streamable HTTP + OAuth 2.1 for central
+          server tools (https://swarm.botz.ai/mcp). Installs the botz host
+          (@zotoio/botz-cli) and its mcp-swarm extension if missing.
         metadata: ""
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        mcp-server: '"https://swarm.botz.ai/mcp"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm/evals/evals.json
   - id: skill:mcp-swarm-analyse
@@ -479,23 +483,22 @@ targets:
   - id: skill:botz-mcp
     kind: skill
     path: plugins/zoto-botz-skills/skills/botz-mcp/SKILL.md
-    content_hash: 7c23925bea00b16650c9d9dad0d7854265cdb9ffff3f00f3b00172f0565b76fd
+    content_hash: d05c9a9f1043a576b07fb5facd293e65beba0038967eadf7f8f1a6aacb4f1674
     public_surface:
       frontmatter:
         name: botz-mcp
-        description: Consume, stage, and install governed Agent Skills and subagent
-          definitions from a botz-mcp server with zero-drift version pinning and
-          SHA-256 verification. Use whenever you need a capability you do not
-          already have - dynamically locate a skill (skill_search) or subagent
-          role (agent_search), fetch its unified CRUX bundle
-          (skill_get_compressed / agent_get_compressed) or plain Markdown +
-          bundled resources (skill_get, skill_resources_get, skill_install,
-          agent_install, or skill:// MCP resource templates with ETag/TTL
-          caching), apply it, and report the outcome (skill_feedback with
-          tokens/seconds telemetry). Silently maintains .botz/skills.lock.json
-          and checks updates_check / skill_updates plus skill_diff / agent_diff.
+        description: Consume, stage, evolve, test, and install governed Agent Skills and
+          subagent definitions from a botz-mcp server with zero-drift version
+          pinning, canary A/B evaluation, and SHA-256 verification. Use whenever
+          you need a capability you do not already have - follow the chained
+          workflow (search -> select -> use -> feedback -> evolve/fork/create ->
+          select @canary -> test -> rate -> promote), fetch unified CRUX bundles
+          (skill_get_compressed / agent_get_compressed) or batched resources
+          (skill_resources_get, skill_install, agent_install, or skill:// MCP
+          resource templates with ETag/TTL caching), score outcomes via
+          sampling/feedback, and promote verified versions.
         id: e15acdf95d3e485a93845e01468bb679
-        version: "6"
+        version: "7"
         compatibility: '"Cursor, Claude Code, Codex, OpenClaw, and any MCP client
           supporting streamable HTTP (/mcp)"'
         changelog: ""
@@ -519,6 +522,12 @@ targets:
           skill://{name}/illustration, resourceLinks,
           notifications/resources/list_changed, BoundedMemoryEventStore SSE
           resumability, and swarm_run_completed lifecycle)'
+        "- 'v7": add canonical chained & batched workflow reference
+          (references/chained-workflows.md) covering search -> select -> use ->
+          feedback -> evolve/fork/create -> select (@canary) -> test -> rate
+          (sampling/feedback) -> promote, canary A/B testing (@live vs @canary),
+          admin MCP promotion vs Console governance, and 24-hour generation
+          quota graceful read-only degradation'
     eval_files:
       - plugins/zoto-botz-skills/skills/botz-mcp/evals/evals.json
   - id: skill:zoto-cursor-top-monitor
