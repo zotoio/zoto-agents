@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0 (2026-10-29)
+
+- `botz-mcp` client skill v9: org/catalogue-first URIs (`botz://<org>/<catalogue>/skill|agent/<id>`, `/<org>/<catalogue>/skills|agents/<id>/v<N>`). `preferred_skill_uris` are canonical. `skill://`, `agent://`, `botz://skill/<id>` and `/skills/<name>` forms are deprecated (unique-only resolution, 301 over HTTP, ambiguity error otherwise).
+
 ## 0.5.0 (2026-10-29)
 
 - Upgraded `botz-mcp` client skill to v7 and added `references/chained-workflows.md`:
