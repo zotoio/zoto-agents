@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [0.11.0] - 2026-10-29
+
+- Updated skills and docs for `@zotoio/botz-mcp-swarm-cli >= 0.13.0` and the 28-tool `https://swarm.botz.ai/mcp` Streamable-HTTP MCP Server:
+  - **28-Tool Swarm MCP Server (`https://swarm.botz.ai/mcp`)**: Full MCP OAuth 2.1 + PKCE + DCR and `bzt_` IAM API keys (`viewer`, `runner`, `editor`, `operator`, `owner`, and least-privilege `service_bridge`), plus 4 `@mcp.prompt` slash workflows (`/swarm_remediate_latest_run`, `/audit_mcp_server`, `/triage_suite_run`, `/soak_test_plan`) and `completion/complete`.
+  - **All 7 MCP Specification Stages (`0.13.0`)**: AJV `outputSchema` validation on `structuredContent` (`contract.ts`), 5-field `ToolAnnotations` capture, `ttfpMs` progress tracking (`notifications/progress`), deterministic zero-cost mock handlers for `sampling/createMessage` and `roots/list` (`mcp-session.ts`), and Streamable HTTP session reconnect.
+  - **Load Profile Presets & 1h Soak Mode (`0.13.0`)**: `--preset smoke|baseline|peak|spike|soak` (including `soak: 10 VUs · 1h (3600s) hold · ~4 TPS/user · 4 lanes`), `--skip-image-gen` (`X-Swarm-Skip-Image-Gen: 1`), `--skip-expensive-llm` (`X-Swarm-Skip-Expensive-Llm: 1`), conversational load parser, live `vus`/`avgMs`/`p95`/`toolAvgMs` curves, `createdAssets` + `swarm_run_cleanup_assets`, and automatic end-of-run callee completion signaling (`signalCalleeRunCompleted`).
+
 ## [0.10.0] - 2026-10-28
 
 - Update skills and docs for `@zotoio/botz-mcp-swarm-cli >= 0.12.0` and Swarm service (`swarm.botz.ai`) unified suite workspace:

@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Peer Cursor plugins for structured engineering: plan and verify your specs, generate and update your evals, monitor every agent on your machine, and test MCP servers.",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "pluginRoot": "plugins"
   },
   "plugins": [

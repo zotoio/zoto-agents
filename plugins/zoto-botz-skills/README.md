@@ -17,6 +17,8 @@ from the user. Docs: <https://zotoio.github.io/zoto-agents/botz-skills/>
   `agent_request`; creation is conversational, so the server can ask
   clarifying questions mid-request.
 
+- **Full 7-Stage MCP Spec Support (v0.4.0 / Skill v6)**: Supports all 24 tools (`outputSchema` + `structuredContent`, 5-field `ToolAnnotations`), 4 `@mcp.prompt` slash commands (`/use_skill`, `/author_skill`, `/evolve_skill`, `/delegate_subagent`), 16 resource URI templates (including `skill://{name}/illustration` binary `BlobResourceContents`), `completion/complete`, 4-stage `notifications/progress`, and client `sampling/createMessage` + `roots/list` workspace detection.
+
 ## Install
 
 ```

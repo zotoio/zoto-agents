@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-26T09:13:43.434Z
-git_ref: f3b289ad6f8f70bd04a6ee89d3d0a0080aedaceb
+updated_at: 2026-10-29T00:09:26.620Z
+git_ref: 2ae2f4a57c25a9ff394ccfcde13310d5be4a9182
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -41,7 +41,7 @@ targets:
   - id: skill:mcp-swarm
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm/SKILL.md
-    content_hash: 9f783b56cad9f9c30ae1a7e645759e918e7db5520761c5abc1b1ac9978f40b89
+    content_hash: 2a0c3efdf3f5c7fb9a5608c6080aba93b2b1f3f21cd2bfe026cda23a9fb92aab
     public_surface:
       frontmatter:
         name: mcp-swarm
@@ -62,7 +62,7 @@ targets:
   - id: skill:mcp-swarm-analyse
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/SKILL.md
-    content_hash: 316775a5d74e62ad5e3172d3c193a44c15eff86b700134c2e3f4caf47b1ec4b9
+    content_hash: d6c847c8bf552fb165b1c9ef408f0a889af152fbaf81b7fb38f7c322cce44ab2
     public_surface:
       frontmatter:
         name: mcp-swarm-analyse
@@ -130,7 +130,7 @@ targets:
   - id: skill:mcp-swarm-diagnose
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/SKILL.md
-    content_hash: 2edade4b37e8ce3b103c64e4b95d15359fe5ae78468f716df68eb595b64f1005
+    content_hash: d91c75df16b66eb6016a0d9026d572f093658b157bd878ba5796b32106fa0fed
     public_surface:
       frontmatter:
         name: mcp-swarm-diagnose
@@ -243,7 +243,7 @@ targets:
   - id: skill:mcp-swarm-upgrade
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/SKILL.md
-    content_hash: aa9dca63a0ef5d37ecf96902eebe827edf471a6ed6a26504bad7e2c14058850b
+    content_hash: 2c060b75b1714707ed552cc723c2c9bd24760c8e971f0915a02e8af36ca8bd67
     public_surface:
       frontmatter:
         name: mcp-swarm-upgrade
@@ -479,7 +479,7 @@ targets:
   - id: skill:botz-mcp
     kind: skill
     path: plugins/zoto-botz-skills/skills/botz-mcp/SKILL.md
-    content_hash: 16185b7b03eb0ebd30a2844da802ff16b8a97f64f93f2a9bc7f3e8ef35028915
+    content_hash: 7c23925bea00b16650c9d9dad0d7854265cdb9ffff3f00f3b00172f0565b76fd
     public_surface:
       frontmatter:
         name: botz-mcp
@@ -495,7 +495,7 @@ targets:
           tokens/seconds telemetry). Silently maintains .botz/skills.lock.json
           and checks updates_check / skill_updates plus skill_diff / agent_diff.
         id: e15acdf95d3e485a93845e01468bb679
-        version: "5"
+        version: "6"
         compatibility: '"Cursor, Claude Code, Codex, OpenClaw, and any MCP client
           supporting streamable HTTP (/mcp)"'
         changelog: ""
@@ -510,6 +510,15 @@ targets:
           (skill://{name}@{version}/resources/{path} & /bundle) with ETag/TTL
           caching, updates_check + skill_diff/agent_diff, requires preflight,
           and brief secret redaction'
+        "- 'v6": document all 7 MCP specification coverage stages (24 tools with
+          outputSchema + structuredContent, 5-field ToolAnnotations, 4
+          @mcp.prompt slash workflows /use_skill, /author_skill, /evolve_skill,
+          /delegate_subagent, 4-stage notifications/progress,
+          completion/complete autocomplete, client sampling/createMessage &
+          roots/list workspace detection, binary BlobResourceContents on
+          skill://{name}/illustration, resourceLinks,
+          notifications/resources/list_changed, BoundedMemoryEventStore SSE
+          resumability, and swarm_run_completed lifecycle)'
     eval_files:
       - plugins/zoto-botz-skills/skills/botz-mcp/evals/evals.json
   - id: skill:zoto-cursor-top-monitor

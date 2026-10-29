@@ -2,13 +2,14 @@
 name: botz-mcp
 description: Consume, stage, and install governed Agent Skills and subagent definitions from a botz-mcp server with zero-drift version pinning and SHA-256 verification. Use whenever you need a capability you do not already have - dynamically locate a skill (skill_search) or subagent role (agent_search), fetch its unified CRUX bundle (skill_get_compressed / agent_get_compressed) or plain Markdown + bundled resources (skill_get, skill_resources_get, skill_install, agent_install, or skill:// MCP resource templates with ETag/TTL caching), apply it, and report the outcome (skill_feedback with tokens/seconds telemetry). Silently maintains .botz/skills.lock.json and checks updates_check / skill_updates plus skill_diff / agent_diff.
 id: e15acdf95d3e485a93845e01468bb679
-version: 5
+version: 6
 compatibility: "Cursor, Claude Code, Codex, OpenClaw, and any MCP client supporting streamable HTTP (/mcp)"
 changelog:
 - 'v2: document whole-bundle CRUX serving and optional related-skill sourcing'
 - 'v3: conversational creation, subagent definitions (agent_* tools), QSC objectives + telemetry'
 - 'v4: prefer skill_get_compressed (unified CRUX incorporating all references and scripts); skill_get + skill_resource_get as plain-markdown alternative'
 - 'v5: add silent staging (.botz/staged/), skill_install/agent_install, batch skill_resources_get, RFC 6570 MCP resource templates (skill://{name}@{version}/resources/{path} & /bundle) with ETag/TTL caching, updates_check + skill_diff/agent_diff, requires preflight, and brief secret redaction'
+- 'v6: document all 7 MCP specification coverage stages (24 tools with outputSchema + structuredContent, 5-field ToolAnnotations, 4 @mcp.prompt slash workflows /use_skill, /author_skill, /evolve_skill, /delegate_subagent, 4-stage notifications/progress, completion/complete autocomplete, client sampling/createMessage & roots/list workspace detection, binary BlobResourceContents on skill://{name}/illustration, resourceLinks, notifications/resources/list_changed, BoundedMemoryEventStore SSE resumability, and swarm_run_completed lifecycle)'
 ---
 
 # Consuming & installing skills via botz-mcp
@@ -116,6 +117,19 @@ In addition to tools, `botz-mcp` exposes RFC 6570 MCP Resource Templates via
 - **Partial plain-Markdown reads:** When using `skill_get(name, raw=true)` on a
   large skill, pass `sections=["Workflow", "Output contract"]` to load only
   matching `##` headings and save context tokens.
+
+
+## MCP Specification Coverage (v6 — All 7 Stages)
+
+The hosted `https://mcp.botz.ai/mcp` server implements all 7 stages of the Model Context Protocol (`2025-03-26`, `2025-06-18`, `2025-11-25`):
+
+1. **24 Typed Tools with `outputSchema` & `structuredContent`**: Every tool (`skill_*`, `agent_*`, `graph_*`, `swarm_run_completed`) declares a JSON Schema `outputSchema` (`SkillToolResponse`) and returns structured JSON in `CallToolResult.structuredContent` alongside `resourceLinks` (`skill://{slug}@{version}/SKILL.crux.md`, `SKILL.md`).
+2. **5-Field `ToolAnnotations`**: Every tool declares `title`, `readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHint`.
+3. **4 `@mcp.prompt` Slash-Command Workflows**: Invoke `/use_skill(task, objective)`, `/author_skill(need, context)`, `/evolve_skill(name, improvement)`, or `/delegate_subagent(role, task, client)` via `prompts/list` and `prompts/get`.
+4. **Real-Time Progress (`notifications/progress`)**: Authoring and mutation tools (`skill_request`, `agent_request`, `skill_evolve`, `skill_fork`, `skill_combine`) emit 4-stage progress updates (`1/4 Coverage Check` → `2/4 Draft Synthesis` → `3/4 Safety Scan & CRUX Compile` → `4/4 Index & Publish`).
+5. **Autocomplete (`completion/complete`)**: Prefix autocomplete for `ref/resource` (`skill://` and `agent://` `{name}`, `{version}`, `{path}`, `{client_id}`) and `ref/prompt` arguments.
+6. **Client Sampling (`sampling/createMessage`) & Workspace Roots (`roots/list`)**: `skill_install` and `agent_install` inspect `roots/list` to return `detected_workspace_roots`; `skill_request(..., use_client_sampling=True)` can request a draft synthesis hint from the client IDE's LLM.
+7. **Binary `BlobResourceContents`, `list_changed` & SSE Resumability**: `skill://{name}/illustration` and `skill://{name}@{version}/illustration` serve WebP illustrations as base64 `BlobResourceContents`; mutations emit `notifications/resources/list_changed`; and `BoundedMemoryEventStore` replays missed SSE events via `Last-Event-ID`.
 
 ## Dependency & environment preflight (`requires`)
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-29 — Marketplace `v0.8.0` (`zoto-botz-skills v0.4.0` & `botz-mcp-swarm v0.11.0`)
+
+- **`zoto-botz-skills` (`0.4.0`, skill `v6`)**: Full 7-stage MCP specification coverage for `https://mcp.botz.ai/mcp` (24 tools with `outputSchema` + `structuredContent` and 5-field `ToolAnnotations`, 4 `@mcp.prompt` slash workflows `/use_skill`, `/author_skill`, `/evolve_skill`, `/delegate_subagent`, 16 resource URI templates including binary `BlobResourceContents` on `skill://{name}/illustration`, `completion/complete`, 4-stage `notifications/progress`, client `sampling/createMessage` & `roots/list`, `BoundedMemoryEventStore` SSE resumability, and `swarm_run_completed` lifecycle).
+- **`botz-mcp-swarm` (`0.11.0`, CLI `0.13.0`)**: Documents the 28-tool `https://swarm.botz.ai/mcp` Streamable-HTTP MCP Server, 4 `@mcp.prompt` workflows (`/swarm_remediate_latest_run`, `/audit_mcp_server`, `/triage_suite_run`, `/soak_test_plan`), load profile presets (`smoke`, `baseline`, `peak`, `spike`, `soak: 10 VUs · 1h · ~4 TPS/user`), `--skip-image-gen` & `--skip-expensive-llm`, `signalCalleeRunCompleted` + `swarm_run_cleanup_assets`, and full 7-stage MCP client & contract verification.
+
 All notable cross-plugin changes to the **zoto-agents** monorepo are recorded
 here. Per-plugin changes live in each plugin's own `CHANGELOG.md`:
 

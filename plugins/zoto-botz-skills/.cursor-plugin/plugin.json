@@ -1,6 +1,6 @@
 {
   "name": "zoto-botz-skills",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Consume governed Agent Skills and subagents from the hosted botz.ai MCP server (https://mcp.botz.ai/mcp, OAuth sign-in) with zero-drift version pinning.",
   "author": {
     "name": "zotoio",

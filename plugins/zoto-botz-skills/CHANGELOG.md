@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 (2026-10-29)
+
+- Upgraded `botz-mcp` client skill to v6 covering all 7 MCP specification stages on `https://mcp.botz.ai/mcp`:
+  - All 24 MCP tools with `outputSchema` (`SkillToolResponse`) + `structuredContent` and 5-field `ToolAnnotations`.
+  - All 4 `@mcp.prompt` slash workflows (`/use_skill`, `/author_skill`, `/evolve_skill`, `/delegate_subagent`).
+  - All 16 MCP resource URI templates including binary `BlobResourceContents` (`skill://{name}/illustration`), `resourceLinks` in tool responses, `completion/complete` autocomplete, `notifications/progress`, client `sampling/createMessage` & `roots/list` workspace detection, `notifications/resources/list_changed`, `BoundedMemoryEventStore` SSE resumability, and `swarm_run_completed` lifecycle cleanup.
+
 ## 0.3.0 (2026-10-26)
 
 - Upgraded `botz-mcp` client skill to v5:
