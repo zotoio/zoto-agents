@@ -20,7 +20,7 @@
       "requires_local_executor": true,
       "interface": {
         "displayName": "MCP Swarm",
-        "shortDescription": "Test any MCP server, end to end",
+        "shortDescription": "Test any MCP server end to end",
         "longDescription": "Connects your agent to the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth 2.1 sign-in) and ships skills for the botz MCP Swarm CLI: introspect live MCP servers and generate suites from tool schemas, annotations and intents, run contract/schema checks, evals and load tests centrally or locally, get optimisation recommendations, register distributed VU/OTEL workers, diagnose failures, and upgrade saved suites.",
         "developerName": "zotoio",
         "category": "Developer Tools",
