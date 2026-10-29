@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-29T04:52:07.202Z
-git_ref: 5f521ef985213075505f3fdacd8e1cfb549e4f07
+updated_at: 2026-10-29T08:18:16.334Z
+git_ref: ebd81470df23f004e54769a153ae214156e71264
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -483,7 +483,7 @@ targets:
   - id: skill:botz-mcp
     kind: skill
     path: plugins/zoto-botz-skills/skills/botz-mcp/SKILL.md
-    content_hash: d05c9a9f1043a576b07fb5facd293e65beba0038967eadf7f8f1a6aacb4f1674
+    content_hash: ea37727c4b9c16fd3bf91868bf318607d63abfac8727e8ec864f5579b1695669
     public_surface:
       frontmatter:
         name: botz-mcp
@@ -498,7 +498,7 @@ targets:
           resource templates with ETag/TTL caching), score outcomes via
           sampling/feedback, and promote verified versions.
         id: e15acdf95d3e485a93845e01468bb679
-        version: "7"
+        version: "8"
         compatibility: '"Cursor, Claude Code, Codex, OpenClaw, and any MCP client
           supporting streamable HTTP (/mcp)"'
         changelog: ""
@@ -522,6 +522,10 @@ targets:
           skill://{name}/illustration, resourceLinks,
           notifications/resources/list_changed, BoundedMemoryEventStore SSE
           resumability, and swarm_run_completed lifecycle)'
+        "- 'v8": preferred skills - agents carry preferred_skills (ids) +
+          preferred_skill_uris (botz://skill/<id>) frontmatter (top 5
+          same-catalogue skills, auto-ranked); load them on demand via
+          agent_preferred_skills(include_bodies) or skill_get(name=<id>)'
         "- 'v7": add canonical chained & batched workflow reference
           (references/chained-workflows.md) covering search -> select -> use ->
           feedback -> evolve/fork/create -> select (@canary) -> test -> rate
