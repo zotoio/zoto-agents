@@ -21,6 +21,7 @@
 import {
   cpSync,
   existsSync,
+  realpathSync,
   mkdirSync,
   readFileSync,
   readdirSync,
@@ -29,7 +30,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, posix, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, posix, relative, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 
 import type { CaseExpectedFilesystem, CaseFixtures } from "./case.js";
@@ -84,8 +85,49 @@ export const caseSlug = slugifyCaseId;
 /* Sandbox creation                                                        */
 /* ----------------------------------------------------------------------- */
 
+export const SAFE_RUN_ID_RE = /^[a-zA-Z0-9._-]{1,128}$/;
+
+/** AGENTS-02: runId becomes a path segment that is later rm -rf'd; refuse traversal. */
+export function assertSafeRunId(runId: string): string {
+  if (typeof runId !== "string" || !SAFE_RUN_ID_RE.test(runId) || runId === "." || runId === "..") {
+    throw new Error(`unsafe eval runId: ${JSON.stringify(runId)}`);
+  }
+  return runId;
+}
+
+function isWithin(base: string, target: string): boolean {
+  const rel = relative(base, target);
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+}
+
+/**
+ * AGENTS-02: resolve a fixture `from` path strictly inside `repoRoot`, rejecting
+ * absolute paths, `..` traversal and symlinks whose real path escapes the root.
+ */
+export function resolveFixtureSource(repoRoot: string, from: string): string {
+  const norm = String(from).replace(/\\+/g, "/");
+  if (isAbsolute(norm) || /^[a-zA-Z]:/.test(norm) || norm.split("/").some((seg) => seg === "..")) {
+    throw new Error(`fixture source escapes repo root: ${from}`);
+  }
+  const base = resolve(repoRoot);
+  const src = resolve(base, norm);
+  if (!isWithin(base, src)) throw new Error(`fixture source escapes repo root: ${from}`);
+  if (existsSync(src)) {
+    const realBase = realpathSync(base);
+    const realSrc = realpathSync(src);
+    if (!isWithin(realBase, realSrc)) {
+      throw new Error(`fixture source symlink escapes repo root: ${from}`);
+    }
+  }
+  return src;
+}
+
 export function createSandbox(runId: string, caseId: number | string): SandboxHandle {
-  const rootDir = join(tmpdir(), "zoto-eval", runId, slugifyCaseId(caseId));
+  const base = resolve(tmpdir(), "zoto-eval");
+  const rootDir = join(base, assertSafeRunId(runId), slugifyCaseId(caseId));
+  if (!isWithin(base, resolve(rootDir)) || resolve(rootDir) === base) {
+    throw new Error(`sandbox root escapes ${base}: ${rootDir}`);
+  }
   if (existsSync(rootDir)) {
     rmSync(rootDir, { recursive: true, force: true });
   }
@@ -178,7 +220,7 @@ function applyFixtureOverlays(
     mkdirSync(dirname(dest), { recursive: true, mode: 0o755 });
     let body = "";
     if (f.from) {
-      const src = join(repoRoot, f.from);
+      const src = resolveFixtureSource(repoRoot, f.from);
       if (existsSync(src)) body = readFileSync(src, "utf-8");
       else if (f.content !== undefined) body = f.content;
       else body = `# fixture source missing: ${f.from}\n`;

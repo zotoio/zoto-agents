@@ -45,9 +45,21 @@ function suiteNodes(suite) {
   return map;
 }
 
+export const SAFE_ID_RE = /^[a-zA-Z0-9._-]{1,128}$/;
+
+/** AGENTS-03: manifestName comes from an untrusted report; only a plain id may become a path segment. */
+export function safeManifestName(name) {
+  if (typeof name !== "string") return null;
+  const base = basename(name);
+  if (base !== name || base === "." || base === ".." || !SAFE_ID_RE.test(base)) return null;
+  return base;
+}
+
 function loadSuite(report, file, suitesDir) {
   const dir = suitesDir ?? join(dirname(dirname(file)), "suites");
-  try { return JSON.parse(readFileSync(join(dir, report.manifestName, "suite.json"), "utf8")); } catch { return null; }
+  const name = safeManifestName(report?.manifestName);
+  if (!name) return null;
+  try { return JSON.parse(readFileSync(join(dir, name, "suite.json"), "utf8")); } catch { return null; }
 }
 
 /**
