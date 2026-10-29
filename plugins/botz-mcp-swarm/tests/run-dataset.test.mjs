@@ -146,7 +146,10 @@ test("draws two panels and a selector script that parses and defaults to a faili
   for (const id of ["tl-tool", "tl-tool-lat"]) assert.match(html, new RegExp(`id="${id}"`));
   assert.match(html, />Response time \(ms\)</);
   assert.match(html, />Calls\/s</);
-  const js = html.slice(html.lastIndexOf("<script>") + 8, html.lastIndexOf("</script>"));
+  const open = html.match(/<script nonce="([^"]+)">/);
+  assert.ok(open, "inline script carries a CSP nonce");
+  assert.match(html, new RegExp(`<meta http-equiv="Content-Security-Policy" content="[^"]*script-src 'nonce-${open[1].replace(/[+/=]/g, "\\$&")}'`));
+  const js = html.slice(html.lastIndexOf(open[0]) + open[0].length, html.lastIndexOf("</script>"));
   assert.doesNotThrow(() => new vm.Script(js));
   assert.match(js, /findIndex\(function\(x\)\{return x\.errorRate>0\}\)/);
 });
@@ -192,7 +195,10 @@ test("CLI >= 0.9.0: builds the timeline from timeSeries, whole run, no partial f
   const html = renderHtml(d);
   assert.match(html, /measured \(timeSeries\)/);
   assert.match(html, /id="d-errwrap"/);
-  const js = html.slice(html.lastIndexOf("<script>") + 8, html.lastIndexOf("</script>"));
+  const open = html.match(/<script nonce="([^"]+)">/);
+  assert.ok(open, "inline script carries a CSP nonce");
+  assert.match(html, new RegExp(`<meta http-equiv="Content-Security-Policy" content="[^"]*script-src 'nonce-${open[1].replace(/[+/=]/g, "\\$&")}'`));
+  const js = html.slice(html.lastIndexOf(open[0]) + open[0].length, html.lastIndexOf("</script>"));
   assert.doesNotThrow(() => new vm.Script(js));
 });
 

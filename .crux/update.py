@@ -305,6 +305,37 @@ def memories_already_installed() -> bool:
 # ── File helpers ──
 
 
+def safe_join(base: Path, rel_path: str) -> Path:
+    """Resolve rel_path under base, refusing absolute paths, '..' escapes and drive/UNC prefixes."""
+    rel = str(rel_path).replace("\\", "/")
+    if not rel or rel.startswith("/") or re.match(r"^[A-Za-z]:", rel) or "\x00" in rel:
+        raise ValueError(f"Unsafe path in release data: {rel_path!r}")
+    parts = [p for p in rel.split("/") if p not in ("", ".")]
+    if any(p == ".." for p in parts):
+        raise ValueError(f"Unsafe path in release data: {rel_path!r}")
+    base_resolved = base.resolve()
+    candidate = base_resolved.joinpath(*parts).resolve()
+    if candidate != base_resolved and base_resolved not in candidate.parents:
+        raise ValueError(f"Path escapes {base}: {rel_path!r}")
+    return candidate
+
+
+def safe_extract_zip(zf: zipfile.ZipFile, dest: Path) -> None:
+    """Extract a zip without Zip/Tar-Slip: every member must stay inside dest; symlinks are rejected."""
+    dest.mkdir(parents=True, exist_ok=True)
+    for info in zf.infolist():
+        mode = (info.external_attr >> 16) & 0o170000
+        if mode == 0o120000:
+            raise ValueError(f"Refusing symlink in archive: {info.filename!r}")
+        target = safe_join(dest, info.filename)
+        if info.is_dir():
+            target.mkdir(parents=True, exist_ok=True)
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with zf.open(info) as src, open(target, "wb") as out:
+            shutil.copyfileobj(src, out)
+
+
 def get_checksum(filepath: str) -> str:
     p = Path(filepath)
     if not p.is_file():
@@ -705,7 +736,11 @@ def get_release_files(version: str) -> list[str]:
 
 def _download_one(cdn_base: str, rel_path: str, target_dir: Path) -> tuple[str, bool]:
     """Download a single file from CDN. Returns (path, success)."""
-    dest = target_dir / rel_path
+    try:
+        dest = safe_join(target_dir, rel_path)
+    except ValueError as exc:
+        log_warn(str(exc))
+        return rel_path, False
     dest.parent.mkdir(parents=True, exist_ok=True)
     source_candidates = list(dict.fromkeys([rel_path, from_crux_primitive_path(rel_path)]))
     for source_path in source_candidates:
@@ -784,7 +819,12 @@ def verify_checksums(staging_dir: Path, version: str) -> None:
     verified = mismatched = skipped = 0
     for filename, meta in release.get("files", {}).items():
         expected = meta.get("checksum", "")
-        staged = staging_dir / filename
+        try:
+            staged = safe_join(staging_dir, filename)
+        except ValueError as exc:
+            mismatched += 1
+            log_warn(str(exc))
+            continue
         if not staged.is_file():
             skipped += 1
             continue
@@ -816,11 +856,11 @@ def download_and_stage(version: str) -> Path:
     if data:
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as zf:
-                zf.extractall(content_dir)
+                safe_extract_zip(zf, content_dir)
             verify_checksums(content_dir, version)
             return content_dir
-        except zipfile.BadZipFile:
-            log_warn("Downloaded file is not a valid zip")
+        except (zipfile.BadZipFile, ValueError) as exc:
+            log_warn(f"Downloaded file is not a valid/safe zip: {exc}")
 
     log_warn("GitHub download failed, trying jsDelivr CDN...")
     download_from_cdn(version, content_dir)
@@ -1209,9 +1249,9 @@ def setup_mcp_server(version: str) -> bool:
 
     try:
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
-            zf.extractall(install_dir)
-    except zipfile.BadZipFile:
-        log_error("Downloaded file is not a valid zip")
+            safe_extract_zip(zf, install_dir)
+    except (zipfile.BadZipFile, ValueError) as exc:
+        log_error(f"Downloaded file is not a valid/safe zip: {exc}")
         return False
 
     log_success(f"MCP server extracted to {install_dir}")
