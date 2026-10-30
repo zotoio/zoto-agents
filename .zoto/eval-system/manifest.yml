@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-30T07:12:49.520Z
-git_ref: 1cdc95d8cbbc9fee8bee91d8263ebf45015065a0
+updated_at: 2026-10-30T07:19:32.259Z
+git_ref: 8faa5b947d638b31f24643597337124527a14b0f
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -41,7 +41,7 @@ targets:
   - id: skill:mcp-swarm
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm/SKILL.md
-    content_hash: 754b440b9176380a0155b8527940dccd5360a54eb82c8cfeb582239e2a6319dd
+    content_hash: 7bfd5855a7def88d607c8885bdab95841445bbce546c9198214f5e3303dbdb05
     public_surface:
       frontmatter:
         name: mcp-swarm
@@ -58,13 +58,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm/evals/evals.json
   - id: skill:mcp-swarm-analyse
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/SKILL.md
-    content_hash: 82d3bba167f6cc2b824cd2633e30ff3bb48c5481a406d243f8e7f053d5eaeb58
+    content_hash: f458abb5849a467c20082fd28cc75e86cc001f9bfd6b74b703dd0399215f7a83
     public_surface:
       frontmatter:
         name: mcp-swarm-analyse
@@ -81,13 +81,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/evals/evals.json
   - id: skill:mcp-swarm-compare
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-compare/SKILL.md
-    content_hash: d0906162fe4a6b6295f9f1135cc67678db6697e917674011ed07629bf3f555ad
+    content_hash: 5b5244111e4a081f91d33982416d9f917fdf612b495e0ef838395c77fd3a5058
     public_surface:
       frontmatter:
         name: mcp-swarm-compare
@@ -104,13 +104,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-compare/evals/evals.json
   - id: skill:mcp-swarm-descriptions
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/SKILL.md
-    content_hash: 39d929c5a6ab9c3387f0d7d60b1971f9bd8eff93266c21f3df2df624ab3fd0f5
+    content_hash: 9ce493edd698920a7fa356a0ae72cbbb9232bc4d36a96f91eb1dff3a9bb9f633
     public_surface:
       frontmatter:
         name: mcp-swarm-descriptions
@@ -129,13 +129,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/evals/evals.json
   - id: skill:mcp-swarm-diagnose
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/SKILL.md
-    content_hash: 533e040298d66ea12f4009b1eb00a44b0314bea64ed652d0201c3712a4b08b9a
+    content_hash: cad22f11cdad6676c26fca3798fa7289b611924bb26e8656283cc12d7384601c
     public_surface:
       frontmatter:
         name: mcp-swarm-diagnose
@@ -151,13 +151,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/evals/evals.json
   - id: skill:mcp-swarm-flow
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-flow/SKILL.md
-    content_hash: f42b4dd902cc7dd5a4af3425a8907d40046b9e1b2a74f2bbaf14218146cc457c
+    content_hash: 6ba0943a218d683a8d494d7679b5dc17f678ee3815db10550ac0e7c44ffcd8b9
     public_surface:
       frontmatter:
         name: mcp-swarm-flow
@@ -177,13 +177,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-flow/evals/evals.json
   - id: skill:mcp-swarm-guided
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-guided/SKILL.md
-    content_hash: e4c54132128125048064f03d876edee4c679b1b3fc23e98667212296b3ca936e
+    content_hash: e4f158bdbf605593ec530b744dd5ff81c4612662b4ca718a81c972c582afb93d
     public_surface:
       frontmatter:
         name: mcp-swarm-guided
@@ -200,13 +200,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-guided/evals/evals.json
   - id: skill:mcp-swarm-platform
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-platform/SKILL.md
-    content_hash: 6f230e30b6c4b6fc18fb7a641d6f621ebbf138ff2f9d08e0e003ce1133cb206e
+    content_hash: 42125cb4c197d2ba995a4bcd7c0968b63285b536c68216ebe7811b8efe084b3f
     public_surface:
       frontmatter:
         name: mcp-swarm-platform
@@ -224,13 +224,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-platform/evals/evals.json
   - id: skill:mcp-swarm-record-replay
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/SKILL.md
-    content_hash: f0e05041b65b037779d141571e7756fff44a2b481cad1c10008553eb16de205d
+    content_hash: 112d0086bab799cd6dc9b85ba6bd2c969cf52427685ce7f0d16659663e6198ce
     public_surface:
       frontmatter:
         name: mcp-swarm-record-replay
@@ -247,13 +247,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/evals/evals.json
   - id: skill:mcp-swarm-report
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-report/SKILL.md
-    content_hash: 8204ff7fe0e587b58ba5980dc722878ec67fd3b92465cdb0b23a6d502e411b29
+    content_hash: 756b6b5c614ce22d62a9b6e1b313127726fb5ec1c5353a65d700ba9d17d7455e
     public_surface:
       frontmatter:
         name: mcp-swarm-report
@@ -271,13 +271,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-report/evals/evals.json
   - id: skill:mcp-swarm-server-updates
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-server-updates/SKILL.md
-    content_hash: 2163c2d31faec5e99f834ada9ab5e4c86d25d080998c75e8596c499dffb8b5de
+    content_hash: e4c3bc985650a4247ae511874b0ff08b16f07608da078604703c741972e22a49
     public_surface:
       frontmatter:
         name: mcp-swarm-server-updates
@@ -296,13 +296,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-server-updates/evals/evals.json
   - id: skill:mcp-swarm-tags
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-tags/SKILL.md
-    content_hash: b26cd8e1904cb7975309e82480d08d065c74082014f80a92258732390493e8a5
+    content_hash: be7499a18d6cdac82842d5531550ad3a04d89acf202a3deaf15260c08d383e75
     public_surface:
       frontmatter:
         name: mcp-swarm-tags
@@ -318,13 +318,13 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-tags/evals/evals.json
   - id: skill:mcp-swarm-upgrade
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/SKILL.md
-    content_hash: 369e103bc4426dd7850942249a7b79813ef406d873b833fcc5a754614e8cf0a7
+    content_hash: 45a48f412cb55c1cc5989063baa01b3049e0d388ceb928cbea83ccf07a79b789
     public_surface:
       frontmatter:
         name: mcp-swarm-upgrade
@@ -342,7 +342,7 @@ targets:
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
+        cli-version: '"0.16.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/evals/evals.json
   - id: skill:crux-init

@@ -75,7 +75,7 @@ test("plugin v0.13.0 manifests, site page, and 13 skills/commands are aligned", 
   assert.match(mainSkill, /--ramp-down-strategy/);
   assert.match(mainSkill, /rate_limit/);
   assert.match(read("skills/mcp-swarm-diagnose/SKILL.md"), /cancelledByRampDown/);
-  assert.match(read("skills/mcp-swarm-upgrade/SKILL.md"), /0\.15\.0/);
+  assert.match(read("skills/mcp-swarm-upgrade/SKILL.md"), /0\.16\.0/);
 });
 
 test("server-updates and tags skills document CLI and MCP surfaces", () => {
@@ -98,11 +98,11 @@ test("server-updates and tags skills document CLI and MCP surfaces", () => {
   }
 });
 
-test("every skill pins botz-mcp-swarm-cli 0.15.0", () => {
+test("every skill pins botz-mcp-swarm-cli 0.16.0", () => {
   for (const name of ["mcp-swarm-guided", "mcp-swarm", "mcp-swarm-flow", "mcp-swarm-report", "mcp-swarm-compare", "mcp-swarm-descriptions", "mcp-swarm-record-replay", "mcp-swarm-diagnose", "mcp-swarm-analyse", "mcp-swarm-upgrade", "mcp-swarm-server-updates", "mcp-swarm-tags", "mcp-swarm-platform"]) {
     const s = read(`skills/${name}/SKILL.md`);
-    assert.match(s, /cli-version: "0\.15\.0"/, name);
-    if (s.includes("botz plugins info mcp-swarm")) assert.match(s, /botz plugins install mcp-swarm --version 0\.15\.0/, name);
+    assert.match(s, /cli-version: "0\.16\.0"/, name);
+    if (s.includes("botz plugins info mcp-swarm")) assert.match(s, /botz plugins install mcp-swarm --version 0\.16\.0/, name);
   }
 });
 

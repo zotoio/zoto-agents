@@ -8,7 +8,7 @@ metadata:
   author: zotoio
   cli-host: "@zotoio/botz-cli"
   cli-package: "@zotoio/botz-mcp-swarm-cli"
-  cli-version: "0.15.0"
+  cli-version: "0.16.0"
 ---
 
 # MCP Swarm platform mode (opt-in)
