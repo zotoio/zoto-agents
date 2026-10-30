@@ -80,7 +80,7 @@ test("plugin v0.13.0 manifests, site page, and 13 skills/commands are aligned", 
 
 test("server-updates and tags skills document CLI and MCP surfaces", () => {
   const updates = read("skills/mcp-swarm-server-updates/SKILL.md");
-  for (const needle of ["project server updates", "accept-update", "discard-update", "changelog", "protocol", "Update affected suites", "Check for server updates"]) {
+  for (const needle of ["project server updates", "accept-update", "discard-update", "changelog", "protocol", "project server refresh", "project server status"]) {
     assert.ok(updates.includes(needle), needle);
   }
   const tags = read("skills/mcp-swarm-tags/SKILL.md");
@@ -88,7 +88,7 @@ test("server-updates and tags skills document CLI and MCP surfaces", () => {
     assert.ok(tags.includes(needle), needle);
   }
   const platform = read("skills/mcp-swarm-platform/SKILL.md");
-  for (const needle of ["swarm_server_check_updates", "swarm_server_update_apply", "swarm_server_changelog", "swarm_tags_set", "swarm_describe", "swarm_scenarios_list"]) {
+  for (const needle of ["swarm_server_check_updates", "swarm_server_update_apply", "swarm_server_changelog", "swarm_tags_set", "swarm_describe", "swarm_scenarios_list", "Update affected suites", "Check for server updates", "Refresh from server", "Last introspected", "swarm_server_refresh", "swarm_server_introspection_status"]) {
     assert.ok(platform.includes(needle), needle);
   }
   for (const name of ["mcp-swarm-server-updates", "mcp-swarm-tags"]) {
