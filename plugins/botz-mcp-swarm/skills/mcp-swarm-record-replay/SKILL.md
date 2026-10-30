@@ -8,16 +8,19 @@ metadata:
   author: zotoio
   cli-host: "@zotoio/botz-cli"
   cli-package: "@zotoio/botz-mcp-swarm-cli"
+  cli-version: "0.15.0"
 ---
 
 # Record and replay MCP traffic
+
+> **Platform mode (opt-in):** this skill describes local execution only. If `BOTZ_MCP_SWARM_MODE=platform` is set or a `swarm` MCP server is connected, also read the `mcp-swarm-platform` skill before answering; otherwise do not mention or suggest Swarm platform features.
 
 ## Setup
 
 Run every command through the botz host as `botz mcp-swarm`. Do not use the standalone `botz-mcp-swarm` or `swarm` executables. Before the first command in a session:
 
 1. Run `botz --version`. If `botz` is not found, check `node --version` (22.13 or later is required), then install the host with `npm install -g @zotoio/botz-cli` and tell the user you installed it. If Node is too old or the global install fails, for example with a permissions error, stop and report it; do not use `sudo` or change npm configuration.
-2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null`, run `botz plugins install mcp-swarm`.
+2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null` or older than `0.15.0` (the version this plugin is pinned to, `metadata.cli-version`), run `botz plugins install mcp-swarm --version 0.15.0`.
 3. Confirm with `botz mcp-swarm --version`, and check the relevant subcommand's `--help` before using unfamiliar options.
 
 Recording and replay work on one server at a time. For a multi-server suite, record and replay each server separately, naming its alias in the file name (`recording-<server name>-<alias>-<timestamp>.json`).

@@ -11,7 +11,7 @@ Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 | [zoto-spec-system](plugins/zoto-spec-system/) | Decompose complex initiatives into reviewable specs, judge them independently, then execute with adversarial verification at every subtask. |
 | [zoto-eval-system](plugins/zoto-eval-system/) | Stamp static (pytest) and LLM (`@cursor/sdk`) eval suites side-by-side, detect drift when AI primitives change and update evals with user confirmation, and compare runs across models on a single `/canvas`. |
 | [zoto-cursor-top](plugins/zoto-cursor-top/) | Live, `htop`-style CLI that lists every Cursor agent on the current machine — IDE windows, `cursor-agent` CLI sessions, and Cloud Agent VMs — in one expandable parent-to-subagent tree with scrolling log tails. |
-| [botz-mcp-swarm](plugins/botz-mcp-swarm/) | Skills for the botz MCP Swarm CLI: introspect MCP servers, generate and run test suites (contract checks, evals, load), diagnose and optimise, installing the CLI on first use. |
+| [botz-mcp-swarm](plugins/botz-mcp-swarm/) | Skills for the botz MCP Swarm CLI, local by default: introspect MCP servers, generate and run test suites (contract checks, evals, load), diagnose and optimise on this machine. Botz platform mode (central server, remote runs, workers) is opt-in. |
 | [crux-compress](plugins/crux-compress/) | CRUX-Compress as a plugin: compress rules, code, images, and web pages into CRUX notation, with CRUX memories and meditation. |
 | [zoto-botz-skills](plugins/zoto-botz-skills/) | Consume governed skills and subagents from the hosted botz.ai MCP server (`https://mcp.botz.ai/mcp`, OAuth) with zero-drift guid+version pinning and CRUX-compressed downloads. |
 

@@ -1,0 +1,34 @@
+{
+  "skill_name": "mcp-swarm-platform",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/mcp-swarm-platform turn on platform mode for this repo in Cursor",
+      "expected_output": "The assistant shows the swarm entry for .cursor/mcp.json and asks before writing it.",
+      "assertions": [
+        "The assistant proposes adding the `swarm` server (`https://swarm.botz.ai/mcp`) to `.cursor/mcp.json`",
+        "The assistant confirms before writing the file",
+        "The assistant does not ask the user to paste a token into a file"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/mcp-swarm-platform run my docs-server suite on the central server",
+      "expected_output": "The assistant checks platform mode is on, then uses run --remote with SWARM_TOKEN from the environment.",
+      "assertions": [
+        "The assistant checks whether platform mode is enabled first",
+        "The assistant uses `botz mcp-swarm run --suite docs-server --remote` (or the `swarm_run_start` MCP tool)",
+        "The assistant never prints the token"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/mcp-swarm-platform turn platform mode off in Claude Code",
+      "expected_output": "The assistant removes the swarm server and unsets the env var.",
+      "assertions": [
+        "The assistant runs or suggests `claude mcp remove swarm`",
+        "The assistant mentions unsetting `BOTZ_MCP_SWARM_MODE`"
+      ]
+    }
+  ]
+}

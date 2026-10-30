@@ -8,9 +8,12 @@ metadata:
   author: zotoio
   cli-host: "@zotoio/botz-cli"
   cli-package: "@zotoio/botz-mcp-swarm-cli"
+  cli-version: "0.15.0"
 ---
 
 # Guided MCP Swarm session
+
+> **Platform mode (opt-in):** this skill describes local execution only. If `BOTZ_MCP_SWARM_MODE=platform` is set or a `swarm` MCP server is connected, also read the `mcp-swarm-platform` skill before answering; otherwise do not mention or suggest Swarm platform features.
 
 Walk the user from an MCP server to a reviewed suite and a summarised run, asking for each required input.
 
@@ -25,7 +28,7 @@ Never ask for a secret value. Ask for the **name** of the environment variable t
 Run every command through the botz host as `botz mcp-swarm`. Do not use the standalone `botz-mcp-swarm` or `swarm` executables. Before the first command in a session:
 
 1. Run `botz --version`. If `botz` is not found, check `node --version` (22.13 or later is required), then install the host with `npm install -g @zotoio/botz-cli` and tell the user you installed it. If Node is too old or the global install fails, for example with a permissions error, stop and report it; do not use `sudo` or change npm configuration.
-2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null`, run `botz plugins install mcp-swarm`.
+2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null` or older than `0.15.0` (the version this plugin is pinned to, `metadata.cli-version`), run `botz plugins install mcp-swarm --version 0.15.0`.
 3. Confirm with `botz mcp-swarm --version`, and check the relevant subcommand's `--help` before using unfamiliar options.
 
 ## 1. Target
@@ -124,3 +127,12 @@ Then ask what to do next:
 - review the server's tool descriptions (`mcp-swarm-descriptions`);
 - investigate a failure (`mcp-swarm-diagnose`) or have the model propose reviewed suite fixes (`mcp-swarm-analyse`);
 - rerun with a different load profile, or stop.
+
+## Local inference provider (allowed in local mode)
+
+Inference is optional and off by default (`--inference` on `suite capture` / `capture` and on `run --suite`). When the user has a provider configured, use it: this is local CLI behaviour, not a platform feature, and needs no Swarm sign-in.
+
+- **Where it lives:** environment variables only, read from the shell or from gitignored `.env.local` then `.env` in the current directory (shell values win; parent-directory files are not loaded). There is no provider setting in `settings.json` or `suite.json`, and no per-suite provider.
+- **How the CLI picks it:** `SWARM_LLM_PROVIDER` (`openai`, `anthropic`, `gemini`, `openrouter`, `groq`, `deepseek`, `mistral`, `together`, `xai`, `ollama`, `cursor`, `custom`). If unset, `SWARM_LLM_BASE_URL` alone selects `custom`, `SWARM_LLM_API_KEY` alone selects `openai`, and a single provider key (for example `OPENAI_API_KEY`) selects that provider; several provider keys without `SWARM_LLM_PROVIDER` is an error. There is no silent fallback.
+- **Local models:** `SWARM_LLM_PROVIDER=ollama` uses `http://127.0.0.1:11434/v1` with no key; any other OpenAI-compatible server uses `SWARM_LLM_PROVIDER=custom` with `SWARM_LLM_BASE_URL` (API root including `/v1`). Set `SWARM_LLM_MODEL` to an installed model with tool use and JSON output (only `openai`/`custom` default to `gpt-5.4-nano`, `cursor` to `auto`). Leave `TYPESAFE_API_KEY` empty so assertion judging also uses the local model. The CLI does not install or start the model server.
+- Check the provider, model and key are configured with `botz mcp-swarm doctor --inference --json` (it does not contact the model); never print, echo or copy key values, and never write keys into suite files.

@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## [0.13.0] - 2026-10-30
+
+- `mcp-swarm-server-updates` / `mcp-swarm-analyse`: refresh from server and last-introspected status (`project server refresh`, `project server status`, stale flag, drift as pending review) and check freshness before raising server findings; `mcp-swarm-platform`: Studio **Refresh from server** / **Last introspected**, the introspection API, `swarm_server_refresh`, `swarm_server_introspection_status` and the gated `swarm_remediation_prompt`.
+- Local-mode skills (`mcp-swarm`, `-guided`, `-flow`, `-analyse`, `-descriptions`, `-diagnose`) document using a local inference provider when configured (`SWARM_LLM_PROVIDER`/`SWARM_LLM_BASE_URL`/`SWARM_LLM_MODEL` from the shell, `.env.local` or `.env`; Ollama and OpenAI-compatible `custom`). Allowed in local mode; not a platform feature.
+- **Behaviour change — local mode by default.** The plugin no longer wires up the central `swarm` MCP server: `mcp.json` / `.mcp.json` are removed and `.cursor-plugin/plugin.json` has no `mcp` key. Skills and commands describe only local execution of the bundled CLI. The server entry moved to `platform/mcp.json` as an opt-in template.
+- New `mcp-swarm-platform` skill and `/z-mcp-swarm-platform` command: turn platform mode on or off per host (Cursor `.cursor/mcp.json`, `claude mcp add`, `codex mcp add`, or `BOTZ_MCP_SWARM_MODE=platform` for CLI/CI). Central MCP server/OAuth, `run --remote` / `--server`, worker mode, service suites and `swarm_*` MCP tools are documented only there; other skills point to it only when platform mode is on.
+- Pin every skill to `@zotoio/botz-mcp-swarm-cli` `0.15.0` (`metadata.cli-version`; install/upgrade with `botz plugins install mcp-swarm --version 0.15.0`).
+- `mcp-swarm`: document MCP protocol eras (`protocolEra`, `--protocol-era`, both-era compare, `eraCompare.ignoreKeys`) from CLI `0.15.0`; `mcp-swarm-upgrade` feature table runs through `0.15.0`.
+- `mcp-swarm-compare`: note the `scripts/runs-dataset.template.html` page shell from 0.12.1.
+- `mcp-swarm-server-updates` / `mcp-swarm-tags` (from #43, local CLI only by default): note the CLI subcommands ship after `0.15.0` (botz-mcp-swarm-cli#28); their platform MCP equivalents are in `mcp-swarm-platform`.
+- New `mcp-swarm-server-updates` skill and `/z-mcp-swarm-server-updates` command: check servers for updates (negotiated MCP spec version, serverInfo version, capabilities, tool/resource/template/prompt schemas), review the diff, accept per-proposal surgical suite updates, and manage the server changelog via `botz mcp-swarm project server updates|accept-update|discard-update|changelog` or the `swarm_server_check_updates` / `swarm_server_update_apply` / `swarm_server_changelog` MCP tools.
+- New `mcp-swarm-tags` skill and `/z-mcp-swarm-tags` command: suite/server descriptions and ad-hoc tags on suites, scenarios and runs with tag filters (`project suite describe|tag|list --tags`, `project scenarios --tags`, `project scenario-tag`, `project run-tag`, `project runs --tags`; MCP `swarm_describe`, `swarm_tags_set`, `swarm_scenarios_list`, `tags` params).
+
 ## [0.12.1] - 2026-10-30
 
 - `mcp-swarm-compare`: the `--html` page shell moved from an inline template literal in `scripts/runs-dataset.mjs` to `scripts/runs-dataset.template.html`, loaded relative to the script and filled with `{{name}}` placeholders. Output is byte-identical; the file ships with the skill directory.

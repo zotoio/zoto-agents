@@ -2,12 +2,12 @@
 
 **From introspection to optimisation.** Point swarm at any MCP server and it builds, runs and scores the tests for you.
 
-Agent Skills and optional central MCP server (`https://swarm.botz.ai/mcp` with OAuth 2.1 sign-in) for the [botz MCP Swarm CLI](https://github.com/zotoio/botz-mcp-swarm-cli): introspect live MCP servers, generate test suites from tool schemas, annotations and intents, run contract/schema checks, evals and load tests locally or on the central Swarm server, get optimisation recommendations, register distributed VU/OTEL workers, diagnose failures, and upgrade saved suites.
+Agent Skills (local by default, Botz platform opt-in) for the [botz MCP Swarm CLI](https://github.com/zotoio/botz-mcp-swarm-cli): introspect live MCP servers, generate test suites from tool schemas, annotations and intents, run contract/schema checks, evals and load tests locally or on the central Swarm server, get optimisation recommendations, register distributed VU/OTEL workers, diagnose failures, and upgrade saved suites.
 
 | Skill | Command | Use it to |
 | --- | --- | --- |
 | `mcp-swarm-guided` | `/z-mcp-swarm-guided` | Be walked through testing a server: questions for the target, credentials, test data, tool selection, and load, then capture, review, run, and summary |
-| `mcp-swarm` | `/z-mcp-swarm` | Capture, validate, refresh, and run suites directly (locally or via central `https://swarm.botz.ai`), or start distributed VU/OTEL workers |
+| `mcp-swarm` | `/z-mcp-swarm` | Capture, validate, refresh, and run suites directly on this machine |
 | `mcp-swarm-flow` | `/z-mcp-swarm-flow` | Turn a task described in words into a suite whose steps call several MCP servers in order and pass values between them |
 | `mcp-swarm-report` | `/z-mcp-swarm-report` | Visualise one run in Cursor's `/canvas` or a self-contained HTML page, with a tool selector showing each tool's latency, errors, and a sample request and response |
 | `mcp-swarm-compare` | `/z-mcp-swarm-compare` | Compare two runs or a series, and chart latency, error rate, and tool-eval trends in Cursor's `/canvas` or a self-contained HTML page |
@@ -15,34 +15,16 @@ Agent Skills and optional central MCP server (`https://swarm.botz.ai/mcp` with O
 | `mcp-swarm-record-replay` | `/z-mcp-swarm-record-replay` | Record redacted wire traffic and replay it as recorded, at maximum rate, or paced |
 | `mcp-swarm-diagnose` | `/z-mcp-swarm-diagnose` | Explain failed runs, missing credentials, and regressions |
 | `mcp-swarm-analyse` | `/z-mcp-swarm-analyse` | Have the model propose suite fixes for a failed run; accept or reject each by id |
+| `mcp-swarm-server-updates` | `/z-mcp-swarm-server-updates` | Check servers for updates (MCP spec version, serverInfo, capabilities, schemas), review the diff, surgically update only affected suites, and record a changelog entry |
+| `mcp-swarm-tags` | `/z-mcp-swarm-tags` | Edit suite and server descriptions; tag suites, scenarios and runs and filter by tag |
+| `mcp-swarm-platform` | `/z-mcp-swarm-platform` | Opt in to (or out of) Botz platform mode: central swarm MCP server, remote runs, workers |
 | `mcp-swarm-upgrade` | `/z-mcp-swarm-upgrade` | Update the CLI and migrate saved suites to the current layout |
 
 The skills set `disable-model-invocation: true`: run them by name (for example `/mcp-swarm`) or through their `/z-<skill>` command, a light wrapper that loads the skill with the text after the command as the request. On first use they install the `botz` host (`@zotoio/botz-cli`) and its `mcp-swarm` extension if missing, so Node.js 22.13+ and npm are required.
 
-## Central Swarm MCP Server (`https://swarm.botz.ai/mcp`) & OAuth
+## Local mode (default) and platform mode (opt-in)
 
-The plugin ships `mcp.json` and `.mcp.json` registering the central `swarm` MCP server:
-
-```json
-{
-  "mcpServers": {
-    "swarm": {
-      "type": "http",
-      "url": "https://swarm.botz.ai/mcp"
-    }
-  }
-}
-```
-
-- **Interactive OAuth 2.1 Sign-In (IDE Default):** `https://swarm.botz.ai/mcp` supports MCP OAuth 2.1 + PKCE + Dynamic Client Registration (`/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server`). Your IDE opens a browser sign-in automatically on first connection—no static tokens or environment variables are stored in the plugin.
-- **Headless / CI (`Bearer bzt_...`):** For CI pipelines or headless agents, mint a scoped `bzt_...` IAM key (`viewer`, `runner`, `editor`, `operator`, `owner`, or `service_bridge`) in Swarm Studio (`/settings` → **IAM & API Keys**) and pass `Authorization: Bearer $SWARM_TOKEN`.
-- **CLI Central Suite Execution & Distributed Worker Mode (`>= 0.14.0`):**
-  - Run a suite on the central Swarm server: `botz mcp-swarm run --suite <project-or-suite> --remote --server https://swarm.botz.ai --token $SWARM_TOKEN`
-  - Register a distributed worker that accepts VU slices (`User-Agent: botz-mcp-swarm/<version> (mcp-tester)`) and streams OTEL spans/metrics (`/otlp/v1/traces` & `/otlp/v1/metrics`) back to the central server: `botz mcp-swarm worker --server https://swarm.botz.ai --token $SWARM_WORKER_TOKEN --max-vus 25 --otel-export`
-
-Every suite, report summary, chart, and file the skills produce names the MCP server under test by its name and its URL or command. Run reports record the server and the endpoint actually used in their `server` field. For reports from CLI 0.6.1 and earlier, the skills take the server from the run's saved suite.
-
-`mcp-swarm-compare` ships `scripts/runs-dataset.mjs` and `mcp-swarm-report` ships `scripts/run-dataset.mjs`, which need only Node.js; `pnpm --filter @zoto-agents/botz-mcp-swarm test` runs its tests. `mcp-swarm-report` uses CLI >= 0.9.0 `loadTimeline` (overall and per-tool peak/average active VUs and TPS over time), `timeSeries` (whole-run per-second response time), and `sampleResults` (redacted requests and responses, with extractor values redacted to `${name}` and response bodies omitted on suites with extractors in CLI >= 0.11.1); older reports fall back to recordings, tool evals, and the log tail. The skills also cover CLI 0.8.0–0.14.0 automatic rate-limit retries (`load.retry`, `rate_limit` error class, `report.retries`), configurable suite `limits` (`--max-call-count`, `--max-payload-bytes`, `SWARM_MAX_CALL_COUNT`, `SWARM_MAX_PAYLOAD_BYTES`, `report.limits`), and graceful `rampDown` (`--ramp-down-strategy`, `--drain-timeout-ms`, `report.rampDown`).
+Out of the box the plugin wires up **no MCP server**: every skill runs the bundled CLI locally, and suites, reports and project data stay in `.botz/mcp-swarm/`. To use the Botz MCP Swarm platform (central `https://swarm.botz.ai/mcp` with OAuth, remote runs, worker dispatch, service suites), run `/z-mcp-swarm-platform` — it adds the `swarm` server from `platform/mcp.json` to your host's MCP config (Cursor `.cursor/mcp.json`, `claude mcp add`, `codex mcp add`) or tells you to set `BOTZ_MCP_SWARM_MODE=platform` for CLI/CI use. Plugin manifests can't declare a conditional MCP server on any of the three hosts, so the opt-in writes host config rather than toggling the plugin.
 
 ## Install
 

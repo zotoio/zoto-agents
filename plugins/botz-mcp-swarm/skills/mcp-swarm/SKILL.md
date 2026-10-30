@@ -1,43 +1,28 @@
 ---
 name: mcp-swarm
-description: Capture, validate, refresh, and run MCP test suites locally or via the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth 2.1 sign-in), and register distributed VU/OTEL workers with the botz MCP Swarm CLI. Use for testing MCP servers, repeatable tool assertions, central or distributed load tests, and CI reports.
+description: Capture, validate, refresh, and run MCP test suites entirely locally with the botz MCP Swarm CLI (no central Swarm server, no MCP server config). Use for testing MCP servers, repeatable tool assertions, local load tests, and CI reports.
 license: MIT
 disable-model-invocation: true
-compatibility: Requires Node.js 22.13+, npm, and shell access for CLI commands, or an MCP client supporting streamable HTTP + OAuth 2.1 for central server tools (https://swarm.botz.ai/mcp). Installs the botz host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Runs locally; never needs a Swarm server or token.
 metadata:
   author: zotoio
   cli-host: "@zotoio/botz-cli"
   cli-package: "@zotoio/botz-mcp-swarm-cli"
-  mcp-server: "https://swarm.botz.ai/mcp"
+  cli-version: "0.15.0"
 ---
 
-# MCP Swarm suites & central server
+# MCP Swarm suites (local)
 
-## Central Swarm MCP Server (`https://swarm.botz.ai/mcp`) & OAuth Sign-In
+> **Platform mode (opt-in):** this skill describes local execution only. If `BOTZ_MCP_SWARM_MODE=platform` is set or a `swarm` MCP server is connected, also read the `mcp-swarm-platform` skill before answering; otherwise do not mention or suggest Swarm platform features.
 
-The `botz-mcp-swarm` plugin includes an optional default MCP server entry (`swarm` in `mcp.json` and `.mcp.json`) pointing at the central Swarm control plane:
-
-```json
-{
-  "mcpServers": {
-    "swarm": {
-      "type": "http",
-      "url": "https://swarm.botz.ai/mcp"
-    }
-  }
-}
-```
-
-- **Interactive IDE OAuth 2.1 + PKCE + DCR (default):** When enabled in Cursor, Claude Code, or Codex, `https://swarm.botz.ai/mcp` advertises RFC 9728 Protected Resource Metadata (`/.well-known/oauth-protected-resource`) and RFC 8414 OAuth 2.1 Authorization Server Metadata (`/.well-known/oauth-authorization-server`). Your IDE opens a browser sign-in flow automatically—no static tokens or environment variables are stored in the plugin.
-- **Headless / CI `Bearer bzt_...` Authentication:** Non-interactive callers can mint a scoped `bzt_...` IAM key (`viewer`, `runner`, `editor`, `operator`, `owner`, or `service_bridge`) in Swarm Studio (`/settings` -> **IAM & API Keys**) and pass `Authorization: Bearer $SWARM_TOKEN`.
-- **When to use MCP tools vs CLI:** When the `swarm` MCP server is connected, you can inspect projects (`swarm_projects_list`, `swarm_project_get`), apply load presets (`swarm_load_presets_list`, `swarm_suite_conversational_update`), start/monitor central runs (`swarm_run_start`, `swarm_run_progress`, `swarm_run_get`), query correlated server telemetry (`swarm_server_telemetry_get`), and run AI root-cause analysis (`swarm_run_analyse`) directly via MCP tools, or use the CLI below for local/remote execution and distributed worker fleets.
+**Local mode (default):** everything runs on this machine through the bundled CLI. Suites, run reports and project data stay under `.botz/mcp-swarm/` (`suites/`, `reports/`, `data/projects/`). Do not use the CLI's remote-run, server-dispatch or worker modes, and do not ask for Swarm tokens or API keys.
 
 ## CLI Setup
 
 Run every CLI command through the botz host as `botz mcp-swarm`. Do not use the standalone `botz-mcp-swarm` or `swarm` executables. Before the first command in a session:
 
 1. Run `botz --version`. If `botz` is not found, check `node --version` (22.13 or later is required), then install the host with `npm install -g @zotoio/botz-cli` and tell the user you installed it. If Node is too old or the global install fails, for example with a permissions error, stop and report it; do not use `sudo` or change npm configuration.
-2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null`, run `botz plugins install mcp-swarm`.
+2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null` or older than `0.15.0` (the version this plugin is pinned to, `metadata.cli-version`), run `botz plugins install mcp-swarm --version 0.15.0`.
 3. Confirm with `botz mcp-swarm --version`, and check the relevant subcommand's `--help` before using unfamiliar options.
 
 ## Identify the server
@@ -97,31 +82,30 @@ For CI, use `--format json` or `--format junit`, and preserve the process exit s
 
 After reporting the verdict, offer to visualise the run with the `mcp-swarm-report` skill (`/z-mcp-swarm-report`): a canvas or HTML page with per-tool latency, errors, and sample requests and responses.
 
-## Central Swarm Suite Execution & Distributed VU/OTEL Worker Mode (`>= 0.14.0`)
+## Protocol eras and both-era compare (`>= 0.15.0`)
 
-- **Triggering a Suite Run on the Central Swarm Server (`run --remote` / `--server`):**
-  - Execute a project or suite remotely on the central Swarm control plane (`https://swarm.botz.ai` by default, or `SWARM_SERVER_URL`), streaming live progress/VUs/latency and returning the full `RunReport`:
-    ```sh
-    botz mcp-swarm run --suite proj-botz-mcp --remote --preset baseline --token $SWARM_TOKEN
-    botz mcp-swarm suite run --suite proj-botz-mcp --server https://swarm.botz.ai --dispatch worker --format json
-    ```
-  - Pass `--dispatch worker` to distribute the suite's virtual users across registered remote CLI workers connected to the central Swarm hub.
-- **Starting a Distributed VU & OTEL Worker (`botz mcp-swarm worker`):**
-  - Start the CLI as a long-running worker node that registers with the central Swarm server (`--server`, defaulting to `SWARM_SERVER_URL` or `https://swarm.botz.ai`), advertises its VU capacity (`--max-vus <n>`) and capabilities, executes assigned VU slices (`User-Agent: botz-mcp-swarm/<version> (mcp-tester)`), and exports OpenTelemetry spans and metrics (`/otlp/v1/traces` and `/otlp/v1/metrics` plus real-time worker progress frames) back to the central Swarm server:
-    ```sh
-    botz mcp-swarm worker --server https://swarm.botz.ai --token $SWARM_WORKER_TOKEN --max-vus 25 --otel-export
-    ```
+- Targets take `protocolEra`: `auto` (default; probes `server/discover` and falls back to legacy `initialize`), `legacy`, or `modern` (2026-07-28 sessionless). Override per run with `--protocol-era auto|legacy|modern|both`.
+- `both` runs the suite under each era and diffs the results; list volatile fields to skip in `eraCompare.ignoreKeys`. JSON-encoded text content is normalised before comparing.
+- Reports record `protocolEra`, `protocolEraRequested` and `protocolEraFallback`; state the negotiated era alongside the server in summaries and call out any fallback.
 
 ## Suite versions, changelogs, and remote OTLP (`>= 0.12.0`)
 
 - **Version history & changelogs:** `botz mcp-swarm project suite versions <project> [--suite <id>] [--json]` lists every stored version (`v1..vN`), parent version (`basedOn`), status (`latest`, `read-only`, or `disabled`), and generated changelog.
 - **Per-version disable:** `botz mcp-swarm project suite disable-version <project> --version <n>` prevents a version from being executed again (`suite_version_disabled`) while keeping its stored run reports and step configurations inspectable. `enable-version` re-enables it.
 - **Latest-only editing:** Only the latest suite version (`vN`) is editable to create `vN+1`; older versions are read-only for config, step definitions, and JEV eval definitions so edits never skip newer changes.
-- **Remote MCP server OTLP correlation:** During HTTP/SSE runs, Swarm sends `X-Swarm-Run-Id: <runId>` on every MCP request. Remote Python (`psutil`) and Node.js (`AsyncLocalStorage`) servers can tag `process.runtime.rss.bytes`, `process.runtime.cpu.ratio`, and `mcp.tool.call.duration` with `run.id` and POST redacted OTLP JSON batches to `/otlp/v1/metrics` and `/otlp/v1/traces` with header `X-Swarm-Token`.
+- **Target OTLP correlation:** During HTTP/SSE runs, the CLI sends `X-Swarm-Run-Id: <runId>` on every MCP request. Remote Python (`psutil`) and Node.js (`AsyncLocalStorage`) servers can tag `process.runtime.rss.bytes`, `process.runtime.cpu.ratio`, and `mcp.tool.call.duration` with `run.id` and export them to the CLI's local OTEL endpoint.
 
-## Load presets, 28-tool Swarm MCP server, and 7-stage MCP spec coverage (`>= 0.13.0`)
+## Load presets and 7-stage MCP spec coverage (`>= 0.13.0`)
 
 - **Named load profile presets (`--preset smoke|baseline|peak|spike|soak`):** Pass `--preset <id>` to `run`, `suite run`, or `project load`. The `soak` preset configures `10 VUs · 3600s (1h) hold · ~4 TPS/user (220ms dwell) · 4 lanes` and automatically enables `--skip-image-gen` (`X-Swarm-Skip-Image-Gen: 1`) and `--skip-expensive-llm` (`X-Swarm-Skip-Expensive-Llm: 1`).
-- **End-of-run callee lifecycle signal (`signalCalleeRunCompleted`):** At run completion, Swarm sends `notifications/swarm/run_completed`, `tools/call` `swarm_run_completed`, and `POST /api/swarm/run-completed` so instrumented targets (`mcp.botz.ai`) flush telemetry and clean up ephemeral test fixtures (`swarm_run_cleanup_assets`).
-- **28-tool Swarm MCP server (`https://swarm.botz.ai/mcp`):** Exposes 28 tools (`swarm_projects_list`, `swarm_suite_conversational_update`, `swarm_suite_enhance`, `swarm_run_start`, `swarm_run_progress`, `swarm_run_cleanup_assets`, `swarm_ingest_server_telemetry`, etc.) and 4 `@mcp.prompt` workflows (`/swarm_remediate_latest_run`, `/audit_mcp_server`, `/triage_suite_run`, `/soak_test_plan`) with OAuth 2.1 + PKCE + DCR and `bzt_` IAM keys (including `service_bridge`).
+- **End-of-run callee lifecycle signal (`signalCalleeRunCompleted`):** At run completion, the CLI sends a `run_completed` notification (and matching tool call / HTTP hook) to the target so instrumented targets (`mcp.botz.ai`) flush telemetry and clean up ephemeral test fixtures.
 - **All 7 MCP spec stages:** Validates `structuredContent` against `outputSchema`, captures all 5 `ToolAnnotations` hints, tracks `ttfpMs` progress notifications, and provides deterministic mock `sampling/createMessage` and `roots/list` client handlers.
+
+## Local inference provider (allowed in local mode)
+
+Inference is optional and off by default (`--inference` on `suite capture` / `capture` and on `run --suite`). When the user has a provider configured, use it: this is local CLI behaviour, not a platform feature, and needs no Swarm sign-in.
+
+- **Where it lives:** environment variables only, read from the shell or from gitignored `.env.local` then `.env` in the current directory (shell values win; parent-directory files are not loaded). There is no provider setting in `settings.json` or `suite.json`, and no per-suite provider.
+- **How the CLI picks it:** `SWARM_LLM_PROVIDER` (`openai`, `anthropic`, `gemini`, `openrouter`, `groq`, `deepseek`, `mistral`, `together`, `xai`, `ollama`, `cursor`, `custom`). If unset, `SWARM_LLM_BASE_URL` alone selects `custom`, `SWARM_LLM_API_KEY` alone selects `openai`, and a single provider key (for example `OPENAI_API_KEY`) selects that provider; several provider keys without `SWARM_LLM_PROVIDER` is an error. There is no silent fallback.
+- **Local models:** `SWARM_LLM_PROVIDER=ollama` uses `http://127.0.0.1:11434/v1` with no key; any other OpenAI-compatible server uses `SWARM_LLM_PROVIDER=custom` with `SWARM_LLM_BASE_URL` (API root including `/v1`). Set `SWARM_LLM_MODEL` to an installed model with tool use and JSON output (only `openai`/`custom` default to `gpt-5.4-nano`, `cursor` to `auto`). Leave `TYPESAFE_API_KEY` empty so assertion judging also uses the local model. The CLI does not install or start the model server.
+- Check the provider, model and key are configured with `botz mcp-swarm doctor --inference --json` (it does not contact the model); never print, echo or copy key values, and never write keys into suite files.

@@ -1,0 +1,15 @@
+{
+  "target_id": "command:z-mcp-swarm-server-updates",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-mcp-swarm-server-updates check every server in the docs project",
+      "assertions": [
+        "The assistant follows the `mcp-swarm-server-updates` skill's instructions for the request",
+        "The assistant runs the skill's setup step (checks `botz --version` and the mcp-swarm extension) before other botz commands",
+        "Every MCP Swarm command uses `botz mcp-swarm`"
+      ],
+      "expected_output": "The command hands the request to the `mcp-swarm-server-updates` skill, which runs as if invoked directly."
+    }
+  ]
+}
