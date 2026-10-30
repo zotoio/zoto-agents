@@ -41,7 +41,7 @@ test("mcp.json and .mcp.json configure central https://swarm.botz.ai/mcp with OA
   assert.equal(cursorPlugin.mcp, "./mcp.json");
 });
 
-test("plugin v0.12.0 manifests, site page, and 10 skills/commands are aligned", () => {
+test("plugin v0.12.0 manifests, site page, and 12 skills/commands are aligned", () => {
   for (const mf of ["package.json", "plugin.json", ".cursor-plugin/plugin.json", ".claude-plugin/plugin.json"]) {
     assert.equal(JSON.parse(read(mf)).version, "0.12.0", mf);
   }
@@ -51,6 +51,7 @@ test("plugin v0.12.0 manifests, site page, and 10 skills/commands are aligned", 
   const expectedSkills = [
     "mcp-swarm-guided", "mcp-swarm", "mcp-swarm-flow", "mcp-swarm-report", "mcp-swarm-compare",
     "mcp-swarm-descriptions", "mcp-swarm-record-replay", "mcp-swarm-diagnose", "mcp-swarm-analyse", "mcp-swarm-upgrade",
+    "mcp-swarm-server-updates", "mcp-swarm-tags",
   ];
   for (const name of expectedSkills) {
     assert.match(readme, new RegExp("`" + name + "`"));
@@ -67,4 +68,20 @@ test("plugin v0.12.0 manifests, site page, and 10 skills/commands are aligned", 
   assert.match(mainSkill, /rate_limit/);
   assert.match(read("skills/mcp-swarm-diagnose/SKILL.md"), /cancelledByRampDown/);
   assert.match(read("skills/mcp-swarm-upgrade/SKILL.md"), /0\.12\.0/);
+});
+
+test("server-updates and tags skills document CLI and MCP surfaces", () => {
+  const updates = read("skills/mcp-swarm-server-updates/SKILL.md");
+  for (const needle of ["project server updates", "accept-update", "discard-update", "changelog", "swarm_server_check_updates", "swarm_server_update_apply", "swarm_server_changelog", "protocol", "Update affected suites", "Check for server updates"]) {
+    assert.ok(updates.includes(needle), needle);
+  }
+  const tags = read("skills/mcp-swarm-tags/SKILL.md");
+  for (const needle of ["project suite tag", "project scenario-tag", "project run-tag", "--tags", "swarm_tags_set", "swarm_describe", "swarm_scenarios_list"]) {
+    assert.ok(tags.includes(needle), needle);
+  }
+  for (const name of ["mcp-swarm-server-updates", "mcp-swarm-tags"]) {
+    const evals = JSON.parse(read(`skills/${name}/evals/evals.json`));
+    assert.equal(evals.skill_name, name);
+    assert.equal(JSON.parse(read(`commands/evals/z-${name}.json`)).target_id, `command:z-${name}`);
+  }
 });
