@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `mcp-swarm-compare`: the `--html` page shell moved from an inline template literal in `scripts/runs-dataset.mjs` to `scripts/runs-dataset.template.html`, loaded relative to the script and filled with `{{name}}` placeholders. Output is byte-identical; the file ships with the skill directory.
+
 ## [0.12.0] - 2026-10-29
 
 - Bundled default central MCP server `swarm` (`https://swarm.botz.ai/mcp`, `type: "http"`) in `mcp.json` and `.mcp.json` with OAuth 2.1 + PKCE + DCR sign-in (and headless `Bearer bzt_...` support), wired in `.cursor-plugin/plugin.json` (`"mcp": "./mcp.json"`).

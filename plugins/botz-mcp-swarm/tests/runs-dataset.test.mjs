@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -172,3 +172,15 @@ test("flags suite limit changes (maxCallCount and maxPayloadBytes) in comparabil
   assert.match(notes, /b: maxCallCount differs from the first run \(100000 → 500\)/);
   assert.match(notes, /b: maxPayloadBytes differs from the first run \(1048576 → 262144\)/);
 }));
+
+test("renderHtml fills the shipped template file and keeps values literal", () => {
+  const templateUrl = new URL("../skills/mcp-swarm-compare/scripts/runs-dataset.template.html", import.meta.url);
+  const template = readFileSync(templateUrl, "utf8");
+  assert.ok(template.startsWith("<!doctype html>") && template.endsWith("</body></html>"), "template has no trailing newline");
+  for (const key of ["title", "runTable", "regressions", "comparability", "charts"]) assert.ok(template.includes(`{{${key}}}`), key);
+  const html = renderHtml({ title: "a $& $' {{charts}} <b>", runs: [], rows: [], serverRows: [], comparability: [], regressions: [] });
+  assert.ok(html.startsWith("<!doctype html>") && html.endsWith("</body></html>"));
+  assert.match(html, /<h1>a \$&amp; \$&#39; \{\{charts\}\} &lt;b&gt;<\/h1>/);
+  assert.doesNotMatch(html.replace(/\{\{charts\}\}/g, ""), /\{\{\w+\}\}/);
+  assert.match(html, /None between consecutive runs\./);
+});
