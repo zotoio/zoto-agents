@@ -82,6 +82,8 @@ importers:
 
   plugins/botz-mcp-swarm: {}
 
+  plugins/botz-mcp-swarm-lite: {}
+
   plugins/crux-compress: {}
 
   plugins/zoto-botz-skills: {}

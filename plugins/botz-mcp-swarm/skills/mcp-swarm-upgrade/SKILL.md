@@ -8,6 +8,7 @@ metadata:
   author: zotoio
   cli-host: "@zotoio/botz-cli"
   cli-package: "@zotoio/botz-mcp-swarm-cli"
+  cli-version: "0.15.0"
 ---
 
 # Upgrade MCP Swarm
@@ -19,7 +20,7 @@ Work through the steps in order and stop to ask the user before anything the CLI
 Run every command through the botz host as `botz mcp-swarm`. Do not use the standalone `botz-mcp-swarm` or `swarm` executables. Before the first command in a session:
 
 1. Run `botz --version`. If `botz` is not found, check `node --version` (22.13 or later is required), then install the host with `npm install -g @zotoio/botz-cli` and tell the user you installed it. If Node is too old or the global install fails, for example with a permissions error, stop and report it; do not use `sudo` or change npm configuration.
-2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null`, run `botz plugins install mcp-swarm`.
+2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null` or older than `0.15.0` (the version this plugin is pinned to, `metadata.cli-version`), run `botz plugins install mcp-swarm --version 0.15.0`.
 3. Confirm with `botz mcp-swarm --version`, and check the relevant subcommand's `--help` before using unfamiliar options.
 
 ## 1. Check versions
@@ -120,7 +121,7 @@ The CLI still reads suites and credentials from the 0.5 locations, so an un-migr
 
 Multi-server suites (`suite server add`, `schemaVersion: 2` suite files) need a CLI that has `botz mcp-swarm suite server --help` (`0.11.1+`). Nothing moves on disk: single-server suites stay version 1, and a CLI without multi-server support refuses a version 2 suite with an upgrade message rather than running it against one server. After updating, check one multi-server suite with `suite validate`.
 
-## Feature highlights through CLI 0.12.0
+## Feature highlights through CLI 0.15.0
 
 | Release | Highlights (no file moves required) |
 | --- | --- |
@@ -131,4 +132,6 @@ Multi-server suites (`suite server add`, `schemaVersion: 2` suite files) need a 
 | 0.11.1 | Multi-server suites (`schemaVersion: 2`, `servers`, `suite server`, `--target <alias>=<url>`), multi-server graceful ramp-down, and `sampleResults` extractor redaction |
 | 0.11.2 | `@cursor/sdk` `^1.0.40` bump fixing the `grok-4.7` default variant on local runtime |
 | 0.12.0 | `project suite versions` / `disable-version` / `enable-version` with changelogs, latest-version-only editing, and remote MCP server OTLP correlation (`X-Swarm-Run-Id`) + redaction |
-| 0.13.0 | Current release: all 7 MCP spec stages (`outputSchema` validation, 5-field `ToolAnnotations`, `ttfpMs` progress, mock `sampling`/`roots`), `--preset smoke|baseline|peak|spike|soak`, `--skip-image-gen` / `--skip-expensive-llm`, and `signalCalleeRunCompleted` | `project suite versions` / `disable-version` / `enable-version` with changelogs, latest-version-only editing, and remote MCP server OTLP correlation (`X-Swarm-Run-Id`) + redaction |
+| 0.13.0 | all 7 MCP spec stages (`outputSchema` validation, 5-field `ToolAnnotations`, `ttfpMs` progress, mock `sampling`/`roots`), `--preset smoke|baseline|peak|spike|soak`, `--skip-image-gen` / `--skip-expensive-llm`, and `signalCalleeRunCompleted` | `project suite versions` / `disable-version` / `enable-version` with changelogs, latest-version-only editing, and remote MCP server OTLP correlation (`X-Swarm-Run-Id`) + redaction |
+| 0.14.0 | Central suite execution (`run --remote` / `--server`) and distributed VU/OTEL worker mode (`botz mcp-swarm worker`) |
+| 0.15.0 | Current release: MCP protocol eras (`protocolEra`, `--protocol-era auto|legacy|modern|both`, `eraCompare.ignoreKeys`), signed opt-in worker OTLP export, stdio consent and env allowlist |

@@ -8,6 +8,7 @@ metadata:
   author: zotoio
   cli-host: "@zotoio/botz-cli"
   cli-package: "@zotoio/botz-mcp-swarm-cli"
+  cli-version: "0.15.0"
   mcp-server: "https://swarm.botz.ai/mcp"
 ---
 
@@ -37,7 +38,7 @@ The `botz-mcp-swarm` plugin includes an optional default MCP server entry (`swar
 Run every CLI command through the botz host as `botz mcp-swarm`. Do not use the standalone `botz-mcp-swarm` or `swarm` executables. Before the first command in a session:
 
 1. Run `botz --version`. If `botz` is not found, check `node --version` (22.13 or later is required), then install the host with `npm install -g @zotoio/botz-cli` and tell the user you installed it. If Node is too old or the global install fails, for example with a permissions error, stop and report it; do not use `sudo` or change npm configuration.
-2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null`, run `botz plugins install mcp-swarm`.
+2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null` or older than `0.15.0` (the version this plugin is pinned to, `metadata.cli-version`), run `botz plugins install mcp-swarm --version 0.15.0`.
 3. Confirm with `botz mcp-swarm --version`, and check the relevant subcommand's `--help` before using unfamiliar options.
 
 ## Identify the server
@@ -111,6 +112,12 @@ After reporting the verdict, offer to visualise the run with the `mcp-swarm-repo
     ```sh
     botz mcp-swarm worker --server https://swarm.botz.ai --token $SWARM_WORKER_TOKEN --max-vus 25 --otel-export
     ```
+
+## Protocol eras and both-era compare (`>= 0.15.0`)
+
+- Targets take `protocolEra`: `auto` (default; probes `server/discover` and falls back to legacy `initialize`), `legacy`, or `modern` (2026-07-28 sessionless). Override per run with `--protocol-era auto|legacy|modern|both`.
+- `both` runs the suite under each era and diffs the results; list volatile fields to skip in `eraCompare.ignoreKeys`. JSON-encoded text content is normalised before comparing.
+- Reports record `protocolEra`, `protocolEraRequested` and `protocolEraFallback`; state the negotiated era alongside the server in summaries and call out any fallback.
 
 ## Suite versions, changelogs, and remote OTLP (`>= 0.12.0`)
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add `botz-mcp-swarm-lite` (`0.1.0`): MCP Swarm skills for local execution of the CLI with no central server config.
+- `botz-mcp-swarm` `0.13.0`: skills pinned to `@zotoio/botz-mcp-swarm-cli` `0.15.0` (protocol eras), plus server-updates/tags skills from #43.
+
 ## 2026-10-29 — Marketplace `v0.8.0` (`zoto-botz-skills v0.4.0` & `botz-mcp-swarm v0.11.0`)
 
 - **`zoto-botz-skills` (`0.4.0`, skill `v6`)**: Full 7-stage MCP specification coverage for `https://mcp.botz.ai/mcp` (24 tools with `outputSchema` + `structuredContent` and 5-field `ToolAnnotations`, 4 `@mcp.prompt` slash workflows `/use_skill`, `/author_skill`, `/evolve_skill`, `/delegate_subagent`, 16 resource URI templates including binary `BlobResourceContents` on `skill://{name}/illustration`, `completion/complete`, 4-stage `notifications/progress`, client `sampling/createMessage` & `roots/list`, `BoundedMemoryEventStore` SSE resumability, and `swarm_run_completed` lifecycle).
@@ -12,6 +17,7 @@ here. Per-plugin changes live in each plugin's own `CHANGELOG.md`:
 - [`plugins/zoto-spec-system/CHANGELOG.md`](plugins/zoto-spec-system/CHANGELOG.md)
 - [`plugins/zoto-cursor-top/CHANGELOG.md`](plugins/zoto-cursor-top/CHANGELOG.md)
 - [`plugins/botz-mcp-swarm/CHANGELOG.md`](plugins/botz-mcp-swarm/CHANGELOG.md)
+- [`plugins/botz-mcp-swarm-lite/CHANGELOG.md`](plugins/botz-mcp-swarm-lite/CHANGELOG.md)
 - [`plugins/crux-compress/CHANGELOG.md`](plugins/crux-compress/CHANGELOG.md)
 - [`plugins/zoto-botz-skills/CHANGELOG.md`](plugins/zoto-botz-skills/CHANGELOG.md)
 

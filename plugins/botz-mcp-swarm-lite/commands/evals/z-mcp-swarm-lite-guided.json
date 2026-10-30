@@ -1,0 +1,25 @@
+{
+  "target_id": "command:z-mcp-swarm-lite-guided",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-mcp-swarm-lite-guided",
+      "assertions": [
+        "The assistant follows the `mcp-swarm-lite-guided` skill's instructions for the request",
+        "The assistant runs the skill's setup step (checks `botz --version` and the mcp-swarm extension) before other botz commands",
+        "Every MCP Swarm command uses `botz mcp-swarm`"
+      ],
+      "expected_output": "The command hands the request to the `mcp-swarm-lite-guided` skill, which runs as if invoked directly."
+    },
+    {
+      "id": 2,
+      "prompt": "/z-mcp-swarm-lite-guided https://api.example.com/mcp",
+      "assertions": [
+        "The assistant passes the text after `/z-mcp-swarm-lite-guided` to the `mcp-swarm-lite-guided` skill as the user's request",
+        "The assistant does not perform actions the skill does not describe",
+        "Any summary names the MCP server by name and URL or command"
+      ],
+      "expected_output": "The arguments reach the skill unchanged and the skill's own workflow and safety rules apply."
+    }
+  ]
+}

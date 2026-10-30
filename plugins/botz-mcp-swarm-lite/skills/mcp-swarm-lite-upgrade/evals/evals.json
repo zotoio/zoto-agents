@@ -1,0 +1,42 @@
+{
+  "skill_name": "mcp-swarm-lite-upgrade",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/mcp-swarm-lite-upgrade Update MCP Swarm and move my old .botz/suites into the new layout.",
+      "expected_output": "The assistant checks installed and latest versions, updates the managed extension through botz, previews the file moves, and applies them only after explaining them.",
+      "files": [],
+      "assertions": [
+        "The assistant checks the installed version with `botz plugins info mcp-swarm --json` and the latest with `npm view @zotoio/botz-mcp-swarm-cli version`",
+        "The assistant updates with `botz plugins install mcp-swarm-lite`, not `npm install -g @zotoio/botz-mcp-swarm-cli`",
+        "The assistant does not install `next` or prerelease versions unless asked",
+        "The assistant runs `botz mcp-swarm upgrade --json` to preview before `botz mcp-swarm upgrade --apply`",
+        "The assistant never prints credential values when describing a merge action"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/mcp-swarm-lite-upgrade The upgrade preview shows a conflict for .botz/mcp-swarm/suites/demo. Just fix it.",
+      "expected_output": "The assistant does not delete either copy; it shows both paths, helps compare them, and asks the user which to keep.",
+      "files": [],
+      "assertions": [
+        "The assistant does not delete or overwrite either suite copy on its own",
+        "The assistant shows both conflicting paths to the user",
+        "The assistant suggests comparing with `botz mcp-swarm suite validate` and a diff of suite.json",
+        "The assistant asks the user which copy to keep before applying"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/mcp-swarm-lite-upgrade My suite has schemaVersion 2 and the CLI says to upgrade. What do I do?",
+      "expected_output": "The assistant explains that schemaVersion 2 is a multi-server suite needing a newer CLI, updates the CLI, confirms suite server support, and validates a multi-server suite without moving files.",
+      "files": [],
+      "assertions": [
+        "The assistant checks for multi-server support with `botz mcp-swarm suite server --help`",
+        "The assistant explains that single-server suites stay version 1 and nothing moves on disk",
+        "After updating, the assistant runs `botz mcp-swarm suite validate` on a multi-server suite",
+        "The assistant does not hand-edit the suite to downgrade it to version 1"
+      ]
+    }
+  ]
+}

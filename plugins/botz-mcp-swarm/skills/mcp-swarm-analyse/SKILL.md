@@ -8,6 +8,7 @@ metadata:
   author: zotoio
   cli-host: "@zotoio/botz-cli"
   cli-package: "@zotoio/botz-mcp-swarm-cli"
+  cli-version: "0.15.0"
 ---
 
 # Analyse a failed MCP Swarm run
@@ -19,7 +20,7 @@ The model reads the run's errors, the suite steps and the server's tool schemas 
 Run every command through the botz host as `botz mcp-swarm`, never the standalone `botz-mcp-swarm` or `swarm` executables. Before the first command in a session:
 
 1. Run `botz --version`. If it is missing, check `node --version` (22.13+), install with `npm install -g @zotoio/botz-cli`, and say so. If that fails, stop and report it; do not use `sudo`.
-2. Run `botz plugins info mcp-swarm --json`; if `installedVersion` is `null`, run `botz plugins install mcp-swarm`.
+2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null` or older than `0.15.0` (the version this plugin is pinned to, `metadata.cli-version`), run `botz plugins install mcp-swarm --version 0.15.0`.
 3. Run `botz mcp-swarm suite analyse --help`. If the command does not exist, tell the user the installed CLI is too old and stop.
 
 Name the MCP server under test as `<server name> <version> (<URL or command>)` in every summary, from the suite or `botz mcp-swarm suite show`.

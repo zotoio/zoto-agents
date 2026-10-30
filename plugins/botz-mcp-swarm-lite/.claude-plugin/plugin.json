@@ -1,0 +1,17 @@
+{
+  "name": "botz-mcp-swarm-lite",
+  "version": "0.1.0",
+  "description": "Run MCP Swarm locally: skills for the bundled botz MCP Swarm CLI with no central Botz MCP server config. Introspect MCP servers, generate and run suites (contract checks, evals, load), diagnose, compare and optimise on this machine.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/zoto-agents/tree/main/plugins/botz-mcp-swarm-lite",
+  "license": "MIT",
+  "repository": "https://github.com/zotoio/zoto-agents",
+  "keywords": [
+    "mcp",
+    "testing",
+    "load-testing"
+  ]
+}

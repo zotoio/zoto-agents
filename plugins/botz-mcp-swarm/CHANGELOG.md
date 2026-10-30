@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.13.0] - 2026-10-30
+
+- Pin every skill to `@zotoio/botz-mcp-swarm-cli` `0.15.0` (`metadata.cli-version`; install/upgrade with `botz plugins install mcp-swarm --version 0.15.0`).
+- `mcp-swarm`: document MCP protocol eras (`protocolEra`, `--protocol-era`, both-era compare, `eraCompare.ignoreKeys`) from CLI `0.15.0`; `mcp-swarm-upgrade` feature table runs through `0.15.0`.
+- `mcp-swarm-compare`: note the `scripts/runs-dataset.template.html` page shell from 0.12.1.
+- `mcp-swarm-server-updates` / `mcp-swarm-tags` (from #43): note the CLI subcommands ship after `0.15.0` (botz-mcp-swarm-cli#28); the central `swarm_*` MCP tools are available now.
 - New `mcp-swarm-server-updates` skill and `/z-mcp-swarm-server-updates` command: check servers for updates (negotiated MCP spec version, serverInfo version, capabilities, tool/resource/template/prompt schemas), review the diff, accept per-proposal surgical suite updates, and manage the server changelog via `botz mcp-swarm project server updates|accept-update|discard-update|changelog` or the `swarm_server_check_updates` / `swarm_server_update_apply` / `swarm_server_changelog` MCP tools.
 - New `mcp-swarm-tags` skill and `/z-mcp-swarm-tags` command: suite/server descriptions and ad-hoc tags on suites, scenarios and runs with tag filters (`project suite describe|tag|list --tags`, `project scenarios --tags`, `project scenario-tag`, `project run-tag`, `project runs --tags`; MCP `swarm_describe`, `swarm_tags_set`, `swarm_scenarios_list`, `tags` params).
 

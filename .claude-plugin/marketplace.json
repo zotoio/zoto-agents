@@ -31,6 +31,12 @@
       "category": "developer-tools"
     },
     {
+      "name": "botz-mcp-swarm-lite",
+      "source": "./plugins/botz-mcp-swarm-lite",
+      "description": "Run MCP Swarm locally: skills for the bundled botz MCP Swarm CLI with no central Botz MCP server config. Introspect, test, load, diagnose and compare MCP servers on this machine.",
+      "category": "developer-tools"
+    },
+    {
       "name": "crux-compress",
       "source": "./plugins/crux-compress",
       "description": "Compress rules, code, images, and web pages into CRUX notation, with CRUX memories and meditation. Packages the CRUX-Compress release; run /z-crux-init once per project. Hooks need Python 3.",

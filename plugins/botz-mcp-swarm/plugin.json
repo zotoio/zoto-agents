@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "botz-mcp-swarm",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "description": "Connect to the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth sign-in) and go from introspection to optimisation with the botz MCP Swarm CLI: point swarm at any MCP server and it builds, runs and scores the tests for you.",
   "author": {
     "name": "zotoio",

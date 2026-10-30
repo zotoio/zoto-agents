@@ -21,6 +21,8 @@ Agent Skills and optional central MCP server (`https://swarm.botz.ai/mcp` with O
 
 The skills set `disable-model-invocation: true`: run them by name (for example `/mcp-swarm`) or through their `/z-<skill>` command, a light wrapper that loads the skill with the text after the command as the request. On first use they install the `botz` host (`@zotoio/botz-cli`) and its `mcp-swarm` extension if missing, so Node.js 22.13+ and npm are required.
 
+> Prefer no central server? [`botz-mcp-swarm-lite`](../botz-mcp-swarm-lite/) ships the same skills for local execution of the CLI only, with no MCP server config.
+
 ## Central Swarm MCP Server (`https://swarm.botz.ai/mcp`) & OAuth
 
 The plugin ships `mcp.json` and `.mcp.json` registering the central `swarm` MCP server:

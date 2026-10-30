@@ -41,13 +41,13 @@ test("mcp.json and .mcp.json configure central https://swarm.botz.ai/mcp with OA
   assert.equal(cursorPlugin.mcp, "./mcp.json");
 });
 
-test("plugin v0.12.1 manifests, site page, and 12 skills/commands are aligned", () => {
+test("plugin v0.13.0 manifests, site page, and 12 skills/commands are aligned", () => {
   for (const mf of ["package.json", "plugin.json", ".cursor-plugin/plugin.json", ".claude-plugin/plugin.json"]) {
-    assert.equal(JSON.parse(read(mf)).version, "0.12.1", mf);
+    assert.equal(JSON.parse(read(mf)).version, "0.13.0", mf);
   }
   const readme = read("README.md");
   const site = read("../../site/mcp-swarm/index.html");
-  assert.match(site, /MCP Swarm v0\.12\.0/);
+  assert.match(site, /MCP Swarm v0\.13\.0/);
   const expectedSkills = [
     "mcp-swarm-guided", "mcp-swarm", "mcp-swarm-flow", "mcp-swarm-report", "mcp-swarm-compare",
     "mcp-swarm-descriptions", "mcp-swarm-record-replay", "mcp-swarm-diagnose", "mcp-swarm-analyse", "mcp-swarm-upgrade",
@@ -67,7 +67,7 @@ test("plugin v0.12.1 manifests, site page, and 12 skills/commands are aligned", 
   assert.match(mainSkill, /--ramp-down-strategy/);
   assert.match(mainSkill, /rate_limit/);
   assert.match(read("skills/mcp-swarm-diagnose/SKILL.md"), /cancelledByRampDown/);
-  assert.match(read("skills/mcp-swarm-upgrade/SKILL.md"), /0\.12\.0/);
+  assert.match(read("skills/mcp-swarm-upgrade/SKILL.md"), /0\.15\.0/);
 });
 
 test("server-updates and tags skills document CLI and MCP surfaces", () => {
@@ -83,5 +83,13 @@ test("server-updates and tags skills document CLI and MCP surfaces", () => {
     const evals = JSON.parse(read(`skills/${name}/evals/evals.json`));
     assert.equal(evals.skill_name, name);
     assert.equal(JSON.parse(read(`commands/evals/z-${name}.json`)).target_id, `command:z-${name}`);
+  }
+});
+
+test("every skill pins botz-mcp-swarm-cli 0.15.0", () => {
+  for (const name of ["mcp-swarm-guided", "mcp-swarm", "mcp-swarm-flow", "mcp-swarm-report", "mcp-swarm-compare", "mcp-swarm-descriptions", "mcp-swarm-record-replay", "mcp-swarm-diagnose", "mcp-swarm-analyse", "mcp-swarm-upgrade", "mcp-swarm-server-updates", "mcp-swarm-tags"]) {
+    const s = read(`skills/${name}/SKILL.md`);
+    assert.match(s, /cli-version: "0\.15\.0"/, name);
+    if (s.includes("botz plugins info mcp-swarm")) assert.match(s, /botz plugins install mcp-swarm --version 0\.15\.0/, name);
   }
 });

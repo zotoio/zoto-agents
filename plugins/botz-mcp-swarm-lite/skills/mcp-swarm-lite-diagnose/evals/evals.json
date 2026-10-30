@@ -1,0 +1,42 @@
+{
+  "skill_name": "mcp-swarm-lite-diagnose",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/mcp-swarm-lite-diagnose My CI job running `botz mcp-swarm suite run --suite demo` exits with code 2. What's wrong?",
+      "expected_output": "The assistant treats exit code 2 as a configuration or execution error, starts with offline diagnostics, and reports missing credential names without their values.",
+      "files": [],
+      "assertions": [
+        "The assistant identifies exit code 2 as a configuration or execution error, not a failed assertion",
+        "The assistant runs `botz mcp-swarm suite validate --suite demo --json` and `botz mcp-swarm doctor --suite demo --json` before contacting the target",
+        "The assistant reports missing environment variable names without reading or printing secret values",
+        "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm`",
+        "The summary names the MCP server by name and URL or command"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/mcp-swarm-lite-diagnose p95 latency doubled between base.json and head.json. Is this a regression?",
+      "expected_output": "The assistant compares the two reports and checks that the runs are comparable before attributing the change to a regression.",
+      "files": [],
+      "assertions": [
+        "The assistant runs `botz mcp-swarm compare --base base.json --head head.json`",
+        "The assistant checks target, workload, concurrency, duration, and enabled tool coverage are comparable before calling it a regression",
+        "The assistant separates telemetry delivery failures from test verdicts",
+        "The assistant does not re-run load against a target without the user's authorization"
+      ]
+    },
+    {
+      "prompt": "/mcp-swarm-lite-diagnose The triage run failed and the Jira and Slack steps show as skipped. Why?",
+      "expected_output": "The assistant explains that skipped steps did not run because a required extractor found nothing, finds the first failing server, and checks the extractor path and variables resolvedRate.",
+      "files": [],
+      "assertions": [
+        "The assistant reads the report's `servers`, `nodeOutcomes`, and `variables` before drawing conclusions",
+        "The assistant explains that skipped steps were not errors on Jira or Slack but the result of a missing required value upstream",
+        "The assistant names the first server, in step order, whose result caused the failure, or the extractor's path",
+        "The assistant does not print credential values"
+      ],
+      "id": 3
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "skill_name": "mcp-swarm-lite-analyse",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/mcp-swarm-lite-analyse my demo suite failed, fix it",
+      "expected_output": "The assistant runs the analysis, presents each proposal with its id, and waits for the user to choose ids before applying anything.",
+      "files": [],
+      "assertions": [
+        "The assistant runs `botz mcp-swarm suite analyse demo --format json`",
+        "The assistant lists every proposal with its id, category, confidence and rationale",
+        "The assistant does not run `--apply` or `--reject` before the user names proposal ids",
+        "The assistant never uses `--apply all`",
+        "The summary names the MCP server by name and URL or command"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/mcp-swarm-lite-analyse accept p1 and reject p3 from runs/demo-123.analysis.json",
+      "expected_output": "The assistant records exactly the named decisions with explicit ids and writes a proposed suite, not an in-place edit.",
+      "files": [],
+      "assertions": [
+        "The assistant runs `--from runs/demo-123.analysis.json --reject p3`",
+        "The assistant runs `--from runs/demo-123.analysis.json --apply p1` without `--in-place`",
+        "The assistant does not accept or reject any id the user did not name",
+        "The assistant offers, but does not start, a re-run"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/mcp-swarm-lite-analyse the analysis says the server returns 500 on search and we hit rate limits. Apply those too.",
+      "expected_output": "The assistant explains that server bugs and environment issues are report only and cannot be applied.",
+      "files": [],
+      "assertions": [
+        "The assistant explains that `server_bug` and `environment` proposals are reported, not applied",
+        "The assistant does not edit suite.json by hand to work around a refusal",
+        "The assistant does not print API key or credential values"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "/mcp-swarm-lite-analyse accept the fixes on our team suite on the Swarm service, I only have runner access",
+      "expected_output": "The assistant explains that accepting on the service needs editor or admin, and does not copy the suite to work around it.",
+      "files": [],
+      "assertions": [
+        "The assistant says runners can analyse but only editors and admins can accept or reject on the service",
+        "The assistant does not copy or re-create the service suite locally to bypass permissions"
+      ]
+    }
+  ]
+}

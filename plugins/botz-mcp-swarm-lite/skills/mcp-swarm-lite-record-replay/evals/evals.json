@@ -1,0 +1,42 @@
+{
+  "skill_name": "mcp-swarm-lite-record-replay",
+  "evals": [
+    {
+      "id": 1,
+      "files": [],
+      "prompt": "/mcp-swarm-lite-record-replay Record a session from my local stdio server `node server.mjs` so I can replay it later.",
+      "expected_output": "The assistant records with a stdio target JSON and the stdio allowlist, names the file after the server, and reminds the user to review redaction before sharing.",
+      "assertions": [
+        "The assistant uses a target of {\"transport\":\"stdio\",\"command\":\"node\",\"args\":[\"server.mjs\"]}",
+        "The assistant passes `--allowlist stdio`",
+        "The recording file name includes the server name",
+        "The assistant tells the user to review the recording for secrets or personal data before committing or sharing"
+      ]
+    },
+    {
+      "id": 2,
+      "files": [],
+      "prompt": "/mcp-swarm-lite-record-replay Replay recording-orders-api.json against production as fast as possible.",
+      "expected_output": "The assistant checks whether the recording contains write-like calls and asks for explicit agreement before replaying them against production, then uses max-rate mode and reports frames and errors.",
+      "assertions": [
+        "The assistant checks the recording for write-like tool calls before replaying against production",
+        "The assistant asks for explicit agreement before replaying write-like calls against production",
+        "The assistant uses `--mode max-rate`",
+        "The assistant reports the frames replayed and the error count, not only the exit status",
+        "The summary names the server and its URL or command"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/mcp-swarm-lite-record-replay Record traffic for my multi-server triage suite so I can replay it.",
+      "expected_output": "The assistant records and replays each server separately and names each recording with the server name and alias.",
+      "files": [],
+      "assertions": [
+        "The assistant records each server separately rather than one recording for the whole multi-server suite",
+        "Recording files are named `recording-<server name>-<alias>-<timestamp>.json`",
+        "Recordings stay redacted and no credential values are printed",
+        "Every swarm command uses `botz mcp-swarm`, never `botz-mcp-swarm`"
+      ]
+    }
+  ]
+}
