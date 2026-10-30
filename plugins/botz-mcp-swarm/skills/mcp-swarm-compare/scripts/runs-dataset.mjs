@@ -236,6 +236,10 @@ function lineChart(title, runs, series, format) {
   return `<section><h2>${esc(title)}</h2><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(title)}">${grid}${labels}${lines}</svg><div class="legend">${legend}</div></section>`;
 }
 
+// The page shell lives in runs-dataset.template.html beside this script; {{name}} marks a value.
+// The file has no trailing newline, so the output matches the former inline template byte for byte.
+const HTML_TEMPLATE = readFileSync(new URL("./runs-dataset.template.html", import.meta.url), "utf8");
+
 export function renderHtml(dataset) {
   const { title, runs, rows, comparability, regressions } = dataset;
   const tools = [...new Set(rows.map(r => r.tool))];
@@ -247,20 +251,15 @@ export function renderHtml(dataset) {
   const runTable = runs.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.server ?? "unknown")}${r.serverVersion ? ` ${esc(r.serverVersion)}` : ""}</td><td><code>${esc(r.endpoint ?? "unknown")}</code></td><td>${esc(r.startedAt)}</td><td class="${r.verdict === "pass" && !r.silentGreen ? "ok" : "bad"}">${esc(r.verdict)}${r.silentGreen ? " (silent green)" : ""}</td><td>${esc(r.mode)}</td><td>${esc(r.concurrency ?? "")}</td><td>${esc(r.callCount ?? "")}</td><td>${r.toolEvalPassRate == null ? "" : pct(r.toolEvalPassRate)}</td><td><code>${esc(r.file)}</code></td></tr>`).join("");
   const list = (items, empty) => (items.length ? `<ul>${items.map(i => `<li>${esc(i)}</li>`).join("")}</ul>` : `<p class="muted">${empty}</p>`);
   const regressionText = regressions.map(r => r.metric === "p95" ? `${r.tool}: p95 ${ms(r.from)} → ${ms(r.to)} (+${r.changePct.toFixed(1)}%) in ${r.head}` : `${r.tool}: error rate ${pct(r.from)} → ${pct(r.to)} in ${r.head}`);
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; img-src data:; style-src 'unsafe-inline'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><style>
-:root{--bg:#fff;--fg:#111827;--muted:#6b7280;--grid:#e5e7eb;--ok:#15803d;--bad:#b91c1c}
-@media (prefers-color-scheme:dark){:root{--bg:#0f172a;--fg:#e5e7eb;--muted:#94a3b8;--grid:#334155;--ok:#4ade80;--bad:#f87171}}
-body{background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif;margin:0 auto;max-width:960px;padding:16px}
-svg{width:100%;height:auto}svg text{fill:var(--muted);font-size:11px}.grid{stroke:var(--grid)}
-.legend{display:flex;flex-wrap:wrap;gap:12px;color:var(--muted)}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
-table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}td,th{border-bottom:1px solid var(--grid);padding:4px 8px;text-align:left;white-space:nowrap}
-.ok{color:var(--ok)}.bad{color:var(--bad)}.muted{color:var(--muted)}h2{font-size:16px;margin-top:28px}
-</style></head><body><h1>${esc(title)}</h1>
-<h2>Runs</h2><table><thead><tr><th>#</th><th>Server</th><th>URL or command</th><th>Started</th><th>Verdict</th><th>Mode</th><th>Concurrency</th><th>Calls</th><th>Tool evals</th><th>Report</th></tr></thead><tbody>${runTable}</tbody></table>
-<h2>Regressions</h2>${list(regressionText, "None between consecutive runs.")}
-<h2>Comparability</h2>${list(comparability, "Runs share suite, transport, mode, load profile, and parameters.")}
-${charts.join("")}
-</body></html>`;
+  const values = {
+    title: esc(title),
+    runTable,
+    regressions: list(regressionText, "None between consecutive runs."),
+    comparability: list(comparability, "Runs share suite, transport, mode, load profile, and parameters."),
+    charts: charts.join(""),
+  };
+  // One pass with a replacer function, so `$` sequences and placeholder-like text in values stay literal.
+  return HTML_TEMPLATE.replace(/\{\{(\w+)\}\}/g, (match, key) => (Object.hasOwn(values, key) ? values[key] : match));
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
