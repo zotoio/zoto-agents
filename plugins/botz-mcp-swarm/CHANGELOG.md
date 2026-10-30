@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- New `mcp-swarm-server-updates` skill and `/z-mcp-swarm-server-updates` command: check servers for updates (negotiated MCP spec version, serverInfo version, capabilities, tool/resource/template/prompt schemas), review the diff, accept per-proposal surgical suite updates, and manage the server changelog via `botz mcp-swarm project server updates|accept-update|discard-update|changelog` or the `swarm_server_check_updates` / `swarm_server_update_apply` / `swarm_server_changelog` MCP tools.
+- New `mcp-swarm-tags` skill and `/z-mcp-swarm-tags` command: suite/server descriptions and ad-hoc tags on suites, scenarios and runs with tag filters (`project suite describe|tag|list --tags`, `project scenarios --tags`, `project scenario-tag`, `project run-tag`, `project runs --tags`; MCP `swarm_describe`, `swarm_tags_set`, `swarm_scenarios_list`, `tags` params).
+
 ## [0.12.1] - 2026-10-30
 
 - `mcp-swarm-compare`: the `--html` page shell moved from an inline template literal in `scripts/runs-dataset.mjs` to `scripts/runs-dataset.template.html`, loaded relative to the script and filled with `{{name}}` placeholders. Output is byte-identical; the file ships with the skill directory.

@@ -15,6 +15,8 @@ Agent Skills and optional central MCP server (`https://swarm.botz.ai/mcp` with O
 | `mcp-swarm-record-replay` | `/z-mcp-swarm-record-replay` | Record redacted wire traffic and replay it as recorded, at maximum rate, or paced |
 | `mcp-swarm-diagnose` | `/z-mcp-swarm-diagnose` | Explain failed runs, missing credentials, and regressions |
 | `mcp-swarm-analyse` | `/z-mcp-swarm-analyse` | Have the model propose suite fixes for a failed run; accept or reject each by id |
+| `mcp-swarm-server-updates` | `/z-mcp-swarm-server-updates` | Check servers for updates (MCP spec version, serverInfo, capabilities, schemas), review the diff, surgically update only affected suites, and record a changelog entry |
+| `mcp-swarm-tags` | `/z-mcp-swarm-tags` | Edit suite and server descriptions; tag suites, scenarios and runs and filter by tag |
 | `mcp-swarm-upgrade` | `/z-mcp-swarm-upgrade` | Update the CLI and migrate saved suites to the current layout |
 
 The skills set `disable-model-invocation: true`: run them by name (for example `/mcp-swarm`) or through their `/z-<skill>` command, a light wrapper that loads the skill with the text after the command as the request. On first use they install the `botz` host (`@zotoio/botz-cli`) and its `mcp-swarm` extension if missing, so Node.js 22.13+ and npm are required.
