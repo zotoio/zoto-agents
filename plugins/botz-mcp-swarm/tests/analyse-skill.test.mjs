@@ -41,9 +41,9 @@ test("mcp.json and .mcp.json configure central https://swarm.botz.ai/mcp with OA
   assert.equal(cursorPlugin.mcp, "./mcp.json");
 });
 
-test("plugin v0.12.0 manifests, site page, and 10 skills/commands are aligned", () => {
+test("plugin v0.12.1 manifests, site page, and 10 skills/commands are aligned", () => {
   for (const mf of ["package.json", "plugin.json", ".cursor-plugin/plugin.json", ".claude-plugin/plugin.json"]) {
-    assert.equal(JSON.parse(read(mf)).version, "0.12.0", mf);
+    assert.equal(JSON.parse(read(mf)).version, "0.12.1", mf);
   }
   const readme = read("README.md");
   const site = read("../../site/mcp-swarm/index.html");
