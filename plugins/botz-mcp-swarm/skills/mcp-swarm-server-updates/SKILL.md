@@ -8,14 +8,14 @@ metadata:
   author: zotoio
   cli-host: "@zotoio/botz-cli"
   cli-package: "@zotoio/botz-mcp-swarm-cli"
-  cli-version: "0.15.0"
+  cli-version: "0.16.0"
 ---
 
 # Check MCP servers for updates and update affected suites
 
 > **Platform mode (opt-in):** this skill describes local execution only. If `BOTZ_MCP_SWARM_MODE=platform` is set or a `swarm` MCP server is connected, also read the `mcp-swarm-platform` skill before answering; otherwise do not mention or suggest Swarm platform features.
 
-> **CLI availability:** `project server updates|accept-update|discard-update|changelog`, `project suite describe|tag`, `project scenario-tag`, `project run-tag` and `--tags` filters land in botz-mcp-swarm-cli after `0.15.0` (zotoio/botz-mcp-swarm-cli#28). Check `botz mcp-swarm project --help` first; if the subcommand is missing, tell the user it needs a newer CLI rather than improvising.
+> **CLI availability:** `project server updates|accept-update|discard-update|changelog`, `project suite describe|tag`, `project scenario-tag`, `project run-tag` and `--tags` filters ship in botz-mcp-swarm-cli `0.16.0` (zotoio/botz-mcp-swarm-cli#28), along with `project server refresh|status`. Check `botz mcp-swarm project --help` first; if the subcommand is missing, tell the user it needs a newer CLI rather than improvising.
 
 Each project server stores the MCP spec (protocol) version it negotiated at `initialize` and a snapshot of its advertised surface. A check re-probes the server and diffs it against that snapshot. Only suite steps that reference a removed or changed tool, resource, resource template or prompt get a proposal; unaffected suites and scenarios are never regenerated, and newly added primitives are never injected into existing suites.
 
@@ -24,7 +24,7 @@ Each project server stores the MCP spec (protocol) version it negotiated at `ini
 Run every command through the botz host as `botz mcp-swarm`, never the standalone `botz-mcp-swarm` or `swarm` executables. Before the first command in a session:
 
 1. Run `botz --version`. If it is missing, check `node --version` (22.13+), install with `npm install -g @zotoio/botz-cli`, and say so. If that fails, stop and report it; do not use `sudo`.
-2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null` or older than `0.15.0` (the version this plugin is pinned to, `metadata.cli-version`), run `botz plugins install mcp-swarm --version 0.15.0`.
+2. Run `botz plugins info mcp-swarm --json`. If `installedVersion` is `null` or older than `0.16.0` (the version this plugin is pinned to, `metadata.cli-version`), run `botz plugins install mcp-swarm --version 0.16.0`.
 3. Run `botz mcp-swarm project server updates --help`. If the command does not exist, tell the user the installed CLI is too old and stop.
 
 Name every server as `<server name> <version> (<URL or command>)` and show its MCP spec version (for example `MCP 2025-11-25`) in every summary.
