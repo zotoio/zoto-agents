@@ -68,3 +68,12 @@ Compare target, workload, concurrency, duration, and enabled tool coverage befor
 To show the user a failing run, offer the `mcp-swarm-report` skill (`/z-mcp-swarm-report`): its tool selector shows each tool's errors by class, last error, sample request and response, and VUs/TPS over time. To have the configured model propose reviewed JSON-patch fixes for a failed run, offer the `mcp-swarm-analyse` skill (`/z-mcp-swarm-analyse`).
 
 - **Disabled suite versions (`suite_version_disabled`, CLI `>= 0.12.0`):** If a run is refused with `suite_version_disabled`, that specific version was marked disabled. Inspect version history with `botz mcp-swarm project suite versions <project>` and either run the latest version or re-enable the version with `botz mcp-swarm project suite enable-version <project> --version <n>`.
+
+## Local inference provider (allowed in local mode)
+
+Inference is optional and off by default (`--inference` on `suite capture` / `capture` and on `run --suite`). When the user has a provider configured, use it: this is local CLI behaviour, not a platform feature, and needs no Swarm sign-in.
+
+- **Where it lives:** environment variables only, read from the shell or from gitignored `.env.local` then `.env` in the current directory (shell values win; parent-directory files are not loaded). There is no provider setting in `settings.json` or `suite.json`, and no per-suite provider.
+- **How the CLI picks it:** `SWARM_LLM_PROVIDER` (`openai`, `anthropic`, `gemini`, `openrouter`, `groq`, `deepseek`, `mistral`, `together`, `xai`, `ollama`, `cursor`, `custom`). If unset, `SWARM_LLM_BASE_URL` alone selects `custom`, `SWARM_LLM_API_KEY` alone selects `openai`, and a single provider key (for example `OPENAI_API_KEY`) selects that provider; several provider keys without `SWARM_LLM_PROVIDER` is an error. There is no silent fallback.
+- **Local models:** `SWARM_LLM_PROVIDER=ollama` uses `http://127.0.0.1:11434/v1` with no key; any other OpenAI-compatible server uses `SWARM_LLM_PROVIDER=custom` with `SWARM_LLM_BASE_URL` (API root including `/v1`). Set `SWARM_LLM_MODEL` to an installed model with tool use and JSON output (only `openai`/`custom` default to `gpt-5.4-nano`, `cursor` to `auto`). Leave `TYPESAFE_API_KEY` empty so assertion judging also uses the local model. The CLI does not install or start the model server.
+- Check the provider, model and key are configured with `botz mcp-swarm doctor --inference --json` (it does not contact the model); never print, echo or copy key values, and never write keys into suite files.

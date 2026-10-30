@@ -115,3 +115,12 @@ test("default skills do not advertise platform features", () => {
     assert.doesNotMatch(read(`commands/z-${name}.md`), /swarm\.botz\.ai|central|swarm_[a-z_]+/, name);
   }
 });
+
+test("local skills document local inference provider config", () => {
+  for (const name of ["mcp-swarm", "mcp-swarm-guided", "mcp-swarm-flow", "mcp-swarm-analyse", "mcp-swarm-descriptions", "mcp-swarm-diagnose"]) {
+    const s = read(`skills/${name}/SKILL.md`);
+    for (const needle of ["Local inference provider (allowed in local mode)", "SWARM_LLM_PROVIDER", "SWARM_LLM_BASE_URL", "SWARM_LLM_MODEL", "ollama", ".env.local", "not a platform feature"]) {
+      assert.ok(s.includes(needle), `${name}: ${needle}`);
+    }
+  }
+});
