@@ -72969,3 +72969,1968 @@ targets:
       workspace: .cursor
     eval_files:
       - .cursor/hooks/evals/hooks.json
+---
+schema_version: 1
+created_at: 2026-05-03T07:47:43+00:00
+updated_at: 2026-10-30T07:11:59.133Z
+git_ref: 96d6392f5b5f223ce0ff9c798a119515d78af6c9
+generated_by: zoto-update-evals
+discovery_config:
+  discoveryTargets:
+    - skill
+    - command
+    - agent
+    - hook
+  skillsRoots:
+    - .cursor/skills
+    - skills
+    - plugins/*/skills
+  evalsDir: evals
+  additionalAutomation: []
+  cursorRoot: .cursor
+  cursor_namespaced_ids: []
+  ignore:
+    - .cursor/skills/crux-*
+    - .cursor/commands/crux-*.md
+    - .cursor/agents/crux-cursor-*.md
+    - .cursor/hooks/crux-*
+targets:
+  - id: skill:zoto-create-plugin
+    kind: skill
+    path: .cursor/skills/zoto-create-plugin/SKILL.md
+    content_hash: ef9a49df7a8a094c7f2706fbe68e52420df94273fac97cc917f0618af81e451a
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Guided workflow for scaffolding a new Cursor plugin in this
+          monorepo. Gathers requirements, creates the directory structure,
+          generates all component files (manifest, agents, skills, commands,
+          rules, hooks), adds skill evaluations, registers in the marketplace
+          manifest, and runs validation. Use when creating a new plugin from
+          scratch.
+    eval_files:
+      - .cursor/skills/zoto-create-plugin/evals/evals.json
+  - id: skill:mcp-swarm
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm/SKILL.md
+    content_hash: 754b440b9176380a0155b8527940dccd5360a54eb82c8cfeb582239e2a6319dd
+    public_surface:
+      frontmatter:
+        name: mcp-swarm
+        description: Capture, validate, refresh, and run MCP test suites entirely
+          locally with the botz MCP Swarm CLI (no central Swarm server, no MCP
+          server config). Use for testing MCP servers, repeatable tool
+          assertions, local load tests, and CI reports.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Runs
+          locally; never needs a Swarm server or token.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm/evals/evals.json
+  - id: skill:mcp-swarm-analyse
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/SKILL.md
+    content_hash: 82d3bba167f6cc2b824cd2633e30ff3bb48c5481a406d243f8e7f053d5eaeb58
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-analyse
+        description: Analyse a failed botz MCP Swarm run with the configured model,
+          review its proposed suite fixes one by one, and accept or reject them
+          by explicit proposal id. Nothing changes without a named id.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, shell access, and
+          botz-mcp-swarm-cli with `suite analyse`. Calling the model needs
+          SWARM_LLM_PROVIDER and its API key; reviewing a saved analysis does
+          not.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/evals/evals.json
+  - id: skill:mcp-swarm-compare
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-compare/SKILL.md
+    content_hash: d0906162fe4a6b6295f9f1135cc67678db6697e917674011ed07629bf3f555ad
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-compare
+        description: Compare two botz MCP Swarm runs or a series of runs and visualise
+          latency, error rate, and tool-eval trends in Cursor's /canvas or a
+          self-contained HTML page. Use to check for regressions between builds,
+          environments, or load settings.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Reads
+          existing run reports; does not contact the target.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-compare/evals/evals.json
+  - id: skill:mcp-swarm-descriptions
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/SKILL.md
+    content_hash: 39d929c5a6ab9c3387f0d7d60b1971f9bd8eff93266c21f3df2df624ab3fd0f5
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-descriptions
+        description: Review an MCP server's tool descriptions, propose clearer ones,
+          examine description suggestions saved by botz MCP Swarm optimize, and
+          measure a description change with tool evals. Use when models pick the
+          wrong tool, misuse arguments, or a server's descriptions need an
+          audit.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Measuring changes with tool evals needs model credentials and access
+          to the target MCP server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/evals/evals.json
+  - id: skill:mcp-swarm-diagnose
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/SKILL.md
+    content_hash: 533e040298d66ea12f4009b1eb00a44b0314bea64ed652d0201c3712a4b08b9a
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-diagnose
+        description: Diagnose failed botz MCP Swarm suites, missing credentials, invalid
+          fixtures, execution errors, and performance regressions from CLI
+          diagnostics and run reports.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Offline validation and doctor do not require target access.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/evals/evals.json
+  - id: skill:mcp-swarm-flow
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-flow/SKILL.md
+    content_hash: f42b4dd902cc7dd5a4af3425a8907d40046b9e1b2a74f2bbaf14218146cc457c
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-flow
+        description: 'Turn a task described in words, such as "find an open bug in
+          GitHub, file it in Jira, tell #triage", into a botz MCP Swarm suite
+          whose steps call several MCP servers in order and pass values between
+          them. Use to load-test or regression-test an agent-like workflow that
+          spans MCP servers.'
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Needs
+          a CLI with multi-server suites (`botz mcp-swarm suite server --help`).
+          Contacts each MCP server to read its tools; runs call tools on every
+          server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-flow/evals/evals.json
+  - id: skill:mcp-swarm-guided
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-guided/SKILL.md
+    content_hash: e4c54132128125048064f03d876edee4c679b1b3fc23e98667212296b3ca936e
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-guided
+        description: Guided, question-driven introspection of an MCP server with botz
+          MCP Swarm, from target and credentials through suite generation,
+          review, and execution to a summarised result. Use when someone wants
+          to test an MCP server and has not set up a suite yet.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Contacts the target MCP server; inference needs model credentials.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-guided/evals/evals.json
+  - id: skill:mcp-swarm-platform
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-platform/SKILL.md
+    content_hash: ffdc0bf4d571f0ad7a9a6ed2ad8236d476ebb241d0a74cb3d7e04e6354744646
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-platform
+        description: Opt in to Botz MCP Swarm platform mode and use its features
+          (central swarm MCP server with OAuth, remote suite runs, worker
+          dispatch, service suites, swarm_* MCP tools). Use only when the user
+          explicitly enables platform mode or BOTZ_MCP_SWARM_MODE=platform is
+          set.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, shell access, and an MCP client
+          supporting streamable HTTP + OAuth 2.1. Contacts the central Swarm
+          server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-platform/evals/evals.json
+  - id: skill:mcp-swarm-record-replay
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/SKILL.md
+    content_hash: f0e05041b65b037779d141571e7756fff44a2b481cad1c10008553eb16de205d
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-record-replay
+        description: Record redacted MCP wire traffic from a server with botz MCP Swarm
+          and replay it against the same or another server, as recorded, at
+          maximum rate, or paced. Use to reproduce a session, compare server
+          builds on identical traffic, or create fixtures.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+          Recording and replay contact the target MCP server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/evals/evals.json
+  - id: skill:mcp-swarm-report
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-report/SKILL.md
+    content_hash: 8204ff7fe0e587b58ba5980dc722878ec67fd3b92465cdb0b23a6d502e411b29
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-report
+        description: Visualise one botz MCP Swarm run in Cursor's /canvas or a
+          self-contained HTML page, with a tool selector showing each tool's
+          latency, errors, and a sample request and response. Use after a run,
+          or to explain a run report.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Reads
+          an existing run report, its saved suite, and optional record-replay
+          recordings; does not contact the target.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-report/evals/evals.json
+  - id: skill:mcp-swarm-server-updates
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-server-updates/SKILL.md
+    content_hash: 2163c2d31faec5e99f834ada9ab5e4c86d25d080998c75e8596c499dffb8b5de
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-server-updates
+        description: Check MCP servers under test for updates (serverInfo version,
+          negotiated MCP spec/protocol version, capabilities, and every tool,
+          resource, template and prompt schema), review the diff, surgically
+          update only the suites and scenarios that reference changed
+          primitives, and record a changelog entry on the server version.
+          Nothing changes until a reviewed update is accepted.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, shell access, and
+          botz-mcp-swarm-cli with `project server updates`. Contacts the target
+          MCP servers to re-probe them.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-server-updates/evals/evals.json
+  - id: skill:mcp-swarm-tags
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-tags/SKILL.md
+    content_hash: b26cd8e1904cb7975309e82480d08d065c74082014f80a92258732390493e8a5
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-tags
+        description: Edit descriptions on MCP Swarm suites and servers, and add ad-hoc
+          tags to suites, scenarios and runs, then filter lists by tag from the
+          local CLI.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, shell access, and
+          botz-mcp-swarm-cli with `project suite tag`. Does not contact the
+          target MCP servers.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-tags/evals/evals.json
+  - id: skill:mcp-swarm-upgrade
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/SKILL.md
+    content_hash: 369e103bc4426dd7850942249a7b79813ef406d873b833fcc5a754614e8cf0a7
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-upgrade
+        description: Upgrade the botz MCP Swarm CLI and move saved suites, credentials,
+          run reports, and service state into the current layout. Use when
+          updating MCP Swarm, after release notes mention moved files, or when
+          old .botz/suites, .runs, .swarm-data, or .otel directories are
+          present.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. The
+          upgrade command needs mcp-swarm 0.6.1 or later.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/evals/evals.json
+  - id: skill:crux-init
+    kind: skill
+    path: plugins/crux-compress/skills/crux-init/SKILL.md
+    content_hash: 38107ac1cdd1c41830843a6eef9552133ebea9585966e1e08648a8eb4b20c544
+    public_surface:
+      frontmatter:
+        name: crux-init
+        description: Set up CRUX Compress in the current project from this plugin.
+          Copies the CRUX specification to CRUX.md, adds or refreshes the <CRUX>
+          block in AGENTS.md, records the version in .crux/crux.json, and
+          optionally creates the memory system scaffolding. Use when CRUX.md is
+          missing, after updating the plugin, or when the user asks to install,
+          initialise, or update CRUX in a project.
+    eval_files:
+      - plugins/crux-compress/skills/crux-init/evals/evals.json
+  - id: skill:crux-skill-memory-compress
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-compress/SKILL.md
+    content_hash: 2eafafb9532a63e04820354c4f7cfa5f4a09e0a62f7c1b92580fa591a60b1867
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-compress
+        description: CRUX-compress memory files with adaptive sizing and source
+          archival. Handles compress, decompress, migration of existing
+          memories, and maxMemorySize enforcement (in lines). Use when
+          compressing or decompressing memory files, or migrating uncompressed
+          memories after enabling compression.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-compress/evals/evals.json
+  - id: skill:crux-skill-memory-crud
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-crud/SKILL.md
+    content_hash: 04d79b1eb269cad7f65594d7517083241aff75e29946add5ff0e445ec3c4b3bd
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-crud
+        description: Create, read, update, delete, and validate memory files with proper
+          frontmatter management. Use when creating new memories, modifying
+          existing ones, removing memories, or validating memory file structure.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-crud/evals/evals.json
+  - id: skill:crux-skill-memory-extract
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-extract/SKILL.md
+    content_hash: 463f56fe2eb7f22c613ac01c62c0a6aa890c5307b8e0fbe1daaad3ec5a878af0
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-extract
+        description: Analyse execution artifacts from completed units of work, compare
+          with existing memories, detect conflicts, and propose ranked candidate
+          facts for memory creation. Use after a spec (or configured unitOfWork)
+          completes to extract learnings, patterns, red flags, ideas, and goals.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-extract/evals/evals.json
+  - id: skill:crux-skill-memory-index
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-index/SKILL.md
+    content_hash: 052703de604eb24155752f486f57d4780e35e2f35fc05a27706e998ce08fa7fc
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-index
+        description: Build a prioritised memory index from all memory files and
+          reference trackers. Use when rebuilding the memory index, after memory
+          CRUD operations, or when agents need a sorted discovery list.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-index/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-coordination
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-coordination/SKILL.md
+    content_hash: 73d2c7be0588db4ead27e08d6a4e9c3f8ef3b806e37b87dc386da8e2eb4c5376
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-coordination
+        description: "File-based coordination primitives for meditation: artefact
+          filename grammar (18 rows including `init-suggestions-{ts}.yml`,
+          `finalisation-enhancements.yml`, per-tree ensemble variants, and 4
+          follow-up artefact types), placeholders, prefix-glob polling rule,
+          never-hard-code invariant, retrospective template, Branch & Leaf Index
+          template (single-model + ensemble variants). Use whenever the
+          `crux-cursor-meditation-guide` agent reads, writes, or links a
+          working-directory artefact."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-coordination/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-ensemble
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-ensemble/SKILL.md
+    content_hash: 8f99d6fa1f9a590a3a40b07195b8a71631523d8283c03d1156e37677cb2c3723
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-ensemble
+        description: "Ensemble Aggregation function for meditation: reads N model
+          consolidations, writes `cross-model-synthesis.md`, performs K10 root
+          cross-model reflection (step 3c), manages K10 layered cadence steps
+          3b–3f (per-tree `finalisation-enhancements.yml` reads + root combined
+          YAML write with `cross_model_candidates` + `union_candidates`),
+          returns single combined `needs_user_input`, dispatches resume-handler
+          by `source` provenance, and hands off to the report skill for ensemble
+          HTML+PDF generation. Use when the `crux-cursor-meditation-guide` agent
+          is spawned with `ensembleAggregation: true`."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-ensemble/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-quick
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-quick/SKILL.md
+    content_hash: ce82170d4785dbbe97be6a21fc6782ca1717ae18b1c4d4e77fdb6a7b5653e7ac
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-quick
+        description: "Quick-mode meditation protocol: 6-step parallel fan-out with
+          optional deep-confirm hook, warn-only citation validation, upfront
+          child derivation, no peer review, K10c reflection (same rubric,
+          warn-only at every richness level per K7). Use when the
+          `crux-cursor-meditation-guide` agent runs the Quick depth-0 manager or
+          any Quick-mode child agent."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-quick/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-report
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-report/SKILL.md
+    content_hash: d34fcd13b3b71897f4364514aeb36623439b5b9f3e927750fa1590374430212e
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-report
+        description: "Mandatory paired HTML+PDF report generation for meditation:
+          Comprehensiveness Level Mapping (12 dimensions × 4 levels),
+          anti-homogenisation rules, Universal Contrast, light/dark mode + print
+          TOC, Chart.js / D3 / calculator content minima with static fallbacks,
+          Per-Branch Section Rule, Depth-3 Leaf Inclusion Rule, Peer-Review
+          Surfacing Rule, Init-Suggestions Honour rules, K10b Per-Cheap-Type
+          Rendering Contract (7 cheap types), and Report-Skill Respawn Protocol
+          resume-handler. Use when the `crux-cursor-meditation-guide` agent runs
+          report generation (step 12), when the ensemble aggregator generates
+          the ensemble-level report, or when the report skill is respawned via
+          Dim 13."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-report/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-research
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-research/SKILL.md
+    content_hash: 18279b64da375f63579be0376bedd106e572f5b62f56d9d265d0e2e938ae8414
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-research
+        description: "Research-mode meditation protocol: Phases A–G depth-first
+          recursion, depth-0 manager steps 1–13 (incl. step 4b 4-mode
+          `additional_focus_areas[]` reconciliation +
+          `init-suggestions-{ts}.yml` write; step 8 K10c reflection writing
+          `finalisation-enhancements.yml`; step 8b respawn-payload prep), facet
+          registry lock, citations index, peer review file spec,
+          comprehensiveness honouring at leaf depth. Use when the
+          `crux-cursor-meditation-guide` agent runs the depth-0 manager or any
+          Research-mode child agent."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-research/evals/evals.json
+  - id: skill:crux-skill-memory-meditation-review
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-meditation-review/SKILL.md
+    content_hash: 57b677b2d4a326a2eb82434427489536343869070032c9d212a2e556bfd4115f
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-meditation-review
+        description: "Adversarial Review function for meditation: 13-dimension audit
+          (incl. citation integrity, slop detection, anti-homogenisation drift,
+          level-conditional Dim 9 peer-review thoroughness, Dim 12
+          Comprehensiveness fidelity, Dim 13 Init-suggestion AND
+          finalisation-enhancement honour), severity classification,
+          ≤3-iteration loop, MUST_FIX `needs_user_input` schema with mandatory
+          `context` decision-guidance, and Dim 13 `respawn_required: true`
+          Report-Skill Respawn Protocol payload schema (K9 + K10b). Use when the
+          `crux-cursor-meditation-guide` agent is spawned in Adversarial Review
+          function (step 10)."
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-meditation-review/evals/evals.json
+  - id: skill:crux-skill-memory-rebalance
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-rebalance/SKILL.md
+    content_hash: b864feb52c0828c14a754a234478bec1e549e1128ecc75fee0394fbfee9981c9
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-rebalance
+        description: Consolidate, promote, demote, and archive memories based on
+          strength, usage patterns, and type transition rules. Use when running
+          REM sleep, rebalancing memory strength, detecting conflicts, or
+          cleaning up orphaned trackers.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-rebalance/evals/evals.json
+  - id: skill:crux-skill-memory-reference-tracker
+    kind: skill
+    path: plugins/crux-compress/skills/crux-skill-memory-reference-tracker/SKILL.md
+    content_hash: 926f7011e22e129751f7e4c9db0bdb427bde0c22f1c6c4fc26228666a4c4863e
+    public_surface:
+      frontmatter:
+        name: crux-skill-memory-reference-tracker
+        description: Track which memories are referenced in agent output, manage
+          .refs.yml tracker files, and keep strength counters in sync with
+          memory frontmatter. Use when recording a memory reference, cleaning up
+          orphaned trackers during REM sleep, or checking whether a memory
+          should be promoted to a permanent rule.
+    eval_files:
+      - plugins/crux-compress/skills/crux-skill-memory-reference-tracker/evals/evals.json
+  - id: skill:crux-utils
+    kind: skill
+    path: plugins/crux-compress/skills/crux-utils/SKILL.md
+    content_hash: 815134ee432b8e8f566e666c2f209f48218e4cfb00b1502058c546ff4afd304a
+    public_surface:
+      frontmatter:
+        name: crux-utils
+        description: Multi-purpose utility for CRUX compression workflows. Provides
+          token estimation and checksum calculation. Use when estimating tokens
+          for compression, comparing file sizes, or getting checksums for
+          sourceChecksum tracking.
+    eval_files:
+      - plugins/crux-compress/skills/crux-utils/evals/evals.json
+  - id: skill:botz-mcp
+    kind: skill
+    path: plugins/zoto-botz-skills/skills/botz-mcp/SKILL.md
+    content_hash: 4b21004e3bdf01f823a6824d5510b8c30f0ff9d5230276005f26dadca9016841
+    public_surface:
+      frontmatter:
+        name: botz-mcp
+        description: Consume, stage, evolve, test, and install governed Agent Skills and
+          subagent definitions from a botz-mcp server with zero-drift version
+          pinning, canary A/B evaluation, and SHA-256 verification. Use whenever
+          you need a capability you do not already have - follow the chained
+          workflow (search -> select -> use -> feedback -> evolve/fork/create ->
+          select @canary -> test -> rate -> promote), fetch unified CRUX bundles
+          (skill_get_compressed / agent_get_compressed) or batched resources
+          (skill_resources_get, skill_install, agent_install, or skill:// MCP
+          resource templates with ETag/TTL caching), score outcomes via
+          sampling/feedback, and promote verified versions.
+        id: e15acdf95d3e485a93845e01468bb679
+        version: "9"
+        compatibility: '"Cursor, Claude Code, Codex, OpenClaw, and any MCP client
+          supporting streamable HTTP (/mcp)"'
+        changelog: ""
+        "- 'v2": document whole-bundle CRUX serving and optional related-skill sourcing'
+        "- 'v3": conversational creation, subagent definitions (agent_* tools), QSC
+          objectives + telemetry'
+        "- 'v4": prefer skill_get_compressed (unified CRUX incorporating all references
+          and scripts); skill_get + skill_resource_get as plain-markdown
+          alternative'
+        "- 'v5": add silent staging (.botz/staged/), skill_install/agent_install, batch
+          skill_resources_get, RFC 6570 MCP resource templates
+          (skill://{name}@{version}/resources/{path} & /bundle) with ETag/TTL
+          caching, updates_check + skill_diff/agent_diff, requires preflight,
+          and brief secret redaction'
+        "- 'v6": document all 7 MCP specification coverage stages (24 tools with
+          outputSchema + structuredContent, 5-field ToolAnnotations, 4
+          @mcp.prompt slash workflows /use_skill, /author_skill, /evolve_skill,
+          /delegate_subagent, 4-stage notifications/progress,
+          completion/complete autocomplete, client sampling/createMessage &
+          roots/list workspace detection, binary BlobResourceContents on
+          skill://{name}/illustration, resourceLinks,
+          notifications/resources/list_changed, BoundedMemoryEventStore SSE
+          resumability, and swarm_run_completed lifecycle)'
+        "- 'v8": preferred skills - agents carry preferred_skills (ids) +
+          preferred_skill_uris (botz://skill/<id>) frontmatter (top 5
+          same-catalogue skills, auto-ranked); load them on demand via
+          agent_preferred_skills(include_bodies) or skill_get(name=<id>)'
+        "- 'v9": org/catalogue-first URIs - canonical
+          botz://<org>/<catalogue>/skill|agent/<id> resources and
+          /<org>/<catalogue>/skills|agents/<id> web paths; preferred_skill_uris
+          are canonical; skill://, agent://, botz://skill/<id> and
+          /skills/<name> forms are DEPRECATED (resolve only when unique, 301
+          over HTTP, ambiguity error otherwise)'
+        "- 'v7": add canonical chained & batched workflow reference
+          (references/chained-workflows.md) covering search -> select -> use ->
+          feedback -> evolve/fork/create -> select (@canary) -> test -> rate
+          (sampling/feedback) -> promote, canary A/B testing (@live vs @canary),
+          admin MCP promotion vs Console governance, and 24-hour generation
+          quota graceful read-only degradation'
+    eval_files:
+      - plugins/zoto-botz-skills/skills/botz-mcp/evals/evals.json
+  - id: skill:zoto-cursor-top-monitor
+    kind: skill
+    path: plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/SKILL.md
+    content_hash: 0db56164985ea643566806e36395852b4746a685b2570c96bc48697e023182d2
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-monitor
+        description: Guided workflow for launching and interpreting the cursor-top TUI.
+          Covers process discovery, hierarchy expansion, log tail
+          interpretation, and recommended flags for different scenarios. Use
+          when the user wants to monitor every Cursor agent on their machine in
+          real time, or to capture a snapshot for a report.
+    eval_files:
+      - plugins/zoto-cursor-top/skills/zoto-cursor-top-monitor/evals/evals.json
+  - id: skill:zoto-advise-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-advise-evals/SKILL.md
+    content_hash: dc0f0d5df56ed5838a642161ce3d71279222ea6372239d18d831b4eec7df989f
+    public_surface:
+      frontmatter:
+        name: zoto-advise-evals
+        description: '"Coverage gap analyser for eval suites. Scans the codebase across
+          five dimensions — trigger-phrase coverage, schema validation,
+          regression baselines, context citation verification, and status
+          checklist completeness — and produces a structured adviser_report with
+          per-target, per-dimension findings and deterministic recommendations.
+          Read-only: never modifies files. Does not call askQuestion — uses
+          needs_user_input at two breakpoints (summary drill-down and action
+          recommendations) for the command to drive via askQuestion and
+          resume."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-advise-evals/evals/evals.json
+  - id: skill:zoto-compare-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-compare-evals/SKILL.md
+    content_hash: b3d19edf80b7f7292542213b6981286b2b79bafaa31d2b507936ea3b729b5b46
+    public_surface:
+      frontmatter:
+        name: zoto-compare-evals
+        description: Cross-run analysis across two or more eval runs driven by
+          **`report.yml`**. Inputs are resolved per run directory under
+          `{evalsDir}/_runs/<ts>/`; per-backend summaries are nested under
+          **`report.static`** and **`report.llm`**. Emits a flat dataset (runs ×
+          cases × dimensions) plus the /canvas hand-off prompt, instructing the
+          host agent to invoke Cursor's built-in /canvas tool. The skill never
+          renders charts itself. Drill-down opens per-case log files. Does not
+          call askQuestion — when a fragment (e.g. `20260503`) matches multiple
+          hourly folders and the Task lacks a disambiguator, emit schema-valid
+          **`needs_user_input`** whose **`options[].label`** lists every full
+          **`{evalsDir}/_runs/<ts>/`** candidate path (`/z-eval-compare`
+          surfaces this without **`askQuestion`**).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-compare-evals/evals/evals.json
+  - id: skill:zoto-configure-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-configure-evals/SKILL.md
+    content_hash: a77f21b7da13bf2da4d4bae1d79c4fe69b5bb740e43752114e867724c0609947
+    public_surface:
+      frontmatter:
+        name: zoto-configure-evals
+        description: Writes .zoto/eval-system/config.yml from field values pre-collected
+          by /z-eval-configure (command-owned askQuestion). Refuses bundled
+          update.preserveUserAuthoredCases:false or update.writeMetaMarker:false
+          (including nested payload mirrors) before any manifest read or config
+          write. Validates against templates/schema/config.schema.json. Diffs
+          the chosen config against the manifest snapshot
+          (discovery_config.static.framework) to produce a cleanup_plan
+          validated against templates/schema/cleanup-plan.schema.json, and
+          stamps _meta.primitive_analysis.invalidate=true on every cached
+          primitive analysis when the static framework changes. The unified LLM
+          eval harness ships one JSON-first co-located eval per target, with no
+          per-repo selector axis — only the static framework matters here. Never
+          calls askQuestion — returns needs_user_input if validation cannot
+          proceed without user clarification.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-configure-evals/evals/evals.json
+  - id: skill:zoto-create-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-create-evals/SKILL.md
+    content_hash: a000fce6a4e03731aaf0a5604c097e2f6ab3efa7a780723ef83f5a1c3598b4b7
+    public_surface:
+      frontmatter:
+        name: zoto-create-evals
+        description: Scaffolds static pytest and LLM (@cursor/sdk) eval backends into a
+          host repository, generates eval cases with _meta.generated markers for
+          approved skills/commands/agents/hooks, merges eval scripts into
+          package.json, and writes the persistent manifest plus append-only
+          history. Expects the invoking command to pre-collect approved targets
+          — does not call askQuestion.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-create-evals/evals/evals.json
+  - id: skill:zoto-eval-tooling
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-eval-tooling/SKILL.md
+    content_hash: 901336b2a1b2431f5b7857e62b8cd9425097f78a81f95b99891cf1047a394af2
+    public_surface:
+      frontmatter:
+        name: zoto-eval-tooling
+        description: Invocation reference for all eval-system CLI commands. Use this
+          skill when you need to run eval scripts — never reference script paths
+          directly; always invoke via the package.json aliases documented here.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-eval-tooling/evals/evals.json
+  - id: skill:zoto-execute-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-execute-evals/SKILL.md
+    content_hash: f9215ca71cca10db74f78971b9aa416e1fcaf854b26ed956cfa63c3a5ba62fc7
+    public_surface:
+      frontmatter:
+        name: zoto-execute-evals
+        description: Executes eval runs via the host repo's package.json scripts (pnpm
+          run eval, eval:full, eval:llm, eval:judge). Forwards --model to the
+          LLM runner via both a CLI flag and the ZOTO_EVAL_MODEL environment
+          variable. After each run, calls eval:update --check and appends the
+          drift status to the run report as a warn-only line. Does not call
+          askQuestion — credential gaps use needs_user_input for the command.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-execute-evals/evals/evals.json
+  - id: skill:zoto-help-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-help-evals/SKILL.md
+    content_hash: 70549869e895808d834e9d20fbb7047f6c034d828e20c2788ad1f1745a2ab0cf
+    public_surface:
+      frontmatter:
+        name: zoto-help-evals
+        description: Project-tailored help for the Eval System plugin. Loads
+          plugins/zoto-eval-system/README.md as the source of truth, inspects
+          current project state (.zoto/eval-system/config.yml, manifest.yml,
+          .env*, evals/_runs/, package.json scripts), and composes an answer
+          that is grounded in the chosen README section, tailored to the host
+          repo's actual configuration and artefacts, and cited with
+          `start:end:path` code references back to the README. Pre-collected
+          `help_context` arrives from the /z-eval-help command (command-owned
+          askQuestion). The skill itself never calls askQuestion — missing
+          context is returned as `needs_user_input`.
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-help-evals/evals/evals.json
+  - id: skill:zoto-judge-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-judge-evals/SKILL.md
+    content_hash: ab6eb45f980baf9aa5c161744cd31d3805e56ea4eddee4f3363b37ae5b922146
+    public_surface:
+      frontmatter:
+        name: zoto-judge-evals
+        description: Adversarial judge for eval runs. Identifies weak graders,
+          under-covered assertions, verbosity spikes, and accuracy/confidence
+          regressions. Produces an enriched llm.yml with soft-metric
+          annotations. Does not call askQuestion — handoff to /z-eval-update is
+          expressed as needs_user_input for the command to confirm via
+          askQuestion and resume. Uses the configured judgeModel (default
+          claude-opus-4-8[]).
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-judge-evals/evals/evals.json
+  - id: skill:zoto-update-evals
+    kind: skill
+    path: plugins/zoto-eval-system/skills/zoto-update-evals/SKILL.md
+    content_hash: 8e04894bce247d7877e22fad123a41947921883e9b2279815babea1850c0e225
+    public_surface:
+      frontmatter:
+        name: zoto-update-evals
+        description: '"Diff-aware eval updater. Detects drift between covered targets
+          and generated eval cases for skills and central plugin eval files
+          (commands/agents/hooks), classifies changes as critical or
+          non-critical, and preserves user-authored cases verbatim. Apply-mode
+          regeneration re-invokes the LLM analyser per drifted primitive and
+          dispatches per-framework static stamping plus the single unified LLM
+          regeneration (`regenerateLlm`) (CI defaults to cached analyser
+          payloads unless `--with-analyser`). The `_meta.generated === true`
+          (case) and `// _meta.generated\\: true` (file) contracts are enforced
+          at runtime AND compile time. Supports targeted mode, rediscovery mode,
+          `--no-analyser` / CI cache reuse, and CI `--check` (exit 2 on critical
+          drift)."'
+    eval_files:
+      - plugins/zoto-eval-system/skills/zoto-update-evals/evals/evals.json
+  - id: skill:zoto-create-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md
+    content_hash: e79c250ba45437db46c47a717cb2d638fbd65d26be25315de614015a0a6312ce
+    public_surface:
+      frontmatter:
+        name: zoto-create-spec
+        description: Guided workflow for creating engineering specs. Gathers
+          requirements, explores the codebase, proposes a spec structure, and
+          generates spec files under the configured specs directory. Use when
+          planning a new feature, refactor, or multi-step initiative before
+          implementation.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-create-spec/evals/evals.json
+  - id: skill:zoto-execute-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
+    content_hash: dd25ad95a2fd6210c4f72d2652882e070e9e3452f6a7eb4e19691e4c9927b0a4
+    public_surface:
+      frontmatter:
+        name: zoto-execute-spec
+        description: Executes an engineering spec by spawning subagents for each
+          subtask, tracking progress, adversarial verification, and final
+          quality checks. Use when a spec exists under the configured specs
+          directory and is ready for execution.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-execute-spec/evals/evals.json
+  - id: skill:zoto-judge-spec
+    kind: skill
+    path: plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md
+    content_hash: 8ec8d8ff317d7c3c4a6a758eacf50e12f5a0165073079f818bf2fa07e822112d
+    public_surface:
+      frontmatter:
+        name: zoto-judge-spec
+        description: Independent assessment of a repository or Spec System engineering
+          specs. Reviews quality, feasibility, completeness, risk, and
+          structure. After producing a spec assessment, offers to apply
+          recommended fixes directly to the spec files. Use to audit a codebase
+          or to assess and improve a spec before running zoto-execute-spec.
+    eval_files:
+      - plugins/zoto-spec-system/skills/zoto-judge-spec/evals/evals.json
+  - id: command:z-mcp-swarm-analyse
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-analyse.md
+    content_hash: 6b74128e85d4a024f8a546c59fbca7f143b6fd5d34112e3a30058b59cc109cd5
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-analyse
+        description: '"Run the mcp-swarm-analyse skill. Analyse a failed botz MCP Swarm
+          run, review proposed suite fixes, and accept or reject them by
+          explicit proposal id."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-analyse.json
+  - id: command:z-mcp-swarm-compare
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-compare.md
+    content_hash: 2f8fc6fb34419c0df1a99f9d38ab47081c15092dc616d72c1f3e4638f634b2b6
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-compare
+        description: "\"Run the mcp-swarm-compare skill. Compare two botz MCP Swarm runs
+          or a series of runs and visualise latency, error rate, and tool-eval
+          trends in Cursor's /canvas or a self-contained HTML page. Use to check
+          for regressions between builds, environments, or load settings.\""
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-compare.json
+  - id: command:z-mcp-swarm-descriptions
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-descriptions.md
+    content_hash: 3812ae92ac5740671aab5d4c58451be6b0e36c12566a8e51c29ca0791e7e18b1
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-descriptions
+        description: "\"Run the mcp-swarm-descriptions skill. Review an MCP server's
+          tool descriptions, propose clearer ones, examine description
+          suggestions saved by botz MCP Swarm optimize, and measure a
+          description change with tool evals. Use when models pick the wrong
+          tool, misuse arguments, or a server's descriptions need an audit.\""
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-descriptions.json
+  - id: command:z-mcp-swarm-diagnose
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-diagnose.md
+    content_hash: 265ec0b4b56955ef1b22823ad8bc7037e6858303325a60b6354984a7ddb7a720
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-diagnose
+        description: '"Run the mcp-swarm-diagnose skill. Diagnose failed botz MCP Swarm
+          suites, missing credentials, invalid fixtures, execution errors, and
+          performance regressions from CLI diagnostics and run reports."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-diagnose.json
+  - id: command:z-mcp-swarm-flow
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-flow.md
+    content_hash: 7e422763f5d1b311202b213dccabad4e67cb1637c8e495a54c04488b10f681b0
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-flow
+        description: '"Run the mcp-swarm-flow skill. Turn a task described in words into
+          a botz MCP Swarm suite whose steps call several MCP servers in order
+          and pass values between them."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-flow.json
+  - id: command:z-mcp-swarm-guided
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-guided.md
+    content_hash: 787fe564eb3020715c21cd1e8439357cc9349011db8bc212c56d00da155cf0a1
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-guided
+        description: '"Run the mcp-swarm-guided skill. Guided, question-driven
+          introspection of an MCP server with botz MCP Swarm, from target and
+          credentials through suite generation, review, and execution to a
+          summarised result. Use when someone wants to test an MCP server and
+          has not set up a suite yet."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-guided.json
+  - id: command:z-mcp-swarm-platform
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-platform.md
+    content_hash: 34fa6697f45a48ef70e96438f8db4082680445d28139ba1601191fdfe9b70602
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-platform
+        description: '"Run the mcp-swarm-platform skill. Opt in to Botz MCP Swarm
+          platform mode (central swarm MCP server, remote runs, workers) or turn
+          it off."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-platform.json
+  - id: command:z-mcp-swarm-record-replay
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-record-replay.md
+    content_hash: e9c03a0875c9dbddca9629e4dec98ea253e49fa4f861a309cc6f7fb52e79b1e3
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-record-replay
+        description: '"Run the mcp-swarm-record-replay skill. Record redacted MCP wire
+          traffic from a server with botz MCP Swarm and replay it against the
+          same or another server, as recorded, at maximum rate, or paced. Use to
+          reproduce a session, compare server builds on identical traffic, or
+          create fixtures."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-record-replay.json
+  - id: command:z-mcp-swarm-report
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-report.md
+    content_hash: f5bacf358f3758724b5d2c0db4d648891e4880c29ea85128a0aa0c5061ed21f4
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-report
+        description: "\"Run the mcp-swarm-report skill. Visualise one botz MCP Swarm run
+          in Cursor's /canvas or a self-contained HTML page, with overall and
+          per-tool VUs/TPS over time (loadTimeline/timeSeries) and a tool
+          selector showing each tool's latency, errors, and sample
+          request/response.\""
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-report.json
+  - id: command:z-mcp-swarm-server-updates
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-server-updates.md
+    content_hash: f83031be286893ff04d8d0c513f8788c589dd05da3f0349e3e690bac27be223f
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-server-updates
+        description: '"Run the mcp-swarm-server-updates skill. Check MCP servers under
+          test for updates (serverInfo version, negotiated MCP spec/protocol
+          version, capabilities, and every tool, resource, template and prompt
+          schema), review the diff, surgically update only the suites and
+          scenarios that reference changed primitives, and record a changelog
+          entry on the server version. Nothing changes until a reviewed update
+          is accepted."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-server-updates.json
+  - id: command:z-mcp-swarm-tags
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-tags.md
+    content_hash: 8d882b0d1378d0734c795d8af33ba34758b40e761daa090367469e5edde744f0
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-tags
+        description: '"Run the mcp-swarm-tags skill. Edit descriptions on MCP Swarm
+          suites and servers, and add ad-hoc tags to suites, scenarios and runs,
+          then filter lists by tag from the local CLI."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-tags.json
+  - id: command:z-mcp-swarm-upgrade
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-upgrade.md
+    content_hash: 1881531c168faa22710b56f05a2b79b32b7feca48c452e6c907ccb31d5086d13
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-upgrade
+        description: '"Run the mcp-swarm-upgrade skill. Upgrade the botz MCP Swarm CLI
+          and move saved suites, credentials, run reports, and service state
+          into the current layout. Use when updating MCP Swarm, after release
+          notes mention moved files, or when old .botz/suites, .runs,
+          .swarm-data, or .otel directories are present."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-upgrade.json
+  - id: command:z-mcp-swarm
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm.md
+    content_hash: 7f72301cb10bf1432659f2eeb188c99b188b1c67320c9b7f445987fb9582b7ce
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm
+        description: '"Run the mcp-swarm skill. Capture, validate, refresh, and run MCP
+          test suites with the botz MCP Swarm CLI. Use for testing MCP servers,
+          repeatable tool assertions, load tests, and CI reports."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm.json
+  - id: command:crux-amnesia
+    kind: command
+    path: plugins/crux-compress/commands/crux-amnesia.md
+    content_hash: 96e0eb9b1872199297b0e4d635824b40c5663cfc0de3f5b9072eaba0b65b5c7e
+    public_surface:
+      frontmatter:
+        name: '"crux-amnesia"'
+        description: '"Temporarily disable or restore ambient CRUX memory usage for the
+          current chat session."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-amnesia.json
+  - id: command:crux-compress
+    kind: command
+    path: plugins/crux-compress/commands/crux-compress.md
+    content_hash: 35208d68510b1163eec5bb28d0a5534989aed07830a7ce50ab2fc1ad601482f9
+    public_surface:
+      frontmatter:
+        name: '"crux-compress"'
+        description: '"Compress markdown rules, code files, images, and web pages into
+          CRUX notation for token efficiency."'
+        generated: 2026-07-13 19:14
+        sourceChecksum: '"2919266716"'
+        cruxLevel: "25"
+        beforeTokens: "6395"
+        afterTokens: "1374"
+        reducedBy: 79%
+        confidence: 94%
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-compress.json
+  - id: command:crux-dream
+    kind: command
+    path: plugins/crux-compress/commands/crux-dream.md
+    content_hash: d8b994fb16eb5f8116bfdaf1e1a769ceec6cf66626431ed792450e5d36523977
+    public_surface:
+      frontmatter:
+        name: '"crux-dream"'
+        description: '"Post-execution memory extraction and REM sleep rebalancing."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-dream.json
+  - id: command:crux-forget
+    kind: command
+    path: plugins/crux-compress/commands/crux-forget.md
+    content_hash: d86bf677ccedf33de0872ee41fd825aff3869f3149b456d3458696494535375b
+    public_surface:
+      frontmatter:
+        name: '"crux-forget"'
+        description: '"Remove memories from the CRUX memory corpus."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-forget.json
+  - id: command:crux-meditate
+    kind: command
+    path: plugins/crux-compress/commands/crux-meditate.md
+    content_hash: 1bc4af6890447f73a944c74486d171ee834ea1b3b02bf396a148f0a53e8bc1de
+    public_surface:
+      frontmatter:
+        name: '"crux-meditate"'
+        description: '"Run a recursive, memory-informed meditation on a topic: research,
+          adversarial review, and a final report."'
+        generated: 2026-09-06 23:12
+        sourceChecksum: '"3131920083"'
+        cruxLevel: "25"
+        beforeTokens: "25499"
+        afterTokens: "5495"
+        reducedBy: 78%
+        confidence: 92%
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-meditate.json
+  - id: command:crux-recall
+    kind: command
+    path: plugins/crux-compress/commands/crux-recall.md
+    content_hash: f7dc491b93be6f827a7ca2b8851e6c75afac488e6431bc815b7a3c9368021720
+    public_surface:
+      frontmatter:
+        name: '"crux-recall"'
+        description: '"Decompress, query, and display CRUX memories in human-readable
+          form."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-recall.json
+  - id: command:crux-remember
+    kind: command
+    path: plugins/crux-compress/commands/crux-remember.md
+    content_hash: d5eb6fd4fdf2bc7d40837fe772ff3e009078b446ee208a1f80391fa8acdcf9d0
+    public_surface:
+      frontmatter:
+        name: '"crux-remember"'
+        description: '"Store ad-hoc memories outside of spec workflows; they join
+          standard consolidation during REM sleep."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/crux-remember.json
+  - id: command:z-crux-init
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-init.md
+    content_hash: c56cc7f1ae20150696c9fb735088533abee3cf4c9ea6872ad0aef37441954f47
+    public_surface:
+      frontmatter:
+        name: z-crux-init
+        description: '"Run the crux-init skill. Set up CRUX Compress in this project:
+          CRUX.md, the AGENTS.md <CRUX> block, .crux/crux.json, and optional
+          memory scaffolding."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-init.json
+  - id: command:z-crux-skill-memory-compress
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-compress.md
+    content_hash: 7363aa33442ddd42a6269e5c8ef6bdee01c3c6ed2186c9fe069747840ac54ea1
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-compress
+        description: '"Run the crux-skill-memory-compress skill. Compress or decompress
+          CRUX memory files, migrate existing memories, and enforce
+          maxMemorySize."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-compress.json
+  - id: command:z-crux-skill-memory-crud
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-crud.md
+    content_hash: 4046e4b299911026dec7ccd4abe14f32da1d28d6ccb330622e9c69947ba422fd
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-crud
+        description: '"Run the crux-skill-memory-crud skill. Create, read, update,
+          delete, and validate CRUX memory files and their frontmatter."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-crud.json
+  - id: command:z-crux-skill-memory-extract
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-extract.md
+    content_hash: 8427a7b58badd1bb6bfcb483b92f47c56e0e1db526d460c0fbf34ab698e5b21a
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-extract
+        description: '"Run the crux-skill-memory-extract skill. Extract ranked memory
+          candidates from a completed unit of work and flag conflicts with
+          existing memories."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-extract.json
+  - id: command:z-crux-skill-memory-index
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-index.md
+    content_hash: f2623e99abe98520dd687f5f0d8905c6ddab59b45b051cb89130b84ba87a6c67
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-index
+        description: '"Run the crux-skill-memory-index skill. Rebuild the prioritised
+          CRUX memory index from memory files and reference trackers."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-index.json
+  - id: command:z-crux-skill-memory-meditation-coordination
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-coordination.md
+    content_hash: f4bb0be54c39727d132b70ea91d547d93fff7d70ad353cabf1c0f90494c788e9
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-coordination
+        description: '"Run the crux-skill-memory-meditation-coordination skill.
+          Meditation artefact filenames, placeholders, polling, and index
+          templates used by the meditation guide."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-coordination.json
+  - id: command:z-crux-skill-memory-meditation-ensemble
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-ensemble.md
+    content_hash: c66f1e88ec8ded1b0af63a3a7be94a1694786bebe974c539d9a13cd2efa8c774
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-ensemble
+        description: "\"Run the crux-skill-memory-meditation-ensemble skill. Combine
+          several models' meditation results into a cross-model synthesis and a
+          single set of user decisions.\""
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-ensemble.json
+  - id: command:z-crux-skill-memory-meditation-quick
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-quick.md
+    content_hash: 5a6dc80f8c691a72b5be153ca1a95bab5f7ad8a3cfd2dd98f8ede6e2c1fcaf13
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-quick
+        description: '"Run the crux-skill-memory-meditation-quick skill. Quick-mode
+          meditation: a 6-step parallel fan-out with warn-only citation checks
+          and no peer review."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-quick.json
+  - id: command:z-crux-skill-memory-meditation-report
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-report.md
+    content_hash: 86efcefa77e15b5a62223642689efe546a230a9fc98e1a219daef0e330a0a787
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-report
+        description: "\"Run the crux-skill-memory-meditation-report skill. Generate the
+          paired HTML and PDF meditation report with the skill's content and
+          rendering rules.\""
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-report.json
+  - id: command:z-crux-skill-memory-meditation-research
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-research.md
+    content_hash: 700311f4e669c3f9e9bc99fc46bf4a25adaef6a556cb2a9eab797adba4f78a71
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-research
+        description: '"Run the crux-skill-memory-meditation-research skill.
+          Research-mode meditation: Phases A–G depth-first recursion, the
+          depth-0 manager steps, citations, and peer review."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-research.json
+  - id: command:z-crux-skill-memory-meditation-review
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-meditation-review.md
+    content_hash: 8b32c4c6189b52896003be48ada98f339ba8dd7f0de810b793e4f15122123b79
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-meditation-review
+        description: '"Run the crux-skill-memory-meditation-review skill. Adversarial
+          review of a meditation: the 13-dimension audit, severity classes, and
+          the fix loop."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-meditation-review.json
+  - id: command:z-crux-skill-memory-rebalance
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-rebalance.md
+    content_hash: 0355533d882f9df87d3aa6b469ca3b1608e8dfa6c1bd2b2d2af700905b0258c4
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-rebalance
+        description: '"Run the crux-skill-memory-rebalance skill. Run REM sleep
+          rebalancing: consolidate, promote, demote, and archive memories, and
+          clean up orphaned trackers."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-rebalance.json
+  - id: command:z-crux-skill-memory-reference-tracker
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-skill-memory-reference-tracker.md
+    content_hash: 5778e385bb45e473009b2afb370aa80fd7c0c6712f1cc1d55c42a32c549a904b
+    public_surface:
+      frontmatter:
+        name: z-crux-skill-memory-reference-tracker
+        description: '"Run the crux-skill-memory-reference-tracker skill. Record memory
+          references in .refs.yml trackers and keep strength counters in sync."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-skill-memory-reference-tracker.json
+  - id: command:z-crux-utils
+    kind: command
+    path: plugins/crux-compress/commands/z-crux-utils.md
+    content_hash: 2b3a5d722bb95a554fc0bb814171d856fcda401206cf153428b9d7486a18de56
+    public_surface:
+      frontmatter:
+        name: z-crux-utils
+        description: '"Run the crux-utils skill. Estimate tokens, compare source and
+          CRUX sizes, and compute checksums for CRUX compression."'
+    eval_files:
+      - plugins/crux-compress/commands/evals/z-crux-utils.json
+  - id: command:z-botz-mcp
+    kind: command
+    path: plugins/zoto-botz-skills/commands/z-botz-mcp.md
+    content_hash: eae1621470f885805053ab4d91fe1c4be0dd6bacdff0022546fc7c3aa5578ecc
+    public_surface:
+      frontmatter:
+        name: z-botz-mcp
+        description: '"Run the botz-mcp skill. Find, download, pin, and apply a governed
+          skill or subagent from the botz.ai MCP server for the task at hand, or
+          request a new one."'
+    eval_files:
+      - plugins/zoto-botz-skills/commands/evals/z-botz-mcp.json
+  - id: command:zoto-cursor-top-init
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top-init.md
+    content_hash: c4f25aedf79ccfaba34f1224d24ba6a6975ec8134092310adb6d55d5da041f0f
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-init
+        description: One-time setup after installing the Cursor Top plugin — builds the
+          CLI, installs runtime dependencies, and puts cursor-top on PATH.
+    eval_files:
+      - plugins/zoto-cursor-top/commands/evals/zoto-cursor-top-init.json
+  - id: command:zoto-cursor-top
+    kind: command
+    path: plugins/zoto-cursor-top/commands/zoto-cursor-top.md
+    content_hash: 3fc1b7499fc12dc820934d1350b47c56ecc6dddb229dbc33417b9cf32ee866f3
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top
+        description: Open the live updating htop-style CLI that lists every Cursor agent
+          on this machine, with expandable parent-to-subagent hierarchy and
+          scrolling log tails.
+    eval_files:
+      - plugins/zoto-cursor-top/commands/evals/zoto-cursor-top.json
+  - id: command:z-eval-advise
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-advise.md
+    content_hash: 72f3ec88f3cfa78d8585d959e2e53e34753900e7f4e1391d68dc706ed591a21e
+    public_surface:
+      frontmatter:
+        name: z-eval-advise
+        description: Pre-hoc eval coverage adviser. Assesses gaps across five dimensions
+          (trigger-phrase, schema, regression, citation, checklist) and
+          recommends actions. Command-owned askQuestion drives multi-turn
+          interaction at two breakpoints (drill-down selection, action
+          recommendations); zoto-eval-adviser subagent surfaces
+          needs_user_input. Hands off accepted recommendations to /z-eval-create
+          or /z-eval-update.
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-advise.json
+  - id: command:z-eval-compare
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-compare.md
+    content_hash: be917b53788948c6a6ac4ade9b18eed18fc399211536839495c54c1b115ebaae
+    public_surface:
+      frontmatter:
+        name: z-eval-compare
+        description: Cross-run analysis across two or more runs. When run fragments
+          match multiple `_runs/` folders and the invocation is
+          undifferentiated, the comparer returns `needs_user_input` enumerating
+          candidates — surface that payload verbatim; **do not** run
+          `askQuestion`. Emits flat dataset and /canvas hand-off once paths
+          resolve.
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-compare.json
+  - id: command:z-eval-configure
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-configure.md
+    content_hash: cb792ed5d287975e6d5ebbf0d45c3e923ac6bd62eb456a79ea5069402131facb
+    public_surface:
+      frontmatter:
+        name: z-eval-configure
+        description: Writes .zoto/eval-system/config.yml using command-owned askQuestion
+          for every field, then spawns zoto-eval-configurer with pre-collected
+          answers. Diffs the chosen config against the manifest snapshot
+          (discovery_config.static), renders the resulting cleanup_plan via
+          askQuestion, and — only on explicit confirmation — shells out to `pnpm
+          run eval:cleanup-stale` (subtask 03) to delete stale static-framework
+          assets. The LLM backend is JSON-first (co-located
+          `<kind>/evals/<name>.json` with optional `runner` escape hatch) so no
+          strategy-switch prompts are issued. Supports resume when the subagent
+          returns needs_user_input.
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-configure.json
+  - id: command:z-eval-create
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-create.md
+    content_hash: 6af19bfa3497af02ee868c1f53a4c3faaf0d0a802cedd0cd445fd96f449f5ba2
+    public_surface:
+      frontmatter:
+        name: z-eval-create
+        description: Scaffold static (pytest) and LLM (@cursor/sdk) eval backends,
+          generate eval cases with _meta.generated markers for approved
+          skills/commands/agents/hooks, and write the persistent manifest.
+          Command pre-collects target checklists via askQuestion before spawning
+          zoto-eval-generator.
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-create.json
+  - id: command:z-eval-execute
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-execute.md
+    content_hash: 63ae39aef8a3507aae5f872f264039691a24a69602a624d605a7d57d6e1bc951
+    public_surface:
+      frontmatter:
+        name: z-eval-execute
+        description: Run the eval suite via the host repo's package.json scripts.
+          Command-owned askQuestion when --full lacks CURSOR_API_KEY;
+          zoto-eval-executor returns needs_user_input if unresolved. --model
+          forwards to LLM runner.
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-execute.json
+  - id: command:z-eval-help
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-help.md
+    content_hash: 33b462ca3240318bff8a6f43fdfc28043dfa8a882d7e16540409d01fbd644fcd
+    public_surface:
+      frontmatter:
+        name: z-eval-help
+        description: Section-routed help for the Eval System plugin. Command-owned
+          askQuestion for section selection and follow-ups; zoto-help-evals
+          composes a project-tailored answer anchored on the chosen README
+          section, with mandatory `start:end:path` citations back to the README
+          and any project files it inspected. The skill never calls askQuestion
+          (no subagent askQuestion).
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-help.json
+  - id: command:z-eval-init
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-init.md
+    content_hash: 481399fdf23e89ea6bca7d88e0d57a32c793d9411fb20ac50fda6a76806a3371
+    public_surface:
+      frontmatter:
+        name: z-eval-init
+        description: Initialise the Eval System config at .zoto/eval-system/config.yml
+          with a commented template of all defaults.
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-init.json
+  - id: command:z-eval-judge
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-judge.md
+    content_hash: 7654646bb17b9133a4a1597dfac3a6a804fbb3bff851a593f873cb279f6b0174
+    public_surface:
+      frontmatter:
+        name: z-eval-judge
+        description: Adversarial post-hoc analysis of the most recent eval run.
+          Command-owned askQuestion for handoff to /z-eval-update; judge
+          subagent surfaces needs_user_input. Enriches llm.yml with a judge
+          block.
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-judge.json
+  - id: command:z-eval-jump
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-jump.md
+    content_hash: aa55940392f02a56107e1a19b5f43ee7d0e14344b79f8367a4d42df69330f790
+    public_surface:
+      frontmatter:
+        name: z-eval-jump
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-jump.json
+  - id: command:z-eval-operator
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-operator.md
+    content_hash: 71452a1e19d087b7dc887cc8c6812d9bce718d6bfb6e5b1843d7a982f45b82e3
+    public_surface:
+      frontmatter:
+        name: z-eval-operator
+        description: Operator jump into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-operator.json
+  - id: command:z-eval-start
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-start.md
+    content_hash: d463e50b0a2e2f7d82480f3a75a662c344d901dd37b4bb1c3e72091bad6b8ae0
+    public_surface:
+      frontmatter:
+        name: z-eval-start
+        description: Jump operators into the evaluator workflow — verifies
+          `.zoto/eval-system/config.yml`, loads commands/z-eval-workflow.md,
+          then applies its Probe, Lifecycle router, and Resolution sections
+          verbatim (read-only; no subagents).
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-start.json
+  - id: command:z-eval-update
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-update.md
+    content_hash: 209668cadaa4f5de4fddb0ad5001fa4afc96e0f67488ac0f7fe18d07e693e85b
+    public_surface:
+      frontmatter:
+        name: z-eval-update
+        description: '"Diff-aware eval updater. Re-invokes the LLM analyser per drifted
+          primitive, dispatches per-framework / per-strategy regeneration
+          through hard-coded user-case preservation gates, and appends a
+          manifest snapshot. Command-owned askQuestion per change in apply
+          modes; subagent uses resume. The `_meta.generated` (case) and `//
+          _meta.generated\\: true` (file) contracts are enforced at runtime AND
+          compile time. Targeted, rediscovery, `--no-analyser`, and CI `--check`
+          modes."'
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-update.json
+  - id: command:z-eval-workflow
+    kind: command
+    path: plugins/zoto-eval-system/commands/z-eval-workflow.md
+    content_hash: c4ed66d0bc87eac8ec5ad1fe24011c20f2b65b477e817b0a61ccc08f5f879d96
+    public_surface:
+      frontmatter:
+        name: z-eval-workflow
+        description: Interactive evaluator entry point — command-owned askQuestion maps
+          the operator’s current lifecycle stage to the correct Eval System
+          slash command (configure, scaffold, drift, execute, judge, compare,
+          advise, help) without spawning subagents.
+    eval_files:
+      - plugins/zoto-eval-system/commands/evals/z-eval-workflow.json
+  - id: command:z-spec-create
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-create.md
+    content_hash: 9dad691b4ec9d07eb9667ef45225181efd1337e646bcfc7953317228826a2681
+    public_surface:
+      frontmatter:
+        name: z-spec-create
+        description: Generate structured engineering specs for complex features and
+          multi-step initiatives.
+    eval_files:
+      - plugins/zoto-spec-system/commands/evals/z-spec-create.json
+  - id: command:z-spec-execute
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-execute.md
+    content_hash: 522f2ce7c52af0336679a0e7bbb570394f467c2a21e526f203b796d9ebd626fd
+    public_surface:
+      frontmatter:
+        name: z-spec-execute
+        description: Execute an engineering spec with guided subagent coordination,
+          progress tracking, and completion verification.
+    eval_files:
+      - plugins/zoto-spec-system/commands/evals/z-spec-execute.json
+  - id: command:z-spec-init
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-init.md
+    content_hash: 5a42707b1c19fba70e21d81c6f3cf06b50c9a4f511d6e7bdcccf980624a85185
+    public_surface:
+      frontmatter:
+        name: z-spec-init
+        description: Initialise the Spec System config at .zoto/spec-system/config.yml
+          with a commented template of all defaults.
+    eval_files:
+      - plugins/zoto-spec-system/commands/evals/z-spec-init.json
+  - id: command:z-spec-judge
+    kind: command
+    path: plugins/zoto-spec-system/commands/z-spec-judge.md
+    content_hash: 59c0371ccf1480bdb6eede4aa492504d8acda65a0a60f48a05dddb8bebbd90bc
+    public_surface:
+      frontmatter:
+        name: z-spec-judge
+        description: Independently assess the repository or a specific engineering spec
+          for quality, feasibility, and completeness. For spec assessments,
+          offers to apply recommended fixes directly to spec files.
+    eval_files:
+      - plugins/zoto-spec-system/commands/evals/z-spec-judge.json
+  - id: command:sync-plugins
+    kind: command
+    path: .cursor/commands/sync-plugins.md
+    content_hash: e56e7f7f021ea8ba307df39f91b53e36d4dff99eb8f1fd3b291af12269474d5d
+    public_surface:
+      frontmatter:
+        name: sync-plugins
+        description: Force-sync plugin source files to ~/.cursor/plugins/local/
+    eval_files:
+      - .cursor/commands/evals/sync-plugins.json
+  - id: command:zoto-create-plugin
+    kind: command
+    path: .cursor/commands/zoto-create-plugin.md
+    content_hash: 92365d4ef5d937dad6da4376751ae1ed5fa2efdf53c0ee5990b5b4174e2a08aa
+    public_surface:
+      frontmatter:
+        name: zoto-create-plugin
+        description: Scaffold a new Cursor plugin in this monorepo with guided component
+          selection, validation, and marketplace registration.
+    eval_files:
+      - .cursor/commands/evals/zoto-create-plugin.json
+  - id: agent:crux-cursor-meditation-guide
+    kind: agent
+    path: plugins/crux-compress/agents/crux-cursor-meditation-guide.md
+    content_hash: fbe8e8d39b46b0019d78d001ddd287bf6af465fe165a697608ac865afab25c3f
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-cursor-meditation-guide
+        model: claude-opus-5
+        color: indigo
+        description: Recursive memory-informed meditation guide. Owns the Meditate
+          persona, Research Phases A–G, Quick 6-step protocol, Adversarial
+          Review function, Ensemble Aggregation function, and the K10
+          finalisation-enhancements reflection function. Spawned by
+          `/crux-meditate` for the entire subagent tree; never user-invoked
+          directly.
+        tools: '["*"]'
+        generated: 2026-09-06 23:10
+        sourceChecksum: '"3404403276"'
+        cruxLevel: "25"
+        beforeTokens: "10762"
+        afterTokens: "2225"
+        reducedBy: 79%
+        confidence: 93%
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-cursor-meditation-guide.json
+  - id: agent:crux-cursor-memory-manager
+    kind: agent
+    path: plugins/crux-compress/agents/crux-cursor-memory-manager.md
+    content_hash: 2cd9507cab4e20c2d7c2e00ab93fd8a05eee45c862c25b6e08253d312416ae6e
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-cursor-memory-manager
+        model: claude-opus-5
+        description: DEPRECATED dispatcher — prefer the mode-scoped crux-memory-* thin
+          agents. Retained temporarily so pre-upgrade consumer installs continue
+          to resolve the name. Removed after one minor release once the thin
+          agents ship in the dist zip.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-cursor-memory-manager.json
+  - id: agent:crux-cursor-rule-manager
+    kind: agent
+    path: plugins/crux-compress/agents/crux-cursor-rule-manager.md
+    content_hash: 251d4502cd9c5ed531c8613971a256bf95c713746f75ddf703535c7c63accbe9
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-cursor-rule-manager
+        model: claude-opus-5
+        description: Semantic compressor for Cursor rule files in .cursor/rules/.
+          Converts markdown rules to CRUX notation achieving 5-10x token
+          reduction while preserving all actionable information.
+        is_background: "true"
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-cursor-rule-manager.json
+  - id: agent:crux-memory-dream
+    kind: agent
+    path: plugins/crux-compress/agents/crux-memory-dream.md
+    content_hash: 7817ac27c52688070c49839f08825dfad7ae4c9c594bdda8a89175ae5915f09c
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-memory-dream
+        model: claude-opus-5
+        description: Dream-mode memory extraction for CRUX. Analyses a completed unit of
+          work, ranks candidate memories, detects conflicts and resolved bugs,
+          and returns a full proposal for parent-driven accept/skip decisions.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-memory-dream.json
+  - id: agent:crux-memory-forget
+    kind: agent
+    path: plugins/crux-compress/agents/crux-memory-forget.md
+    content_hash: 451fe622e645de3b1ce7e9e909d4817b54f470fa2dae0f7e5197e40cc9832d58
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-memory-forget
+        model: claude-opus-5
+        description: Forget-mode memory deletion for CRUX. Resolves the input (id / slug
+          / path / search / list-all) to matching memories, returns the matches
+          for parent-driven confirmation, and — once resumed with the confirmed
+          list — deletes each memory file and its reference tracker, then
+          rebuilds the index.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-memory-forget.json
+  - id: agent:crux-memory-recall
+    kind: agent
+    path: plugins/crux-compress/agents/crux-memory-recall.md
+    content_hash: b3e2a965615b478674e78b6175502248c1a37bdc9e1efd3431f569e53f397342
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-memory-recall
+        model: claude-opus-5
+        description: Recall-mode memory query and display for CRUX. Reads memory files
+          (decompressing CRUX bodies on the fly), formats them as human-readable
+          output, and — when invoked with `--total` — generates an interactive
+          Canvas visualisation. Read-only.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-memory-recall.json
+  - id: agent:crux-memory-rem
+    kind: agent
+    path: plugins/crux-compress/agents/crux-memory-rem.md
+    content_hash: 66e0b4a912704c01180f4a387470d749de31b192f1d3c1d536499ef3fcc5c509
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-memory-rem
+        model: claude-opus-5
+        description: REM Sleep memory rebalancer for CRUX. Scans the full memory corpus,
+          verifies consistency, detects conflicts, and recommends promotions,
+          demotions, archival, consolidation, and compression for parent-driven
+          approval.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-memory-rem.json
+  - id: agent:crux-memory-remember
+    kind: agent
+    path: plugins/crux-compress/agents/crux-memory-remember.md
+    content_hash: 188c09cfc3fbdadccc96034b6365ca7a635a96bd6a90b8cb30ce6265040a8193
+    public_surface:
+      frontmatter:
+        repository: https://github.com/zotoio/CRUX-Compress
+        name: crux-memory-remember
+        model: claude-opus-5
+        description: Remember-mode ad-hoc memory creation for CRUX. Creates a new memory
+          file from parent-collected content/type/tags/description, rebuilds the
+          index, and returns the created memory's metadata for parent display.
+    eval_files:
+      - plugins/crux-compress/agents/evals/crux-memory-remember.json
+  - id: agent:zoto-cursor-top-troubleshooter
+    kind: agent
+    path: plugins/zoto-cursor-top/agents/zoto-cursor-top-troubleshooter.md
+    content_hash: 2b1bb8aba901200c1d25e166b96b778e413a57b4ad00819da29f37d54117c753
+    public_surface:
+      frontmatter:
+        name: zoto-cursor-top-troubleshooter
+        description: Diagnose missing rows, empty log tails, or platform-specific gaps
+          in cursor-top discovery and recommend remediations.
+        model: composer-2.5[]
+    eval_files:
+      - plugins/zoto-cursor-top/agents/evals/zoto-cursor-top-troubleshooter.json
+  - id: agent:zoto-eval-adviser
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-adviser.md
+    content_hash: 197d697909824afaf30a3d9533c4457902f060e23347bb3f8cc843af2d0dab72
+    public_surface:
+      frontmatter:
+        name: zoto-eval-adviser
+        model: claude-opus-4-8[]
+        description: Assesses eval suite coverage gaps across five dimensions
+          (trigger-phrase coverage, schema validation, regression baselines,
+          citation verification, checklist completeness). Reads
+          skill/command/agent sources and their evals.json files — never reads
+          run artefacts or modifies eval files. Does not call askQuestion —
+          returns needs_user_input at two breakpoints (drill-down selection,
+          action recommendations) for the command to drive via askQuestion and
+          resume.
+    eval_files:
+      - plugins/zoto-eval-system/agents/evals/zoto-eval-adviser.json
+  - id: agent:zoto-eval-analyser-subagent
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-analyser-subagent.md
+    content_hash: 13f55ef284e5712772a1184414b6f78972d1264daa78f28911d54da0d3673074
+    public_surface:
+      frontmatter:
+        name: zoto-eval-analyser-subagent
+        model: claude-opus-4-8[]
+        description: System prompt for the LLM-driven primitive analyser invoked by
+          `pnpm run eval:analyse`. Not surfaced to humans — driven by the
+          eval-system stamp/update flows via @cursor/sdk. Produces a strict JSON
+          AnalyserPayload (templates/schema/analyser-payload.schema.json) per
+          primitive (skill / command / agent / hook / rule).
+    eval_files:
+      - plugins/zoto-eval-system/agents/evals/zoto-eval-analyser-subagent.json
+  - id: agent:zoto-eval-comparer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-comparer.md
+    content_hash: e1579b08c2077e07673503d3c9d45bcaaa3ec70838622e304c1c2922a3eabc22
+    public_surface:
+      frontmatter:
+        name: zoto-eval-comparer
+        model: claude-opus-4-8[]
+        description: Cross-run analysis that emits a flat dataset and a /canvas hand-off
+          instruction. The host agent is expected to invoke Cursor's built-in
+          /canvas tool to render the comparison. Skill never renders charts
+          itself. Drilldown opens per-case log files. Does not call askQuestion
+          — when fragments (e.g. `20260503`) match multiple
+          `{evalsDir}/_runs/<ts>/` folders and the prompt did not pin one path
+          per argument, return schema-valid **`needs_user_input`** with each
+          candidate's full **`{evalsDir}/_runs/<ts>/`** path in
+          **`options[].label`**; **`/z-eval-compare`** surfaces that without
+          **`askQuestion`**.
+    eval_files:
+      - plugins/zoto-eval-system/agents/evals/zoto-eval-comparer.json
+  - id: agent:zoto-eval-configurer
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-configurer.md
+    content_hash: 03f7312a3b39afb26cc983d1b8f3ee8cfae18a545ec690bb87d5bbabf982296f
+    public_surface:
+      frontmatter:
+        name: zoto-eval-configurer
+        model: claude-opus-4-8[]
+        description: Writes .zoto/eval-system/config.yml using the zoto-configure-evals
+          skill. Presents enum-backed fields only through answers pre-collected
+          by the invoking command; never calls askQuestion. Reads the manifest
+          snapshot via plugins/zoto-eval-system/engine/manifest-snapshot.ts,
+          emits a cleanup_plan validated against
+          templates/schema/cleanup-plan.schema.json when static.framework
+          changes, and stamps _meta.primitive_analysis.invalidate=true on every
+          cached primitive analysis after a switch. The unified LLM eval harness
+          ships a single backend shape (one TS-everywhere co-located eval per
+          target) with no per-repo selector axis. Rejects bundled false for
+          update.preserveUserAuthoredCases or update.writeMetaMarker before any
+          config write; rejects configs that violate those contracts.
+    eval_files:
+      - plugins/zoto-eval-system/agents/evals/zoto-eval-configurer.json
+  - id: agent:zoto-eval-executor
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-executor.md
+    content_hash: 7f0ed629e61557cfed0c6cc6ae1c51d0f2059b3eb47732c315bb8469643d7a1c
+    public_surface:
+      frontmatter:
+        name: zoto-eval-executor
+        model: claude-opus-4-8[]
+        description: Executes eval runs via the host repo's package.json scripts.
+          Forwards --model to the LLM runner via both a CLI flag and the
+          ZOTO_EVAL_MODEL environment variable. Gates the LLM backend on
+          CURSOR_API_KEY and --full. After every run, calls eval:update --check
+          and appends the drift status to llm.yml as warn-only. Does not call
+          askQuestion — missing credentials or choices are returned as
+          needs_user_input for the command.
+    eval_files:
+      - plugins/zoto-eval-system/agents/evals/zoto-eval-executor.json
+  - id: agent:zoto-eval-generator
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-generator.md
+    content_hash: 14a86ea692695a5743bfd45b139257a8041a5daba7c105f26c746022c8474181
+    public_surface:
+      frontmatter:
+        name: zoto-eval-generator
+        model: claude-opus-4-8[]
+        description: Plans and scaffolds the eval suite for a repository. Uses
+          zoto-create-evals and zoto-configure-evals skills to lay down both
+          pytest and LLM (@cursor/sdk) backends, generate per-target eval cases
+          with _meta.generated markers, and write the persistent manifest plus
+          append-only history. Does not call askQuestion — receives
+          pre-collected answers from the invoking command or returns
+          needs_user_input.
+    eval_files:
+      - plugins/zoto-eval-system/agents/evals/zoto-eval-generator.json
+  - id: agent:zoto-eval-judge
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-judge.md
+    content_hash: a802872245e0918d336460b875b9ef7c3940d993406eeeafb493c472985af719
+    public_surface:
+      frontmatter:
+        name: zoto-eval-judge
+        model: claude-opus-4-8[]
+        description: Adversarial eval judge. Reads the most recent llm.yml and per-case
+          logs, flags weak graders, under-covered assertions, verbosity spikes,
+          and low-confidence cases. Writes a judge block to llm.yml. Does not
+          call askQuestion — returns needs_user_input when handoff to
+          /z-eval-update requires user approval (the command runs askQuestion
+          and resumes).
+    eval_files:
+      - plugins/zoto-eval-system/agents/evals/zoto-eval-judge.json
+  - id: agent:zoto-eval-updater
+    kind: agent
+    path: plugins/zoto-eval-system/agents/zoto-eval-updater.md
+    content_hash: d5dbe917302861f47f3500d4736988b03efc925766425071219e761d38f032fa
+    public_surface:
+      frontmatter:
+        name: zoto-eval-updater
+        model: claude-opus-4-8[]
+        description: '"Diff-aware eval updater. Uses zoto-update-evals to detect drift
+          between covered targets and generated eval cases, re-invokes the LLM
+          analyser per drifted primitive, and dispatches per-framework static
+          regeneration plus the single unified LLM eval regeneration
+          (`regenerateLlm`) through hard-coded user-case preservation gates.
+          Never mutates user-authored cases or user-authored test files — the
+          `_meta.generated === true` (case) and `// _meta.generated\\: true`
+          (file) contracts are enforced at runtime AND compile time. On
+          palette-driven flows or any unexpected apply branch, returns
+          structured `needs_user_input` for the owning command — never
+          `askQuestion` from the subagent."'
+    eval_files:
+      - plugins/zoto-eval-system/agents/evals/zoto-eval-updater.json
+  - id: agent:zoto-spec-executor
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
+    content_hash: 62b73f7f5372980ae0a500c3b0264e744c0df69cc1ba6ef67458f1bc4047f1b3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-executor
+        model: composer-2.5[]
+        description: Execution coordination specialist. Executes engineering specs by
+          spawning subagents for each subtask, tracking progress through
+          dependency phases, coordinating adversarial verification, and
+          producing execution reports. Specs are ephemeral coordination
+          artifacts — not ongoing knowledge.
+    eval_files:
+      - plugins/zoto-spec-system/agents/evals/zoto-spec-executor.json
+  - id: agent:zoto-spec-generator
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
+    content_hash: 0cb7fb39e7f410e372bd9f2f8d706d925bea1ccd0efc970a760a35d25e9499f3
+    public_surface:
+      frontmatter:
+        name: zoto-spec-generator
+        model: claude-opus-4-8[]
+        description: Config-driven spec creation specialist. Breaks down complex
+          features into well-defined subtasks with clear deliverables,
+          dependency graphs, and execution phases. Specs are ephemeral
+          coordination artifacts — not ongoing knowledge.
+    eval_files:
+      - plugins/zoto-spec-system/agents/evals/zoto-spec-generator.json
+  - id: agent:zoto-spec-judge
+    kind: agent
+    path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
+    content_hash: f144935058a14896d7b7492a4584f2e696e5626626343632230813efc9d800c5
+    public_surface:
+      frontmatter:
+        name: zoto-spec-judge
+        model: claude-opus-4-8[]
+        description: Independent quality gate for the Spec System. Performs adversarial
+          verification of subtask deliverables during spec execution
+          (status-pair-only writes; fix-lists routed back to the assigned
+          subagent — never authored by the judge), produces structured
+          assessments of repositories and specs, and (only in Mode 3, only with
+          explicit user approval) offers to apply recommended fixes to spec
+          files. Always runs in a fresh context to avoid bias.
+        is_background: "true"
+    eval_files:
+      - plugins/zoto-spec-system/agents/evals/zoto-spec-judge.json
+  - id: agent:zoto-eval-architect
+    kind: agent
+    path: .cursor/agents/zoto-eval-architect.md
+    content_hash: 71a840d3483c0fe14cbe1604bafbc51b44b283716b2c9e7c5c5185f43de07a41
+    public_surface:
+      frontmatter:
+        name: zoto-eval-architect
+        model: claude-opus-4-8[]
+        description: Eval-system architect specialising in the design, ergonomics,
+          performance, and quality strategy of the `zoto-eval-system` plugin.
+          Deep knowledge of the declarative-vs-code LLM-strategy split, the
+          command/skill/agent layer boundaries, the analyser →
+          declarative-runner / code-stamper → judge pipeline, model precedence,
+          prompt-cost accounting, and developer-ergonomics across the init →
+          configure → create → update → execute → judge → compare → advise
+          lifecycle.
+        is_background: "true"
+    eval_files:
+      - .cursor/agents/evals/zoto-eval-architect.json
+  - id: agent:zoto-eval-engineer
+    kind: agent
+    path: .cursor/agents/zoto-eval-engineer.md
+    content_hash: 5f6111c7b000f431c2dde3d1a8740d338628a6649b4e05947a341a47715d8df4
+    public_surface:
+      frontmatter:
+        name: zoto-eval-engineer
+        model: claude-opus-4-8[]
+        description: Eval-system implementation engineer specialising in the code,
+          schemas, contracts, and host-repo application of the
+          `zoto-eval-system` plugin. Deep knowledge of the TypeScript engine,
+          hooks, validation pipeline, the 7 JSON schemas, hard-coded
+          `preserveUserAuthoredCases` / `writeMetaMarker` contracts, drift
+          detection, the `_user-case-guards/` boundary, the manifest format, the
+          `.zoto/eval-system/` host-repo layout, and the `_runs/` artefact tree.
+        is_background: "true"
+    eval_files:
+      - .cursor/agents/evals/zoto-eval-engineer.json
+  - id: agent:zoto-plugin-manager
+    kind: agent
+    path: .cursor/agents/zoto-plugin-manager.md
+    content_hash: eb8d5c9c66162ac653955044a3a2222a856bbc1016847c9f68d1089b1f3e9162
+    public_surface:
+      frontmatter:
+        name: zoto-plugin-manager
+        model: claude-opus-4-8[]
+        description: Expert at creating, validating, and managing Cursor plugins in this
+          monorepo. Deep knowledge of plugin anatomy (agents, skills, commands,
+          rules, hooks, MCP), the Agent Skills specification, marketplace
+          publishing, skill evaluations, CRUX compression, and monorepo tooling.
+        is_background: "true"
+    eval_files:
+      - .cursor/agents/evals/zoto-plugin-manager.json
+  - id: hook:crux-compress
+    kind: hook
+    path: plugins/crux-compress/hooks/hooks.json
+    content_hash: 4440d1ed13d072db4c1fe6b93e8d996fd422b98373d3b62d6bf4b04f8918c2e5
+    public_surface:
+      plugin: crux-compress
+    eval_files:
+      - plugins/crux-compress/hooks/evals/hooks.json
+  - id: hook:zoto-eval-system
+    kind: hook
+    path: plugins/zoto-eval-system/hooks/hooks.json
+    content_hash: 5aede789d6f42e7903d75ee1d9dd7b9d16787575075d8aaffb35a0bc4704aa11
+    public_surface:
+      plugin: zoto-eval-system
+    eval_files:
+      - plugins/zoto-eval-system/hooks/evals/hooks.json
+  - id: hook:zoto-spec-system
+    kind: hook
+    path: plugins/zoto-spec-system/hooks/hooks.json
+    content_hash: e12aef7ec0adc9c2f3aa8586611ed33bd222f6a2169df5915cca443e892fa019
+    public_surface:
+      plugin: zoto-spec-system
+    eval_files:
+      - plugins/zoto-spec-system/hooks/evals/hooks.json
+  - id: hook:cursor-workspace
+    kind: hook
+    path: .cursor/hooks.json
+    content_hash: 1fb45eaccf1a9cc7dce2f5e8e9130613ac3024cecf9cfe730949b662ccf6a43b
+    public_surface:
+      workspace: .cursor
+    eval_files:
+      - .cursor/hooks/evals/hooks.json

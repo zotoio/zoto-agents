@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-30T05:28:08.813Z
-git_ref: 2397b5a53af4c74b681c3f1b854bc0facb562702
+updated_at: 2026-10-30T07:11:59.133Z
+git_ref: 96d6392f5b5f223ce0ff9c798a119515d78af6c9
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -64,7 +64,7 @@ targets:
   - id: skill:mcp-swarm-analyse
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/SKILL.md
-    content_hash: bcd3411cdb289ac2a5fce500f1744af2154fe0a773c035b49deb6ecf62e73d5a
+    content_hash: 82d3bba167f6cc2b824cd2633e30ff3bb48c5481a406d243f8e7f053d5eaeb58
     public_surface:
       frontmatter:
         name: mcp-swarm-analyse
@@ -206,7 +206,7 @@ targets:
   - id: skill:mcp-swarm-platform
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-platform/SKILL.md
-    content_hash: c06bce82c43b020fa931870e04642d29ca5cb1ab4392cda2b362d81a255531a7
+    content_hash: ffdc0bf4d571f0ad7a9a6ed2ad8236d476ebb241d0a74cb3d7e04e6354744646
     public_surface:
       frontmatter:
         name: mcp-swarm-platform
@@ -277,7 +277,7 @@ targets:
   - id: skill:mcp-swarm-server-updates
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-server-updates/SKILL.md
-    content_hash: 2d091b08121f417cb156ddb93a17494c478cf3f1762492ae62fba4b42791fecf
+    content_hash: 2163c2d31faec5e99f834ada9ab5e4c86d25d080998c75e8596c499dffb8b5de
     public_surface:
       frontmatter:
         name: mcp-swarm-server-updates
