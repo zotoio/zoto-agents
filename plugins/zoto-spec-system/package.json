@@ -18,15 +18,15 @@
     "spec-status-roundtrip": "tsx scripts/spec-status-roundtrip.ts"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
-    "tsup": "^8.4.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.8.0",
-    "vitest": "^3.1.0"
+    "@types/node": "^26.6.5",
+    "tsup": "^9.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "yaml": "^2.8.4"
+    "yaml": "^2.9.1"
   }
 }
