@@ -81,6 +81,12 @@ MCP: `swarm_server_check_updates { project_id, server_id? }`.
 MCP: `swarm_server_update_apply { project_id, server_id, accept_change_ids?, notes? }` (omit `accept_change_ids` to accept all).
 MCP: `swarm_server_changelog { project_id, server_id?, entry_id?, notes? }`.
 
+### Refresh from server, last introspected, and the remediation gate
+
+- **Studio:** the **MCP servers under test** panel and the suite view show `Last introspected: <relative>` (hover for the absolute time), the era/spec badge (for example `2026-07-28` modern) and a **stale** badge (default 24h). **⟳ Refresh from server** re-probes now; changes and suite drift open **Review server changes** with **Update affected suites** (accept checkbox per proposal, notes) and nothing is applied until accepted. The **Server changelog** table lists recorded entries with editable notes. The Analyse panel shows whether the run gets a server remediation prompt, suite-fix recommendations, or is blocked pending a refresh.
+- **API:** `GET /api/admin/projects/:pid/introspection`, `POST /api/admin/projects/:pid/servers/:svid/refresh`, `POST /api/admin/projects/:pid/suites/:sid/refresh`. `GET …/server-prompt.md` returns `409 refresh_needed` when introspection is stale and auto-refresh is off, suite-fix markdown (`X-Remediation-Kind: suite_fix`) when every finding is `suite_bug`, and otherwise a server prompt that carries the last-introspected timestamp and a "Suite Changes Pending Review" section.
+- **MCP:** `swarm_server_introspection_status { project_id, server_id? }` (viewer), `swarm_server_refresh { project_id, server_id? | suite_id? }` (operator), and `swarm_remediation_prompt { …, auto_refresh?, stale_hours? }`, which returns `kind` (`server` | `suite_fix` | `none`), `blocked`, `introspection` and `pending_reviews`. Never accept pending reviews on the user's behalf.
+
 ### Descriptions and tags on the platform
 
 MCP: `swarm_describe { project_id, entity: "suite" | "server", id, description }`.

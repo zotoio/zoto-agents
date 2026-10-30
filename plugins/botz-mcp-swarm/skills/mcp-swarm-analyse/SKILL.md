@@ -59,6 +59,10 @@ Only add `--in-place` (keeps `suite.json.bak`) when the user asks to update the 
 
 After accepting, offer a re-run with `botz mcp-swarm suite run --suite <suite>` within the user's authorised target and load limits, and do not start it without their yes.
 
+## Before raising server findings
+
+If the analysis has `server_bug` or `environment` findings and the user wants a write-up for the server owner, first run `botz mcp-swarm project server status <project> --json` (when the suite belongs to a project). If the server is stale (exit `2`) or never introspected, run `botz mcp-swarm project server refresh <project> --suite <suiteId>` and, if that leaves a pending update, review it with the `mcp-swarm-server-updates` flow before blaming the server; the suite may simply be out of date. Include the "Last introspected" timestamp in the write-up and list any suite changes still pending review. If every finding is `suite_bug`, recommend the suite fixes instead of a server write-up.
+
 ## Local suites only
 
 Local mode works on local suites (`.botz/mcp-swarm/suites/` or `data/projects/`). Suites stored on a Swarm service keep that service's RBAC (runners analyse; only editors and admins can accept or reject); do not copy a service suite locally to bypass it.

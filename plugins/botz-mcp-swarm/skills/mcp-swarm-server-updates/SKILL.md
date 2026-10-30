@@ -29,6 +29,24 @@ Run every command through the botz host as `botz mcp-swarm`, never the standalon
 
 Name every server as `<server name> <version> (<URL or command>)` and show its MCP spec version (for example `MCP 2025-11-25`) in every summary.
 
+## 0. Refresh and freshness (live introspection)
+
+Before reviewing changes, writing up server findings or briefing a server owner, check when each server was last introspected live:
+
+```sh
+botz mcp-swarm project server status <project> [--server <id>] [--stale-hours <n>] [--json]
+```
+
+It shows `Last introspected: <relative> (<absolute>)`, the protocol era (`modern` for MCP `2026-07-28`, sessionless `server/discover`; otherwise `legacy` initialize handshake), the spec version, the snapshot hash and a **stale** flag (default 24h; `--stale-hours` or `SWARM_INTROSPECTION_STALE_HOURS`). It exits `2` when any server is stale or was never introspected.
+
+To refresh from the server (re-probe now; for a suite, refresh the server it targets):
+
+```sh
+botz mcp-swarm project server refresh <project> [--server <id> | --suite <suiteId>] [--json]
+```
+
+A refresh stamps `lastIntrospectedAt` and the snapshot hash even when nothing changed. Changes, and suites that no longer match the live surface (drift), become a **pending update** with proposals. They are never applied automatically; go to step 1 and review them with the user. Modern-era (`2026-07-28`) servers have no `ping` or `logging/setLevel`; generated suites skip those steps.
+
 ## 1. Check (re-probes the servers; changes nothing in suites)
 
 ```sh
@@ -62,10 +80,6 @@ To drop a pending update instead: `botz mcp-swarm project server discard-update 
 botz mcp-swarm project server changelog <project> [--server <id>] [--json]
 botz mcp-swarm project server changelog <project> --server <id> --entry <entryId> --notes "<edited notes>"
 ```
-
-## Studio
-
-In Swarm Studio (`/projects`, open a project) the **MCP servers under test** panel shows a protocol badge per server and the **Check for server updates** button. A changed server opens **Review server changes**; **Update affected suites** shows the per-change preview with an accept checkbox per proposal and a notes field. The **Server changelog** table lists recorded entries with editable notes.
 
 ## Safety
 
