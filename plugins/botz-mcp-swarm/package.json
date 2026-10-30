@@ -1,6 +1,6 @@
 {
   "name": "@zoto-agents/botz-mcp-swarm",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "private": true,
   "description": "Agent Skills for the botz MCP Swarm CLI.",
   "type": "module",

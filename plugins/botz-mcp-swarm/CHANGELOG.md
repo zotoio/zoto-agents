@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.12.1] - 2026-10-30
+
 - `mcp-swarm-compare`: the `--html` page shell moved from an inline template literal in `scripts/runs-dataset.mjs` to `scripts/runs-dataset.template.html`, loaded relative to the script and filled with `{{name}}` placeholders. Output is byte-identical; the file ships with the skill directory.
 
 ## [0.12.0] - 2026-10-29
