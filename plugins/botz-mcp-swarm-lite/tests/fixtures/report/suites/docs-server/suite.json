@@ -1,4 +1,0 @@
-{"name":"docs-server","surface":{"serverName":"docs-server","serverVersion":"1.4.0"},"target":{"url":"http://127.0.0.1:3000/mcp"},
- "nodes":[{"id":"s1","type":"sampler","enabled":true,"method":"tools/call","tool":"search_docs","args":{"query":"${topic}","limit":5}},
-  {"id":"s2","type":"sampler","enabled":true,"method":"tools/call","tool":"get_page","args":{"slug":"getting-started"}},
-  {"id":"s3","type":"sampler","enabled":true,"method":"tools/call","tool":"list_tags","args":{}}]}

@@ -7,7 +7,7 @@
       "prompt": "/mcp-swarm-server-updates Has the docs MCP server changed since we built the suites?",
       "expected_output": "The assistant runs the update check, reports the protocol and server versions before and after, lists primitive changes and the proposals grouped by suite and scenario, and asks before accepting anything.",
       "assertions": [
-        "The assistant runs `botz mcp-swarm project server updates <project> --json` (or `swarm_server_check_updates`)",
+        "The assistant runs `botz mcp-swarm project server updates <project> --json`",
         "The summary shows the MCP spec (protocol) version for each server",
         "Primitive changes are listed with kind, name, change and changed fields",
         "Proposals are grouped by suite and scenario with their action (disable-step, refresh-args, acknowledge)",

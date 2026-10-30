@@ -1,6 +1,6 @@
 ---
 name: z-mcp-swarm-tags
-description: "Run the mcp-swarm-tags skill. Edit descriptions on MCP Swarm suites and servers, and add ad-hoc tags to suites, scenarios and runs, then filter lists by tag from the CLI, the central Swarm MCP tools, or Swarm Studio."
+description: "Run the mcp-swarm-tags skill. Edit descriptions on MCP Swarm suites and servers, and add ad-hoc tags to suites, scenarios and runs, then filter lists by tag from the local CLI."
 ---
 
 # z-mcp-swarm-tags

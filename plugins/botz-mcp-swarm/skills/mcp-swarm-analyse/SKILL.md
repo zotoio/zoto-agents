@@ -13,6 +13,8 @@ metadata:
 
 # Analyse a failed MCP Swarm run
 
+> **Platform mode (opt-in):** this skill describes local execution only. If `BOTZ_MCP_SWARM_MODE=platform` is set or a `swarm` MCP server is connected, also read the `mcp-swarm-platform` skill before answering; otherwise do not mention or suggest Swarm platform features.
+
 The model reads the run's errors, the suite steps and the server's tool schemas (secrets and headers redacted) and returns proposals. Each has an id, a category, a confidence, a rationale and evidence. Only `suite_bug` proposals carry a patch. `server_bug` and `environment` (for example rate limits) proposals are reported to the user and are never applied. Rate-limited calls (HTTP 429, `Retry-After` headers, and server rate-limit errors) are classified as `rate_limit` (separate from `auth`) and retried automatically with exponential backoff and full jitter (`load.retry`, or `retry: { enabled: false }` to disable); `report.retries` and `nodeOutcomes[].retries` track those retries separately without counting toward the suite's error limit until retries are exhausted.
 
 ## Setup
@@ -57,8 +59,6 @@ Only add `--in-place` (keeps `suite.json.bak`) when the user asks to update the 
 
 After accepting, offer a re-run with `botz mcp-swarm suite run --suite <suite>` within the user's authorised target and load limits, and do not start it without their yes.
 
-## Suites on the swarm service
+## Local suites only
 
-For suites stored in the botz-mcp-swarm service (`0.6.0+`, for example swarm.botz.ai), failed smoke test runs auto-trigger error analysis and surface recommendations in the run view, while other runs use the run view's **Analyse errors** button (Studio also provides a per-run standalone HTML/PDF **Report** link and `/docs` reference page). The service's rules apply: runners can analyse, and only editors and admins can accept or reject. An accepted fix becomes a new suite version, with the run, proposal ids and user in its history and the audit log. Do not copy a service suite to work around those permissions.
-
-- **Latest-only editing & inline JEV eval testing (`>= 0.12.0`):** On the Swarm service workspace (`/projects/:id`), **✨ Analyse Run** is highlighted in the top toolbar and run report for every completed run. Applying suite fix proposals or editing JEV eval prompts/assertions inline (`Test inline`, `Re-judge assertions`, and `Save all to new suite version`) is enabled only when viewing the **latest suite version (`vN`) and its latest run**, preventing accidental forks from older historical versions.
+Local mode works on local suites (`.botz/mcp-swarm/suites/` or `data/projects/`). Suites stored on a Swarm service keep that service's RBAC (runners analyse; only editors and admins can accept or reject); do not copy a service suite locally to bypass it.

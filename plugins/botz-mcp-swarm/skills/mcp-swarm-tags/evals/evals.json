@@ -7,8 +7,8 @@
       "prompt": "/mcp-swarm-tags Tag the checkout suite as nightly and smoke, and describe it as 'Checkout contract suite'.",
       "expected_output": "The assistant sets the description and replaces the suite's tags, confirming the final tag list.",
       "assertions": [
-        "The assistant runs `botz mcp-swarm project suite describe` (or `swarm_describe` with entity suite)",
-        "The assistant runs `botz mcp-swarm project suite tag ... nightly smoke` (or `swarm_tags_set` with entity suite)",
+        "The assistant runs `botz mcp-swarm project suite describe`",
+        "The assistant runs `botz mcp-swarm project suite tag ... nightly smoke`",
         "The assistant reports the normalised tags"
       ]
     },
@@ -18,7 +18,7 @@
       "prompt": "/mcp-swarm-tags Show me only runs tagged regression.",
       "expected_output": "The assistant filters runs by tag.",
       "assertions": [
-        "The assistant runs `botz mcp-swarm project runs <project> --tags regression` (or `swarm_runs_list` with `tags`)",
+        "The assistant runs `botz mcp-swarm project runs <project> --tags regression`",
         "The assistant explains that multiple tags are ANDed"
       ]
     }

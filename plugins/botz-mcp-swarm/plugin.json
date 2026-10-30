@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "botz-mcp-swarm",
   "version": "0.13.0",
-  "description": "Connect to the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth sign-in) and go from introspection to optimisation with the botz MCP Swarm CLI: point swarm at any MCP server and it builds, runs and scores the tests for you.",
+  "description": "Local-first MCP server testing with the bundled botz MCP Swarm CLI: introspect MCP servers, generate, run and score suites (contract checks, evals, load) on this machine. No MCP server is wired up by default; opt in to Botz platform mode (central https://swarm.botz.ai/mcp) with /z-mcp-swarm-platform.",
   "author": {
     "name": "zotoio",
     "email": "plugins@zotoio.com"
@@ -21,7 +21,7 @@
       "interface": {
         "displayName": "MCP Swarm",
         "shortDescription": "Introspection to optimisation",
-        "longDescription": "Connects your agent to the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth 2.1 sign-in) and ships skills for the botz MCP Swarm CLI: introspect live MCP servers and generate suites from tool schemas, annotations and intents, run contract/schema checks, evals and load tests centrally or locally, get optimisation recommendations, register distributed VU/OTEL workers, diagnose failures, and upgrade saved suites.",
+        "longDescription": "Skills for the botz MCP Swarm CLI that run locally by default: introspect live MCP servers, generate suites from tool schemas, annotations and intents, run contract/schema checks, evals and load tests on this machine, check servers for updates, tag and describe suites, diagnose failures and upgrade saved suites. Platform mode (central Swarm server, remote runs, workers) is opt-in via the mcp-swarm-platform skill.",
         "developerName": "zotoio",
         "category": "Developer Tools",
         "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/botz-mcp-swarm",

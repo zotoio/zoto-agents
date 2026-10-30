@@ -1,7 +1,7 @@
 {
   "name": "botz-mcp-swarm",
   "version": "0.13.0",
-  "description": "Connect to the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth sign-in) and capture, run, and diagnose MCP test suites with the botz MCP Swarm CLI.",
+  "description": "Local-first MCP server testing with the bundled botz MCP Swarm CLI: introspect MCP servers, generate, run and score suites (contract checks, evals, load) on this machine. No MCP server is wired up by default; opt in to Botz platform mode (central https://swarm.botz.ai/mcp) with /z-mcp-swarm-platform.",
   "author": {
     "name": "zotoio",
     "email": "plugins@zotoio.com"

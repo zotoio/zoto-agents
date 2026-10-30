@@ -13,6 +13,8 @@ metadata:
 
 # Upgrade MCP Swarm
 
+> **Platform mode (opt-in):** this skill describes local execution only. If `BOTZ_MCP_SWARM_MODE=platform` is set or a `swarm` MCP server is connected, also read the `mcp-swarm-platform` skill before answering; otherwise do not mention or suggest Swarm platform features.
+
 Work through the steps in order and stop to ask the user before anything the CLI reports as a conflict.
 
 ## 0. Setup
@@ -133,5 +135,5 @@ Multi-server suites (`suite server add`, `schemaVersion: 2` suite files) need a 
 | 0.11.2 | `@cursor/sdk` `^1.0.40` bump fixing the `grok-4.7` default variant on local runtime |
 | 0.12.0 | `project suite versions` / `disable-version` / `enable-version` with changelogs, latest-version-only editing, and remote MCP server OTLP correlation (`X-Swarm-Run-Id`) + redaction |
 | 0.13.0 | all 7 MCP spec stages (`outputSchema` validation, 5-field `ToolAnnotations`, `ttfpMs` progress, mock `sampling`/`roots`), `--preset smoke|baseline|peak|spike|soak`, `--skip-image-gen` / `--skip-expensive-llm`, and `signalCalleeRunCompleted` | `project suite versions` / `disable-version` / `enable-version` with changelogs, latest-version-only editing, and remote MCP server OTLP correlation (`X-Swarm-Run-Id`) + redaction |
-| 0.14.0 | Central suite execution (`run --remote` / `--server`) and distributed VU/OTEL worker mode (`botz mcp-swarm worker`) |
+| 0.14.0 | Central suite execution and distributed worker mode (full `botz-mcp-swarm` plugin only; not used here) |
 | 0.15.0 | Current release: MCP protocol eras (`protocolEra`, `--protocol-era auto|legacy|modern|both`, `eraCompare.ignoreKeys`), signed opt-in worker OTLP export, stdio consent and env allowlist |

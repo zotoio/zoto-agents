@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const skill = read("skills/mcp-swarm-analyse/SKILL.md");
@@ -28,20 +28,23 @@ test("command and evals are wired", () => {
   assert.match(read("README.md"), /\/z-mcp-swarm-analyse/);
 });
 
-test("mcp.json and .mcp.json configure central https://swarm.botz.ai/mcp with OAuth and no static credentials", () => {
-  for (const file of ["mcp.json", ".mcp.json"]) {
-    const raw = read(file);
-    const parsed = JSON.parse(raw);
-    assert.deepEqual(Object.keys(parsed.mcpServers), ["swarm"]);
-    assert.equal(parsed.mcpServers.swarm.type, "http");
-    assert.equal(parsed.mcpServers.swarm.url, "https://swarm.botz.ai/mcp");
-    assert.doesNotMatch(raw, /headers|Authorization|Bearer|\$\{env:/i);
+test("local mode by default: no MCP server wired up, opt-in template only", () => {
+  const has = (p) => existsSync(new URL(`../${p}`, import.meta.url));
+  assert.ok(!has("mcp.json"));
+  assert.ok(!has(".mcp.json"));
+  for (const mf of ["plugin.json", ".cursor-plugin/plugin.json", ".claude-plugin/plugin.json"]) {
+    const j = JSON.parse(read(mf));
+    assert.equal(j.mcp, undefined, mf);
+    assert.equal(j.mcpServers, undefined, mf);
   }
-  const cursorPlugin = JSON.parse(read(".cursor-plugin/plugin.json"));
-  assert.equal(cursorPlugin.mcp, "./mcp.json");
+  const raw = read("platform/mcp.json");
+  const parsed = JSON.parse(raw);
+  assert.deepEqual(Object.keys(parsed.mcpServers), ["swarm"]);
+  assert.equal(parsed.mcpServers.swarm.url, "https://swarm.botz.ai/mcp");
+  assert.doesNotMatch(raw, /headers|Authorization|Bearer|\$\{env:/i);
 });
 
-test("plugin v0.13.0 manifests, site page, and 12 skills/commands are aligned", () => {
+test("plugin v0.13.0 manifests, site page, and 13 skills/commands are aligned", () => {
   for (const mf of ["package.json", "plugin.json", ".cursor-plugin/plugin.json", ".claude-plugin/plugin.json"]) {
     assert.equal(JSON.parse(read(mf)).version, "0.13.0", mf);
   }
@@ -51,7 +54,7 @@ test("plugin v0.13.0 manifests, site page, and 12 skills/commands are aligned", 
   const expectedSkills = [
     "mcp-swarm-guided", "mcp-swarm", "mcp-swarm-flow", "mcp-swarm-report", "mcp-swarm-compare",
     "mcp-swarm-descriptions", "mcp-swarm-record-replay", "mcp-swarm-diagnose", "mcp-swarm-analyse", "mcp-swarm-upgrade",
-    "mcp-swarm-server-updates", "mcp-swarm-tags",
+    "mcp-swarm-server-updates", "mcp-swarm-tags", "mcp-swarm-platform",
   ];
   for (const name of expectedSkills) {
     assert.match(readme, new RegExp("`" + name + "`"));
@@ -59,9 +62,14 @@ test("plugin v0.13.0 manifests, site page, and 12 skills/commands are aligned", 
     assert.match(read(`commands/z-${name}.md`), new RegExp(name));
   }
   const mainSkill = read("skills/mcp-swarm/SKILL.md");
-  assert.match(mainSkill, /https:\/\/swarm\.botz\.ai\/mcp/);
-  assert.match(mainSkill, /--remote/);
-  assert.match(mainSkill, /--max-vus/);
+  const platform = read("skills/mcp-swarm-platform/SKILL.md");
+  assert.match(platform, /https:\/\/swarm\.botz\.ai\/mcp/);
+  assert.match(platform, /--remote/);
+  assert.match(platform, /--max-vus/);
+  assert.match(platform, /BOTZ_MCP_SWARM_MODE=platform/);
+  assert.match(platform, /claude mcp add/);
+  assert.match(platform, /codex mcp add/);
+  assert.match(platform, /\.cursor\/mcp\.json/);
   assert.match(mainSkill, /loadTimeline\.summary/);
   assert.match(mainSkill, /--max-call-count/);
   assert.match(mainSkill, /--ramp-down-strategy/);
@@ -72,12 +80,16 @@ test("plugin v0.13.0 manifests, site page, and 12 skills/commands are aligned", 
 
 test("server-updates and tags skills document CLI and MCP surfaces", () => {
   const updates = read("skills/mcp-swarm-server-updates/SKILL.md");
-  for (const needle of ["project server updates", "accept-update", "discard-update", "changelog", "swarm_server_check_updates", "swarm_server_update_apply", "swarm_server_changelog", "protocol", "Update affected suites", "Check for server updates"]) {
+  for (const needle of ["project server updates", "accept-update", "discard-update", "changelog", "protocol", "Update affected suites", "Check for server updates"]) {
     assert.ok(updates.includes(needle), needle);
   }
   const tags = read("skills/mcp-swarm-tags/SKILL.md");
-  for (const needle of ["project suite tag", "project scenario-tag", "project run-tag", "--tags", "swarm_tags_set", "swarm_describe", "swarm_scenarios_list"]) {
+  for (const needle of ["project suite tag", "project scenario-tag", "project run-tag", "--tags"]) {
     assert.ok(tags.includes(needle), needle);
+  }
+  const platform = read("skills/mcp-swarm-platform/SKILL.md");
+  for (const needle of ["swarm_server_check_updates", "swarm_server_update_apply", "swarm_server_changelog", "swarm_tags_set", "swarm_describe", "swarm_scenarios_list"]) {
+    assert.ok(platform.includes(needle), needle);
   }
   for (const name of ["mcp-swarm-server-updates", "mcp-swarm-tags"]) {
     const evals = JSON.parse(read(`skills/${name}/evals/evals.json`));
@@ -87,9 +99,19 @@ test("server-updates and tags skills document CLI and MCP surfaces", () => {
 });
 
 test("every skill pins botz-mcp-swarm-cli 0.15.0", () => {
-  for (const name of ["mcp-swarm-guided", "mcp-swarm", "mcp-swarm-flow", "mcp-swarm-report", "mcp-swarm-compare", "mcp-swarm-descriptions", "mcp-swarm-record-replay", "mcp-swarm-diagnose", "mcp-swarm-analyse", "mcp-swarm-upgrade", "mcp-swarm-server-updates", "mcp-swarm-tags"]) {
+  for (const name of ["mcp-swarm-guided", "mcp-swarm", "mcp-swarm-flow", "mcp-swarm-report", "mcp-swarm-compare", "mcp-swarm-descriptions", "mcp-swarm-record-replay", "mcp-swarm-diagnose", "mcp-swarm-analyse", "mcp-swarm-upgrade", "mcp-swarm-server-updates", "mcp-swarm-tags", "mcp-swarm-platform"]) {
     const s = read(`skills/${name}/SKILL.md`);
     assert.match(s, /cli-version: "0\.15\.0"/, name);
     if (s.includes("botz plugins info mcp-swarm")) assert.match(s, /botz plugins install mcp-swarm --version 0\.15\.0/, name);
+  }
+});
+
+test("default skills do not advertise platform features", () => {
+  for (const name of ["mcp-swarm-guided", "mcp-swarm", "mcp-swarm-flow", "mcp-swarm-report", "mcp-swarm-compare", "mcp-swarm-descriptions", "mcp-swarm-record-replay", "mcp-swarm-diagnose", "mcp-swarm-analyse", "mcp-swarm-upgrade", "mcp-swarm-server-updates", "mcp-swarm-tags"]) {
+    const s = read(`skills/${name}/SKILL.md`);
+    assert.doesNotMatch(s, /swarm\.botz\.ai|mcp-server:|--remote|--dispatch worker|mcp-swarm worker|swarm_[a-z_]+|bzt_|OAuth/, name);
+    assert.match(s, /Platform mode \(opt-in\)/, name);
+    assert.match(s, /mcp-swarm-platform/, name);
+    assert.doesNotMatch(read(`commands/z-${name}.md`), /swarm\.botz\.ai|central|swarm_[a-z_]+/, name);
   }
 });

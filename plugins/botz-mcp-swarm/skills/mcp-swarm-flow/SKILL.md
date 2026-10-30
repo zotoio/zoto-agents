@@ -13,6 +13,8 @@ metadata:
 
 # Build a multi-server flow
 
+> **Platform mode (opt-in):** this skill describes local execution only. If `BOTZ_MCP_SWARM_MODE=platform` is set or a `swarm` MCP server is connected, also read the `mcp-swarm-platform` skill before answering; otherwise do not mention or suggest Swarm platform features.
+
 Turn the user's description of a task into an ordered suite of tool calls across MCP servers, show them exactly what will run and what data moves between servers, and run it only when they agree.
 
 ## Setup

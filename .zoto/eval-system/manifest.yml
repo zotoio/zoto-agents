@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-30T04:09:02.686Z
-git_ref: 14218eb4c87ea2127df3c5959c082f3532e3a087
+updated_at: 2026-10-30T05:07:02.670Z
+git_ref: a890bcf4d10f7ad2c14005fe2a08235ac01bf309
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -41,33 +41,30 @@ targets:
   - id: skill:mcp-swarm
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm/SKILL.md
-    content_hash: 3388a8590307c704ef221a1f174072b43cfd60fd56207b17d145e21a30e0f3ea
+    content_hash: 34dcedbb6231cbfd6e59cc9ef5e43b99ca12f63bc8f8c004916fc0c5709f8c05
     public_surface:
       frontmatter:
         name: mcp-swarm
-        description: Capture, validate, refresh, and run MCP test suites locally or via
-          the central Botz MCP Swarm server (https://swarm.botz.ai/mcp, OAuth
-          2.1 sign-in), and register distributed VU/OTEL workers with the botz
-          MCP Swarm CLI. Use for testing MCP servers, repeatable tool
-          assertions, central or distributed load tests, and CI reports.
+        description: Capture, validate, refresh, and run MCP test suites entirely
+          locally with the botz MCP Swarm CLI (no central Swarm server, no MCP
+          server config). Use for testing MCP servers, repeatable tool
+          assertions, local load tests, and CI reports.
         license: MIT
         disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access for CLI commands,
-          or an MCP client supporting streamable HTTP + OAuth 2.1 for central
-          server tools (https://swarm.botz.ai/mcp). Installs the botz host
-          (@zotoio/botz-cli) and its mcp-swarm extension if missing.
+        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
+          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Runs
+          locally; never needs a Swarm server or token.
         metadata: ""
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
         cli-package: '"@zotoio/botz-mcp-swarm-cli"'
         cli-version: '"0.15.0"'
-        mcp-server: '"https://swarm.botz.ai/mcp"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm/evals/evals.json
   - id: skill:mcp-swarm-analyse
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-analyse/SKILL.md
-    content_hash: 80c7eb1c2657e73d1bb3db1fbeb763f9b3d02c331971aa6603b327e439f1dd56
+    content_hash: 6c67138b3085f35188799c74197b241f1e2903a9074e7bd56d12fba338dd2ca7
     public_surface:
       frontmatter:
         name: mcp-swarm-analyse
@@ -90,7 +87,7 @@ targets:
   - id: skill:mcp-swarm-compare
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-compare/SKILL.md
-    content_hash: df5439d34daed42baf2af7b08c020f27dab198c3f32bef764af3f4ce73f8418b
+    content_hash: d0906162fe4a6b6295f9f1135cc67678db6697e917674011ed07629bf3f555ad
     public_surface:
       frontmatter:
         name: mcp-swarm-compare
@@ -113,7 +110,7 @@ targets:
   - id: skill:mcp-swarm-descriptions
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-descriptions/SKILL.md
-    content_hash: d560cc22b9913d0232f425e491d141e69e4177d03ad01d3b59e442bf6d9769cf
+    content_hash: 7945f24a6d53b9232d8eaabb0ab610d40155decc064328c7314de22aecaa863a
     public_surface:
       frontmatter:
         name: mcp-swarm-descriptions
@@ -138,7 +135,7 @@ targets:
   - id: skill:mcp-swarm-diagnose
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-diagnose/SKILL.md
-    content_hash: 0470967fe2812dcdcfaea0fccc58969e2aaed729ab52a61b68a1e151441964f6
+    content_hash: ad586783a79840b5c6ccd93cbad552189a6680deee55d8bdbfbed20adf29ea82
     public_surface:
       frontmatter:
         name: mcp-swarm-diagnose
@@ -160,7 +157,7 @@ targets:
   - id: skill:mcp-swarm-flow
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-flow/SKILL.md
-    content_hash: 73907d68fbd4546fbe6deee52ac108eedb9776d021402f02d56121ab97473df8
+    content_hash: 23ce6968eb2ae6b10f3dcef6b6fb098708479cc18319008eafca96a56f5f1ccd
     public_surface:
       frontmatter:
         name: mcp-swarm-flow
@@ -186,7 +183,7 @@ targets:
   - id: skill:mcp-swarm-guided
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-guided/SKILL.md
-    content_hash: b1d26b4090bbe85f3d0567205c35d5c8a09105906025887b6d7347e961ed2b3d
+    content_hash: 2550a80c2aaccf4d4fcef3b55cc45f5533c871d43949bab992d3c98a6c953295
     public_surface:
       frontmatter:
         name: mcp-swarm-guided
@@ -206,10 +203,34 @@ targets:
         cli-version: '"0.15.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-guided/evals/evals.json
+  - id: skill:mcp-swarm-platform
+    kind: skill
+    path: plugins/botz-mcp-swarm/skills/mcp-swarm-platform/SKILL.md
+    content_hash: c06bce82c43b020fa931870e04642d29ca5cb1ab4392cda2b362d81a255531a7
+    public_surface:
+      frontmatter:
+        name: mcp-swarm-platform
+        description: Opt in to Botz MCP Swarm platform mode and use its features
+          (central swarm MCP server with OAuth, remote suite runs, worker
+          dispatch, service suites, swarm_* MCP tools). Use only when the user
+          explicitly enables platform mode or BOTZ_MCP_SWARM_MODE=platform is
+          set.
+        license: MIT
+        disable-model-invocation: "true"
+        compatibility: Requires Node.js 22.13+, npm, shell access, and an MCP client
+          supporting streamable HTTP + OAuth 2.1. Contacts the central Swarm
+          server.
+        metadata: ""
+        author: zotoio
+        cli-host: '"@zotoio/botz-cli"'
+        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
+        cli-version: '"0.15.0"'
+    eval_files:
+      - plugins/botz-mcp-swarm/skills/mcp-swarm-platform/evals/evals.json
   - id: skill:mcp-swarm-record-replay
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-record-replay/SKILL.md
-    content_hash: 441bebb7073d5a719bba1f53704e64a4d679d39b30e9149bf9c6ca2b6826453a
+    content_hash: f0e05041b65b037779d141571e7756fff44a2b481cad1c10008553eb16de205d
     public_surface:
       frontmatter:
         name: mcp-swarm-record-replay
@@ -232,7 +253,7 @@ targets:
   - id: skill:mcp-swarm-report
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-report/SKILL.md
-    content_hash: a6ad74b73fb5ebfd17cc5db4f4a784337e1a284f3d9fe7fc28b4abcea183483d
+    content_hash: 8204ff7fe0e587b58ba5980dc722878ec67fd3b92465cdb0b23a6d502e411b29
     public_surface:
       frontmatter:
         name: mcp-swarm-report
@@ -256,7 +277,7 @@ targets:
   - id: skill:mcp-swarm-server-updates
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-server-updates/SKILL.md
-    content_hash: 880a3c438dd7364753da5a3eb83b04a73327194fa35d591682eed1cb9667250c
+    content_hash: 2d091b08121f417cb156ddb93a17494c478cf3f1762492ae62fba4b42791fecf
     public_surface:
       frontmatter:
         name: mcp-swarm-server-updates
@@ -269,9 +290,8 @@ targets:
         license: MIT
         disable-model-invocation: "true"
         compatibility: Requires Node.js 22.13+, npm, shell access, and
-          botz-mcp-swarm-cli with `project server updates`, or the central Swarm
-          MCP server (`swarm_server_check_updates`). Contacts the target MCP
-          servers to re-probe them.
+          botz-mcp-swarm-cli with `project server updates`. Contacts the target
+          MCP servers to re-probe them.
         metadata: ""
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
@@ -282,18 +302,18 @@ targets:
   - id: skill:mcp-swarm-tags
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-tags/SKILL.md
-    content_hash: 2f443b67abd4fc417f9f585f3b1c2acc7442a8f9e5f5f203eb9ee7da7ac91ae9
+    content_hash: b26cd8e1904cb7975309e82480d08d065c74082014f80a92258732390493e8a5
     public_surface:
       frontmatter:
         name: mcp-swarm-tags
         description: Edit descriptions on MCP Swarm suites and servers, and add ad-hoc
           tags to suites, scenarios and runs, then filter lists by tag from the
-          CLI, the central Swarm MCP tools, or Swarm Studio.
+          local CLI.
         license: MIT
         disable-model-invocation: "true"
         compatibility: Requires Node.js 22.13+, npm, shell access, and
-          botz-mcp-swarm-cli with `project suite tag`, or the central Swarm MCP
-          server (`swarm_tags_set`). Does not contact the target MCP servers.
+          botz-mcp-swarm-cli with `project suite tag`. Does not contact the
+          target MCP servers.
         metadata: ""
         author: zotoio
         cli-host: '"@zotoio/botz-cli"'
@@ -304,7 +324,7 @@ targets:
   - id: skill:mcp-swarm-upgrade
     kind: skill
     path: plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/SKILL.md
-    content_hash: a5bbce96e17d26eba54587419c8cd4669a5e13e0fb0ade17ca7be8bb466b7a31
+    content_hash: 369e103bc4426dd7850942249a7b79813ef406d873b833fcc5a754614e8cf0a7
     public_surface:
       frontmatter:
         name: mcp-swarm-upgrade
@@ -325,289 +345,6 @@ targets:
         cli-version: '"0.15.0"'
     eval_files:
       - plugins/botz-mcp-swarm/skills/mcp-swarm-upgrade/evals/evals.json
-  - id: skill:mcp-swarm-lite
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite/SKILL.md
-    content_hash: ecdddef7fdac1015dee37902c444568052c30a6c6e458e00e71822c7081bb9b4
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite
-        description: Capture, validate, refresh, and run MCP test suites entirely
-          locally with the botz MCP Swarm CLI (no central Swarm server, no MCP
-          server config). Use for testing MCP servers, repeatable tool
-          assertions, local load tests, and CI reports.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Runs
-          locally; never needs a Swarm server or token.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite/evals/evals.json
-  - id: skill:mcp-swarm-lite-analyse
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-analyse/SKILL.md
-    content_hash: f674be27373f1b7943383950f3d1cc40b1ce321256afcdabea86b06b2d7e50df
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-analyse
-        description: Analyse a failed botz MCP Swarm run with the configured model,
-          review its proposed suite fixes one by one, and accept or reject them
-          by explicit proposal id. Nothing changes without a named id.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, shell access, and
-          botz-mcp-swarm-cli with `suite analyse`. Calling the model needs
-          SWARM_LLM_PROVIDER and its API key; reviewing a saved analysis does
-          not.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-analyse/evals/evals.json
-  - id: skill:mcp-swarm-lite-compare
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-compare/SKILL.md
-    content_hash: 52eb3b08e5e035db70d7650e0e301cba84d8c3116567e11af5a1b3435bb8ea2e
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-compare
-        description: Compare two botz MCP Swarm runs or a series of runs and visualise
-          latency, error rate, and tool-eval trends in Cursor's /canvas or a
-          self-contained HTML page. Use to check for regressions between builds,
-          environments, or load settings.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Reads
-          existing run reports; does not contact the target.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-compare/evals/evals.json
-  - id: skill:mcp-swarm-lite-descriptions
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-descriptions/SKILL.md
-    content_hash: c4e68b58d31b899640799ecc8102922de59ea52b6cd68df1abdbb6ea9b615688
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-descriptions
-        description: Review an MCP server's tool descriptions, propose clearer ones,
-          examine description suggestions saved by botz MCP Swarm optimize, and
-          measure a description change with tool evals. Use when models pick the
-          wrong tool, misuse arguments, or a server's descriptions need an
-          audit.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
-          Measuring changes with tool evals needs model credentials and access
-          to the target MCP server.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-descriptions/evals/evals.json
-  - id: skill:mcp-swarm-lite-diagnose
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-diagnose/SKILL.md
-    content_hash: 71df2beb9f887e87a0a662254dcfc38a31342cc43116bf53427003cabee15cf5
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-diagnose
-        description: Diagnose failed botz MCP Swarm suites, missing credentials, invalid
-          fixtures, execution errors, and performance regressions from CLI
-          diagnostics and run reports.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
-          Offline validation and doctor do not require target access.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-diagnose/evals/evals.json
-  - id: skill:mcp-swarm-lite-flow
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-flow/SKILL.md
-    content_hash: 9005d6e953e9d6419a5bd489e3fc1ba3d94634133fabb6d06397c2b14242a9ce
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-flow
-        description: 'Turn a task described in words, such as "find an open bug in
-          GitHub, file it in Jira, tell #triage", into a botz MCP Swarm suite
-          whose steps call several MCP servers in order and pass values between
-          them. Use to load-test or regression-test an agent-like workflow that
-          spans MCP servers.'
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Needs
-          a CLI with multi-server suites (`botz mcp-swarm suite server --help`).
-          Contacts each MCP server to read its tools; runs call tools on every
-          server.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-flow/evals/evals.json
-  - id: skill:mcp-swarm-lite-guided
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-guided/SKILL.md
-    content_hash: c17ce07489e960f524916517a62cfec6962f30cb9818c156018acb4b70d744ec
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-guided
-        description: Guided, question-driven introspection of an MCP server with botz
-          MCP Swarm, from target and credentials through suite generation,
-          review, and execution to a summarised result. Use when someone wants
-          to test an MCP server and has not set up a suite yet.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
-          Contacts the target MCP server; inference needs model credentials.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-guided/evals/evals.json
-  - id: skill:mcp-swarm-lite-record-replay
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-record-replay/SKILL.md
-    content_hash: e22c8745a4facb55c43a5096046721734a25698dcec9466c28f97b3576932076
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-record-replay
-        description: Record redacted MCP wire traffic from a server with botz MCP Swarm
-          and replay it against the same or another server, as recorded, at
-          maximum rate, or paced. Use to reproduce a session, compare server
-          builds on identical traffic, or create fixtures.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing.
-          Recording and replay contact the target MCP server.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-record-replay/evals/evals.json
-  - id: skill:mcp-swarm-lite-report
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-report/SKILL.md
-    content_hash: a62ce1975997f3da8ec0d30f7670fd46fa1a4d49814ae62450a603253e72a7be
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-report
-        description: Visualise one botz MCP Swarm run in Cursor's /canvas or a
-          self-contained HTML page, with a tool selector showing each tool's
-          latency, errors, and a sample request and response. Use after a run,
-          or to explain a run report.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. Reads
-          an existing run report, its saved suite, and optional record-replay
-          recordings; does not contact the target.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-report/evals/evals.json
-  - id: skill:mcp-swarm-lite-server-updates
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-server-updates/SKILL.md
-    content_hash: 37a74c407dbb15223e5a2a580e53741eb14f8cae11669a4324c0ff3558606c40
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-server-updates
-        description: Check MCP servers under test for updates (serverInfo version,
-          negotiated MCP spec/protocol version, capabilities, and every tool,
-          resource, template and prompt schema), review the diff, surgically
-          update only the suites and scenarios that reference changed
-          primitives, and record a changelog entry on the server version.
-          Nothing changes until a reviewed update is accepted.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, shell access, and
-          botz-mcp-swarm-cli with `project server updates`. Contacts the target
-          MCP servers to re-probe them.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-server-updates/evals/evals.json
-  - id: skill:mcp-swarm-lite-tags
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-tags/SKILL.md
-    content_hash: f8912318ba1b8b55b3b10709489ed55e0bba0396a238b3529feb11cb87edbcb3
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-tags
-        description: Edit descriptions on MCP Swarm suites and servers, and add ad-hoc
-          tags to suites, scenarios and runs, then filter lists by tag from the
-          local CLI.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, shell access, and
-          botz-mcp-swarm-cli with `project suite tag`. Does not contact the
-          target MCP servers.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-tags/evals/evals.json
-  - id: skill:mcp-swarm-lite-upgrade
-    kind: skill
-    path: plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-upgrade/SKILL.md
-    content_hash: e0f5c77a263ee5d8722f348d857156693d05f6a960496050f1e99bbcb7c97266
-    public_surface:
-      frontmatter:
-        name: mcp-swarm-lite-upgrade
-        description: Upgrade the botz MCP Swarm CLI and move saved suites, credentials,
-          run reports, and service state into the current layout. Use when
-          updating MCP Swarm, after release notes mention moved files, or when
-          old .botz/suites, .runs, .swarm-data, or .otel directories are
-          present.
-        license: MIT
-        disable-model-invocation: "true"
-        compatibility: Requires Node.js 22.13+, npm, and shell access. Installs the botz
-          host (@zotoio/botz-cli) and its mcp-swarm extension if missing. The
-          upgrade command needs mcp-swarm 0.6.1 or later.
-        metadata: ""
-        author: zotoio
-        cli-host: '"@zotoio/botz-cli"'
-        cli-package: '"@zotoio/botz-mcp-swarm-cli"'
-        cli-version: '"0.15.0"'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/skills/mcp-swarm-lite-upgrade/evals/evals.json
   - id: skill:crux-init
     kind: skill
     path: plugins/crux-compress/skills/crux-init/SKILL.md
@@ -1173,6 +910,18 @@ targets:
           has not set up a suite yet."'
     eval_files:
       - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-guided.json
+  - id: command:z-mcp-swarm-platform
+    kind: command
+    path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-platform.md
+    content_hash: 34fa6697f45a48ef70e96438f8db4082680445d28139ba1601191fdfe9b70602
+    public_surface:
+      frontmatter:
+        name: z-mcp-swarm-platform
+        description: '"Run the mcp-swarm-platform skill. Opt in to Botz MCP Swarm
+          platform mode (central swarm MCP server, remote runs, workers) or turn
+          it off."'
+    eval_files:
+      - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-platform.json
   - id: command:z-mcp-swarm-record-replay
     kind: command
     path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-record-replay.md
@@ -1220,14 +969,13 @@ targets:
   - id: command:z-mcp-swarm-tags
     kind: command
     path: plugins/botz-mcp-swarm/commands/z-mcp-swarm-tags.md
-    content_hash: 1481f388106a9f9fee401a36c7f2d81f82093ac32b6054b6a9e2d9ccfe93c4b6
+    content_hash: 8d882b0d1378d0734c795d8af33ba34758b40e761daa090367469e5edde744f0
     public_surface:
       frontmatter:
         name: z-mcp-swarm-tags
         description: '"Run the mcp-swarm-tags skill. Edit descriptions on MCP Swarm
           suites and servers, and add ad-hoc tags to suites, scenarios and runs,
-          then filter lists by tag from the CLI, the central Swarm MCP tools, or
-          Swarm Studio."'
+          then filter lists by tag from the local CLI."'
     eval_files:
       - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm-tags.json
   - id: command:z-mcp-swarm-upgrade
@@ -1256,166 +1004,6 @@ targets:
           repeatable tool assertions, load tests, and CI reports."'
     eval_files:
       - plugins/botz-mcp-swarm/commands/evals/z-mcp-swarm.json
-  - id: command:z-mcp-swarm-lite-analyse
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-analyse.md
-    content_hash: d87254b15e622c669ce71e2ad3b18c83641fdbe63d8107c15b5220b2ae5fe940
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-analyse
-        description: '"Run the mcp-swarm-lite-analyse skill. Analyse a failed botz MCP
-          Swarm run, review proposed suite fixes, and accept or reject them by
-          explicit proposal id."'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-analyse.json
-  - id: command:z-mcp-swarm-lite-compare
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-compare.md
-    content_hash: 424699c98e8218dc3a04fa2131969683119cd752d278074e957309314264471a
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-compare
-        description: "\"Run the mcp-swarm-lite-compare skill. Compare two botz MCP Swarm
-          runs or a series of runs and visualise latency, error rate, and
-          tool-eval trends in Cursor's /canvas or a self-contained HTML page.
-          Use to check for regressions between builds, environments, or load
-          settings.\""
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-compare.json
-  - id: command:z-mcp-swarm-lite-descriptions
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-descriptions.md
-    content_hash: 79f044fb836974186c0e547f390e0b3512ed510f6c6814b652778fce47a99e11
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-descriptions
-        description: "\"Run the mcp-swarm-lite-descriptions skill. Review an MCP
-          server's tool descriptions, propose clearer ones, examine description
-          suggestions saved by botz MCP Swarm optimize, and measure a
-          description change with tool evals. Use when models pick the wrong
-          tool, misuse arguments, or a server's descriptions need an audit.\""
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-descriptions.json
-  - id: command:z-mcp-swarm-lite-diagnose
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-diagnose.md
-    content_hash: 2d1075c69861f6610baf2c212ec9edaf73036c2b16ac0b6536efa06408e676fe
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-diagnose
-        description: '"Run the mcp-swarm-lite-diagnose skill. Diagnose failed botz MCP
-          Swarm suites, missing credentials, invalid fixtures, execution errors,
-          and performance regressions from CLI diagnostics and run reports."'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-diagnose.json
-  - id: command:z-mcp-swarm-lite-flow
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-flow.md
-    content_hash: 50aa6a5eebed8ef4ef81559f2d104b1d3eb8090d778b04f4576e4716d5acc678
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-flow
-        description: '"Run the mcp-swarm-lite-flow skill. Turn a task described in words
-          into a botz MCP Swarm suite whose steps call several MCP servers in
-          order and pass values between them."'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-flow.json
-  - id: command:z-mcp-swarm-lite-guided
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-guided.md
-    content_hash: a805af53ce1c2a583b1e777cf8c03c79bdf62835afa5ebd80c94464d149a58d7
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-guided
-        description: '"Run the mcp-swarm-lite-guided skill. Guided, question-driven
-          introspection of an MCP server with botz MCP Swarm, from target and
-          credentials through suite generation, review, and execution to a
-          summarised result. Use when someone wants to test an MCP server and
-          has not set up a suite yet."'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-guided.json
-  - id: command:z-mcp-swarm-lite-record-replay
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-record-replay.md
-    content_hash: 43f9d21f8de739163a321d7f24f9c7d1248b429c0b9be98013182d748e49762a
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-record-replay
-        description: '"Run the mcp-swarm-lite-record-replay skill. Record redacted MCP
-          wire traffic from a server with botz MCP Swarm and replay it against
-          the same or another server, as recorded, at maximum rate, or paced.
-          Use to reproduce a session, compare server builds on identical
-          traffic, or create fixtures."'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-record-replay.json
-  - id: command:z-mcp-swarm-lite-report
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-report.md
-    content_hash: c05c53e80871fe55c009d93d56f94acfceb59e2e11c1c83678c043c6c7040690
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-report
-        description: "\"Run the mcp-swarm-lite-report skill. Visualise one botz MCP
-          Swarm run in Cursor's /canvas or a self-contained HTML page, with
-          overall and per-tool VUs/TPS over time (loadTimeline/timeSeries) and a
-          tool selector showing each tool's latency, errors, and sample
-          request/response.\""
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-report.json
-  - id: command:z-mcp-swarm-lite-server-updates
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-server-updates.md
-    content_hash: 97cf6f0a3b28ce5023e5d4c7e02fe8f07eaa51a35feb5da08c6d47e5852c4d81
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-server-updates
-        description: '"Run the mcp-swarm-lite-server-updates skill. Check MCP servers
-          under test for updates (serverInfo version, negotiated MCP
-          spec/protocol version, capabilities, and every tool, resource,
-          template and prompt schema), review the diff, surgically update only
-          the suites and scenarios that reference changed primitives, and record
-          a changelog entry on the server version. Nothing changes until a
-          reviewed update is accepted."'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-server-updates.json
-  - id: command:z-mcp-swarm-lite-tags
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-tags.md
-    content_hash: de1cabc7eadae473d84293b397e2fcd010baccb6c67e4df98aa36f78c8982216
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-tags
-        description: '"Run the mcp-swarm-lite-tags skill. Edit descriptions on MCP Swarm
-          suites and servers, and add ad-hoc tags to suites, scenarios and runs,
-          then filter lists by tag from the local CLI."'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-tags.json
-  - id: command:z-mcp-swarm-lite-upgrade
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite-upgrade.md
-    content_hash: b7ce4325ee545c725360dde495363a31631077c0c17ccc659fe31acc9abba34d
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite-upgrade
-        description: '"Run the mcp-swarm-lite-upgrade skill. Upgrade the botz MCP Swarm
-          CLI and move saved suites, credentials, run reports, and service state
-          into the current layout. Use when updating MCP Swarm, after release
-          notes mention moved files, or when old .botz/suites, .runs,
-          .swarm-data, or .otel directories are present."'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite-upgrade.json
-  - id: command:z-mcp-swarm-lite
-    kind: command
-    path: plugins/botz-mcp-swarm-lite/commands/z-mcp-swarm-lite.md
-    content_hash: f76d2f987eb5f970329b2b56a2ad2ae109ca79a9d22b8264aa8c53833761cefc
-    public_surface:
-      frontmatter:
-        name: z-mcp-swarm-lite
-        description: '"Run the mcp-swarm-lite skill. Capture, validate, refresh, and run
-          MCP test suites with the botz MCP Swarm CLI. Use for testing MCP
-          servers, repeatable tool assertions, load tests, and CI reports."'
-    eval_files:
-      - plugins/botz-mcp-swarm-lite/commands/evals/z-mcp-swarm-lite.json
   - id: command:crux-amnesia
     kind: command
     path: plugins/crux-compress/commands/crux-amnesia.md

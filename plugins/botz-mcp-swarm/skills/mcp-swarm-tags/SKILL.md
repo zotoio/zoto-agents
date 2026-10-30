@@ -1,9 +1,9 @@
 ---
 name: mcp-swarm-tags
-description: Edit descriptions on MCP Swarm suites and servers, and add ad-hoc tags to suites, scenarios and runs, then filter lists by tag from the CLI, the central Swarm MCP tools, or Swarm Studio.
+description: Edit descriptions on MCP Swarm suites and servers, and add ad-hoc tags to suites, scenarios and runs, then filter lists by tag from the local CLI.
 license: MIT
 disable-model-invocation: true
-compatibility: Requires Node.js 22.13+, npm, shell access, and botz-mcp-swarm-cli with `project suite tag`, or the central Swarm MCP server (`swarm_tags_set`). Does not contact the target MCP servers.
+compatibility: Requires Node.js 22.13+, npm, shell access, and botz-mcp-swarm-cli with `project suite tag`. Does not contact the target MCP servers.
 metadata:
   author: zotoio
   cli-host: "@zotoio/botz-cli"
@@ -12,6 +12,8 @@ metadata:
 ---
 
 # Describe and tag suites, scenarios, runs and servers
+
+> **Platform mode (opt-in):** this skill describes local execution only. If `BOTZ_MCP_SWARM_MODE=platform` is set or a `swarm` MCP server is connected, also read the `mcp-swarm-platform` skill before answering; otherwise do not mention or suggest Swarm platform features.
 
 > **CLI availability:** `project server updates|accept-update|discard-update|changelog`, `project suite describe|tag`, `project scenario-tag`, `project run-tag` and `--tags` filters land in botz-mcp-swarm-cli after `0.15.0` (zotoio/botz-mcp-swarm-cli#28). Check `botz mcp-swarm project --help` first; if the subcommand is missing, tell the user it needs a newer CLI rather than improvising.
 
@@ -32,8 +34,6 @@ botz mcp-swarm project suite describe <project> "<text>" --suite <suite>
 botz mcp-swarm project server describe <project> "<text>" --server <server>
 ```
 
-MCP: `swarm_describe { project_id, entity: "suite" | "server", id, description }`.
-
 ## Tags
 
 ```sh
@@ -42,8 +42,6 @@ botz mcp-swarm project scenario-tag <project> <scenarioId> checkout --suite <sui
 botz mcp-swarm project run-tag <project> <runId> regression release-1.4
 ```
 
-MCP: `swarm_tags_set { project_id, entity: "suite" | "scenario" | "run", id, suite_id?, tags: [...] }`.
-
 ## Filter
 
 ```sh
@@ -51,8 +49,6 @@ botz mcp-swarm project suite list <project> --tags smoke,nightly --json
 botz mcp-swarm project scenarios <project> --tags checkout --json
 botz mcp-swarm project runs <project> --tags regression --json
 ```
-
-MCP: `tags` on `swarm_suites_list`, `swarm_scenarios_list` and `swarm_runs_list`.
 
 In Swarm Studio the **Descriptions & tags** panel shows tag chips; click chips to filter the Suites, Scenarios and Runs tables (every column heading sorts ascending and descending), and **Edit** on a row to change its description or tags.
 

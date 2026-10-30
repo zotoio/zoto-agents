@@ -2,8 +2,7 @@
 
 ## Unreleased
 
-- Add `botz-mcp-swarm-lite` (`0.1.0`): MCP Swarm skills for local execution of the CLI with no central server config.
-- `botz-mcp-swarm` `0.13.0`: skills pinned to `@zotoio/botz-mcp-swarm-cli` `0.15.0` (protocol eras), plus server-updates/tags skills from #43.
+- `botz-mcp-swarm` `0.13.0`: **local mode by default** (no MCP server wired up; platform mode opt-in via `mcp-swarm-platform`), skills pinned to `@zotoio/botz-mcp-swarm-cli` `0.15.0` (protocol eras), plus server-updates/tags skills from #43.
 
 ## 2026-10-29 — Marketplace `v0.8.0` (`zoto-botz-skills v0.4.0` & `botz-mcp-swarm v0.11.0`)
 

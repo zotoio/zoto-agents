@@ -13,6 +13,8 @@ metadata:
 
 # Guided MCP Swarm session
 
+> **Platform mode (opt-in):** this skill describes local execution only. If `BOTZ_MCP_SWARM_MODE=platform` is set or a `swarm` MCP server is connected, also read the `mcp-swarm-platform` skill before answering; otherwise do not mention or suggest Swarm platform features.
+
 Walk the user from an MCP server to a reviewed suite and a summarised run, asking for each required input.
 
 ## How to ask
