@@ -46,10 +46,10 @@
     "jest": "^30.0.0",
     "js-yaml": "^4.1.1",
     "json-source-map": "^0.6.1",
-    "minimatch": "^10.2.5",
+    "minimatch": "^11.0.4",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0",
-    "vitest": "^4.1.5",
+    "vitest": "^4.1.12",
     "yaml": "^2.6.0"
   }
 }
