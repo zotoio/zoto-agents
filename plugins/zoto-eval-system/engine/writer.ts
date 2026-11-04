@@ -54,6 +54,10 @@ export interface WriteOptions {
 }
 
 export function writeResults(opts: WriteOptions): string {
+  // runId is a single path segment under <evalsDir>/_runs: reject separators and traversal
+  if (!/^[A-Za-z0-9_][A-Za-z0-9_.:-]*$/.test(opts.runId) || opts.runId.includes("..")) {
+    throw new Error(`writeResults: invalid runId ${JSON.stringify(opts.runId)}`);
+  }
   const runDir = join(opts.evalsDir, "_runs", opts.runId);
   const logsDir = join(runDir, "logs");
   mkdirSync(logsDir, { recursive: true });
