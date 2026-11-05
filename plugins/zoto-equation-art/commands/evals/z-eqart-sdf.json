@@ -1,0 +1,15 @@
+{
+  "target_id": "command:z-eqart-sdf",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-eqart-sdf an orange rounded square overlapping a teal circle",
+      "assertions": [
+        "The assistant follows the `eqart-sdf` skill's instructions for the request",
+        "The assistant uses the text after the command as the request without asking again",
+        "The assistant checks the eqart MCP tools are available before rendering"
+      ],
+      "expected_output": "The command hands the request to the `eqart-sdf` skill, which runs as if invoked directly."
+    }
+  ]
+}

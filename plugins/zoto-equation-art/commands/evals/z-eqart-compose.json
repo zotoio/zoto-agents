@@ -1,0 +1,15 @@
+{
+  "target_id": "command:z-eqart-compose",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-eqart-compose a spiral galaxy in teal and gold",
+      "assertions": [
+        "The assistant follows the `eqart-compose` skill's instructions for the request",
+        "The assistant uses the text after the command as the request without asking again",
+        "The assistant checks the eqart MCP tools are available before rendering"
+      ],
+      "expected_output": "The command hands the request to the `eqart-compose` skill, which runs as if invoked directly."
+    }
+  ]
+}

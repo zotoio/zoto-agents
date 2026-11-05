@@ -1,0 +1,22 @@
+{
+  "ir": "eqart-ir/2",
+  "meta": {"title": "SDF badge: smooth-min union, onion ring, soft-masked layers", "method": "eqart-sdf"},
+  "canvas": {"width": 256, "height": 256},
+  "opdefs": {
+    "sd_circle": {"args": ["x", "y", "r"], "body": ["sub", ["len", ["vec", "x", "y"]], "r"]},
+    "sd_box": {"args": ["x", "y", "bx", "by"], "body": ["let",
+      {"qx": ["sub", ["abs", "x"], "bx"], "qy": ["sub", ["abs", "y"], "by"]},
+      ["add", ["len", ["vec", ["max", "qx", 0], ["max", "qy", 0]]], ["min", ["max", "qx", "qy"], 0]]]},
+    "smin": {"args": ["a", "b", "k"], "body": ["let",
+      {"h": ["clamp", ["add", 0.5, ["div", ["mul", 0.5, ["sub", "b", "a"]], "k"]], 0, 1]},
+      ["sub", ["mix", "b", "a", "h"], ["mul", "k", "h", ["sub", 1, "h"]]]]}
+  },
+  "output": ["let",
+    {"d": ["smin", ["sd_circle", ["sub", "x", 0.25], "y", 0.35], ["sd_box", ["add", "x", 0.25], "y", 0.25, 0.25], 0.15]},
+    ["let", {"ring": ["softmask", ["sub", ["abs", ["sd_circle", "x", "y", 0.85]], 0.04], 300],
+             "body": ["softmask", "d", 200]},
+      ["add",
+        ["mul", ["vec", 0.08, 0.09, 0.12], ["sub", 1, "body"], ["sub", 1, "ring"]],
+        ["mul", ["vec", 0.95, 0.55, 0.2], "body"],
+        ["mul", ["vec", 0.3, 0.7, 0.9], "ring", ["sub", 1, "body"]]]]]
+}

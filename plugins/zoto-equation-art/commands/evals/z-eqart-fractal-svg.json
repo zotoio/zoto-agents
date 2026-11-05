@@ -1,0 +1,15 @@
+{
+  "target_id": "command:z-eqart-fractal-svg",
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "/z-eqart-fractal-svg a Barnsley fern as a generative SVG",
+      "assertions": [
+        "The assistant follows the `eqart-fractal-svg` skill's instructions for the request",
+        "The assistant uses the text after the command as the request without asking again",
+        "The assistant checks the eqart MCP tools are available before rendering"
+      ],
+      "expected_output": "The command hands the request to the `eqart-fractal-svg` skill, which runs as if invoked directly."
+    }
+  ]
+}

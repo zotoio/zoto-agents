@@ -1,0 +1,40 @@
+{
+  "skill_name": "eqart-compose",
+  "evals": [
+    {
+      "id": 1,
+      "files": [],
+      "prompt": "/eqart-compose Make an image from equations: a row of autumn trees on a pink ground under a lavender sky.",
+      "expected_output": "The assistant drafts an eqart-ir/2 program, validates and renders it, looks at the PNG, judges each iteration and patches the program, then reports the PNG path with the program size.",
+      "assertions": [
+        "The assistant calls `eqart_validate` before `eqart_render`",
+        "The assistant opens the rendered PNG before critiquing it",
+        "The assistant edits with `eqart_patch` rather than rewriting the whole program after the first render",
+        "The assistant calls `eqart_judge` (or critiques visually when it returns judge `host`) before keeping an iteration",
+        "The assistant reports program size in bytes alongside the PNG path"
+      ]
+    },
+    {
+      "id": 2,
+      "files": [],
+      "prompt": "/eqart-compose Generate a math-art image of a coral reef texture (eqart MCP server unavailable).",
+      "expected_output": "The assistant detects the missing eqart tools, explains the uv requirement and offers the CLI fallback without inventing a render.",
+      "assertions": [
+        "The assistant detects the eqart tools are missing",
+        "The assistant explains `uv` must be on PATH and offers the CLI fallback command",
+        "The assistant does not fabricate a render path"
+      ]
+    },
+    {
+      "id": 3,
+      "files": [],
+      "prompt": "/eqart-compose Refine my teal spiral render; TYPESAFE_API_KEY is set in the environment.",
+      "expected_output": "The assistant uses `eqart_judge` so Jev decides accept/revise/reject for each iteration and uses its focus box, without printing the key or auto-applying changes.",
+      "assertions": [
+        "The assistant calls `eqart_judge` with the candidate and previous PNG paths",
+        "The assistant never prints or echoes the API key",
+        "The assistant treats the Jev decision as a recommendation and still applies edits itself with `eqart_patch`"
+      ]
+    }
+  ]
+}

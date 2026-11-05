@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "eqart": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "--frozen", "--project", "${CLAUDE_PLUGIN_ROOT}/server", "eqart-mcp"],
+      "env": {
+        "UV_PROJECT_ENVIRONMENT": "${CLAUDE_PLUGIN_DATA}/venv",
+        "UV_CACHE_DIR": "${CLAUDE_PLUGIN_DATA}/uv-cache",
+        "EQART_HOME": "${CLAUDE_PLUGIN_DATA}"
+      }
+    }
+  }
+}

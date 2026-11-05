@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equation Art — Zoto Agents</title>
+  <meta name="description" content="zoto-equation-art — images as invented math: sandboxed eqart-ir/2 programs, fractal SVGs with exact round-trips, and WebGPU/WebGL2 3D viewers.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Equation Art — Zoto Agents">
+  <meta property="og:description" content="Text → program → image, fractal SVG ⇄ equations, WebGPU/WebGL2 3D export.">
+  <meta property="og:url" content="https://zotoio.github.io/zoto-agents/equation-art/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Equation Art — Zoto Agents">
+  <meta name="twitter:description" content="Equation art for Cursor, Claude Code, and Codex.">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../css/prism-matrix.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script defer src="../js/main.js"></script>
+  <script defer src="../js/matrix-rain.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../images/logo.svg">
+  <link rel="alternate icon" type="image/png" href="../images/logo.png">
+</head>
+<body class="matrix-rain-soft">
+  <canvas class="matrix-rain-canvas" aria-hidden="true"></canvas>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <nav class="top-nav" aria-label="Main navigation">
+    <div class="top-nav-inner">
+      <a href="../index.html" class="top-nav-brand"><img src="../images/logo.png" alt="zoto.io" style="width:24px;height:24px;border-radius:4px;vertical-align:middle;margin-right:8px;">zoto-agents</a>
+      <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="sidebar-toggle-icon"></span>
+      </button>
+      <ul class="top-nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="../spec-system/index.html" class="nav-dropdown-toggle">Spec System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../spec-system/index.html">Overview</a></li>
+            <li><a href="../spec-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../spec-system/design.html">Design</a></li>
+            <li><a href="../spec-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../eval-system/index.html" class="nav-dropdown-toggle">Eval System</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../eval-system/index.html">Overview</a></li>
+            <li><a href="../eval-system/quickstart.html">Quickstart</a></li>
+            <li><a href="../eval-system/design.html">Design</a></li>
+            <li><a href="../eval-system/configuration.html">Configuration</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="../cursor-top/index.html" class="nav-dropdown-toggle">Cursor Top</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="../cursor-top/index.html">Overview</a></li>
+            <li><a href="../cursor-top/quickstart.html">Quickstart</a></li>
+          </ul>
+        </li>
+        <li><a href="../mcp-swarm/index.html">MCP Swarm</a></li>
+        <li><a href="../crux-compress/index.html">CRUX Compress</a></li>
+        <li><a href="../botz-skills/index.html">Botz Skills</a></li>
+        <li><a href="index.html" class="active">Equation Art</a></li>
+        <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+      <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav" aria-label="Equation Art sections">
+        <h3 class="sidebar-heading">Equation Art</h3>
+        <ul class="sidebar-list">
+          <li><a href="#overview" class="sidebar-link active">Overview</a></li>
+          <li><a href="#install" class="sidebar-link">Install</a></li>
+          <li><a href="#skills" class="sidebar-link">Skills &amp; commands</a></li>
+          <li><a href="#fractals" class="sidebar-link">Fractals</a></li>
+          <li><a href="#webgpu" class="sidebar-link">WebGPU / WebGL2 3D</a></li>
+          <li><a href="#judge" class="sidebar-link">Judging iterations</a></li>
+          <li><a href="#extras" class="sidebar-link">Optional extras</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="main-content">
+      <div class="container">
+
+        <ul class="breadcrumbs">
+          <li><a href="../index.html">Home</a></li>
+          <li>Equation Art</li>
+        </ul>
+
+        <h1 id="overview">Equation Art</h1>
+        <p>
+          <strong>Images as invented math.</strong> The agent writes <code>eqart-ir/2</code> programs: sandboxed, multi-pass JSON
+          built from closed forms, soft masks, SDFs, per-pixel iteration, cellular automata and PDE simulations. A local MCP
+          server validates, renders and measures them. Programs are interpreted and never executed as Python, and by default no
+          pretrained weights are used anywhere.
+        </p>
+        <p>Plugin version <strong>0.2.0</strong>. Requires <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener noreferrer">uv</a> on PATH.</p>
+
+        <h2 id="install">Install</h2>
+        <table>
+          <thead><tr><th>Client</th><th>Marketplace file</th><th>Install</th></tr></thead>
+          <tbody>
+            <tr><td>Cursor</td><td><code>.cursor-plugin/marketplace.json</code></td><td>Add <code>zotoio/zoto-agents</code> as a marketplace, then install <strong>zoto-equation-art</strong>.</td></tr>
+            <tr><td>Claude Code</td><td><code>.claude-plugin/marketplace.json</code></td><td><code>/plugin marketplace add zotoio/zoto-agents</code>, then <code>/plugin install zoto-equation-art@zoto-agents</code></td></tr>
+            <tr><td>Codex</td><td><code>.agents/plugins/marketplace.json</code></td><td><code>codex plugin marketplace add zotoio/zoto-agents</code>, then install from <code>/plugins</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="skills">Skills &amp; commands</h2>
+        <table>
+          <thead><tr><th>Skill</th><th>Command</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>eqart-compose</code></td><td><code>/z-eqart-compose</code></td><td>Prompt → program → image, with a judged render-and-critique loop.</td></tr>
+            <tr><td><code>eqart-sdf</code></td><td><code>/z-eqart-sdf</code></td><td>Logos, icons and geometric scenes as signed-distance fields, with 3D viewer export.</td></tr>
+            <tr><td><code>eqart-fractal-svg</code></td><td><code>/z-eqart-fractal-svg</code></td><td>18 fractal presets to generative SVG / PNG / program, and fractal fitting from SVGs and images.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="fractals">Fractals</h2>
+        <p>
+          Four families: IFS, L-systems, spirals and escape-time sets. A Barnsley fern is a 9 KB generative SVG that flattens to
+          about 4 MB. IFS maps descend levels in proportion to how much they shrink. Spirals use binary doubling. Depth is capped at
+          60k instances so resvg can render the result. Mandelbrot and Julia sets come out as contour SVGs. Every SVG the plugin writes
+          embeds its spec and round-trips exactly. Foreign SVGs are rasterized with resvg and fitted: IFS by a density-based collage fit,
+          Julia sets by a <code>c</code> search, and L-systems against a template library.
+        </p>
+
+        <h2 id="webgpu">WebGPU / WebGL2 3D</h2>
+        <p>
+          <code>eqart_export</code> with <code>targets: ["webgpu"]</code> transpiles a program to WGSL and GLSL. It writes a self-contained
+          <code>viewer.html</code> that tries WebGPU first and falls back to WebGL2. The viewer has a 2D view and a 3D view that
+          raymarches a height field (luminance, or the program's SDF). Field programs such as Gray-Scott are shown as a texture.
+        </p>
+
+        <h2 id="judge">Judging iterations</h2>
+        <p>
+          <code>eqart_judge</code> recommends accept / revise / reject for each improvement round. It uses Jev (TypeSafe System One, image
+          assets + Box) when <code>TYPESAFE_API_KEY</code> is set. Without a key it uses weight-free PSNR / MS-SSIM when there is a target
+          image, and otherwise the host agent's own visual critique. The key is never logged, and judges never apply changes.
+        </p>
+
+        <h2 id="extras">Optional extras</h2>
+        <ul>
+          <li><code>svg</code>: resvg-py for SVG cross-checks and foreign-SVG fitting.</li>
+          <li><code>gpu-preview</code>: wgpu for a native WGSL preview.</li>
+          <li><code>weights</code>: opt-in perceptual (LPIPS) judge. Never required, and no weights are downloaded at install time.</li>
+        </ul>
+
+        <h2 id="see-also">See also</h2>
+        <div class="grid grid-3">
+          <a class="link-card" href="https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-equation-art" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">Plugin source</span>
+            <span class="link-card-desc">Python MCP server, skills, commands and manifests.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-equation-art/docs/SPEC.md" target="_blank" rel="noopener noreferrer">
+            <span class="link-card-title">Spec v2</span>
+            <span class="link-card-desc">Objective function, IR v2, fractal module, exports and judges.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+          <a class="link-card" href="../index.html#plugins">
+            <span class="link-card-title">All plugins</span>
+            <span class="link-card-desc">Spec System, Eval System, Cursor Top, MCP Swarm, CRUX Compress and Botz Skills.</span>
+            <span class="link-card-arrow">&rarr;</span>
+          </a>
+        </div>
+
+        <p>
+          Source-of-truth: <a href="https://github.com/zotoio/zoto-agents/blob/main/plugins/zoto-equation-art/README.md" target="_blank" rel="noopener noreferrer"><code>plugins/zoto-equation-art/README.md</code></a>.
+        </p>
+
+      </div>
+
+      <footer class="site-footer">
+        <p>Equation Art v0.2.0 · part of <strong>zoto-agents</strong> · MIT License</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

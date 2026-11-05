@@ -1,0 +1,22 @@
+{
+  "name": "zoto-equation-art",
+  "version": "0.2.0",
+  "description": "Images as invented math: text→program→image and image→program from sandboxed eqart-ir/2 equation programs, fractal SVG (IFS, L-systems, spirals, escape-time sets) with exact round-trips, and WebGPU/WebGL2 3D viewer export.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-equation-art",
+  "license": "MIT",
+  "repository": "https://github.com/zotoio/zoto-agents",
+  "keywords": [
+    "math-art",
+    "equations",
+    "procedural",
+    "sdf",
+    "fractal",
+    "svg",
+    "webgpu",
+    "mcp"
+  ]
+}

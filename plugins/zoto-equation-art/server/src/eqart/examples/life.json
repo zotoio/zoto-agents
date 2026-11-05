@@ -1,0 +1,11 @@
+{
+  "ir": "eqart-ir/2",
+  "meta": {"title": "Game of Life from hashed noise", "method": "eqart-compose"},
+  "canvas": {"width": 128, "height": 128},
+  "fields": {"A": {"channels": 1, "boundary": "wrap", "init": ["select", ["gt", ["hash", "px", "py", 42], 0.7], 1, 0]}},
+  "schedule": [{"id": "life", "repeat": 60, "writes": {"A": ["let",
+    {"n": ["add", ["tap","A",-1,-1], ["tap","A",0,-1], ["tap","A",1,-1], ["tap","A",-1,0], ["tap","A",1,0], ["tap","A",-1,1], ["tap","A",0,1], ["tap","A",1,1]],
+     "a": ["tap", "A", 0, 0]},
+    ["max", ["eq", "n", 3], ["mul", "a", ["eq", "n", 2]]]]}}],
+  "output": ["vec", ["tap","A",0,0], ["mul", 0.6, ["tap","A",0,0]], 0.1]
+}

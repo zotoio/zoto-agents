@@ -1,0 +1,17 @@
+{
+  "sd_circle": {"args": ["x", "y", "r"], "body": ["sub", ["len", ["vec", "x", "y"]], "r"]},
+  "sd_box": {"args": ["x", "y", "bx", "by"], "body": ["let",
+    {"qx": ["sub", ["abs", "x"], "bx"], "qy": ["sub", ["abs", "y"], "by"]},
+    ["add", ["len", ["vec", ["max", "qx", 0], ["max", "qy", 0]]], ["min", ["max", "qx", "qy"], 0]]]},
+  "sd_segment": {"args": ["x", "y", "ax", "ay", "bx", "by"], "body": ["let",
+    {"px": ["sub", "x", "ax"], "py": ["sub", "y", "ay"], "dx": ["sub", "bx", "ax"], "dy": ["sub", "by", "ay"]},
+    ["let", {"h": ["clamp", ["div", ["add", ["mul", "px", "dx"], ["mul", "py", "dy"]], ["add", ["mul", "dx", "dx"], ["mul", "dy", "dy"]]], 0, 1]},
+      ["len", ["vec", ["sub", "px", ["mul", "dx", "h"]], ["sub", "py", ["mul", "dy", "h"]]]]]]},
+  "sd_ellipse_approx": {"args": ["x", "y", "a", "b"], "body": ["mul",
+    ["sub", ["len", ["vec", ["div", "x", "a"], ["div", "y", "b"]]], 1], ["min", "a", "b"]]},
+  "smin": {"args": ["a", "b", "k"], "body": ["let",
+    {"h": ["clamp", ["add", 0.5, ["div", ["mul", 0.5, ["sub", "b", "a"]], "k"]], 0, 1]},
+    ["sub", ["mix", "b", "a", "h"], ["mul", "k", "h", ["sub", 1, "h"]]]]},
+  "rot_x": {"args": ["x", "y", "a"], "body": ["sub", ["mul", ["cos", "a"], "x"], ["mul", ["sin", "a"], "y"]]},
+  "rot_y": {"args": ["x", "y", "a"], "body": ["add", ["mul", ["sin", "a"], "x"], ["mul", ["cos", "a"], "y"]]}
+}

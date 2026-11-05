@@ -41,6 +41,12 @@
       "source": "./plugins/zoto-botz-skills",
       "description": "Consume governed Agent Skills and subagents from the hosted botz.ai MCP server (https://mcp.botz.ai/mcp, OAuth sign-in) with zero-drift guid+version pinning and CRUX-compressed downloads.",
       "category": "developer-tools"
+    },
+    {
+      "name": "zoto-equation-art",
+      "source": "./plugins/zoto-equation-art",
+      "description": "Images as invented math: sandboxed eqart-ir/2 equation programs rendered by a local uv-run MCP server, fractal SVG (18 presets, exact round-trips, image/SVG fitting), WebGPU/WebGL2 3D viewer export, and optional Jev decisions on improvement iterations.",
+      "category": "creative"
     }
   ]
 }

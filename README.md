@@ -14,6 +14,7 @@ Monorepo for Cursor plugins by [zotoio](https://github.com/zotoio).
 | [botz-mcp-swarm](plugins/botz-mcp-swarm/) | Skills for the botz MCP Swarm CLI, local by default: introspect MCP servers, generate and run test suites (contract checks, evals, load), diagnose and optimise on this machine. Botz platform mode (central server, remote runs, workers) is opt-in. |
 | [crux-compress](plugins/crux-compress/) | CRUX-Compress as a plugin: compress rules, code, images, and web pages into CRUX notation, with CRUX memories and meditation. |
 | [zoto-botz-skills](plugins/zoto-botz-skills/) | Consume governed skills and subagents from the hosted botz.ai MCP server (`https://mcp.botz.ai/mcp`, OAuth) with zero-drift guid+version pinning and CRUX-compressed downloads. |
+| [zoto-equation-art](plugins/zoto-equation-art/) | Images as invented math: sandboxed `eqart-ir/2` equation programs (closed forms, SDFs, cellular automata, PDEs) rendered by a local MCP server, fractal SVGs with exact round-trips and image fitting, WebGPU/WebGL2 3D viewer export, and optional Jev decisions on improvement iterations. Needs `uv`. |
 
 ## Install
 

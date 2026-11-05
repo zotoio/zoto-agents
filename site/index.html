@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zoto Agents — Spec, Eval &amp; Cursor Top plugins for Cursor</title>
-  <meta name="description" content="Six agent plugins for shipping engineering work with confidence: zoto-spec-system plans and verifies engineering specs, zoto-eval-system generates and updates static + LLM eval suites in lock-step with code, zoto-cursor-top monitors every Cursor agent on your machine, botz-mcp-swarm tests and load-tests MCP servers, and crux-compress compresses rules and context into CRUX notation, and zoto-botz-skills consumes governed skills from the hosted botz.ai MCP server.">
+  <meta name="description" content="Seven agent plugins for shipping engineering work with confidence: zoto-spec-system plans and verifies engineering specs, zoto-eval-system generates and updates static + LLM eval suites in lock-step with code, zoto-cursor-top monitors every Cursor agent on your machine, botz-mcp-swarm tests and load-tests MCP servers, and crux-compress compresses rules and context into CRUX notation, zoto-botz-skills consumes governed skills from the hosted botz.ai MCP server, and zoto-equation-art renders images from invented math.">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Zoto Agents — Spec, Eval &amp; Cursor Top plugins for Cursor">
-  <meta property="og:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Six peer plugins for structured engineering on top of Cursor — independent, composable, free.">
+  <meta property="og:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Seven peer plugins for structured engineering on top of Cursor — independent, composable, free.">
   <meta property="og:url" content="https://zotoio.github.io/zoto-agents/">
   <meta property="og:site_name" content="Zoto Agents">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Zoto Agents — Spec, Eval &amp; Cursor Top plugins for Cursor">
-  <meta name="twitter:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Six peer plugins for structured engineering on top of Cursor.">
+  <meta name="twitter:description" content="Plan and verify your specs. Generate and update your evals. Watch every agent. Seven peer plugins for structured engineering on top of Cursor.">
 
   <!-- Favicon: shared with the hero / nav logo (retinted to the Matrix palette). -->
   <link rel="icon" type="image/svg+xml" href="images/logo.svg">
@@ -460,6 +460,7 @@
         <li><a href="mcp-swarm/index.html">MCP Swarm</a></li>
         <li><a href="crux-compress/index.html">CRUX Compress</a></li>
         <li><a href="botz-skills/index.html">Botz Skills</a></li>
+        <li><a href="equation-art/index.html">Equation Art</a></li>
         <li><a href="https://github.com/zotoio/zoto-agents" target="_blank" rel="noopener noreferrer">GitHub &rarr;</a></li>
       </ul>
     </div>
@@ -478,7 +479,7 @@
           <h1 class="hero-title">zoto-agents</h1>
           <p class="hero-tagline">Plan and verify your specs. Generate and update your evals. Watch every agent.</p>
           <p class="hero-description">
-            Six plugins, shipped together as peers. <strong>zoto-spec-system</strong>
+            Seven plugins, shipped together as peers. <strong>zoto-spec-system</strong>
             decomposes complex initiatives into reviewable specs and runs them with
             adversarial verification. <strong>zoto-eval-system</strong> stamps static and LLM
             eval suites side-by-side and updates them with your confirmation when
@@ -619,6 +620,24 @@
                 <a href="botz-skills/index.html#install" class="plugin-card-chip">Install</a>
                 <a href="https://mcp.botz.ai" class="plugin-card-chip" target="_blank" rel="noopener noreferrer">mcp.botz.ai</a>
                 <a href="https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-botz-skills" class="plugin-card-chip" target="_blank" rel="noopener noreferrer">Source</a>
+              </div>
+            </article>
+            <!-- zoto-equation-art: version sourced from plugins/zoto-equation-art/.cursor-plugin/plugin.json -->
+            <article class="plugin-card">
+              <div class="plugin-card-header">
+                <h3 class="plugin-card-name">zoto-equation-art</h3>
+                <span class="badge badge-accent">v0.2.0</span>
+              </div>
+              <p class="plugin-card-desc">
+                Images as invented math: sandboxed equation programs rendered by a local MCP server,
+                fractal SVGs that round-trip exactly, and WebGPU/WebGL2 3D viewers.
+              </p>
+              <div class="plugin-card-cta">
+                <a href="equation-art/index.html" class="btn btn-primary">Read the Docs</a>
+              </div>
+              <div class="plugin-card-chips">
+                <a href="equation-art/index.html#install" class="plugin-card-chip">Install</a>
+                <a href="https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-equation-art" class="plugin-card-chip" target="_blank" rel="noopener noreferrer">Source</a>
               </div>
             </article>
           </div>
@@ -773,6 +792,11 @@
             <a href="botz-skills/index.html" class="link-card">
               <span class="link-card-title">Botz Skills</span>
               <span class="link-card-desc">Connect to mcp.botz.ai, pinning, updates, and requesting new skills.</span>
+              <span class="link-card-arrow">&rarr;</span>
+            </a>
+            <a href="equation-art/index.html" class="link-card">
+              <span class="link-card-title">Equation Art</span>
+              <span class="link-card-desc">Equation programs, fractal SVGs, WebGPU/WebGL2 3D viewers and iteration judges.</span>
               <span class="link-card-arrow">&rarr;</span>
             </a>
             <a href="https://github.com/zotoio/zoto-agents" class="link-card" target="_blank" rel="noopener noreferrer">

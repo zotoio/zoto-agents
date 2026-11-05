@@ -1,0 +1,42 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "zoto-equation-art",
+  "version": "0.2.0",
+  "description": "Images as invented math: text→program→image and image→program from sandboxed eqart-ir/2 equation programs, fractal SVG (IFS, L-systems, spirals, escape-time sets) with exact round-trips, and WebGPU/WebGL2 3D viewer export.",
+  "author": {
+    "name": "zotoio",
+    "email": "plugins@zotoio.com"
+  },
+  "homepage": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-equation-art",
+  "repository": "https://github.com/zotoio/zoto-agents",
+  "keywords": [
+    "math-art",
+    "equations",
+    "procedural",
+    "sdf",
+    "fractal",
+    "svg",
+    "webgpu",
+    "webgl",
+    "reaction-diffusion",
+    "inverse-rendering",
+    "mcp"
+  ],
+  "license": "MIT",
+  "category": "creative",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Equation Art",
+        "shortDescription": "Images from invented math",
+        "longDescription": "Generate images as sandboxed equation programs (closed forms, SDFs, cellular automata, PDEs, per-pixel iteration) with a render-and-critique loop, render 18 fractal presets to generative SVG / PNG / programs and fit fractals back from SVGs and images, and export programs as self-contained WebGPU/WebGL2 3D viewers. Optional Jev decisions on improvement iterations when TYPESAFE_API_KEY is set.",
+        "developerName": "zotoio",
+        "category": "Productivity",
+        "websiteURL": "https://github.com/zotoio/zoto-agents/tree/main/plugins/zoto-equation-art",
+        "composerIcon": "./assets/logo.png",
+        "logo": "./assets/logo.png"
+      },
+      "requires_local_executor": true
+    }
+  }
+}

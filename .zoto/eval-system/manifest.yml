@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-30T07:19:32.259Z
-git_ref: 8faa5b947d638b31f24643597337124527a14b0f
+updated_at: 2026-11-05T09:51:25.375Z
+git_ref: b7f99d6556252e12bbe6d3be3a263aa13a1be0ff
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -1962,3 +1962,102 @@ targets:
       workspace: .cursor
     eval_files:
       - .cursor/hooks/evals/hooks.json
+  - id: skill:eqart-compose
+    kind: skill
+    path: plugins/zoto-equation-art/skills/eqart-compose/SKILL.md
+    content_hash: 51192b2dcbcbec365c4a2f269833ce9222e53e7ffc783d29fcad60450a24dad7
+    public_surface:
+      frontmatter:
+        name: eqart-compose
+        description: Turn a text prompt into an image rendered entirely from an invented
+          math program (eqart-ir/2) — closed forms, soft masks, layered
+          occlusion, per-pixel iteration, cellular automata, reaction-diffusion
+          and other multi-pass simulations — then refine it through a
+          render-and-critique loop. Use when the user wants a picture, texture,
+          pattern or scene generated "from equations", "as math",
+          "procedurally", or in the style of Hamid Naderi Yeganeh. Requires the
+          eqart MCP server.
+        license: MIT
+        metadata: ""
+        plugin: zoto-equation-art
+        status: available (v0.2.0)
+    eval_files:
+      - plugins/zoto-equation-art/skills/eqart-compose/evals/evals.json
+  - id: skill:eqart-sdf
+    kind: skill
+    path: plugins/zoto-equation-art/skills/eqart-sdf/SKILL.md
+    content_hash: 35ba7bc976679e03f95d4578fb3bc5e67e644c868e2b9c4d99d4fbbd5279119e
+    public_surface:
+      frontmatter:
+        name: eqart-sdf
+        description: Build crisp graphics — logos, icons, badges, geometric scenes, UI
+          shapes — as signed-distance-field programs in eqart-ir/2. Primitives
+          and boolean/smooth-min operators are composed as opdefs and
+          soft-masked into coloured layers, optimised for exact edges and
+          real-time WebGPU/WebGL2 shader export with a 3D viewer. Use when the
+          user asks for vector-like or geometric imagery made from math, or an
+          SDF / Shadertoy-style scene. Requires the eqart MCP server.
+        license: MIT
+        metadata: ""
+        plugin: zoto-equation-art
+        status: available (v0.2.0); WebGPU/WebGL2 viewer export; parameter fitting M3
+    eval_files:
+      - plugins/zoto-equation-art/skills/eqart-sdf/evals/evals.json
+  - id: skill:eqart-fractal-svg
+    kind: skill
+    path: plugins/zoto-equation-art/skills/eqart-fractal-svg/SKILL.md
+    content_hash: 895afef5350ade1e0d74a6592477c03131fc5c46307fdc9abbe6dc1b351ebba7
+    public_surface:
+      frontmatter:
+        name: eqart-fractal-svg
+        description: Render fractals as compact generative SVGs (plus flattened SVG, PNG
+          and an eqart-ir/2 program) from 18 presets across four families — IFS
+          (Barnsley fern, Sierpinski, dragon, Lévy C, Pythagoras tree),
+          L-systems (Koch, Hilbert, arrowhead, plants), spirals (golden,
+          nautilus) and escape-time sets (Mandelbrot, Julia) — and fit fractal
+          equations back from SVGs or raster images. Use when the user asks for
+          a fractal, a self-similar SVG, "SVG from equations", or to turn a
+          fractal-looking image or SVG into equations. Requires the eqart MCP
+          server.
+        license: MIT
+        metadata: ""
+        plugin: zoto-equation-art
+        status: available (v0.2.0)
+    eval_files:
+      - plugins/zoto-equation-art/skills/eqart-fractal-svg/evals/evals.json
+  - id: command:z-eqart-compose
+    kind: command
+    path: plugins/zoto-equation-art/commands/z-eqart-compose.md
+    content_hash: 840d7ecce98baf84b26d08bbc8e72eba69f718fc7ea384dbf4a63435ef3acae2
+    public_surface:
+      frontmatter:
+        name: z-eqart-compose
+        description: '"Run the eqart-compose skill. Turn a text prompt into an image
+          rendered from an invented math program, refined through a judged
+          render-and-critique loop."'
+    eval_files:
+      - plugins/zoto-equation-art/commands/evals/z-eqart-compose.json
+  - id: command:z-eqart-sdf
+    kind: command
+    path: plugins/zoto-equation-art/commands/z-eqart-sdf.md
+    content_hash: eeaae59a6982fb74248cf7bbc6f6ec19bcd6f173238efa64d72ffedec477c6b0
+    public_surface:
+      frontmatter:
+        name: z-eqart-sdf
+        description: '"Run the eqart-sdf skill. Build crisp logos, icons and geometric
+          scenes as signed-distance-field programs, with WebGPU/WebGL2 3D viewer
+          export."'
+    eval_files:
+      - plugins/zoto-equation-art/commands/evals/z-eqart-sdf.json
+  - id: command:z-eqart-fractal-svg
+    kind: command
+    path: plugins/zoto-equation-art/commands/z-eqart-fractal-svg.md
+    content_hash: 435e65ecaed2766c3d2a7956d64feffe912b5524cb4b63d0b78f238caae930e5
+    public_surface:
+      frontmatter:
+        name: z-eqart-fractal-svg
+        description: '"Run the eqart-fractal-svg skill. Render fractal presets (IFS,
+          L-systems, spirals, Mandelbrot/Julia) to generative SVG, PNG and
+          programs, or fit fractals back from SVGs and images."'
+    eval_files:
+      - plugins/zoto-equation-art/commands/evals/z-eqart-fractal-svg.json

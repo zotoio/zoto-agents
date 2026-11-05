@@ -1,0 +1,11 @@
+{
+  "name": "@zoto-agents/zoto-equation-art",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Equation-art agent plugin (Python MCP server under ./server).",
+  "scripts": {
+    "build": "uv sync --project server --frozen --extra svg",
+    "test": "uv run --project server --frozen --extra svg --group dev pytest server/tests -q",
+    "validate": "uv run --project server --frozen eqart validate server/src/eqart/examples/gray_scott.json"
+  }
+}

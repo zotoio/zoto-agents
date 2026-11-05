@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Mandelbrot via per-pixel iterate with escape · eqart 3D viewer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#0d0f14;color:#dfe3ea;font:14px system-ui,sans-serif}
+#bar{position:fixed;top:0;left:0;right:0;display:flex;gap:8px;align-items:center;padding:8px 12px;background:#0d0f14cc;z-index:2}
+button{background:#1c2130;color:#dfe3ea;border:1px solid #2d3448;border-radius:6px;padding:4px 10px;cursor:pointer}
+button.on{background:#3b5bdb;border-color:#3b5bdb}
+#c{width:100vw;height:100vh;display:block;touch-action:none}
+#api{opacity:.8}
+</style></head><body>
+<div id="bar"><strong>Mandelbrot via per-pixel iterate with escape</strong>
+<button id="b2d">2D</button><button id="b3d" class="on">3D</button>
+<span id="api">starting…</span><span style="opacity:.6">drag to orbit · wheel to zoom</span></div>
+<canvas id="c"></canvas>
+<script type="x-shader/x-fragment" id="glsl">#version 300 es
+precision highp float;
+uniform vec4 uA; // width, height, mode (0=2D, 1=3D), hscale
+uniform vec4 uB; // yaw, pitch, dist, has_sdf
+uniform vec4 U_DOM; // cx, cy, half-width, half-height
+uniform sampler2D uTex;
+out vec4 outColor;
+#define U_W uA.x
+#define U_H uA.y
+#define U_PX gl_FragCoord.x
+#define U_PY (uA.y - gl_FragCoord.y)
+vec3 eqart(vec2 p) {
+  float v0 = 0.0;
+  float v1 = 0.0;
+  float v2 = 0.0;
+  for (int i3 = 0; i3 < 120; i3++) {
+    float v4 = (((v0 * v0) - (v1 * v1)) + p.x);
+    float v5 = (((2.0 * v0) * v1) + p.y);
+    v0 = v4;
+    v1 = v5;
+    v2 = v2 + 1.0;
+    if ((1.0 - step(((v0 * v0) + (v1 * v1)), 4.0)) > 0.5) { break; }
+  }
+  float v6 = (v2 / 120.0);
+  return vec3(pow(max(abs(v6), 1.0e-30), 0.4), pow(max(abs(v6), 1.0e-30), 1.2), (1.0 - pow(max(abs(v6), 1.0e-30), 0.25)));
+}
+
+float luma(vec3 c) { return dot(clamp(c, 0.0, 1.0), vec3(0.299, 0.587, 0.114)); }
+float hgt(vec2 p) {
+  return 0.3 * luma(eqart(p));
+}
+void main() {
+  vec2 frag = gl_FragCoord.xy / uA.xy;
+  if (uA.z < 0.5) {
+    vec2 p = vec2(U_DOM.x + (frag.x - 0.5) * 2.0 * U_DOM.z, U_DOM.y + (frag.y - 0.5) * 2.0 * U_DOM.w);
+    outColor = vec4(clamp(eqart(p), 0.0, 1.0), 1.0);
+    return;
+  }
+  float yaw = uB.x, pitch = uB.y, dist = uB.z;
+  float R = max(U_DOM.z, U_DOM.w);
+  vec3 tgt = vec3(U_DOM.x, 0.0, U_DOM.y);
+  vec3 ro = tgt + dist * R * vec3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw));
+  vec3 fw = normalize(tgt - ro), rt = normalize(cross(fw, vec3(0.0, 1.0, 0.0))), up = cross(rt, fw);
+  vec2 q = (gl_FragCoord.xy - 0.5 * uA.xy) / uA.y;
+  vec3 rd = normalize(fw * 1.6 + rt * q.x + up * q.y);
+  float t = 0.0, tmax = dist * R * 3.0, dt = tmax / 220.0;
+  vec3 col = mix(vec3(0.06, 0.07, 0.1), vec3(0.18, 0.2, 0.28), q.y + 0.5);
+  float prevD = 1.0, prevT = 0.0;
+  for (int i = 0; i < 220; i++) {
+    vec3 pos = ro + rd * t;
+    vec2 p = vec2(pos.x, pos.z);
+    bool inside = abs(p.x - U_DOM.x) <= U_DOM.z && abs(p.y - U_DOM.y) <= U_DOM.w;
+    float d = inside ? pos.y - hgt(p) : 1.0;
+    if (inside && d < 0.0) {
+      float a = prevT, b = t;
+      for (int k = 0; k < 6; k++) { float m = 0.5 * (a + b); vec3 pm = ro + rd * m; if (pm.y - hgt(pm.xz) < 0.0) b = m; else a = m; }
+      vec3 ph = ro + rd * b;
+      float e = 2.0 * U_DOM.z / uA.x;
+      vec3 n = normalize(vec3(hgt(ph.xz - vec2(e, 0.0)) - hgt(ph.xz + vec2(e, 0.0)), 2.0 * e, hgt(ph.xz - vec2(0.0, e)) - hgt(ph.xz + vec2(0.0, e))));
+      vec3 base = clamp(eqart(vec2(ph.x, ph.z)), 0.0, 1.0);
+      float diff = max(dot(n, normalize(vec3(0.5, 0.9, 0.3))), 0.0);
+      col = base * (0.25 + 0.75 * diff);
+      break;
+    }
+    prevT = t; t += dt;
+    if (t > tmax) break;
+  }
+  outColor = vec4(col, 1.0);
+}
+</script>
+<script type="text/wgsl" id="wgsl">struct Uni { a: vec4<f32>, b: vec4<f32>, dom: vec4<f32> };
+@group(0) @binding(0) var<uniform> U: Uni;
+@group(0) @binding(1) var tex: texture_2d<f32>;
+@group(0) @binding(2) var samp: sampler;
+struct VOut { @builtin(position) pos: vec4<f32> };
+@vertex fn vs(@builtin(vertex_index) i: u32) -> VOut {
+  var xy = array<vec2<f32>, 3>(vec2<f32>(-1.0, -1.0), vec2<f32>(3.0, -1.0), vec2<f32>(-1.0, 3.0));
+  var o: VOut; o.pos = vec4<f32>(xy[i], 0.0, 1.0); return o;
+}
+var<private> FRAG: vec2<f32>;
+
+fn eqart(p: vec2<f32>) -> vec3<f32> {
+  var v0: f32 = 0.0;
+  var v1: f32 = 0.0;
+  var v2: f32 = 0.0;
+  for (var i3: i32 = 0; i3 < 120; i3++) {
+    var v4: f32 = (((v0 * v0) - (v1 * v1)) + p.x);
+    var v5: f32 = (((2.0 * v0) * v1) + p.y);
+    v0 = v4;
+    v1 = v5;
+    v2 = v2 + 1.0;
+    if ((1.0 - step(((v0 * v0) + (v1 * v1)), 4.0)) > 0.5) { break; }
+  }
+  var v6: f32 = (v2 / 120.0);
+  return vec3<f32>(pow(max(abs(v6), 1.0e-30), 0.4), pow(max(abs(v6), 1.0e-30), 1.2), (1.0 - pow(max(abs(v6), 1.0e-30), 0.25)));
+}
+
+fn luma(c: vec3<f32>) -> f32 { return dot(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>(0.299, 0.587, 0.114)); }
+fn hgt(p: vec2<f32>) -> f32 {
+  return 0.3 * luma(eqart(p));
+}
+@fragment fn fs(@builtin(position) fc: vec4<f32>) -> @location(0) vec4<f32> {
+  FRAG = fc.xy;
+  _ = textureSampleLevel(tex, samp, vec2<f32>(0.5, 0.5), 0.0); // keep bindings 1-2 in the auto layout
+  let res = U.a.xy;
+  let frag = vec2<f32>(fc.x / res.x, 1.0 - fc.y / res.y);
+  if (U.a.z < 0.5) {
+    let p = vec2<f32>(U.dom.x + (frag.x - 0.5) * 2.0 * U.dom.z, U.dom.y + (frag.y - 0.5) * 2.0 * U.dom.w);
+    return vec4<f32>(clamp(eqart(p), vec3<f32>(0.0), vec3<f32>(1.0)), 1.0);
+  }
+  let yaw = U.b.x; let pitch = U.b.y; let dist = U.b.z;
+  let R = max(U.dom.z, U.dom.w);
+  let tgt = vec3<f32>(U.dom.x, 0.0, U.dom.y);
+  let ro = tgt + dist * R * vec3<f32>(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw));
+  let fw = normalize(tgt - ro); let rt = normalize(cross(fw, vec3<f32>(0.0, 1.0, 0.0))); let up = cross(rt, fw);
+  let q = vec2<f32>(fc.x - 0.5 * res.x, 0.5 * res.y - fc.y) / res.y;
+  let rd = normalize(fw * 1.6 + rt * q.x + up * q.y);
+  var t = 0.0; let tmax = dist * R * 3.0; let dt = tmax / 220.0;
+  var col = mix(vec3<f32>(0.06, 0.07, 0.1), vec3<f32>(0.18, 0.2, 0.28), q.y + 0.5);
+  var prevT = 0.0;
+  for (var i: i32 = 0; i < 220; i++) {
+    let pos = ro + rd * t;
+    let p = vec2<f32>(pos.x, pos.z);
+    let inside = abs(p.x - U.dom.x) <= U.dom.z && abs(p.y - U.dom.y) <= U.dom.w;
+    var d = 1.0;
+    if (inside) { d = pos.y - hgt(p); }
+    if (inside && d < 0.0) {
+      var a = prevT; var b = t;
+      for (var k: i32 = 0; k < 6; k++) { let m = 0.5 * (a + b); let pm = ro + rd * m; if (pm.y - hgt(pm.xz) < 0.0) { b = m; } else { a = m; } }
+      let ph = ro + rd * b;
+      let e = 2.0 * U.dom.z / res.x;
+      let n = normalize(vec3<f32>(hgt(ph.xz - vec2<f32>(e, 0.0)) - hgt(ph.xz + vec2<f32>(e, 0.0)), 2.0 * e, hgt(ph.xz - vec2<f32>(0.0, e)) - hgt(ph.xz + vec2<f32>(0.0, e))));
+      let base = clamp(eqart(ph.xz), vec3<f32>(0.0), vec3<f32>(1.0));
+      let diff = max(dot(n, normalize(vec3<f32>(0.5, 0.9, 0.3))), 0.0);
+      col = base * (0.25 + 0.75 * diff);
+      break;
+    }
+    prevT = t; t = t + dt;
+    if (t > tmax) { break; }
+  }
+  return vec4<f32>(col, 1.0);
+}
+</script>
+<script>
+const META = {"domain": {"width": 300, "height": 200, "cx": -0.6, "cy": 0.0, "hw": 1.6666666666666667, "hh": 1.1111111111111112}, "mode": "shader", "sdf": false, "reason": null};
+const TEX_B64 = "";
+const cv = document.getElementById('c');
+const st = {mode: 1, yaw: 0.7, pitch: 0.75, dist: 2.2};
+const apiEl = document.getElementById('api');
+function setMode(m){st.mode=m;document.getElementById('b2d').classList.toggle('on',m===0);document.getElementById('b3d').classList.toggle('on',m===1);}
+document.getElementById('b2d').onclick=()=>setMode(0);
+document.getElementById('b3d').onclick=()=>setMode(1);
+let drag=null;
+cv.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);});
+cv.addEventListener('pointerup',()=>drag=null);
+cv.addEventListener('pointermove',e=>{if(!drag)return;st.yaw-=(e.clientX-drag[0])*0.01;st.pitch=Math.min(1.5,Math.max(0.05,st.pitch+(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY];});
+cv.addEventListener('wheel',e=>{e.preventDefault();st.dist=Math.min(8,Math.max(0.6,st.dist*Math.exp(e.deltaY*0.001)));},{passive:false});
+function resize(){const d=Math.min(window.devicePixelRatio||1,2);cv.width=Math.floor(cv.clientWidth*d);cv.height=Math.floor(cv.clientHeight*d);}
+window.addEventListener('resize',resize);
+function uniforms(){const D=META.domain;const aspect=cv.width/cv.height;let hw=D.hw,hh=D.hh;
+  // 2D view keeps the program's aspect, letterboxed to the window
+  if(st.mode===0){if(hw/hh<aspect)hw=hh*aspect;else hh=hw/aspect;}
+  return new Float32Array([cv.width,cv.height,st.mode,0, st.yaw,st.pitch,st.dist,META.sdf?1:0, D.cx,D.cy,hw,hh]);}
+async function loadBitmap(){if(!TEX_B64){const c=document.createElement('canvas');c.width=c.height=1;return createImageBitmap(c);}
+  const b=await (await fetch('data:image/png;base64,'+TEX_B64)).blob();return createImageBitmap(b,{imageOrientation:'none'});}
+
+async function startWebGPU(){
+  if(!navigator.gpu) throw new Error('navigator.gpu missing');
+  const adapter=await navigator.gpu.requestAdapter(); if(!adapter) throw new Error('no WebGPU adapter');
+  const device=await adapter.requestDevice();
+  const ctx=cv.getContext('webgpu'); const fmt=navigator.gpu.getPreferredCanvasFormat();
+  ctx.configure({device,format:fmt,alphaMode:'opaque'});
+  const module=device.createShaderModule({code:document.getElementById('wgsl').textContent});
+  const info=await module.getCompilationInfo?.(); if(info&&info.messages.some(m=>m.type==='error')) throw new Error('WGSL: '+info.messages.map(m=>m.message).join('; '));
+  const pipe=device.createRenderPipeline({layout:'auto',vertex:{module,entryPoint:'vs'},fragment:{module,entryPoint:'fs',targets:[{format:fmt}]},primitive:{topology:'triangle-list'}});
+  const ubuf=device.createBuffer({size:48,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});
+  const bmp=await loadBitmap();
+  const tex=device.createTexture({size:[bmp.width,bmp.height],format:'rgba8unorm',usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST|GPUTextureUsage.RENDER_ATTACHMENT});
+  device.queue.copyExternalImageToTexture({source:bmp},{texture:tex},[bmp.width,bmp.height]);
+  const samp=device.createSampler({magFilter:'linear',minFilter:'linear'});
+  const bg=device.createBindGroup({layout:pipe.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:ubuf}},{binding:1,resource:tex.createView()},{binding:2,resource:samp}]});
+  apiEl.textContent='WebGPU · '+META.mode;
+  function frame(){resize();device.queue.writeBuffer(ubuf,0,uniforms());
+    const enc=device.createCommandEncoder();const pass=enc.beginRenderPass({colorAttachments:[{view:ctx.getCurrentTexture().createView(),loadOp:'clear',storeOp:'store',clearValue:{r:0,g:0,b:0,a:1}}]});
+    pass.setPipeline(pipe);pass.setBindGroup(0,bg);pass.draw(3);pass.end();device.queue.submit([enc.finish()]);requestAnimationFrame(frame);}
+  frame();
+}
+
+async function startWebGL(){
+  const gl=cv.getContext('webgl2'); if(!gl) throw new Error('WebGL2 unavailable');
+  const vs='#version 300 es\nvoid main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.0-1.0,0.0,1.0);}';
+  function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+  const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,document.getElementById('glsl').textContent.trim()));gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(pr));
+  gl.useProgram(pr);
+  const bmp=await loadBitmap();const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,bmp);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  const lA=gl.getUniformLocation(pr,'uA'),lB=gl.getUniformLocation(pr,'uB'),lD=gl.getUniformLocation(pr,'U_DOM');
+  apiEl.textContent='WebGL2 · '+META.mode;
+  function frame(){resize();gl.viewport(0,0,cv.width,cv.height);const u=uniforms();gl.uniform4fv(lA,u.subarray(0,4));gl.uniform4fv(lB,u.subarray(4,8));gl.uniform4fv(lD,u.subarray(8,12));gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(frame);}
+  frame();
+}
+
+(async()=>{resize();const want=new URLSearchParams(location.search).get('api');
+  const order=want==='webgl'?[startWebGL]:want==='webgpu'?[startWebGPU]:[startWebGPU,startWebGL];
+  for(const f of order){try{await f();return;}catch(e){console.warn(f.name,e);apiEl.textContent=f.name+' failed: '+e.message;}}
+})();
+</script></body></html>

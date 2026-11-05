@@ -1,0 +1,12 @@
+{
+  "ir": "eqart-ir/2",
+  "meta": {"title": "Mandelbrot via per-pixel iterate with escape", "method": "eqart-compose"},
+  "canvas": {"width": 300, "height": 200, "scale": 90, "cx": -0.6, "cy": 0},
+  "output": ["iterate", 120,
+    {"zr": 0, "zi": 0},
+    {"zr": ["add", ["sub", ["mul", "zr", "zr"], ["mul", "zi", "zi"]], "x"],
+     "zi": ["add", ["mul", 2, "zr", "zi"], "y"]},
+    ["let", {"s": ["div", "_n", 120]},
+      ["vec", ["pow", "s", 0.4], ["pow", "s", 1.2], ["sub", 1, ["pow", "s", 0.25]]]],
+    ["gt", ["add", ["mul", "zr", "zr"], ["mul", "zi", "zi"]], 4]]
+}

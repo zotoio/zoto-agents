@@ -1,0 +1,20 @@
+{
+  "ir": "eqart-ir/2",
+  "meta": {"title": "Gray-Scott reaction-diffusion (coral)", "method": "eqart-compose"},
+  "canvas": {"width": 256, "height": 256},
+  "params": {"f": {"value": 0.0545}, "k": {"value": 0.062}},
+  "fields": {"S": {"channels": 2, "boundary": "wrap",
+    "init": ["vec", 1,
+      ["max",
+        ["select", ["lt", ["len", ["vec", "x", "y"]], 0.08], 1, 0],
+        ["select", ["gt", ["hash", "px", "py", 7], 0.997], 1, 0]]]}},
+  "schedule": [{"loop": 3000, "schedule": [{"id": "rd", "writes": {"S": ["let",
+    {"c": ["tap", "S", 0, 0], "L": ["lap", "S"]},
+    ["let", {"u": ["comp", "c", 0], "v": ["comp", "c", 1]},
+      ["let", {"uvv": ["mul", "u", "v", "v"]},
+        ["vec",
+          ["add", "u", ["mul", 0.2, ["comp", "L", 0]], ["neg", "uvv"], ["mul", "$f", ["sub", 1, "u"]]],
+          ["add", "v", ["mul", 0.1, ["comp", "L", 1]], "uvv", ["neg", ["mul", ["add", "$f", "$k"], "v"]]]]]]]}}]}],
+  "output": ["let", {"v": ["comp", ["tap", "S", 0, 0], 1]},
+    ["vec", ["clamp", ["mul", 3, "v"], 0, 1], ["clamp", ["mul", 1.6, "v"], 0, 1], ["sub", 0.25, ["mul", 0.2, "v"]]]]
+}

@@ -1,0 +1,37 @@
+{
+  "skill_name": "eqart-fractal-svg",
+  "evals": [
+    {
+      "id": 1,
+      "files": [],
+      "prompt": "/eqart-fractal-svg Give me a Barnsley fern as a small generative SVG.",
+      "expected_output": "The assistant renders the barnsley_fern preset and reports the generative SVG, flat SVG, PNG and program paths with their byte sizes.",
+      "assertions": [
+        "The assistant calls `eqart_fractal_presets` or uses the `barnsley_fern` preset with `eqart_fractal_render`",
+        "The assistant reports generative vs flattened SVG sizes",
+        "The assistant opens the PNG before describing it"
+      ]
+    },
+    {
+      "id": 2,
+      "files": [],
+      "prompt": "/eqart-fractal-svg Turn this sierpinski.png into equations.",
+      "expected_output": "The assistant fits the image with `eqart_fractal_fit`, reports the family, overlap score and time, and shows the re-rendered result.",
+      "assertions": [
+        "The assistant calls `eqart_fractal_fit` with the image path",
+        "The assistant reports the overlap score and the fitted family",
+        "The assistant mentions known limits when the overlap is low (fixed L-system templates, no Mandelbrot location search)"
+      ]
+    },
+    {
+      "id": 3,
+      "files": [],
+      "prompt": "/eqart-fractal-svg Fit the Mandelbrot zoom in seahorse.png.",
+      "expected_output": "The assistant explains that Mandelbrot location search is not implemented, tries the fit anyway, and offers a Julia or preset alternative.",
+      "assertions": [
+        "The assistant states Mandelbrot location search is not implemented",
+        "The assistant does not claim an exact Mandelbrot fit"
+      ]
+    }
+  ]
+}

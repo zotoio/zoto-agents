@@ -1,0 +1,38 @@
+{
+  "skill_name": "eqart-sdf",
+  "evals": [
+    {
+      "id": 1,
+      "files": [],
+      "prompt": "/eqart-sdf Draw a minimal geometric logo from signed distance fields: an orange rounded square overlapping a teal circle, dark background.",
+      "expected_output": "The assistant composes SDF opdefs, validates, renders, inspects and patches the program, and reports sizes.",
+      "assertions": [
+        "The assistant calls `eqart_validate` before `eqart_render`",
+        "The assistant opens the rendered PNG before critiquing it",
+        "The assistant edits with `eqart_patch` rather than rewriting the whole program after the first render",
+        "The assistant reports program size in bytes alongside the PNG path"
+      ]
+    },
+    {
+      "id": 2,
+      "files": [],
+      "prompt": "/eqart-sdf Make the badge and give me a 3D WebGPU viewer of it.",
+      "expected_output": "The assistant renders the SDF program and exports it with `eqart_export` targets `webgpu`, returning the viewer.html, WGSL and GLSL paths.",
+      "assertions": [
+        "The assistant calls `eqart_export` with a `webgpu`, `webgl` or `html` target",
+        "The assistant reports the `viewer.html` path and says it opens in Chrome (WebGPU first, WebGL2 fallback)"
+      ]
+    },
+    {
+      "id": 3,
+      "files": [],
+      "prompt": "/eqart-sdf Generate a math-art image of a crescent moon icon (eqart MCP server unavailable).",
+      "expected_output": "The assistant detects the missing tools and offers the CLI fallback.",
+      "assertions": [
+        "The assistant detects the eqart tools are missing",
+        "The assistant explains `uv` must be on PATH and offers the CLI fallback command",
+        "The assistant does not fabricate a render path"
+      ]
+    }
+  ]
+}
