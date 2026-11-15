@@ -1,7 +1,7 @@
 {
   "name": "zoto-spec-system",
   "displayName": "Spec System",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Structured spec workflow: create, judge, and execute engineering initiatives with adversarial verification, live execution status aggregation, and no-restart token-budget configuration.",
   "author": {
     "name": "zotoio",

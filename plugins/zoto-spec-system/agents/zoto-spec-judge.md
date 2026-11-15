@@ -117,7 +117,7 @@ Assess a specific engineering spec using the `zoto-judge-spec` skill.
 
 1. Load the spec index and all subtask files
 2. Explore context to verify codebase assumptions
-3. Score six dimensions, validate the Subtask Manifest, audit the dependency graph
+3. Score six dimensions, validate the Subtask Manifest, audit the dependency graph, and audit the `## Execution Strategy` block when present (`spec-strategy-lint`; HIGH findings keep the verdict below Approve)
 4. Perform risk analysis
 5. Write report to the spec's directory as `assessment-[feature-name]-[yyyymmdd].md`
 6. **Offer to apply fixes** — present actionable findings and ask the user whether to apply recommended changes directly to spec files. If accepted, modify spec files (index, subtasks, dependency graph) to address identified issues. Update the assessment report to note applied fixes.

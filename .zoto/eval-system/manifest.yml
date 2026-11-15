@@ -1,7 +1,7 @@
 schema_version: 1
 created_at: 2026-05-03T07:47:43+00:00
-updated_at: 2026-10-30T07:19:32.259Z
-git_ref: 8faa5b947d638b31f24643597337124527a14b0f
+updated_at: 2026-11-15T02:13:28.781Z
+git_ref: 67b050e2a5f3c8a4c7e431006c97fe5bb450a2a6
 generated_by: zoto-update-evals
 discovery_config:
   discoveryTargets:
@@ -795,7 +795,7 @@ targets:
   - id: skill:zoto-create-spec
     kind: skill
     path: plugins/zoto-spec-system/skills/zoto-create-spec/SKILL.md
-    content_hash: e79c250ba45437db46c47a717cb2d638fbd65d26be25315de614015a0a6312ce
+    content_hash: d5d8f31ae3c2fc3824ac0cdbaf6bbc4f165994b8696d5cc71bd4327f848016a2
     public_surface:
       frontmatter:
         name: zoto-create-spec
@@ -809,7 +809,7 @@ targets:
   - id: skill:zoto-execute-spec
     kind: skill
     path: plugins/zoto-spec-system/skills/zoto-execute-spec/SKILL.md
-    content_hash: dd25ad95a2fd6210c4f72d2652882e070e9e3452f6a7eb4e19691e4c9927b0a4
+    content_hash: 40459613cf2c8a999434b2237d1b3de317bd08f7ca3abf0921c8537934152443
     public_surface:
       frontmatter:
         name: zoto-execute-spec
@@ -822,7 +822,7 @@ targets:
   - id: skill:zoto-judge-spec
     kind: skill
     path: plugins/zoto-spec-system/skills/zoto-judge-spec/SKILL.md
-    content_hash: 8ec8d8ff317d7c3c4a6a758eacf50e12f5a0165073079f818bf2fa07e822112d
+    content_hash: babacbc83ab593df08f7539bb322c8554a0cd6b2e19832a33f152f38e65873e1
     public_surface:
       frontmatter:
         name: zoto-judge-spec
@@ -1834,7 +1834,7 @@ targets:
   - id: agent:zoto-spec-executor
     kind: agent
     path: plugins/zoto-spec-system/agents/zoto-spec-executor.md
-    content_hash: 62b73f7f5372980ae0a500c3b0264e744c0df69cc1ba6ef67458f1bc4047f1b3
+    content_hash: 36ace5f3da1d885a65e613724a8a355575c7757c1c25900169736eec712d8153
     public_surface:
       frontmatter:
         name: zoto-spec-executor
@@ -1849,7 +1849,7 @@ targets:
   - id: agent:zoto-spec-generator
     kind: agent
     path: plugins/zoto-spec-system/agents/zoto-spec-generator.md
-    content_hash: 0cb7fb39e7f410e372bd9f2f8d706d925bea1ccd0efc970a760a35d25e9499f3
+    content_hash: c0b1acbad39e01496520ac68a15499d75dbe6024d34f1b7841530880ed7a59db
     public_surface:
       frontmatter:
         name: zoto-spec-generator
@@ -1863,7 +1863,7 @@ targets:
   - id: agent:zoto-spec-judge
     kind: agent
     path: plugins/zoto-spec-system/agents/zoto-spec-judge.md
-    content_hash: f144935058a14896d7b7492a4584f2e696e5626626343632230813efc9d800c5
+    content_hash: 6ae7a528df33969deeab74125964ab9e36f9c28a1adcbd5c5c6fd05853bc76a9
     public_surface:
       frontmatter:
         name: zoto-spec-judge

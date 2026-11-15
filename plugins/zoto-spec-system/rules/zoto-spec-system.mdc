@@ -39,6 +39,12 @@ Check the configured `specsDir` directory for existing spec directories. Each fo
 The spec system supports optional extensions:
 - **Memory system**: When `extensions.memory.enabled` is true in config, the memory plugin provides learning extraction and recall across sessions
 
+## Execution Strategy
+
+- A spec without an `## Execution Strategy` block runs **phased** (dependency graph and phases).
+- `execution_strategy: loop` needs `max_loops`, `max_duration_minutes`, at least one of `max_cost_usd` / `max_tokens`, and `checks` covering every requirement. Never start a loop whose `spec-strategy-lint` exits 1.
+- `evals: jev` and `agent_sdk` are optional; use them for checks a command cannot decide. See `plugins/zoto-spec-system/docs/execution-strategies.md`.
+
 ## Live Status & Token Budget
 
 - Live execution status lives under **`{specsDir}/<spec>/status/*.status.{md,yml}`** for each subtask (YAML authoritative for structured fields; markdown mirrors fenced regions — see `plugins/zoto-spec-system/docs/status-schema.md`).

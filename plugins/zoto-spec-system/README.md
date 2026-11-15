@@ -185,6 +185,7 @@ The plugin provides three specialized agents:
 |------|------|
 | **`scripts/spec-status-roundtrip.ts`** | Validates and round-trips subtask `*.status.yml` ↔ `*.status.md` (including `heartbeat` for progress ticks). |
 | **`scripts/spec-aggregator.ts`** | Reads `status/*.status.yml`, writes spec-root aggregate `status.{md,yml}`; supports `--once`, `--watch`, `--validate-only`. |
+| **`scripts/spec-strategy-lint.ts`** | Validates and lints a spec's `## Execution Strategy` block; exits 1 on HIGH findings. |
 
 ## Workflow overview
 
@@ -203,6 +204,12 @@ flowchart LR
 
 You can loop back: a **Conditional** or **Reject** verdict usually means revising the spec or codebase before executing.
 
+## Execution strategies
+
+A spec runs **`phased`** by default: subtasks run by dependency phase, in parallel inside a phase. A spec can instead declare **`loop`** in an `## Execution Strategy` YAML block: an agent or a small swarm makes a small change set, an event runs the spec's checks against the build, and failing checks go back into the loop until all pass or `max_loops`, `max_duration_minutes`, `max_cost_usd` or `max_tokens` stops it. Checks map to requirements and Definition of Done items and can be tests, static inspection, adversarial review, Jev questions (`evals: jev`) or Agent SDK evals (`agent_sdk`). Both are optional and recommended for checks a command cannot decide.
+
+See **[Execution strategies](docs/execution-strategies.md)** for how to choose, how to set limits, and examples.
+
 ## Spec file structure
 
 Specs are ordinary markdown in your repo. A feature spec directory usually looks like this:
@@ -214,6 +221,7 @@ Specs are ordinary markdown in your repo. A feature spec directory usually looks
     ├── subtask-01-feature-name-setup-20260403.md
     ├── subtask-02-feature-name-impl-20260403.md
     ├── assessment-feature-name-20260403.md    # After /z-spec-judge (spec mode)
+    ├── loop-status.yml                        # Loop specs only, written per iteration
     └── execution-report-feature-name-20260403.md   # After /z-spec-execute
 ```
 

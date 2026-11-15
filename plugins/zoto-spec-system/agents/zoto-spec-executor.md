@@ -150,6 +150,26 @@ all subtasks in prior phases are complete.
 |----|----------|-------------|
 | 03 | generalPurpose | [Description] |
 
+## Execution Strategy
+
+Optional. Omit this section for the default `phased` strategy. For a loop, see `docs/execution-strategies.md`:
+
+    ```yaml
+    execution_strategy: loop
+    loop:
+      max_loops: 5
+      max_duration_minutes: 30
+      max_tokens: 400000
+      checks:
+        - id: C01
+          covers: [R01, R02, "01", "02"]
+          kind: test
+          run: npm test
+        - id: C02
+          covers: ["03"]
+          kind: review
+    ```
+
 ## Definition of Done
 - [ ] All subtasks completed
 - [ ] All tests passing (the project's test suite)
@@ -220,7 +240,7 @@ Each subtask file contains:
 
 1. **Load Spec**: Read and validate the Subtask Manifest (agent assignments, dependencies, file existence)
 2. **Confirm Execution**: Present manifest as execution summary, use **`askQuestion`** for structured user approval
-3. **Execute Subtasks**: For each phase, spawn the exact subagent listed in the manifest for each subtask — never override agent assignments. Executing agents must use **`TodoWrite`** to track all Deliverables Checklist and Definition of Done items, and tick off each item in the subtask file as they complete it.
+3. **Execute Subtasks**: For a `loop` spec, run the loop in `zoto-execute-spec` Step 3L instead (bounded by its limits, checks run on every ready event, progress in `loop-status.yml`). For each phase the exact subagent listed in the manifest for each subtask — never override agent assignments. Executing agents must use **`TodoWrite`** to track all Deliverables Checklist and Definition of Done items, and tick off each item in the subtask file as they complete it.
 4. **Adversarial Verification**: After each subtask completes, spawn a fresh `zoto-spec-judge` subagent to independently verify every Deliverables Checklist and Definition of Done item. The judge writes verdict and a structured `fix_list` into the subtask's `.status.yml` `extra.judge` block — and writes nowhere else. **The judge does not author fixes; the executor does not author fixes either.** When the judge returns `Partial` or `Failed`, the executor re-spawns the originally-assigned subagent (per the manifest's Subagent column) with the `fix_list` as input, then spawns a fresh judge to re-verify. Run judge verifications as background subagents where possible.
 5. **Final Verification**: Run the project's test suite, check lints
 6. **Execution Report**: Write `execution-report-[feature-name]-[yyyymmdd].md` to the spec directory with full results
