@@ -138,6 +138,15 @@ For each subtask file, verify:
 - Verify phase assignments align with dependency ordering
 - Confirm subtask IDs respect dependency order (lower IDs do not depend on higher IDs)
 
+### Step 6b: Execution Strategy Audit
+
+Run `pnpm --filter @zoto-agents/zoto-spec-system run spec-strategy-lint -- --spec-dir <spec dir> --parallel-limit <spec.parallelLimit>`. A spec with no `## Execution Strategy` block is `phased`; nothing more to check. For `loop`:
+
+- Report every lint finding (rules ES000–ES013) in the Issues table with its severity. HIGH findings keep the verdict below Approve, the same as structural findings.
+- Judge the checks, not only their coverage: can each one actually be run or answered in this repository? Would passing all of them prove the requirements? Vague `jev` questions or `review` checks standing in for runnable tests are MEDIUM findings.
+- Judge the limits: is `max_loops × expected iteration cost` inside `max_tokens` / `max_cost_usd`? Is `swarm_size` realistic for the file ownership?
+- Score these under **Feasibility** and **Structure**.
+
 ### Step 7: Risk Analysis
 
 Identify:

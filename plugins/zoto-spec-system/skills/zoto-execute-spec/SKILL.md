@@ -59,7 +59,8 @@ Use this skill when a spec exists under `{specsDir}/` with status **Ready for Re
    - Read the subtask file and confirm its Metadata section matches the manifest (same subagent, same dependencies)
    - Confirm no subtask depends on a higher-numbered subtask ID
 4. Build the execution order from the manifest's Phase column
-5. If any inconsistencies are found (missing files, mismatched agents, dependency violations), report them and stop
+5. **Load the execution strategy**: run `pnpm --filter @zoto-agents/zoto-spec-system run spec-strategy-lint -- --spec-dir {specsDir}/<spec> --parallel-limit <spec.parallelLimit>`. No `## Execution Strategy` block means `phased`. If the command exits `1` (any HIGH finding), report the findings and stop — a loop without limits or checks must not start
+6. If any inconsistencies are found (missing files, mismatched agents, dependency violations), report them and stop
 
 ### Step 2: Confirm Execution
 
@@ -74,6 +75,7 @@ First, display the summary in your response text:
 - **Subtasks**: [total count]
 - **Phases**: [phase count]
 - **Parallel limit**: [spec.parallelLimit from config, default 4]
+- **Strategy**: [phased | loop — for loop add: max_loops, max_duration_minutes, max_cost_usd / max_tokens, swarm_size, check count]
 
 ### Subtask Manifest
 | ID | File | Subagent | Dependencies | Phase |
@@ -130,6 +132,24 @@ For each phase in order:
 3. **Wait for all phase subtasks** to complete before starting the next phase
 
 If a phase has more subtasks than `spec.parallelLimit`, batch them (N at a time per config) and wait for each batch before the next.
+
+### Step 3L: Execute a Loop Spec (`execution_strategy: loop`)
+
+Use this step **instead of Step 3** when the strategy is `loop`. Steps 4–8 still apply. The full contract is in [`docs/execution-strategies.md`](../../docs/execution-strategies.md).
+
+1. **Initialise** `loop-status.yml` at the spec root (schema `templates/schema/loop-status.schema.json`): `state: pending`, `iteration: 0`, the resolved `limits`, zero `usage`, every check `pending`.
+2. **Before each iteration**, stop with the matching `stop_reason` if the next iteration would exceed `max_loops`, `max_duration_minutes`, `max_cost_usd` or `max_tokens` (predict with the last iteration's usage), or if `max_stalled_loops` iterations in a row left the same checks failing.
+3. **Work**: spawn up to `min(swarm_size, spec.parallelLimit)` subagents. Give each one the outstanding checks it owns (at most `batch_size` in total per iteration), the criteria they cover, the matching subtask files and status pairs, and the last check output. Agents must own distinct files; split by file, not by check, when two checks touch the same file. Set `state: working`.
+4. **Ready event**: when every spawned agent reports done, set `state: checking` and run **every** check:
+   - `review` — spawn a fresh `zoto-spec-judge` in verification mode for the covered items (non-interference contract applies)
+   - `static` — run the non-executing inspection named in the check
+   - `test` — run `run` from the repo root; exit 0 passes
+   - `jev` — ask Jev the check's `question` with the evidence as state; pass at `threshold` (fall back to `review` when Jev is unavailable)
+   - `agent_eval` — `agent-sdk eval --dir <agent_sdk.project> <eval> --json --no-stream`; the case must pass
+5. **Record** the iteration in `loop-status.yml` (`outstanding`, `passed`, tokens, US$, agents) and tick the covered checklist items in each subtask's status pair when their check passes.
+6. **Decide**: all checks pass → `state: completed`, `stop_reason: all_checks_passed`. Otherwise the failing checks are the next iteration's outstanding items; go to 2.
+
+Report usage against every limit in the progress updates. A loop stopped by a limit goes on to Step 4 with the outstanding checks listed as blockers.
 
 ### Status File Ownership
 

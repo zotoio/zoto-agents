@@ -9,12 +9,14 @@ A structured spec workflow that decomposes complex initiatives into reviewable s
 - **Create** — break a feature, refactor, or migration into phased subtasks with dependencies, deliverables, and definitions of done.
 - **Judge** — get an independent assessment of feasibility, risk, and completeness before any code is written.
 - **Execute** — implement subtasks in order; each deliverable is adversarially verified before moving on, with live execution status aggregation and no-restart token-budget configuration.
+- **Strategies** — run phased by dependency graph (the default), or as a bounded loop that iterates small change sets until every check passes, with optional Jev and Agent SDK checks.
 
 Specs land as durable markdown in your repo, so the *why* behind a change survives the chat session.
 
 ## Read more
 
 - Plugin README: [plugins/zoto-spec-system/README.md](../plugins/zoto-spec-system/README.md)
+- Execution strategies: [plugins/zoto-spec-system/docs/execution-strategies.md](../plugins/zoto-spec-system/docs/execution-strategies.md)
 - Commands: `/z-spec-init`, `/z-spec-create`, `/z-spec-judge`, `/z-spec-execute`.
 - Skills: `plugins/zoto-spec-system/skills/` (`zoto-create-spec`, `zoto-judge-spec`, `zoto-execute-spec`).
 - Agents: `zoto-spec-generator`, `zoto-spec-judge`, `zoto-spec-executor`.

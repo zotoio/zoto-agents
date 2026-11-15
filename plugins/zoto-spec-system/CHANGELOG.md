@@ -2,6 +2,21 @@
 
 All notable changes to the Spec System plugin will be documented in this file.
 
+## [0.8.0] - 2026-11-15
+
+### Added
+
+- **Execution strategies.** Specs may declare an optional `## Execution Strategy` YAML block. `phased` (the default when the block is missing) keeps the dependency-graph execution. `loop` iterates small change sets until every check passes, bounded by `max_loops`, `max_duration_minutes` and `max_cost_usd` / `max_tokens`, with `swarm_size`, `batch_size` and `max_stalled_loops`. Schema: `templates/schema/execution-strategy.schema.json`.
+- **Loop checks** with `covers` references to requirements (`R01`), spec Definition of Done (`DoD01`), subtasks (`02`) and subtask items (`02.D01`, `02.DoD01`), and kinds `review`, `static`, `test`, `jev`, `agent_eval`.
+- **Optional `evals: jev` and `agent_sdk` blocks** for Jev-scored checks and input guarding, and Agent SDK (`@grok/agent-sdk` 0.6.0) eval checks.
+- **`spec-strategy-lint`** CLI and `checkSpecExecutionStrategy` / `lintExecutionStrategy` exports with rules ES000–ES013.
+- **`loop-status.yml`** spec-root progress file. Schema: `templates/schema/loop-status.schema.json`.
+- Guide: `docs/execution-strategies.md`.
+
+### Changed
+
+- `zoto-create-spec` Step 4b chooses the strategy; `zoto-judge-spec` Step 6b audits it; `zoto-execute-spec` Step 3L runs loop specs.
+
 ## [unreleased] — 2026-05-26
 
 ### Changed

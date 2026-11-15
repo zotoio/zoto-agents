@@ -34,3 +34,26 @@ export {
   type StateClass,
   type SubtaskState,
 } from "./dependency-graph-colors.js";
+
+export {
+  DEFAULT_STRATEGY,
+  checkSpecExecutionStrategy,
+  criteriaRefsFromMarkdown,
+  extractExecutionBlock,
+  lintExecutionStrategy,
+  normalizeExecutionStrategy,
+  parseExecutionStrategy,
+  refExists,
+  type AgentSdkConfig,
+  type CheckKind,
+  type CriteriaRefs,
+  type EvalsConfig,
+  type ExecutionStrategy,
+  type ExecutionStrategyName,
+  type LintOptions,
+  type LoopCheck,
+  type LoopLimits,
+  type ParseResult,
+  type StrategyFinding,
+  type StrategySeverity,
+} from "./execution-strategy.js";

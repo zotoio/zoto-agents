@@ -45,6 +45,10 @@ Rules:
 
 The JSON Schema for this document is [`subtask-status.schema.json`](../templates/schema/subtask-status.schema.json).
 
+### Loop progress (`loop-status.yml`, loop specs only)
+
+A spec with `execution_strategy: loop` also has a spec-root `loop-status.yml`, written by the executor after every iteration and validated by [`loop-status.schema.json`](../templates/schema/loop-status.schema.json). It holds `state` (`pending | working | checking | completed | stopped | failed`), `stop_reason`, `iteration`, the resolved `limits`, `usage` (`tokens`, `cost_usd`, `elapsed_minutes`), per-check `checks[]` (`id`, `state`, optional `score` and `evidence`), and one `iterations[]` row per iteration (`outstanding`, `passed`, `tokens`, `cost_usd`, `agents`). It has no markdown pair, and the aggregator neither reads nor rewrites it. See [Execution strategies](execution-strategies.md).
+
 ### Spec-root aggregate (`spec-status.md` ↔ `spec-status.yml`)
 
 | Block `<field-id>` | YAML path(s) | Notes |

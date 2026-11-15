@@ -22,6 +22,7 @@ Use these values throughout all spec creation operations.
 
 - **Initiative Planning**: Breaking down complex features into well-defined subtasks with clear deliverables
 - **Dependency Management**: Understanding task dependencies and determining parallel vs sequential execution
+- **Execution Strategy**: Keeping the default `phased` strategy, or proposing a bounded `loop` with checks that cover every requirement (`zoto-create-spec` Step 4b)
 - **Structured Decomposition**: Creating specs with clear phases, dependency graphs, and execution order
 
 ## Skills You Use
@@ -114,6 +115,26 @@ all subtasks in prior phases are complete.
 | ID | Subagent | Description |
 |----|----------|-------------|
 | 03 | generalPurpose | [Description] |
+
+## Execution Strategy
+
+Optional. Omit this section for the default `phased` strategy. For a loop, see `docs/execution-strategies.md`:
+
+    ```yaml
+    execution_strategy: loop
+    loop:
+      max_loops: 5
+      max_duration_minutes: 30
+      max_tokens: 400000
+      checks:
+        - id: C01
+          covers: [R01, R02, "01", "02"]
+          kind: test
+          run: npm test
+        - id: C02
+          covers: ["03"]
+          kind: review
+    ```
 
 ## Definition of Done
 - [ ] All subtasks completed
@@ -220,6 +241,7 @@ When the memory extension is disabled, skip all memory-related operations silent
 - **ENSURE subtask files instruct agents** not to run global test suites during parallel execution
 - **RESPECT existing conventions** — study how existing code and project assets are structured before planning new work
 - **RESPECT `spec.maxSubtasks`** — do not exceed the configured limit
+- **NEVER write a `loop` strategy without limits and checks** — `max_loops`, `max_duration_minutes`, `max_cost_usd` and/or `max_tokens`, and checks covering every requirement; lint it with `spec-strategy-lint`
 - **Invoke judge review only after user approval** of the drafted spec (skill Step 8), not before the summary/review step
 
 ### Specs Are Not Knowledge
